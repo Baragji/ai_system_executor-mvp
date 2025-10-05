@@ -1,0 +1,42 @@
+[
+  {
+    "task_id": "P2A-V01",
+    "fix_number": 0,
+    "status": "success",
+    "started_at": "2025-10-05T16:55:00Z",
+    "finished_at": "2025-10-05T16:57:30Z",
+    "elapsed_ms": 150000,
+    "result": "Phase 2A verification complete",
+    "errors": []
+  },
+  {
+    "task_id": "OBS-FIX-01",
+    "fix_number": 1,
+    "status": "success",
+    "started_at": "2025-10-05T16:57:31Z",
+    "finished_at": "2025-10-05T16:59:30Z",
+    "elapsed_ms": 119000,
+    "result": "Telemetry dual-write operational",
+    "errors": []
+  },
+  {
+    "task_id": "OBS-FIX-02",
+    "fix_number": 2,
+    "status": "success",
+    "started_at": "2025-10-05T16:59:31Z",
+    "finished_at": "2025-10-05T17:00:20Z",
+    "elapsed_ms": 49000,
+    "result": "Evaluation logging captured",
+    "errors": []
+  },
+  {
+    "task_id": "OBS-GATE",
+    "fix_number": 3,
+    "status": "success",
+    "started_at": "2025-10-05T17:00:21Z",
+    "finished_at": "2025-10-05T17:00:29Z",
+    "elapsed_ms": 8000,
+    "result": "Observability validation passed",
+    "errors": []
+  }
+]
