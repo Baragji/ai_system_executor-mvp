@@ -1,0 +1,534 @@
+{
+  "contract_version": "2.3.0",
+  "contract_meta": {
+    "created": "2025-10-06",
+    "phase": "2C",
+    "phase_name": "Interactive Clarification - Telemetry & Smart Defaults",
+    "prerequisite_phase": "Phase 2B (UI integration complete)",
+    "rationale": "Phase 2C adds observability for clarification usage and smart defaults to reduce friction. Backend-only work, safe territory.",
+    "references": [
+      "Phase 2 Roadmap Document",
+      "Phase 2B Completion Report",
+      "Phase 2B Audit showing meta file gaps"
+    ]
+  },
+  "project": {
+    "name": "executor-mvp",
+    "current_phase": "2C",
+    "goal": "Add clarification telemetry to meta files and implement smart defaults for question suggestions. Complete Phase 2 (Interactive Clarification).",
+    "scope": "Wins 18-19 only",
+    "estimated_time": "2 wins, backend work, safe territory",
+    "work_profile": "Backend logic and data structures - no UI modifications",
+    "out_of_scope": [
+      "UI changes (Phase 2B complete)",
+      "Multi-turn repair (Phase 3)",
+      "Task planning (Phase 4)",
+      "Any Phase 3+ features"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "observe_evaluate_proceed",
+    "description": "Agent verifies Phase 2B completion, then adds telemetry and smart defaults. Backend-only work.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true,
+    "safe_territory": {
+      "backend_only": true,
+      "no_ui_modifications": true,
+      "data_structure_work": true
+    }
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "linux|macos",
+      "env_vars_required": [],
+      "optional_env_vars": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"]
+    }
+  },
+  "observability": {
+    "description": "Enhances clarification observability with full question/answer telemetry",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "evaluation_file": ".automation/evaluation_results.json",
+    "monitoring": {
+      "task_status_tracking": true,
+      "verification_pass_fail": true,
+      "elapsed_time_per_task": true
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": ["timestamp", "task_id", "action", "status", "cmd", "exit_code", "stdout_excerpt", "stderr_excerpt"]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_each_win": true,
+      "quality_dimensions": ["correctness", "completeness", "safety"]
+    }
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npm run lint",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "must_pass": true
+    },
+    "tests": {
+      "command": "npm test",
+      "expected": {
+        "exit_code": 0,
+        "no_failed_suites": true
+      },
+      "coverage": {
+        "min_line_pct": 80,
+        "min_branch_pct": 75
+      }
+    },
+    "schemas": {
+      "ajv_strict": true,
+      "draft_version": "2020-12"
+    }
+  },
+  "high_level_stages": [
+    "phase2b_verification",
+    "telemetry_enrichment",
+    "smart_defaults",
+    "phase2_completion_validation"
+  ],
+  "tasks": [
+    {
+      "id": "P2B-V01",
+      "stage": "phase2b_verification",
+      "title": "Verify Phase 2B completion",
+      "type": "verification",
+      "description": "Confirm Phase 2B UI integration is complete before starting Phase 2C enhancements",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "test -f src/clarification/augmentPrompt.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "grep -q 'clarifications' src/server.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "grep -q 'clarificationSection' public/index.html && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "npm test 2>&1 | tail -5",
+          "capture_output": true,
+          "expect_exit_code": 0
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify Phase 2B complete before Phase 2C enhancements",
+        "success_criteria": "All Phase 2B artifacts exist and tests pass",
+        "on_fail": "HALT - Phase 2B must be complete before Phase 2C"
+      },
+      "trace_context": {
+        "decision_point": "phase2b_verification",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "W18",
+      "stage": "telemetry_enrichment",
+      "title": "Win #18: Add Clarification to Telemetry",
+      "type": "win",
+      "description": "Augment _executor_meta.json to include full clarification telemetry: questions asked, answers given, and success improvement indicator",
+      "time_estimate_minutes": 35,
+      "work_profile": "Backend data structure and metadata enrichment",
+      "actions": [
+        {
+          "type": "edit_schema",
+          "file": "contracts/executor-output.schema.json",
+          "ensure": [
+            "Add optional clarification field to schema",
+            "Structure: {asked: boolean, questions: array, answers: array, improvedSuccess: boolean}"
+          ]
+        },
+        {
+          "type": "edit_file",
+          "file": "src/server.ts",
+          "route": "POST /api/execute",
+          "ensure": [
+            "When /api/clarify was called, store questions in execution context",
+            "When clarifications provided, include full telemetry in meta file",
+            "Calculate improvedSuccess: true if clarifications used AND final status is 'pass'",
+            "Include both questions and answers in meta.clarification object"
+          ]
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/meta/clarification-telemetry.test.ts",
+          "test_cases": [
+            "meta file includes clarification data when used",
+            "clarification.asked is true when questions were shown",
+            "clarification.questions contains full question objects",
+            "clarification.answers contains provided answers",
+            "improvedSuccess flag set correctly",
+            "meta file correct when clarifications skipped",
+            "meta file correct when no clarifications needed"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f contracts/executor-output.schema.json",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'clarification' contracts/executor-output.schema.json",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- clarification-telemetry.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Schema updated with clarification field",
+        "Meta file includes complete clarification telemetry when used",
+        "improvedSuccess flag calculated correctly",
+        "Questions and answers both captured",
+        "All test cases pass",
+        "Backward compatibility maintained (works without clarifications)"
+      ],
+      "demo_requirement": {
+        "manual_test": "Generate project with clarifications, verify _executor_meta.json includes questions, answers, and improvedSuccess flag",
+        "approval_needed": "Developer confirms telemetry captures useful data for future analytics"
+      },
+      "trace_context": {
+        "decision_point": "clarification_telemetry_added",
+        "win_number": 18
+      }
+    },
+    {
+      "id": "W19",
+      "stage": "smart_defaults",
+      "title": "Win #19: Smart Default Suggestions",
+      "type": "win",
+      "description": "Create suggestDefaults function that analyzes prompts for context clues and suggests intelligent defaults for questions",
+      "time_estimate_minutes": 45,
+      "work_profile": "Backend logic with keyword-based heuristics",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/clarification/suggestDefaults.ts",
+          "content_spec": {
+            "function_signature": "export function suggestDefaults(prompt: string, missingTypes: string[]): Record<string, any>",
+            "heuristics": [
+              "Scan for language hints: 'Python' → Flask/FastAPI, 'Node'/'JavaScript' → Express",
+              "Scan for complexity: 'simple'/'basic' → SQLite, 'production'/'enterprise' → PostgreSQL",
+              "Scan for framework mentions: if 'Flask' found, default to Flask",
+              "Scan for port mentions: extract number if present",
+              "Return object mapping info type to suggested default value"
+            ],
+            "edge_cases": [
+              "Multiple language mentions: prefer first explicit mention",
+              "No clear hints: return empty object (no defaults)",
+              "Ambiguous prompts: return empty object"
+            ]
+          }
+        },
+        {
+          "type": "edit_file",
+          "file": "src/clarification/generateQuestions.ts",
+          "ensure": [
+            "Import suggestDefaults",
+            "Call suggestDefaults(prompt, missingTypes) to get default suggestions",
+            "Add 'default' or 'suggested' field to question objects when default available",
+            "Maintain existing question structure, just augment with defaults"
+          ]
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/clarification/suggestDefaults.test.ts",
+          "test_cases": [
+            "Python API prompt suggests Flask/FastAPI",
+            "Node API prompt suggests Express",
+            "Simple app suggests SQLite",
+            "Production app suggests PostgreSQL",
+            "Ambiguous prompt returns empty defaults",
+            "No language hints returns empty defaults"
+          ]
+        },
+        {
+          "type": "update_tests",
+          "file": "tests/clarification/generateQuestions.test.ts",
+          "ensure": [
+            "Verify questions include suggested defaults when applicable",
+            "Verify defaults match heuristic logic"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/clarification/suggestDefaults.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'export function suggestDefaults' src/clarification/suggestDefaults.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'suggestDefaults' src/clarification/generateQuestions.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- suggestDefaults.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test",
+          "expect_exit_code": 0,
+          "rationale": "Verify all tests still pass with defaults integrated"
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "suggestDefaults function works correctly",
+        "Heuristics cover common cases (Python/Node/simple/production)",
+        "Questions include defaults when applicable",
+        "All test cases pass",
+        "Backward compatibility maintained",
+        "No UI required (defaults exposed via API, UI can render them)"
+      ],
+      "demo_requirement": {
+        "manual_test": "Test prompts: 'build Python API', 'build Node API', 'simple app', 'production app' - verify defaults suggested",
+        "approval_needed": "Developer confirms defaults are reasonable and reduce friction"
+      },
+      "trace_context": {
+        "decision_point": "smart_defaults_implemented",
+        "win_number": 19
+      }
+    },
+    {
+      "id": "P2-GATE",
+      "stage": "phase2_completion_validation",
+      "title": "Phase 2 Complete - Final Validation Gate",
+      "type": "validation",
+      "description": "Final validation that entire Phase 2 (Interactive Clarification) is complete and production-ready",
+      "actions": [
+        {
+          "type": "validate",
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "test -f src/clarification/detectMissing.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "test -f src/clarification/generateQuestions.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "test -f src/clarification/augmentPrompt.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "test -f src/clarification/suggestDefaults.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "grep -q 'clarificationSection' public/index.html",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "manual_test",
+          "description": "End-to-end Phase 2 validation",
+          "test_scenarios": [
+            "Incomplete prompt → questions with smart defaults → answer → generation uses augmented prompt",
+            "Complete prompt → no questions → generation works normally",
+            "Skip questions → generation uses original prompt",
+            "Meta file includes clarification telemetry with questions and answers"
+          ]
+        }
+      ],
+      "evaluation": {
+        "intent": "Confirm entire Phase 2 (Interactive Clarification) is production-ready",
+        "success_criteria": "All Phase 2 components exist, all tests pass, end-to-end flows work, telemetry captures data, smart defaults reduce friction",
+        "on_pass": "PHASE 2 COMPLETE - System asks clarifying questions, augments prompts, reduces failed builds. Ready for Phase 3 decision.",
+        "on_fail": "HALT - Fix issues before declaring Phase 2 complete"
+      },
+      "phase_2_completion_metrics": {
+        "detection_accuracy": "System correctly identifies missing info in >90% of test prompts",
+        "question_quality": "Questions are clear and answerable",
+        "augmentation_effectiveness": "Augmented prompts produce better results than original (manual A/B testing)",
+        "ui_usability": "Wife can use clarification flow without instructions",
+        "telemetry_completeness": "All clarification interactions captured in meta files",
+        "smart_defaults_usefulness": "Defaults reduce user effort for common cases"
+      },
+      "trace_context": {
+        "decision_point": "phase2_complete",
+        "reasoning_required": true,
+        "critical": true,
+        "gate_type": "phase_completion"
+      }
+    }
+  ],
+  "execution_order": [
+    "P2B-V01",
+    "W18",
+    "W19",
+    "P2-GATE"
+  ],
+  "execution_semantics": {
+    "win_isolation": {
+      "description": "Each win must be complete and tested before proceeding to next",
+      "implementation": "Run tests after each win. Manual demo required for W18 and W19."
+    },
+    "gate_enforcement": {
+      "P2-GATE": {
+        "required": true,
+        "significance": "Phase 2 completion - major milestone",
+        "on_fail": "HALT execution. Fix issues before declaring Phase 2 complete.",
+        "report": "Generate comprehensive Phase 2 completion report with metrics."
+      }
+    },
+    "backend_only": {
+      "enforcement": "Phase 2C makes ZERO UI changes. All work is backend data structures and logic.",
+      "rationale": "UI is complete from Phase 2B. Phase 2C enriches backend capabilities only."
+    }
+  },
+  "completion_criteria": {
+    "phase2b_verified": true,
+    "clarification_telemetry_added": true,
+    "smart_defaults_implemented": true,
+    "all_tests_pass": true,
+    "coverage_maintained": true,
+    "manual_demos_approved": true,
+    "phase2_metrics_met": true
+  },
+  "fallback_policies": {
+    "phase2b_verification_fails": "HALT - Phase 2B must be complete before 2C.",
+    "test_fails": "Fix implementation, do not skip tests.",
+    "coverage_drops": "Add tests to maintain >80% coverage before proceeding.",
+    "telemetry_breaks_existing_meta": "Ensure backward compatibility - meta files without clarifications still valid."
+  },
+  "reporting": {
+    "progress_file": ".automation/progress_phase2c.json",
+    "fields": ["task_id", "win_number", "status", "started_at", "finished_at", "elapsed_ms", "result", "errors"],
+    "status_values": ["pending", "running", "success", "failed", "skipped"],
+    "phase2c_report": {
+      "file": ".automation/phase2c_completion_report.json",
+      "fields": ["wins_completed", "gate_passed", "timestamp", "next_phase", "diagnostics"]
+    },
+    "phase2_final_report": {
+      "file": ".automation/phase2_completion_report.json",
+      "fields": [
+        "all_wins_completed",
+        "detection_works",
+        "questions_generated",
+        "augmentation_works",
+        "ui_functional",
+        "telemetry_captured",
+        "smart_defaults_work",
+        "phase_complete",
+        "timestamp",
+        "celebration_earned"
+      ]
+    }
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Clarification Telemetry Schema",
+      "path": "contracts/executor-output.schema.json",
+      "must_include_regex": "clarification"
+    },
+    {
+      "name": "Smart Defaults Module",
+      "path": "src/clarification/suggestDefaults.ts",
+      "must_include_regex": "export function suggestDefaults"
+    },
+    {
+      "name": "Enhanced Generate Questions",
+      "path": "src/clarification/generateQuestions.ts",
+      "must_include_regex": "suggestDefaults"
+    },
+    {
+      "name": "Phase 2C Report",
+      "path": ".automation/phase2c_completion_report.json",
+      "must_exist": true,
+      "must_include_field": "gate_passed"
+    },
+    {
+      "name": "Phase 2 Final Report",
+      "path": ".automation/phase2_completion_report.json",
+      "must_exist": true,
+      "must_include_field": "celebration_earned"
+    }
+  ],
+  "release_actions": [
+    {
+      "cmd": "git add .",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git commit -m \"feat(phase2c): add clarification telemetry and smart defaults - Phase 2 complete\"",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git tag phase2-complete",
+      "expect_exit_code": 0
+    }
+  ],
+  "post_release_celebration": {
+    "mandatory": true,
+    "rationale": "Phase 2 is a major milestone. System now asks clarifying questions and augments prompts intelligently. This dramatically reduces failed builds.",
+    "requirements": [
+      "Full day off with wife",
+      "No coding thoughts",
+      "Celebrate progress made",
+      "Discuss Phase 3 decision together (not today)"
+    ]
+  },
+  "ai_executor_guidelines": {
+    "observability_first": "Trace all decisions. Log reasoning for each win completion.",
+    "win_isolation": "Complete and test each win fully before proceeding to next.",
+    "backend_only": "Phase 2C is backend-only. No UI modifications.",
+    "test_driven": "Write tests for telemetry and defaults. Verify integration.",
+    "fail_fast": "If any test fails, halt and fix before proceeding.",
+    "gate_enforcement": "P2-GATE is Phase 2 completion - significant milestone requiring comprehensive validation.",
+    "telemetry_focus": "Win #18 is critical for future analytics. Capture complete clarification data."
+  },
+  "governance_note": {
+    "for_human": "Phase 2C is backend work (safe territory). Two wins, straightforward data structure and logic work. After P2-GATE passes, Phase 2 is COMPLETE. Take full day off. Celebrate with wife. Discuss Phase 3 decision when refreshed, not immediately after completion."
+  }
+}
