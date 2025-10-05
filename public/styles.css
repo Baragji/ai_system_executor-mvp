@@ -10,3 +10,14 @@ button { margin-top: 16px; padding: 12px 16px; border: none; border-radius: 12px
 button:hover { filter: brightness(1.05); }
 .result { background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 12px; margin-top: 16px; overflow: auto; max-height: 420px; }
 code { background: #0f172a; padding: 2px 6px; border-radius: 6px; border:1px solid #334155; }
+.hidden { display: none; }
+.test-controls { margin-top: 24px; padding: 16px; border: 1px solid #334155; border-radius: 12px; background: rgba(15, 23, 42, 0.7); }
+.test-controls h2 { margin-top: 0; }
+.run-tests { margin-top: 0; background: #16a34a; }
+.test-status { margin-top: 16px; padding: 12px; border-radius: 10px; background: rgba(30, 41, 59, 0.8); border: 1px solid #1e293b; font-family: ui-monospace, SFMono-Regular, SFMono, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.test-status .status-pass { color: #22c55e; font-weight: 600; }
+.test-status .status-fail { color: #f97316; font-weight: 600; }
+.repair-timeline { margin-top: 16px; display: grid; gap: 12px; }
+.timeline-entry { padding: 12px; border-radius: 10px; border: 1px solid #1f2937; background: rgba(17, 24, 39, 0.85); }
+.timeline-entry h3 { margin: 0 0 8px; font-size: 16px; }
+.timeline-entry p { margin: 4px 0; }

@@ -1,0 +1,8 @@
+{
+  "name": "hanging-project",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node scripts/hang.mjs"
+  }
+}

@@ -3,7 +3,8 @@ import path from "node:path";
 import type { ExecutorFile } from "./types.js";
 
 function isSafeRelative(p: string) {
-  if (p.startsWith("/") || /^[A-Za-z]:/.test(p) || p.includes("..") || p.includes("\\") || p.includes("\")) return false;
+  if (p.startsWith("/") || /^[A-Za-z]:/.test(p)) return false;
+  if (p.includes("..") || p.includes("\\") || p.includes('"')) return false;
   return true;
 }
 
