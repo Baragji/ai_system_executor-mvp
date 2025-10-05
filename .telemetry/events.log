@@ -4,3 +4,6 @@
 {"name":"test_run","timestamp":"2025-10-05T07:56:29.215Z","payload":{"project":"phase1-demo","stage":"post_repair","status":"pass"}}
 {"name":"generation_complete","timestamp":"2025-10-05T07:56:29.218Z","payload":{"project":"phase1-demo","status":"pass"}}
 {"name":"test_run","timestamp":"2025-10-05T07:56:33.553Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
+{"name":"generation_start","timestamp":"2025-10-05T10:05:05.239Z","payload":{"project":"hello-world-html"}}
+{"name":"test_run","timestamp":"2025-10-05T10:05:06.552Z","payload":{"project":"hello-world-html","stage":"initial","status":"pass"}}
+{"name":"generation_complete","timestamp":"2025-10-05T10:05:06.553Z","payload":{"project":"hello-world-html","status":"pass"}}
