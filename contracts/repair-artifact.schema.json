@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RepairArtifact",
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action": {
+      "type": "string",
+      "enum": ["modify", "add", "delete"]
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": ["path", "action"],
+  "additionalProperties": false
+}

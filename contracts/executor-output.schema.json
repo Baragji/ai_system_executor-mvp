@@ -33,10 +33,15 @@
       "items": {
         "type": "string"
       }
+    },
+    "hasTests": {
+      "type": "boolean",
+      "description": "Indicates whether at least one test file exists in the generated output"
     }
   },
   "required": [
-    "files"
+    "files",
+    "hasTests"
   ],
   "additionalProperties": false
 }

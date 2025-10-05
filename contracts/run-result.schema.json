@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RunResult",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["pass", "fail", "error"]
+    },
+    "passCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "failCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "durationMs": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "logsPath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "command": {
+      "type": "string"
+    },
+    "exitCode": {
+      "type": "integer"
+    },
+    "signal": {
+      "type": "string"
+    },
+    "timedOut": {
+      "type": "boolean"
+    },
+    "errorMessage": {
+      "type": "string"
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finishedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "status",
+    "passCount",
+    "failCount",
+    "durationMs",
+    "logsPath",
+    "timestamp"
+  ],
+  "additionalProperties": false
+}
