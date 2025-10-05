@@ -69,7 +69,9 @@ const SOFTWARE_TERMS = [
   "build",
   "create",
   "develop",
-  "generate"
+  "generate",
+  // Broaden detection to match common phrasing in UI placeholder
+  "make"
 ];
 
 const PROJECT_TERMS = [
@@ -109,7 +111,10 @@ export function detectMissing(prompt: string): MissingInfoType[] {
     ];
   }
 
-  const isSoftwareRequest = hasAny(trimmed, SOFTWARE_TERMS) && hasAny(trimmed, PROJECT_TERMS);
+  // Treat prompts that mention common project terms or known frameworks as software requests.
+  // Previously required BOTH a software verb and a project term; that missed prompts like
+  // "simple frontend with quiz". Relaxing to project/framework detection improves UX.
+  const isSoftwareRequest = hasAny(trimmed, PROJECT_TERMS) || hasAny(trimmed, FRAMEWORK_KEYWORDS);
   if (!isSoftwareRequest) {
     return [];
   }
