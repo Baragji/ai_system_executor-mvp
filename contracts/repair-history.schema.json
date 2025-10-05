@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RepairHistory",
+  "type": "object",
+  "required": [
+    "attempts",
+    "finalStatus",
+    "totalAttempts"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "attempts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": { "$ref": "#/$defs/repairAttempt" }
+    },
+    "finalStatus": {
+      "type": "string",
+      "enum": ["pass", "fail", "exhausted"]
+    },
+    "totalAttempts": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4
+    },
+    "successAttemptNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4
+    }
+  },
+  "$defs": {
+    "repairAttempt": {
+      "type": "object",
+      "required": [
+        "number",
+        "changedFiles",
+        "testResult",
+        "durationMs",
+        "cumulativeTime"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "running", "pass", "fail", "error"]
+        },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "finishedAt": { "type": "string", "format": "date-time" },
+        "changedFiles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "summary": { "type": "string" },
+        "testResult": { "$ref": "#/$defs/testResult" },
+        "failureAnalysis": { "$ref": "#/$defs/failureAnalysis" },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cumulativeTime": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "testResult": {
+      "type": "object",
+      "required": ["status", "passCount", "failCount"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["pass", "fail", "error"]
+        },
+        "passCount": { "type": "integer", "minimum": 0 },
+        "failCount": { "type": "integer", "minimum": 0 },
+        "skipCount": { "type": "integer", "minimum": 0 },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "summary": { "type": "string" },
+        "logsPath": { "type": "string" },
+        "errorMessage": { "type": "string" }
+      }
+    },
+    "failureAnalysis": {
+      "type": "object",
+      "required": ["failedTests", "totalFailed", "category"],
+      "additionalProperties": false,
+      "properties": {
+        "failedTests": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/failedTest" },
+          "maxItems": 50
+        },
+        "totalFailed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 50
+        },
+        "category": {
+          "type": "string",
+          "enum": ["assertion", "exception", "timeout", "syntax", "multiple"]
+        }
+      }
+    },
+    "failedTest": {
+      "type": "object",
+      "required": ["name", "type", "message", "stackSnippet"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": ["assertion", "exception", "timeout", "syntax"]
+        },
+        "message": { "type": "string", "maxLength": 4000 },
+        "stackSnippet": {
+          "type": "array",
+          "items": { "type": "string" },
+          "maxItems": 5
+        }
+      }
+    }
+  }
+}
