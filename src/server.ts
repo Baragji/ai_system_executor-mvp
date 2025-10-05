@@ -18,7 +18,12 @@ import type { ExecutorOutput, ExecutorFile } from "./executor/types.js";
 import type { RunResult } from "./contracts/validators.js";
 import { detectMissing } from "./clarification/detectMissing.js";
 import { generateQuestions } from "./clarification/generateQuestions.js";
-import { validateClarificationRequest } from "./contracts/validators.js";
+import { augmentPrompt } from "./clarification/augmentPrompt.js";
+import {
+  validateClarificationRequest,
+  validateClarificationResponse
+} from "./contracts/validators.js";
+import type { ClarificationResponse } from "./clarification/types.js";
 
 const app = express();
 app.use(cors());
@@ -105,14 +110,38 @@ app.post("/api/clarify", (req, res) => {
 
 app.post("/api/execute", async (req, res) => {
   try {
-    const prompt: string = (req.body?.prompt || "").toString();
+    const promptRaw = req.body?.prompt;
+    const originalPrompt: string = promptRaw === undefined ? "" : promptRaw.toString();
+    const promptForValidation = originalPrompt.trim();
     const projectNameRaw: string | undefined = req.body?.projectName;
-    if (!prompt || prompt.length < 3) return res.status(400).json({ error: "prompt required" });
+    if (!promptForValidation || promptForValidation.length < 3) {
+      return res.status(400).json({ error: "prompt required" });
+    }
+
+    let clarificationsUsed = false;
+    let clarifications: ClarificationResponse | undefined;
+
+    if (req.body?.clarifications !== undefined) {
+      const validation = validateClarificationResponse(req.body.clarifications);
+      if (!validation.ok) {
+        return res.status(400).json({ error: "invalid clarifications", details: validation.errors });
+      }
+      clarifications = validation.value;
+    }
+
+    let effectivePrompt = originalPrompt;
+    if (clarifications) {
+      const augmented = augmentPrompt(originalPrompt, clarifications);
+      if (augmented !== originalPrompt) {
+        clarificationsUsed = true;
+        effectivePrompt = augmented;
+      }
+    }
 
     const systemPrompt = await fs.readFile("src/executor/systemPrompt.md", "utf-8");
     const messages = [
       { role: "system" as const, content: systemPrompt },
-      { role: "user" as const, content: prompt }
+      { role: "user" as const, content: effectivePrompt }
     ];
 
     const raw = await generateJSON(messages);
@@ -160,7 +189,7 @@ app.post("/api/execute", async (req, res) => {
         projectSlug: slug,
         failure: initialRun,
         originalFiles: output.files,
-        prompt
+        prompt: effectivePrompt
       });
       await logEvent("repair_attempt", {
         project: slug,
@@ -178,7 +207,14 @@ app.post("/api/execute", async (req, res) => {
     const fileMetadata = await computeFileChecksums(collectFilePaths(output.files, repair), targetRoot);
     const meta = {
       created_at: new Date().toISOString(),
-      source_prompt: prompt,
+      source_prompt: effectivePrompt,
+      original_prompt: originalPrompt,
+      clarifications: clarifications
+        ? {
+            used: clarificationsUsed,
+            answers: clarifications.answers
+          }
+        : { used: false, answers: [] },
       notes: output.notes || [],
       testRuns: testRuns.map((run, idx) => buildTestRunEntry(idx === 0 ? "initial" : "repair", run)),
       repair: repair
@@ -218,7 +254,9 @@ app.post("/api/execute", async (req, res) => {
         initial: initialRun,
         afterRepair: repair?.runResult ?? null
       },
-      repair: meta.repair
+      repair: meta.repair,
+      clarificationsUsed,
+      generated: effectivePrompt
     });
   } catch (err: unknown) {
     console.error(err);

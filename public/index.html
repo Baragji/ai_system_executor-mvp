@@ -19,6 +19,18 @@
 
       <button id="runBtn">Execute</button>
 
+      <section id="clarificationSection" class="clarification hidden">
+        <h2>Clarification Needed</h2>
+        <p class="clarification-hint">Answer the questions below so the agent can build exactly what you need.</p>
+        <form id="clarificationForm">
+          <div id="clarificationQuestions" class="clarification-questions"></div>
+          <div class="clarification-actions">
+            <button type="submit" id="answerClarifications">Answer Questions</button>
+            <button type="button" id="skipClarifications" class="skip-button">Skip Questions</button>
+          </div>
+        </form>
+      </section>
+
       <pre id="result" class="result"></pre>
 
       <section id="testControls" class="test-controls hidden">
