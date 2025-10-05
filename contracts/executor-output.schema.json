@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExecutorOutput",
+  "type": "object",
+  "properties": {
+    "project_name": {
+      "type": "string"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Posix-style relative path under project root",
+            "pattern": "^(?!/|\\\\\\\\|[A-Za-z]:|\\.|\\.\\.).*"
+          },
+          "contents": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "contents"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "files"
+  ],
+  "additionalProperties": false
+}

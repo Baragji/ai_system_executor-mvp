@@ -1,0 +1,12 @@
+services:
+  executor:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    env_file:
+      - ../.env
+    volumes:
+      - ../output:/app/output
+    ports:
+      - "3000:3000"
+    command: sh -lc "npm run build && npm start"

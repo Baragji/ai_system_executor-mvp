@@ -1,0 +1,1141 @@
+{
+  "contract_version": "2.0.0",
+  "contract_meta": {
+    "created": "2025-10-05",
+    "rationale": "Phase 0 verification required before Phase 1 execution. Uses 2025 AI agent observability patterns: continuous monitoring, tracing, evaluation, and governance.",
+    "references": [
+      "Azure AI Foundry Agent Observability (2025)",
+      "Agentic AI Workflow Patterns (MarkTechPost, Aug 2025)",
+      "AI Agent Ethical Framework 2025"
+    ]
+  },
+  "project": {
+    "name": "executor-mvp",
+    "goal": "Elevate current MVP to production-grade Phase 1: stable self-testing loop (single repair attempt), unified schemas, green tests, UI test controls, metadata and audit trail.",
+    "current_state": "Post-corruption revert to first commit (Phase 0 foundation)",
+    "out_of_scope": [
+      "Multi-turn repair (Phase 3)",
+      "Advanced planning (Phase 4)",
+      "Persistent memory / preference learning (Phase 5)",
+      "Authentication / external DB",
+      "Cloud deployment beyond local Node start script"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "observe_evaluate_proceed",
+    "description": "Agent observes system state, evaluates against expected conditions, proceeds only on verification pass. Aligns with 2025 agent observability best practices.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "linux|macos",
+      "env_vars_required": [],
+      "optional_env_vars": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"],
+      "verify_commands": [
+        {
+          "cmd": "node -v",
+          "expect_regex": "^v20\\.",
+          "on_fail": "Install Node.js 20.x (LTS) before proceeding."
+        },
+        {
+          "cmd": "npm -v",
+          "expect_exit_code": 0
+        }
+      ]
+    }
+  },
+  "observability": {
+    "description": "Implements 2025 agent observability pillars: monitoring, tracing, logging, evaluation, governance",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "evaluation_file": ".automation/evaluation_results.json",
+    "monitoring": {
+      "task_status_tracking": true,
+      "verification_pass_fail": true,
+      "elapsed_time_per_task": true
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": ["timestamp", "task_id", "action", "status", "cmd", "exit_code", "stdout_excerpt", "stderr_excerpt"]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_each_task": true,
+      "quality_dimensions": ["correctness", "completeness", "safety"]
+    },
+    "governance": {
+      "halt_on_security_violation": true,
+      "require_explicit_verification": true,
+      "no_destructive_operations_without_confirmation": true
+    }
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npm run lint",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "must_pass": true
+    },
+    "tests": {
+      "command": "npm test",
+      "expected": {
+        "exit_code": 0,
+        "no_failed_suites": true
+      },
+      "coverage": {
+        "min_line_pct": 80,
+        "min_branch_pct": 75
+      }
+    },
+    "schemas": {
+      "ajv_strict": true,
+      "draft_version": "2020-12"
+    },
+    "security": {
+      "sandbox_time_limit_ms": 60000,
+      "sandbox_cpu_limit_secs": 60,
+      "sandbox_file_size_limit_mb": 100,
+      "forbidden_network": true,
+      "path_escape_disallowed": true
+    },
+    "ui": {
+      "manual_run_tests_button": true,
+      "automatic_execute_triggers_initial_tests": true,
+      "repair_timeline_visible": true,
+      "log_view_expandable": true
+    },
+    "metadata": {
+      "meta_file": "_executor_meta.json",
+      "must_include": [
+        "created_at",
+        "source_prompt",
+        "notes",
+        "testRuns",
+        "files"
+      ],
+      "file_checksum_algo": "sha256"
+    },
+    "repair": {
+      "single_attempt_only": true,
+      "diff_format": "overwrite_file_set",
+      "record_artifacts": true
+    }
+  },
+  "artifacts_contracts": {
+    "run_result": {
+      "file": "contracts/run-result.schema.json",
+      "required_fields": ["status", "passCount", "failCount", "durationMs", "logsPath", "timestamp"],
+      "status_enum": ["pass", "fail", "error"],
+      "extended_optional_fields": ["command", "exitCode", "signal", "timedOut", "errorMessage", "startedAt", "finishedAt"],
+      "production_rules": [
+        "No trailing commas",
+        "additionalProperties: false except when design explicitly needs an extensibility object",
+        "Time fields ISO 8601"
+      ]
+    },
+    "executor_output": {
+      "file": "contracts/executor-output.schema.json",
+      "required_fields": ["files", "hasTests"],
+      "test_file_path_patterns": ["^tests/", "^__tests__/"],
+      "must_reject_no_test_files": true
+    },
+    "repair_artifact": {
+      "file": "contracts/repair-artifact.schema.json",
+      "required_fields": ["path", "action"],
+      "action_enum": ["modify", "add", "delete"],
+      "description_optional": true
+    },
+    "meta_file_structure": {
+      "file_name": "_executor_meta.json",
+      "fields": ["created_at", "source_prompt", "notes", "testRuns", "repair", "files"],
+      "testRuns_item": ["attempt", "status", "passCount", "failCount", "durationMs", "logsPath", "timestamp"],
+      "files_item": ["path", "sha256"]
+    }
+  },
+  "high_level_stages": [
+    "phase0_verification",
+    "phase0_remediation",
+    "phase0_validation",
+    "environment_verification",
+    "schema_unification",
+    "runner_consolidation",
+    "api_alignment",
+    "ui_enhancements",
+    "repair_implementation",
+    "metadata_enrichment",
+    "telemetry_addition",
+    "e2e_flow_test",
+    "hardening_and_cleanup",
+    "final_validation"
+  ],
+  "tasks": [
+    {
+      "id": "P0-V01",
+      "stage": "phase0_verification",
+      "title": "Verify Phase 0: Project structure exists",
+      "type": "verification",
+      "description": "Observe repository state. Verify foundational files and directories exist.",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "test -f package.json && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -d src && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -d public && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f tsconfig.json && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify basic Phase 0 structure is present",
+        "success_criteria": "All expected files/directories exist",
+        "on_fail": "Proceed to P0-R01 (remediation)"
+      },
+      "trace_context": {
+        "decision_point": "structure_verification",
+        "reasoning_required": true
+      }
+    },
+    {
+      "id": "P0-V02",
+      "stage": "phase0_verification",
+      "title": "Verify Phase 0: Dependencies installable",
+      "type": "verification",
+      "description": "Attempt to install dependencies. Verify package.json is valid and dependencies resolve.",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "npm ci --dry-run 2>&1 || npm install --dry-run 2>&1",
+          "capture_output": true,
+          "timeout_ms": 30000,
+          "expect_exit_code": 0
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify dependency resolution works",
+        "success_criteria": "npm can resolve and install dependencies without errors",
+        "on_fail": "Proceed to P0-R02 (fix package.json)"
+      },
+      "trace_context": {
+        "decision_point": "dependency_verification",
+        "reasoning_required": true
+      }
+    },
+    {
+      "id": "P0-V03",
+      "stage": "phase0_verification",
+      "title": "Verify Phase 0: Core server module exists",
+      "type": "verification",
+      "description": "Verify src/server.ts or equivalent entry point exists",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "test -f src/server.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify server entry point exists",
+        "success_criteria": "src/server.ts file exists",
+        "on_fail": "Proceed to P0-R03 (create minimal server)"
+      },
+      "trace_context": {
+        "decision_point": "server_module_verification",
+        "reasoning_required": true
+      }
+    },
+    {
+      "id": "P0-V04",
+      "stage": "phase0_verification",
+      "title": "Verify Phase 0: UI files exist",
+      "type": "verification",
+      "description": "Verify public/index.html and public/script.js exist",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "test -f public/index.html && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f public/script.js && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify UI files exist",
+        "success_criteria": "Both index.html and script.js exist",
+        "on_fail": "Proceed to P0-R04 (create minimal UI)"
+      },
+      "trace_context": {
+        "decision_point": "ui_verification",
+        "reasoning_required": true
+      }
+    },
+    {
+      "id": "P0-V05",
+      "stage": "phase0_verification",
+      "title": "Verify Phase 0: LLM integration exists",
+      "type": "verification",
+      "description": "Verify executor module that calls LLM exists",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "find src -name '*executor*' -o -name '*generate*' | head -1",
+          "capture_output": true,
+          "expect_nonempty_stdout": true
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify LLM integration module exists",
+        "success_criteria": "At least one file matching executor/generate pattern exists",
+        "on_fail": "Proceed to P0-R05 (create executor module)"
+      },
+      "trace_context": {
+        "decision_point": "llm_integration_verification",
+        "reasoning_required": true
+      }
+    },
+    {
+      "id": "P0-V06",
+      "stage": "phase0_verification",
+      "title": "Verify Phase 0: Output directory exists",
+      "type": "verification",
+      "description": "Verify output directory exists for generated files",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "test -d output && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "allow_missing": true
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify output directory exists",
+        "success_criteria": "output directory exists OR can be created",
+        "on_fail": "Proceed to P0-R06 (create output directory)"
+      },
+      "trace_context": {
+        "decision_point": "output_dir_verification",
+        "reasoning_required": false
+      }
+    },
+    {
+      "id": "P0-EVAL",
+      "stage": "phase0_verification",
+      "title": "Evaluate Phase 0 verification results",
+      "type": "evaluation",
+      "description": "Analyze all Phase 0 verification task results. Determine if remediation needed.",
+      "actions": [
+        {
+          "type": "evaluate",
+          "evaluate_tasks": ["P0-V01", "P0-V02", "P0-V03", "P0-V04", "P0-V05", "P0-V06"],
+          "evaluation_logic": "all_must_pass",
+          "on_all_pass": "Skip to P0-GATE (Phase 0 complete)",
+          "on_any_fail": "Proceed to phase0_remediation stage"
+        }
+      ],
+      "trace_context": {
+        "decision_point": "phase0_complete_or_remediate",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "P0-R01",
+      "stage": "phase0_remediation",
+      "title": "Remediate: Create missing project structure",
+      "type": "remediation",
+      "conditional": "only_if_P0-V01_failed",
+      "description": "Create missing directories and base files",
+      "actions": [
+        {
+          "type": "create_if_missing",
+          "cmd": "mkdir -p src public tests contracts .automation",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "create_if_missing",
+          "cmd": "test -f package.json || npm init -y",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "create_if_missing",
+          "cmd": "test -f tsconfig.json || npx tsc --init",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -d src && test -d public && test -f package.json",
+          "expect_exit_code": 0
+        }
+      ],
+      "trace_context": {
+        "decision_point": "structure_creation",
+        "action_taken": "create_directories_and_files"
+      }
+    },
+    {
+      "id": "P0-R02",
+      "stage": "phase0_remediation",
+      "title": "Remediate: Fix package.json dependencies",
+      "type": "remediation",
+      "conditional": "only_if_P0-V02_failed",
+      "description": "Ensure package.json has valid dependencies for Phase 0",
+      "actions": [
+        {
+          "type": "install",
+          "cmd": "npm install express typescript ts-node @types/node @types/express vitest ajv",
+          "expect_exit_code": 0,
+          "timeout_ms": 120000
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "npm ls express typescript ajv",
+          "expect_exit_code": 0
+        }
+      ],
+      "trace_context": {
+        "decision_point": "dependency_installation",
+        "action_taken": "install_core_dependencies"
+      }
+    },
+    {
+      "id": "P0-R03",
+      "stage": "phase0_remediation",
+      "title": "Remediate: Create minimal server",
+      "type": "remediation",
+      "conditional": "only_if_P0-V03_failed",
+      "description": "Create minimal Express server at src/server.ts",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/server.ts",
+          "content_spec": "Minimal Express server with /api/execute endpoint that accepts POST with {prompt: string}, returns {status: string}. Port 3000. TypeScript."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'express' src/server.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q '/api/execute' src/server.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "trace_context": {
+        "decision_point": "server_creation",
+        "action_taken": "create_minimal_express_server"
+      }
+    },
+    {
+      "id": "P0-R04",
+      "stage": "phase0_remediation",
+      "title": "Remediate: Create minimal UI",
+      "type": "remediation",
+      "conditional": "only_if_P0-V04_failed",
+      "description": "Create minimal UI with prompt input and execute button",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "public/index.html",
+          "content_spec": "HTML page with textarea for prompt, 'Execute' button, results display area"
+        },
+        {
+          "type": "create_file",
+          "file": "public/script.js",
+          "content_spec": "JavaScript that POSTs to /api/execute, displays response"
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q '<textarea' public/index.html",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'fetch.*api/execute' public/script.js",
+          "expect_exit_code": 0
+        }
+      ],
+      "trace_context": {
+        "decision_point": "ui_creation",
+        "action_taken": "create_minimal_ui_files"
+      }
+    },
+    {
+      "id": "P0-R05",
+      "stage": "phase0_remediation",
+      "title": "Remediate: Create executor module",
+      "type": "remediation",
+      "conditional": "only_if_P0-V05_failed",
+      "description": "Create module that calls LLM and returns JSON",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/executor/generate.ts",
+          "content_spec": "Function generateFromPrompt(prompt: string) that calls OpenAI/Anthropic API, returns {files: Array<{path: string, content: string}>}. TypeScript. Use OPENAI_API_KEY from env."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/executor/generate.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "trace_context": {
+        "decision_point": "executor_creation",
+        "action_taken": "create_llm_integration_module"
+      }
+    },
+    {
+      "id": "P0-R06",
+      "stage": "phase0_remediation",
+      "title": "Remediate: Create output directory",
+      "type": "remediation",
+      "conditional": "only_if_P0-V06_failed",
+      "description": "Create output directory for generated files",
+      "actions": [
+        {
+          "type": "create_directory",
+          "cmd": "mkdir -p output",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -d output",
+          "expect_exit_code": 0
+        }
+      ],
+      "trace_context": {
+        "decision_point": "output_dir_creation",
+        "action_taken": "create_output_directory"
+      }
+    },
+    {
+      "id": "P0-GATE",
+      "stage": "phase0_validation",
+      "title": "Phase 0 validation gate",
+      "type": "validation",
+      "description": "Final validation that Phase 0 is complete and functional before proceeding to Phase 1",
+      "actions": [
+        {
+          "type": "validate",
+          "cmd": "npm ci || npm install",
+          "expect_exit_code": 0,
+          "timeout_ms": 120000
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run typecheck || npx tsc --noEmit",
+          "expect_exit_code": 0,
+          "allow_warnings": true
+        },
+        {
+          "type": "validate",
+          "cmd": "test -d output && test -f src/server.ts && test -f public/index.html",
+          "expect_exit_code": 0
+        }
+      ],
+      "evaluation": {
+        "intent": "Confirm Phase 0 is production-ready",
+        "success_criteria": "Dependencies installed, TypeScript compiles, all critical files exist",
+        "on_pass": "Proceed to Phase 1 (T01)",
+        "on_fail": "HALT - Report Phase 0 validation failure with diagnostics"
+      },
+      "trace_context": {
+        "decision_point": "phase0_gate",
+        "reasoning_required": true,
+        "critical": true,
+        "gate_type": "go_no_go"
+      }
+    },
+    {
+      "id": "T01",
+      "stage": "environment_verification",
+      "title": "Install dependencies",
+      "type": "phase1_task",
+      "requires": "P0-GATE_passed",
+      "actions": [
+        {
+          "cmd": "npm ci || npm install",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "node -v",
+          "expect_regex": "^v20\\."
+        },
+        {
+          "cmd": "npm ls ajv",
+          "expect_regex": "ajv@"
+        }
+      ],
+      "fallback": "Reinstall Node 20 LTS, clear node_modules (rm -rf node_modules package-lock.json) then npm install."
+    },
+    {
+      "id": "T02",
+      "stage": "schema_unification",
+      "title": "Fix run-result schema JSON correctness",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "edit": "contracts/run-result.schema.json",
+          "ensure": ["no trailing commas", "additionalProperties false", "align field names with interface"]
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "node -e \"const s=require('./contracts/run-result.schema.json');console.log('ok')\"",
+          "expect_stdout_regex": "ok"
+        }
+      ],
+      "fallback": "Restore last working version from VCS and reapply minimal patch."
+    },
+    {
+      "id": "T03",
+      "stage": "schema_unification",
+      "title": "Create/align TypeScript RunResult interface",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "edit": "src/contracts/validators.ts",
+          "ensure": ["interface includes extended optional fields", "strict mode compile passes"]
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -n \"passCount\" src/contracts/validators.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "fallback": "Revert file and re-add fields incrementally."
+    },
+    {
+      "id": "T04",
+      "stage": "runner_consolidation",
+      "title": "Remove duplicate runner and export single canonical module",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "cmd": "test -f runInSandbox.ts && echo exists",
+          "expect_stdout_regex": "exists"
+        },
+        {
+          "cmd": "test -f runInSandbox.ts && mv runInSandbox.ts src/runner/LEGACY_runInSandbox.ts || true"
+        },
+        {
+          "edit": "src/server.ts",
+          "ensure": ["import { runInSandbox } from '../runner/runInSandbox.js'"]
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -n \"runInSandbox\" src/server.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "fallback": "If removal breaks build, restore backup and diff functions to manually merge logic."
+    },
+    {
+      "id": "T05",
+      "stage": "runner_consolidation",
+      "title": "Enhance runInSandbox to compute pass/fail counts from log",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "edit": "src/runner/runInSandbox.ts",
+          "add_logic": "parse summary lines to set passCount/failCount, default 0 if unknown"
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -n \"passCount\" src/runner/runInSandbox.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "fallback": "If parsing unreliable, keep counts at 0 and mark TODO; do not block main pipeline (but record deviation)."
+    },
+    {
+      "id": "T06",
+      "stage": "api_alignment",
+      "title": "Align /api/run-tests response to unified schema",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "edit": "src/server.ts",
+          "ensure": ["validate run result centrally", "return schema-compliant JSON"]
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "node -e \"fetch('http://localhost:3000/healthz').catch(()=>0)\" || true",
+          "expect_exit_code": 0
+        }
+      ],
+      "fallback": "If refactor complex, introduce adapter function mapping internal->public DSL."
+    },
+    {
+      "id": "T07",
+      "stage": "api_alignment",
+      "title": "Repair failing integration test expectations",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "edit": "tests/run-tests-route.test.ts",
+          "replace_expectations": "use schema fields (status, passCount, failCount, durationMs, logsPath, timestamp)"
+        },
+        {
+          "cmd": "npm test --silent || true"
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -n \"passCount\" tests/run-tests-route.test.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "fallback": "If tests rely on legacy fields, add those fields as derived but keep canonical schema validated."
+    },
+    {
+      "id": "T08",
+      "stage": "ui_enhancements",
+      "title": "Add 'Run Tests' button and handler",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "edit": "public/index.html",
+          "ensure": ["button id='runTestsBtn' appears after execution section"]
+        },
+        {
+          "edit": "public/script.js",
+          "add_logic": "fetch('/api/run-tests',{project: selectedSlug}) -> render run result panel"
+        },
+        {
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -n \"runTestsBtn\" public/script.js",
+          "expect_exit_code": 0
+        }
+      ],
+      "fallback": "If UI refactor large, create separate file test-ui.js and wire script tag."
+    },
+    {
+      "id": "T09",
+      "stage": "repair_implementation",
+      "title": "Introduce repairOnce logic",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "create": "src/repair/repairOnce.ts",
+          "contents_spec": ["export async function repairOnce(args)", "calls LLM with failure context", "returns {attempted:true, appliedFiles:number, repaired:boolean, artifacts:[]}"]
+        },
+        {
+          "create": "contracts/repair-artifact.schema.json",
+          "contents_spec": ["enum action"]
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -n \"repairOnce\" src/repair/repairOnce.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "fallback": "If LLM not available (missing API key), short-circuit returning attempted:true,repaired:false."
+    },
+    {
+      "id": "T10",
+      "stage": "repair_implementation",
+      "title": "Integrate repair into /api/execute flow",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "edit": "src/server.ts",
+          "add_logic": "after writeFiles run tests -> if fail invoke repairOnce -> run tests again"
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -n \"repairOnce\" src/server.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "fallback": "If repair fails with exception, respond with initial run result only and mark repairAttempted:false in meta."
+    },
+    {
+      "id": "T11",
+      "stage": "ui_enhancements",
+      "title": "Display automatic test + repair timeline",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "edit": "public/script.js",
+          "add_logic": "render initial vs repair run results; show arrow transition"
+        },
+        {
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -n \"repair\" public/script.js",
+          "expect_exit_code": 0
+        }
+      ],
+      "fallback": "If DOM complexity high, create dedicated component function renderTestLifecycle(data)."
+    },
+    {
+      "id": "T12",
+      "stage": "metadata_enrichment",
+      "title": "Augment metadata with testRuns + file checksums",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "create": "src/utils/checksum.ts",
+          "contents_spec": ["sha256 for file path"]
+        },
+        {
+          "edit": "src/server.ts",
+          "ensure": ["compute checksums", "append testRuns array", "record repair object"]
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -n \"sha256\" src/server.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "fallback": "If hashing large files slows flow, stream hash; else use synchronous fallback."
+    },
+    {
+      "id": "T13",
+      "stage": "telemetry_addition",
+      "title": "Add lightweight event telemetry",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "create": "src/telemetry/events.ts",
+          "contents_spec": ["logEvent(name,payload) writes JSONL to ./.telemetry/events.log"]
+        },
+        {
+          "edit": "src/server.ts",
+          "add_logic": "emit events: generation_start,generation_complete,test_run,repair_attempt"
+        },
+        {
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -n \"logEvent\" src/server.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "fallback": "If file locking issues, buffer in memory and flush on exit."
+    },
+    {
+      "id": "T14",
+      "stage": "e2e_flow_test",
+      "title": "Implement deterministic E2E test with mock LLM",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "create": "tests/e2e/phase1.test.ts",
+          "contents_spec": ["mock generateJSON", "simulate failing then passing test run", "assert final status pass"]
+        },
+        {
+          "cmd": "npm test --silent || true"
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -n \"phase1\" tests/e2e/phase1.test.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "fallback": "If difficulty mocking, inject provider via DI container (export setLLMProvider)."
+    },
+    {
+      "id": "T15",
+      "stage": "hardening_and_cleanup",
+      "title": "Finalize lint, type, test pass & remove legacy runner",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "cmd": "rm -f src/runner/LEGACY_runInSandbox.ts || true"
+        },
+        {
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test ! -f src/runner/LEGACY_runInSandbox.ts && echo gone",
+          "expect_stdout_regex": "gone"
+        }
+      ],
+      "fallback": "If deletion breaks build, reintroduce file temporarily and rebase references."
+    },
+    {
+      "id": "T16",
+      "stage": "final_validation",
+      "title": "Production readiness gate",
+      "type": "phase1_task",
+      "actions": [
+        {
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "node -e \"require('fs').accessSync('output');console.log('output-ok')\"",
+          "expect_stdout_regex": "output-ok"
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -R \"TODO\" -n src || true",
+          "expect_stdout_regex": "^$|IGNORE-ALLOWED"
+        },
+        {
+          "cmd": "grep -R \"FIXME\" -n src || true",
+          "expect_stdout_regex": "^$"
+        }
+      ],
+      "fallback": "If remaining non-critical TODOs exist, document in RELEASE_NOTES.md with owner and due date."
+    }
+  ],
+  "execution_order": [
+    "P0-V01",
+    "P0-V02",
+    "P0-V03",
+    "P0-V04",
+    "P0-V05",
+    "P0-V06",
+    "P0-EVAL",
+    "P0-R01",
+    "P0-R02",
+    "P0-R03",
+    "P0-R04",
+    "P0-R05",
+    "P0-R06",
+    "P0-GATE",
+    "T01",
+    "T02",
+    "T03",
+    "T04",
+    "T05",
+    "T06",
+    "T07",
+    "T08",
+    "T09",
+    "T10",
+    "T11",
+    "T12",
+    "T13",
+    "T14",
+    "T15",
+    "T16"
+  ],
+  "execution_semantics": {
+    "conditional_execution": {
+      "description": "Remediation tasks (P0-R*) execute ONLY if corresponding verification (P0-V*) failed",
+      "implementation": "Check P0-EVAL decision. If all P0-V* passed, skip entire phase0_remediation stage."
+    },
+    "gate_enforcement": {
+      "P0-GATE": {
+        "required": true,
+        "on_fail": "HALT execution. Do not proceed to Phase 1.",
+        "report": "Generate diagnostic report showing which P0 verifications failed and why."
+      }
+    },
+    "trace_requirements": {
+      "every_task": "Log to .automation/execution_trace.jsonl with timestamp, task_id, status, duration_ms",
+      "critical_decisions": "Tasks with trace_context.critical=true must include reasoning in trace log"
+    }
+  },
+  "completion_criteria": {
+    "phase0_complete": true,
+    "tests_green": true,
+    "lint_zero_warnings": true,
+    "typecheck_clean": true,
+    "schemas_validated": true,
+    "single_repair_flow_demonstrated": true,
+    "ui_manual_run_tests": true,
+    "ui_repair_timeline": true,
+    "meta_file_contains_checksums_and_testRuns": true,
+    "telemetry_events_emitted": true,
+    "e2e_phase1_test_passes": true
+  },
+  "fallback_policies": {
+    "phase0_verification_fails": "Execute corresponding P0-R* remediation task. Re-run P0-GATE after remediation.",
+    "phase0_gate_fails": "HALT. Generate diagnostic report. Do not proceed to T01.",
+    "schema_compile_error": "Revert last schema edit; apply minimal change; re-run T02.",
+    "runner_timeout_flake": "Re-run test up to 2 times; if persists, increase timeoutMs to 90000 for that test only.",
+    "llm_api_missing": "Operate repairOnce in no-LLM mode returning attempted:false; mark deviation in meta under repair.deviation='NO_LLM'.",
+    "coverage_below_threshold": "Identify uncovered files via coverage report, add minimal tests targeting uncovered branches, re-run tests."
+  },
+  "reporting": {
+    "progress_file": ".automation/progress.json",
+    "fields": ["task_id", "status", "started_at", "finished_at", "elapsed_ms", "result", "errors"],
+    "status_values": ["pending", "running", "success", "failed", "skipped"],
+    "phase0_report": {
+      "file": ".automation/phase0_verification_report.json",
+      "fields": ["verification_tasks", "remediation_tasks", "gate_passed", "timestamp", "diagnostics"]
+    }
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Phase 0 Verification Report",
+      "path": ".automation/phase0_verification_report.json",
+      "must_exist": true,
+      "must_include_field": "gate_passed"
+    },
+    {
+      "name": "RunResult schema",
+      "path": "contracts/run-result.schema.json",
+      "must_include_regex": "\"status\""
+    },
+    {
+      "name": "Repair module",
+      "path": "src/repair/repairOnce.ts",
+      "must_include_regex": "export async function repairOnce"
+    },
+    {
+      "name": "E2E test",
+      "path": "tests/e2e/phase1.test.ts",
+      "must_include_regex": "phase1"
+    },
+    {
+      "name": "UI run tests button",
+      "path": "public/index.html",
+      "must_include_regex": "runTestsBtn"
+    },
+    {
+      "name": "Execution trace",
+      "path": ".automation/execution_trace.jsonl",
+      "must_exist": true
+    }
+  ],
+  "release_actions": [
+    {
+      "cmd": "git add .",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git commit -m \"feat(phase0+phase1): verified Phase 0 foundation, implemented self-testing loop with single repair and metadata\"",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git tag phase1-complete",
+      "expect_exit_code": 0
+    }
+  ],
+  "post_release_validation": [
+    {
+      "cmd": "git show phase1-complete --name-only",
+      "expect_regex": "repairOnce"
+    },
+    {
+      "cmd": "test -f .automation/phase0_verification_report.json",
+      "expect_exit_code": 0
+    }
+  ],
+  "ai_executor_guidelines": {
+    "observability_first": "Always trace decisions. Log reasoning for critical tasks. Follow 2025 agent observability patterns (monitoring, tracing, logging, evaluation, governance).",
+    "no_assumptions": "Never assume Phase 0 exists. Always verify first. If verification fails, remediate before proceeding.",
+    "fail_fast": "If P0-GATE fails, HALT immediately. Do not attempt Phase 1 tasks on incomplete foundation.",
+    "evidence_based": "All decisions must be based on observed system state (file existence, command output, exit codes). No guessing.",
+    "trace_critical_decisions": "Tasks marked with trace_context.critical=true must include reasoning in execution trace.",
+    "respect_conditionals": "Remediation tasks execute ONLY if corresponding verification failed. Check P0-EVAL result.",
+    "gate_enforcement": "P0-GATE is a go/no-go decision point. Must pass before any T* tasks execute."
+  }
+}

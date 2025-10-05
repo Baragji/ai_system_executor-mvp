@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Executor MVP</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Executor MVP</h1>
+      <p class="subtle">Type a build request. The agent will return a JSON file list. The server writes them to <code>/output/&lt;project&gt;</code>.</p>
+
+      <label>Project name (optional)</label>
+      <input id="projectName" placeholder="hello-world-app" />
+
+      <label>Prompt</label>
+      <textarea id="prompt" rows="8" placeholder="Make a minimal Node+TS Hello World web app with GET / that returns 'Hello World'. Include README with run steps."></textarea>
+
+      <button id="runBtn">Execute</button>
+
+      <pre id="result" class="result"></pre>
+    </main>
+    <script src="/script.js"></script>
+  </body>
+</html>
