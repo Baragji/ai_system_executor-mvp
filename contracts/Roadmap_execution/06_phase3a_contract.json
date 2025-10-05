@@ -1,0 +1,666 @@
+{
+  "contract_version": "3.1.0",
+  "contract_meta": {
+    "created": "2025-10-06",
+    "phase": "3A",
+    "phase_name": "Multi-Turn Repair - Foundation & Analysis",
+    "prerequisite_phase": "Phase 2 (Interactive Clarification complete)",
+    "rationale": "Phase 3 split into two contracts. 3A builds multi-turn foundation: contracts, failure analysis, diff generation, repair prompts. Backend-only, safe territory. 3B will integrate into execute flow and add UI.",
+    "references": [
+      "Phase 3 Roadmap Document",
+      "Phase 2 Completion Report"
+    ]
+  },
+  "project": {
+    "name": "executor-mvp",
+    "current_phase": "3A",
+    "goal": "Build foundation for multi-turn repair: tracking schema, failure analyzer, diff generator, repair prompt builder. Prepare for up to 4 bounded repair attempts.",
+    "scope": "Wins 20-23 only",
+    "estimated_time": "4 wins over 2-4 sessions, backend work, safe territory",
+    "work_profile": "Backend logic, data structures, log parsing, prompt engineering - no UI, no integration yet",
+    "out_of_scope": [
+      "Multi-turn loop execution (Win 24 - Phase 3B)",
+      "Execute integration (Win 25 - Phase 3B)",
+      "UI repair history (Win 26 - Phase 3B)",
+      "Repair metrics (Win 27 - Phase 3B)",
+      "Any Phase 4+ features"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "observe_evaluate_proceed",
+    "description": "Agent verifies Phase 2 completion, then builds multi-turn foundation incrementally. Backend-only work.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true,
+    "safe_territory": {
+      "backend_only": true,
+      "no_ui_modifications": true,
+      "no_execute_integration_yet": true,
+      "tooling_and_analysis": true
+    }
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "linux|macos",
+      "env_vars_required": [],
+      "optional_env_vars": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"]
+    }
+  },
+  "observability": {
+    "description": "Continues 2025 agent observability with focus on repair attempt tracking",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "evaluation_file": ".automation/evaluation_results.json",
+    "monitoring": {
+      "task_status_tracking": true,
+      "verification_pass_fail": true,
+      "elapsed_time_per_task": true
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": ["timestamp", "task_id", "action", "status", "cmd", "exit_code", "stdout_excerpt", "stderr_excerpt"]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_each_win": true,
+      "quality_dimensions": ["correctness", "completeness", "safety"]
+    }
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npm run lint",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "must_pass": true
+    },
+    "tests": {
+      "command": "npm test",
+      "expected": {
+        "exit_code": 0,
+        "no_failed_suites": true
+      },
+      "coverage": {
+        "min_line_pct": 80,
+        "min_branch_pct": 75
+      }
+    },
+    "schemas": {
+      "ajv_strict": true,
+      "draft_version": "2020-12"
+    }
+  },
+  "high_level_stages": [
+    "phase2_verification",
+    "multi_turn_contract",
+    "failure_analysis",
+    "diff_generation",
+    "prompt_construction",
+    "phase3a_validation"
+  ],
+  "tasks": [
+    {
+      "id": "P2-V01",
+      "stage": "phase2_verification",
+      "title": "Verify Phase 2 completion",
+      "type": "verification",
+      "description": "Confirm Phase 2 (Interactive Clarification) is complete before starting Phase 3A",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "test -f src/clarification/detectMissing.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f src/clarification/augmentPrompt.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f src/clarification/suggestDefaults.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "grep -q 'clarificationSection' public/index.html && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "npm test 2>&1 | tail -5",
+          "capture_output": true,
+          "expect_exit_code": 0
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify Phase 2 complete before starting multi-turn repair foundation",
+        "success_criteria": "All Phase 2 artifacts exist and tests pass",
+        "on_fail": "HALT - Phase 2 must be complete before Phase 3A"
+      },
+      "trace_context": {
+        "decision_point": "phase2_verification",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "W20",
+      "stage": "multi_turn_contract",
+      "title": "Win #20: Define Multi-Turn Contract",
+      "type": "win",
+      "description": "Create repair-history.schema.json for tracking multiple repair attempts with structured history",
+      "time_estimate_minutes": 40,
+      "work_profile": "Schema definition and validation",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "contracts/repair-history.schema.json",
+          "content_spec": {
+            "schema_structure": {
+              "type": "object",
+              "required": ["attempts", "finalStatus", "totalAttempts"],
+              "properties": {
+                "attempts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["number", "changedFiles", "testResult", "durationMs", "cumulativeTime"],
+                    "properties": {
+                      "number": {"type": "integer", "minimum": 1, "maximum": 4},
+                      "changedFiles": {"type": "array", "items": {"type": "string"}},
+                      "testResult": {
+                        "type": "object",
+                        "required": ["status", "passCount", "failCount"],
+                        "properties": {
+                          "status": {"type": "string", "enum": ["pass", "fail", "error"]},
+                          "passCount": {"type": "integer"},
+                          "failCount": {"type": "integer"}
+                        }
+                      },
+                      "failureAnalysis": {
+                        "type": "object",
+                        "properties": {
+                          "summary": {"type": "string"},
+                          "category": {"type": "string"}
+                        }
+                      },
+                      "durationMs": {"type": "integer"},
+                      "cumulativeTime": {"type": "integer"}
+                    }
+                  }
+                },
+                "finalStatus": {"type": "string", "enum": ["pass", "fail", "exhausted"]},
+                "totalAttempts": {"type": "integer", "minimum": 1, "maximum": 4},
+                "successAttemptNumber": {"type": "integer", "minimum": 1, "maximum": 4}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        {
+          "type": "create_validators",
+          "file": "src/contracts/repairHistoryValidator.ts",
+          "ensure": ["import repair-history schema", "export validateRepairHistory", "use Ajv strict mode"]
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/contracts/repair-history.test.ts",
+          "test_cases": [
+            "valid history with 1 attempt success",
+            "valid history with 2 attempts, second succeeds",
+            "valid history with 4 attempts exhausted",
+            "valid history with early termination (3rd attempt passes)",
+            "invalid history missing required fields",
+            "invalid history with attempt number >4",
+            "invalid finalStatus value",
+            "cumulativeTime correctly increases per attempt"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f contracts/repair-history.schema.json",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'validateRepairHistory' src/contracts/repairHistoryValidator.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- repair-history.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Schema exists and is valid JSON",
+        "Validator compiles without errors",
+        "All 8 test cases pass",
+        "Schema enforces maximum 4 attempts",
+        "additionalProperties: false enforced",
+        "Draft 2020-12 compliant"
+      ],
+      "demo_requirement": {
+        "manual_test": "Create sample repair history objects, validate against schema",
+        "approval_needed": "Developer confirms schema captures all needed repair tracking data"
+      },
+      "trace_context": {
+        "decision_point": "repair_history_contract_defined",
+        "win_number": 20
+      }
+    },
+    {
+      "id": "W21",
+      "stage": "failure_analysis",
+      "title": "Win #21: Failure Analyzer",
+      "type": "win",
+      "description": "Create analyzeFailure.ts that extracts concise failure summaries from verbose test logs",
+      "time_estimate_minutes": 45,
+      "work_profile": "Log parsing and structured data extraction",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/repair/analyzeFailure.ts",
+          "content_spec": {
+            "function_signature": "export function analyzeFailure(testOutput: string): FailureAnalysis",
+            "return_type": {
+              "failedTests": "array of {name, type, message, stackSnippet}",
+              "totalFailed": "number",
+              "category": "'assertion' | 'exception' | 'timeout' | 'syntax' | 'multiple'"
+            },
+            "parsing_logic": [
+              "Parse Jest/Vitest output format",
+              "Extract failed test names from summary",
+              "Extract assertion messages (expect(...) failures)",
+              "Extract first 5 lines of stack traces only",
+              "Categorize failure type based on error patterns",
+              "Ensure output <500 tokens even for complex failures"
+            ],
+            "failure_categories": {
+              "assertion": "Test assertion failed (toBe, toEqual, etc.)",
+              "exception": "Uncaught exception during test",
+              "timeout": "Test exceeded time limit",
+              "syntax": "Code syntax/compile error",
+              "multiple": "Mix of different failure types"
+            }
+          }
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/repair/analyzeFailure.test.ts",
+          "test_cases": [
+            "assertion failure - extracts assertion message and category",
+            "exception failure - extracts error type and stack snippet",
+            "timeout failure - identifies and categorizes correctly",
+            "multiple failures - returns all with correct category",
+            "complex failure with long stack - truncates to 5 lines",
+            "output token count <500 even for verbose logs"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/repair/analyzeFailure.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'export function analyzeFailure' src/repair/analyzeFailure.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- analyzeFailure.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Parses Jest/Vitest output correctly",
+        "Extracts failure details concisely",
+        "Categorizes failures accurately",
+        "Stack traces truncated to relevant lines",
+        "Output stays under 500 tokens",
+        "All test cases pass"
+      ],
+      "demo_requirement": {
+        "manual_test": "Run against real test failure logs, verify summary is actionable and concise",
+        "approval_needed": "Developer confirms analysis is useful for repair prompts"
+      },
+      "trace_context": {
+        "decision_point": "failure_analysis_implemented",
+        "win_number": 21
+      }
+    },
+    {
+      "id": "W22",
+      "stage": "diff_generation",
+      "title": "Win #22: Diff Generator",
+      "type": "win",
+      "description": "Create generateDiff.ts that produces minimal unified diffs instead of full file rewrites",
+      "time_estimate_minutes": 45,
+      "work_profile": "Text diff algorithm and formatting",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/repair/generateDiff.ts",
+          "content_spec": {
+            "function_signature": "export function generateDiff(originalContent: string, repairedContent: string, filepath: string): FileDiff",
+            "return_type": {
+              "file": "string (filepath)",
+              "diffText": "string (unified diff format)",
+              "linesAdded": "number",
+              "linesRemoved": "number",
+              "isMinor": "boolean (change magnitude)"
+            },
+            "diff_format": "Unified diff (like git diff) with 3 lines of context",
+            "magnitude_thresholds": {
+              "minor": "1-5 lines changed",
+              "medium": "6-20 lines changed",
+              "major": "20+ lines changed"
+            },
+            "implementation_note": "Use difflib or similar for unified diff generation"
+          }
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/repair/generateDiff.test.ts",
+          "test_cases": [
+            "small change (1-5 lines) - marked as minor",
+            "medium change (6-20 lines) - magnitude correct",
+            "large change (20+ lines) - magnitude correct",
+            "unified diff format is correct",
+            "context lines included (3 before/after)",
+            "linesAdded and linesRemoved counts accurate"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/repair/generateDiff.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'export function generateDiff' src/repair/generateDiff.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- generateDiff.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Generates valid unified diff format",
+        "Context lines included correctly",
+        "Change magnitude calculated accurately",
+        "Diffs are readable and applicable",
+        "All test cases pass"
+      ],
+      "demo_requirement": {
+        "manual_test": "Generate diffs for small/medium/large changes, verify readability",
+        "approval_needed": "Developer confirms diffs are surgical and preserve context"
+      },
+      "trace_context": {
+        "decision_point": "diff_generation_implemented",
+        "win_number": 22
+      }
+    },
+    {
+      "id": "W23",
+      "stage": "prompt_construction",
+      "title": "Win #23: Repair Prompt Generator",
+      "type": "win",
+      "description": "Create buildRepairPrompt.ts that constructs focused, contextual repair prompts for each attempt",
+      "time_estimate_minutes": 45,
+      "work_profile": "Prompt engineering and context management",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/repair/buildRepairPrompt.ts",
+          "content_spec": {
+            "function_signature": "export function buildRepairPrompt(context: RepairContext): string",
+            "input_context": {
+              "attemptNumber": "1-4",
+              "failureAnalysis": "from Win #21",
+              "previousAttempts": "array of prior repair summaries",
+              "originalPrompt": "user's original request"
+            },
+            "prompt_structure": {
+              "header": "Attempt [N] of 4",
+              "context": "Previous attempts tried: [summary]",
+              "failures": "Current failures: [concise analysis from Win #21]",
+              "instruction": "ONLY fix the failing parts. Return JSON diff format.",
+              "constraints": "No full rewrites. Preserve working code. Surgical changes only.",
+              "urgency": "Progressively more specific/urgent for attempts 3-4"
+            },
+            "token_budget": "Keep prompts <1000 tokens",
+            "progressive_specificity": "Attempt 1: general, Attempt 4: very specific and urgent"
+          }
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/repair/buildRepairPrompt.test.ts",
+          "test_cases": [
+            "first attempt - general prompt structure",
+            "second attempt - includes previous attempt summary",
+            "third attempt - more specific instructions",
+            "final attempt (4th) - urgent tone and very specific",
+            "prompt stays under 1000 tokens",
+            "each attempt references what failed before"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/repair/buildRepairPrompt.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'export function buildRepairPrompt' src/repair/buildRepairPrompt.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- buildRepairPrompt.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Prompts are concise (<1000 tokens)",
+        "Context builds progressively across attempts",
+        "Instructions are clear and specific",
+        "Constraints prevent full rewrites",
+        "Urgency increases for later attempts",
+        "All test cases pass"
+      ],
+      "demo_requirement": {
+        "manual_test": "Generate prompts for all 4 attempts, verify progressive specificity",
+        "approval_needed": "Developer confirms prompts would guide LLM effectively"
+      },
+      "trace_context": {
+        "decision_point": "repair_prompts_implemented",
+        "win_number": 23
+      }
+    },
+    {
+      "id": "P3A-GATE",
+      "stage": "phase3a_validation",
+      "title": "Phase 3A validation gate",
+      "type": "validation",
+      "description": "Final validation that Phase 3A foundation is complete before moving to Phase 3B (integration)",
+      "actions": [
+        {
+          "type": "validate",
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "test -f contracts/repair-history.schema.json",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "test -f src/repair/analyzeFailure.ts && test -f src/repair/generateDiff.ts && test -f src/repair/buildRepairPrompt.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "manual_test",
+          "description": "Integration verification",
+          "tests": [
+            "Create mock repair history, validate against schema",
+            "Analyze sample test failure, verify concise output",
+            "Generate diff for code changes, verify unified format",
+            "Build repair prompts for attempts 1-4, verify progressive context"
+          ]
+        }
+      ],
+      "evaluation": {
+        "intent": "Confirm Phase 3A foundation is production-ready before Phase 3B integration",
+        "success_criteria": "All tests pass, all tooling works standalone, schemas validate correctly, manual tests demonstrate capability",
+        "on_pass": "Phase 3A COMPLETE - Ready for Phase 3B (multi-turn loop and integration)",
+        "on_fail": "HALT - Fix issues before proceeding to Phase 3B"
+      },
+      "trace_context": {
+        "decision_point": "phase3a_gate",
+        "reasoning_required": true,
+        "critical": true,
+        "gate_type": "go_no_go"
+      }
+    }
+  ],
+  "execution_order": [
+    "P2-V01",
+    "W20",
+    "W21",
+    "W22",
+    "W23",
+    "P3A-GATE"
+  ],
+  "execution_semantics": {
+    "win_isolation": {
+      "description": "Each win must be complete, tested, and DEMOED before proceeding to next",
+      "implementation": "Run tests after each win. Manual demo required for all wins."
+    },
+    "gate_enforcement": {
+      "P3A-GATE": {
+        "required": true,
+        "on_fail": "HALT execution. Do not proceed to Phase 3B.",
+        "report": "Generate diagnostic showing which validations failed."
+      }
+    },
+    "backend_only": {
+      "enforcement": "Phase 3A makes ZERO changes to UI or execute integration. Pure tooling and analysis.",
+      "rationale": "Build foundation tools first, integrate them later (Phase 3B)."
+    }
+  },
+  "completion_criteria": {
+    "phase2_verified": true,
+    "repair_history_schema_created": true,
+    "failure_analyzer_works": true,
+    "diff_generator_works": true,
+    "repair_prompts_work": true,
+    "all_tests_pass": true,
+    "coverage_maintained": true,
+    "manual_demos_approved": true
+  },
+  "fallback_policies": {
+    "phase2_verification_fails": "HALT - Phase 2 must be complete before Phase 3A.",
+    "test_fails": "Fix implementation, do not skip tests.",
+    "coverage_drops": "Add tests to maintain >80% coverage before proceeding.",
+    "diff_generation_fails": "Ensure unified diff format is correct, verify with sample files."
+  },
+  "reporting": {
+    "progress_file": ".automation/progress_phase3a.json",
+    "fields": ["task_id", "win_number", "status", "started_at", "finished_at", "elapsed_ms", "result", "errors"],
+    "status_values": ["pending", "running", "success", "failed", "skipped"],
+    "phase3a_report": {
+      "file": ".automation/phase3a_completion_report.json",
+      "fields": ["wins_completed", "gate_passed", "tooling_ready", "timestamp", "next_phase", "diagnostics"]
+    }
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Repair History Schema",
+      "path": "contracts/repair-history.schema.json",
+      "must_include_regex": "attempts"
+    },
+    {
+      "name": "Failure Analyzer",
+      "path": "src/repair/analyzeFailure.ts",
+      "must_include_regex": "export function analyzeFailure"
+    },
+    {
+      "name": "Diff Generator",
+      "path": "src/repair/generateDiff.ts",
+      "must_include_regex": "export function generateDiff"
+    },
+    {
+      "name": "Repair Prompt Builder",
+      "path": "src/repair/buildRepairPrompt.ts",
+      "must_include_regex": "export function buildRepairPrompt"
+    },
+    {
+      "name": "Phase 3A Report",
+      "path": ".automation/phase3a_completion_report.json",
+      "must_exist": true,
+      "must_include_field": "gate_passed"
+    }
+  ],
+  "release_actions": [
+    {
+      "cmd": "git add .",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git commit -m \"feat(phase3a): multi-turn repair foundation - contracts, failure analysis, diff generation, repair prompts\"",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git tag phase3a-complete",
+      "expect_exit_code": 0
+    }
+  ],
+  "ai_executor_guidelines": {
+    "observability_first": "Trace all decisions. Log reasoning for each win completion.",
+    "win_isolation": "Complete and demo each win fully before proceeding to next. Do not mix wins.",
+    "backend_only": "Phase 3A is backend-only. No UI changes. No execute integration yet.",
+    "test_driven": "Write comprehensive tests for all tooling. Verify standalone functionality.",
+    "fail_fast": "If any test fails, halt and fix before proceeding.",
+    "gate_enforcement": "P3A-GATE must pass before declaring phase complete.",
+    "tooling_focus": "These are foundation tools. They must work standalone before integration in Phase 3B."
+  },
+  "governance_note": {
+    "for_human": "Phase 3A is backend tooling (safe territory). Four wins building analysis and repair infrastructure. No UI. No integration yet. After P3A-GATE, assess with wife whether to proceed to Phase 3B immediately or take break. Phase 3B will include UI work (repair history display)."
+  }
+}
