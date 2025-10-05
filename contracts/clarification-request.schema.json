@@ -4,7 +4,9 @@
   "title": "ClarificationRequest",
   "type": "object",
   "additionalProperties": false,
-  "required": ["questions"],
+  "required": [
+    "questions"
+  ],
   "properties": {
     "questions": {
       "type": "array",
@@ -17,45 +19,97 @@
     "question": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "text", "type"],
+      "required": [
+        "id",
+        "text",
+        "type"
+      ],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "text": { "type": "string", "minLength": 1 },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
         "type": {
           "type": "string",
-          "enum": ["choice", "text", "number"]
+          "enum": [
+            "choice",
+            "text",
+            "number"
+          ]
         },
         "options": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 },
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
           "minItems": 1
+        },
+        "default": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
         }
       },
       "allOf": [
         {
           "if": {
-            "properties": { "type": { "const": "choice" } },
-            "required": ["type"]
+            "properties": {
+              "type": {
+                "const": "choice"
+              }
+            },
+            "required": [
+              "type"
+            ]
           },
           "then": {
             "properties": {
               "options": {
                 "type": "array",
-                "items": { "type": "string", "minLength": 1 },
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
                 "minItems": 1
               }
             },
-            "required": ["options"]
+            "required": [
+              "options"
+            ]
           }
         },
         {
           "if": {
-            "properties": { "type": { "enum": ["text", "number"] } },
-            "required": ["type"]
+            "properties": {
+              "type": {
+                "enum": [
+                  "text",
+                  "number"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
           },
           "then": {
             "not": {
-              "required": ["options"]
+              "required": [
+                "options"
+              ]
             }
           }
         }

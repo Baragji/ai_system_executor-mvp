@@ -1,7 +1,3 @@
-{"name":"test_run","timestamp":"2025-10-05T17:58:17.710Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
-{"name":"generation_start","timestamp":"2025-10-05T18:00:50.177Z","payload":{"project":"make-a-funny-hello-world"}}
-{"name":"test_run","timestamp":"2025-10-05T18:00:51.009Z","payload":{"project":"make-a-funny-hello-world","stage":"initial","status":"pass"}}
-{"name":"generation_complete","timestamp":"2025-10-05T18:00:51.010Z","payload":{"project":"make-a-funny-hello-world","status":"pass"}}
-{"name":"generation_start","timestamp":"2025-10-05T18:08:27.997Z","payload":{"project":"ui-with-man"}}
-{"name":"test_run","timestamp":"2025-10-05T18:08:28.819Z","payload":{"project":"ui-with-man","stage":"initial","status":"pass"}}
-{"name":"generation_complete","timestamp":"2025-10-05T18:08:28.821Z","payload":{"project":"ui-with-man","status":"pass"}}
+{"name":"test_run","timestamp":"2025-10-05T19:39:43.156Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-05T19:39:43.554Z","payload":{"project":"simple-frontend","attempted":true,"repaired":false}}
+{"name":"test_run","timestamp":"2025-10-05T19:39:43.555Z","payload":{"project":"simple-frontend","stage":"post_repair","status":"fail"}}

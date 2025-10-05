@@ -1,4 +1,5 @@
 import { ClarificationQuestion, MissingInfoType } from "./types.js";
+import { suggestDefaults } from "./suggestDefaults.js";
 
 const QUESTION_TEMPLATES: Record<MissingInfoType, ClarificationQuestion> = {
   framework: {
@@ -38,15 +39,24 @@ const QUESTION_TEMPLATES: Record<MissingInfoType, ClarificationQuestion> = {
   }
 };
 
-export function generateQuestions(missing: MissingInfoType[]): ClarificationQuestion[] {
+export function generateQuestions(missing: MissingInfoType[], prompt?: string): ClarificationQuestion[] {
   const seen = new Set<MissingInfoType>();
   const questions: ClarificationQuestion[] = [];
+  const suggestions = prompt ? suggestDefaults(prompt, missing) : {};
   for (const type of missing) {
     if (seen.has(type)) continue;
     seen.add(type);
     const template = QUESTION_TEMPLATES[type];
     if (!template) continue;
-    questions.push({ ...template, options: template.options ? [...template.options] : undefined });
+    const question: ClarificationQuestion = {
+      ...template,
+      options: template.options ? [...template.options] : undefined
+    };
+    const suggested = suggestions[template.id];
+    if (suggested !== undefined) {
+      question.default = suggested as string | number | boolean;
+    }
+    questions.push(question);
   }
   return questions;
 }

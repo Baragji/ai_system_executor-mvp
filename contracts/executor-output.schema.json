@@ -37,11 +37,169 @@
     "hasTests": {
       "type": "boolean",
       "description": "Indicates whether at least one test file exists in the generated output"
+    },
+    "clarification": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "asked": {
+          "type": "boolean"
+        },
+        "questions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/clarificationQuestion"
+          }
+        },
+        "answers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/clarificationAnswer"
+          }
+        },
+        "improvedSuccess": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "asked",
+        "questions",
+        "answers",
+        "improvedSuccess"
+      ]
     }
   },
   "required": [
     "files",
     "hasTests"
   ],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "definitions": {
+    "clarificationQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "choice",
+            "text",
+            "number"
+          ]
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "default": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "choice"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "options"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "text",
+                  "number"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "options"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "clarificationAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "questionId",
+        "value"
+      ],
+      "properties": {
+        "questionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        }
+      }
+    }
+  }
 }

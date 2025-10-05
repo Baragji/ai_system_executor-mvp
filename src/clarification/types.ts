@@ -13,6 +13,7 @@ export interface ClarificationQuestion {
   text: string;
   type: ClarificationQuestionType;
   options?: string[];
+  default?: string | number | boolean;
 }
 
 export interface ClarificationRequest {

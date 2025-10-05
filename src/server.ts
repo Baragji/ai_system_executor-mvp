@@ -4,6 +4,7 @@ import cors from "cors";
 import morgan from "morgan";
 import path from "node:path";
 import fs from "node:fs/promises";
+import { createHash } from "node:crypto";
 import slugify from "slugify";
 
 import { generateJSON } from "./llm/index.js";
@@ -23,7 +24,11 @@ import {
   validateClarificationRequest,
   validateClarificationResponse
 } from "./contracts/validators.js";
-import type { ClarificationResponse } from "./clarification/types.js";
+import type {
+  ClarificationAnswer,
+  ClarificationQuestion,
+  ClarificationResponse
+} from "./clarification/types.js";
 
 const app = express();
 app.use(cors());
@@ -33,6 +38,48 @@ app.use(morgan("dev"));
 const PORT = Number(process.env.PORT || 3000);
 const OUTPUT_DIR = path.resolve("output");
 const PUBLIC_DIR = path.resolve("public");
+
+const CLARIFICATION_SESSION_TTL_MS = 10 * 60 * 1000;
+
+type ClarificationSession = {
+  questions: ClarificationQuestion[];
+  storedAt: number;
+};
+
+const clarificationSessions = new Map<string, ClarificationSession>();
+
+function clarificationSessionKey(prompt: string): string | null {
+  const normalized = prompt.trim();
+  if (!normalized) return null;
+  return createHash("sha256").update(normalized).digest("hex");
+}
+
+function purgeExpiredSessions(now: number) {
+  for (const [key, entry] of clarificationSessions.entries()) {
+    if (now - entry.storedAt > CLARIFICATION_SESSION_TTL_MS) {
+      clarificationSessions.delete(key);
+    }
+  }
+}
+
+function rememberClarificationQuestions(prompt: string, questions: ClarificationQuestion[]) {
+  if (!questions || questions.length === 0) return;
+  const key = clarificationSessionKey(prompt);
+  if (!key) return;
+  const now = Date.now();
+  purgeExpiredSessions(now);
+  clarificationSessions.set(key, { questions, storedAt: now });
+}
+
+function consumeClarificationQuestions(prompt: string): ClarificationQuestion[] | undefined {
+  const key = clarificationSessionKey(prompt);
+  if (!key) return undefined;
+  purgeExpiredSessions(Date.now());
+  const entry = clarificationSessions.get(key);
+  if (!entry) return undefined;
+  clarificationSessions.delete(key);
+  return entry.questions;
+}
 
 app.get("/healthz", (_req, res) => res.json({ status: "ok" }));
 
@@ -150,7 +197,8 @@ app.post("/api/clarify", (req, res) => {
     }
 
     const missing = detectMissing(prompt);
-    const questions = generateQuestions(missing);
+    const questions = generateQuestions(missing, prompt);
+    rememberClarificationQuestions(prompt, questions);
     const payload = { questions };
     const validation = validateClarificationRequest(payload);
     if (!validation.ok) {
@@ -265,16 +313,35 @@ app.post("/api/execute", async (req, res) => {
     }
 
     const fileMetadata = await computeFileChecksums(collectFilePaths(output.files, repair), targetRoot);
+    const storedQuestions = consumeClarificationQuestions(originalPrompt) ?? [];
+    let clarificationQuestions: ClarificationQuestion[] = storedQuestions;
+    let clarificationAsked = clarificationQuestions.length > 0;
+    if (!clarificationAsked && clarifications && clarifications.answers.length > 0) {
+      const missingAgain = detectMissing(originalPrompt);
+      clarificationQuestions = generateQuestions(missingAgain, originalPrompt);
+      clarificationAsked = clarificationQuestions.length > 0;
+    }
+    const clarificationAnswers: ClarificationAnswer[] = clarifications
+      ? clarifications.answers.map<ClarificationAnswer>(answer => ({ ...answer }))
+      : [];
+    const finalStatus = repair?.runResult?.status ?? initialRun.status;
+    const clarificationTelemetry = {
+      asked: clarificationAsked,
+      questions: clarificationQuestions,
+      answers: clarificationAnswers,
+      improvedSuccess: clarificationsUsed && finalStatus === "pass"
+    };
+
     const meta = {
       created_at: new Date().toISOString(),
       source_prompt: effectivePrompt,
       original_prompt: originalPrompt,
-      clarifications: clarifications
-        ? {
-            used: clarificationsUsed,
-            answers: clarifications.answers
-          }
-        : { used: false, answers: [] },
+      clarification: clarificationTelemetry,
+      clarifications: {
+        used: clarificationsUsed,
+        answers: clarificationAnswers,
+        asked: clarificationTelemetry.asked
+      },
       notes: output.notes || [],
       testRuns: testRuns.map((run, idx) => buildTestRunEntry(idx === 0 ? "initial" : "repair", run)),
       repair: repair
