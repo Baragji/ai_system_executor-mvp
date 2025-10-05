@@ -8,6 +8,7 @@ import { app } from "../../src/server.js";
 import type { RunResult } from "../../src/contracts/validators.js";
 
 const OUTPUT_DIR = path.resolve("output");
+const PROJECT_DIR = path.join(OUTPUT_DIR, "clarify-demo");
 const TELEMETRY_FILE = path.resolve(".telemetry/events.log");
 
 let lastMessages: unknown = null;
@@ -54,12 +55,12 @@ vi.mock("../../src/repair/repairOnce.js", () => ({
 describe("POST /api/execute with clarifications", () => {
   beforeEach(async () => {
     lastMessages = null;
-    await fs.rm(OUTPUT_DIR, { recursive: true, force: true });
+    await fs.rm(PROJECT_DIR, { recursive: true, force: true });
     await fs.rm(path.dirname(TELEMETRY_FILE), { recursive: true, force: true });
   });
 
   afterEach(async () => {
-    await fs.rm(OUTPUT_DIR, { recursive: true, force: true });
+    await fs.rm(PROJECT_DIR, { recursive: true, force: true });
   });
 
   it("works without clarifications", async () => {
@@ -80,7 +81,11 @@ describe("POST /api/execute with clarifications", () => {
     const meta = JSON.parse(await fs.readFile(metaPath, "utf-8"));
     expect(meta.original_prompt).toBe(prompt);
     expect(meta.source_prompt).toBe(prompt);
+    expect(meta.clarification.asked).toBe(false);
+    expect(meta.clarification.answers).toEqual([]);
+    expect(meta.clarification.questions).toEqual([]);
     expect(meta.clarifications.used).toBe(false);
+    expect(meta.clarifications.asked).toBe(false);
   });
 
   it("uses augmented prompt when clarifications provided", async () => {
@@ -110,6 +115,10 @@ describe("POST /api/execute with clarifications", () => {
     const meta = JSON.parse(await fs.readFile(metaPath, "utf-8"));
     expect(meta.original_prompt).toBe(prompt);
     expect(meta.source_prompt).toBe(res.body.generated);
+    expect(meta.clarification.asked).toBe(true);
+    expect(meta.clarification.answers.length).toBe(2);
+    expect(meta.clarification.improvedSuccess).toBe(true);
+    expect(meta.clarification.questions.length).toBeGreaterThan(0);
     expect(meta.clarifications.used).toBe(true);
     expect(meta.clarifications.answers.length).toBe(2);
   });
