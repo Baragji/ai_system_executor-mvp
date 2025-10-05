@@ -1,0 +1,343 @@
+{
+  "_template_version": "1.0.0",
+  "_template_usage": "This is a reusable contract template. Replace all {PLACEHOLDER} values when creating specific phase contracts.",
+  "_creation_instructions": {
+    "step_1": "Copy this entire template",
+    "step_2": "Replace {PHASE_ID} with phase identifier (e.g., '2B', '2C', '3A')",
+    "step_3": "Replace {PHASE_NAME} with descriptive name (e.g., 'Interactive Clarification - UI Integration')",
+    "step_4": "Replace {PREREQUISITE_PHASE} with previous phase requirement",
+    "step_5": "Replace {GOAL} with phase-specific goal statement",
+    "step_6": "Replace {SCOPE} with wins/features covered",
+    "step_7": "Fill in tasks array with actual wins and verification steps",
+    "step_8": "Update execution_order with actual task IDs",
+    "step_9": "Customize completion_criteria for this phase",
+    "step_10": "Review and remove this _template_usage section before execution"
+  },
+  "contract_version": "{INCREMENT_FROM_PREVIOUS}",
+  "contract_meta": {
+    "created": "{YYYY-MM-DD}",
+    "phase": "{PHASE_ID}",
+    "phase_name": "{PHASE_NAME}",
+    "prerequisite_phase": "{PREREQUISITE_PHASE}",
+    "rationale": "{WHY_THIS_PHASE_SPLIT_THIS_WAY}",
+    "references": [
+      "Azure AI Foundry Agent Observability (2025)",
+      "Phase {PHASE_NUMBER} Roadmap Document"
+    ]
+  },
+  "project": {
+    "name": "executor-mvp",
+    "current_phase": "{PHASE_ID}",
+    "goal": "{GOAL}",
+    "scope": "{SCOPE}",
+    "out_of_scope": [
+      "{LIST_WHAT_IS_NOT_IN_THIS_PHASE}"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "observe_evaluate_proceed",
+    "description": "Agent verifies prerequisite phase completion, then builds incrementally with testing after each win.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "linux|macos",
+      "env_vars_required": [],
+      "optional_env_vars": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"],
+      "verify_commands": [
+        {
+          "cmd": "node -v",
+          "expect_regex": "^v20\\.",
+          "on_fail": "HALT - {PREREQUISITE_PHASE} must be complete before {PHASE_ID}"
+      },
+      "trace_context": {
+        "decision_point": "{prerequisite}_verification",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "W{WIN_NUMBER}",
+      "stage": "{STAGE_NAME}",
+      "title": "Win #{WIN_NUMBER}: {WIN_TITLE}",
+      "type": "win",
+      "description": "{DETAILED_WIN_DESCRIPTION}",
+      "time_estimate_minutes": "{30-60}",
+      "actions": [
+        {
+          "type": "{create_file|edit|add_route|create_tests}",
+          "file": "{FILE_PATH}",
+          "content_spec": "{WHAT_TO_CREATE_OR_MODIFY}"
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f {FILE_PATH}",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- {test_file_name}",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "{SPECIFIC_SUCCESS_CRITERION_1}",
+        "{SPECIFIC_SUCCESS_CRITERION_2}",
+        "All tests pass",
+        "TypeScript compiles without errors"
+      ],
+      "trace_context": {
+        "decision_point": "{win_specific_decision}",
+        "win_number": "{WIN_NUMBER}"
+      }
+    },
+    {
+      "id": "{PHASE_ID}-GATE",
+      "stage": "{PHASE_ID}_validation",
+      "title": "Phase {PHASE_ID} validation gate",
+      "type": "validation",
+      "description": "Final validation that Phase {PHASE_ID} is complete before moving to next phase",
+      "actions": [
+        {
+          "type": "validate",
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "test -f {CRITICAL_ARTIFACT_1} && test -f {CRITICAL_ARTIFACT_2}",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "manual_test",
+          "description": "{MANUAL_VERIFICATION_STEP}"
+        }
+      ],
+      "evaluation": {
+        "intent": "Confirm Phase {PHASE_ID} is production-ready before next phase",
+        "success_criteria": "{ALL_VALIDATION_CRITERIA}",
+        "on_pass": "Phase {PHASE_ID} COMPLETE - Ready for Phase {NEXT_PHASE}",
+        "on_fail": "HALT - Fix issues before proceeding to Phase {NEXT_PHASE}"
+      },
+      "trace_context": {
+        "decision_point": "{phase_id}_gate",
+        "reasoning_required": true,
+        "critical": true,
+        "gate_type": "go_no_go"
+      }
+    }
+  ],
+  "execution_order": [
+    "{PREV_PHASE}-V01",
+    "W{WIN_NUMBER_1}",
+    "W{WIN_NUMBER_2}",
+    "W{WIN_NUMBER_N}",
+    "{PHASE_ID}-GATE"
+  ],
+  "execution_semantics": {
+    "win_isolation": {
+      "description": "Each win must be complete and tested before proceeding to next",
+      "implementation": "Run full test suite after each win. Halt if any test fails."
+    },
+    "gate_enforcement": {
+      "{PHASE_ID}-GATE": {
+        "required": true,
+        "on_fail": "HALT execution. Do not proceed to next phase.",
+        "report": "Generate diagnostic report showing which validations failed and why."
+      }
+    },
+    "phase_specific_constraints": {
+      "{CONSTRAINT_NAME}": "{CONSTRAINT_DESCRIPTION}"
+    }
+  },
+  "completion_criteria": {
+    "{prerequisite}_verified": true,
+    "{criterion_1}": true,
+    "{criterion_2}": true,
+    "all_tests_pass": true,
+    "coverage_maintained": true,
+    "manual_test_passes": true
+  },
+  "fallback_policies": {
+    "{prerequisite}_verification_fails": "HALT - {PREREQUISITE_PHASE} must be complete.",
+    "schema_validation_fails": "Revert schema file, fix syntax, re-run validation.",
+    "test_fails": "Fix implementation, do not skip tests.",
+    "coverage_drops": "Add tests to maintain >80% coverage before proceeding."
+  },
+  "reporting": {
+    "progress_file": ".automation/progress_{phase_id}.json",
+    "fields": ["task_id", "win_number", "status", "started_at", "finished_at", "elapsed_ms", "result", "errors"],
+    "status_values": ["pending", "running", "success", "failed", "skipped"],
+    "phase_report": {
+      "file": ".automation/{phase_id}_completion_report.json",
+      "fields": ["wins_completed", "gate_passed", "timestamp", "next_phase", "diagnostics"]
+    }
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "{ARTIFACT_NAME}",
+      "path": "{ARTIFACT_PATH}",
+      "must_include_regex": "{VALIDATION_PATTERN}"
+    },
+    {
+      "name": "Phase Report",
+      "path": ".automation/{phase_id}_completion_report.json",
+      "must_exist": true,
+      "must_include_field": "gate_passed"
+    }
+  ],
+  "release_actions": [
+    {
+      "cmd": "git add .",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git commit -m \"feat({phase_id}): {COMMIT_MESSAGE_SUMMARY}\"",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git tag {phase_id}-complete",
+      "expect_exit_code": 0
+    }
+  ],
+  "ai_executor_guidelines": {
+    "observability_first": "Trace all decisions. Log reasoning for each win completion.",
+    "win_isolation": "Complete and test each win fully before proceeding to next. Do not mix wins.",
+    "phase_specific_guidance": "{PHASE_SPECIFIC_INSTRUCTIONS}",
+    "test_driven": "Write tests before or alongside implementation. Never skip tests.",
+    "fail_fast": "If any test fails, halt and fix before proceeding.",
+    "gate_enforcement": "{PHASE_ID}-GATE must pass before declaring phase complete."
+  },
+  "_handoff_instructions": {
+    "for_new_session": {
+      "step_1": "Provide this template",
+      "step_2": "Provide the roadmap document with phase details",
+      "step_3": "Specify which phase/wins to implement",
+      "step_4": "Request: 'Using this template and roadmap, create the contract for Phase {X}'",
+      "context_needed": [
+        "Previous phase completion status",
+        "Any deviations from previous contracts",
+        "Specific constraints or requirements for this phase"
+      ]
+    },
+    "template_customization_checklist": [
+      "Replace all {PLACEHOLDER} values",
+      "Verify prerequisite phase verification tasks match actual artifacts",
+      "Ensure win numbers and titles match roadmap",
+      "Customize time estimates based on complexity",
+      "Add phase-specific validation steps to gate",
+      "Update out_of_scope to reflect what's NOT in this phase",
+      "Review execution_order for correct task sequence",
+      "Remove this _handoff_instructions section before execution"
+    ]
+  }
+}": "Install Node.js 20.x (LTS) before proceeding."
+        },
+        {
+          "cmd": "npm -v",
+          "expect_exit_code": 0
+        }
+      ]
+    }
+  },
+  "observability": {
+    "description": "Continues 2025 agent observability pillars: monitoring, tracing, logging, evaluation, governance",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "evaluation_file": ".automation/evaluation_results.json",
+    "monitoring": {
+      "task_status_tracking": true,
+      "verification_pass_fail": true,
+      "elapsed_time_per_task": true
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": ["timestamp", "task_id", "action", "status", "cmd", "exit_code", "stdout_excerpt", "stderr_excerpt"]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_each_win": true,
+      "quality_dimensions": ["correctness", "completeness", "safety"]
+    },
+    "governance": {
+      "halt_on_security_violation": true,
+      "require_explicit_verification": true,
+      "no_destructive_operations_without_confirmation": true
+    }
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npm run lint",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "must_pass": true
+    },
+    "tests": {
+      "command": "npm test",
+      "expected": {
+        "exit_code": 0,
+        "no_failed_suites": true
+      },
+      "coverage": {
+        "min_line_pct": 80,
+        "min_branch_pct": 75
+      }
+    },
+    "schemas": {
+      "ajv_strict": true,
+      "draft_version": "2020-12"
+    }
+  },
+  "high_level_stages": [
+    "{PREREQUISITE}_verification",
+    "{STAGE_1}",
+    "{STAGE_2}",
+    "{STAGE_N}",
+    "{PHASE_ID}_validation"
+  ],
+  "tasks": [
+    {
+      "id": "{PREV_PHASE}-V01",
+      "stage": "{PREREQUISITE}_verification",
+      "title": "Verify {PREREQUISITE_PHASE} completion",
+      "type": "verification",
+      "description": "Confirm {PREREQUISITE_PHASE} artifacts exist and system is functional before starting {PHASE_ID}",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "test -f {CRITICAL_FILE_FROM_PREV_PHASE} && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "npm test 2>&1 | tail -5",
+          "capture_output": true,
+          "expect_exit_code": 0
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify {PREREQUISITE_PHASE} complete before starting {PHASE_ID}",
+        "success_criteria": "All {PREREQUISITE_PHASE} artifacts exist and tests pass",
+        "on_fail
