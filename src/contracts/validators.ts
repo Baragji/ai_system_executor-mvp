@@ -7,7 +7,10 @@ const requireJson = createRequire(import.meta.url);
 const runResultSchema = requireJson("../../contracts/run-result.schema.json");
 const executorOutputSchema = requireJson("../../contracts/executor-output.schema.json");
 const repairArtifactSchema = requireJson("../../contracts/repair-artifact.schema.json");
+const clarificationRequestSchema = requireJson("../../contracts/clarification-request.schema.json");
+const clarificationResponseSchema = requireJson("../../contracts/clarification-response.schema.json");
 import type { ExecutorOutput } from "../executor/types.js";
+import type { ClarificationRequest, ClarificationResponse } from "../clarification/types.js";
 
 export interface RunResult {
   status: "pass" | "fail" | "error";
@@ -62,6 +65,12 @@ const executorOutputValidator = ajv.compile<ExecutorOutput>(
 const repairArtifactValidator = ajv.compile<RepairArtifactDescription>(
   repairArtifactSchema as unknown as JSONSchemaType<RepairArtifactDescription>
 );
+const clarificationRequestValidator = ajv.compile<ClarificationRequest>(
+  clarificationRequestSchema as unknown as JSONSchemaType<ClarificationRequest>
+);
+const clarificationResponseValidator = ajv.compile<ClarificationResponse>(
+  clarificationResponseSchema as unknown as JSONSchemaType<ClarificationResponse>
+);
 
 export function validateRunResult(data: unknown): ValidationResult<RunResult> {
   const ok = runResultValidator(data);
@@ -79,4 +88,16 @@ export function validateRepairArtifact(data: unknown): ValidationResult<RepairAr
   const ok = repairArtifactValidator(data);
   if (ok) return { ok: true, value: data as RepairArtifactDescription };
   return { ok: false, errors: formatErrors(repairArtifactValidator.errors) };
+}
+
+export function validateClarificationRequest(data: unknown): ValidationResult<ClarificationRequest> {
+  const ok = clarificationRequestValidator(data);
+  if (ok) return { ok: true, value: data as ClarificationRequest };
+  return { ok: false, errors: formatErrors(clarificationRequestValidator.errors) };
+}
+
+export function validateClarificationResponse(data: unknown): ValidationResult<ClarificationResponse> {
+  const ok = clarificationResponseValidator(data);
+  if (ok) return { ok: true, value: data as ClarificationResponse };
+  return { ok: false, errors: formatErrors(clarificationResponseValidator.errors) };
 }

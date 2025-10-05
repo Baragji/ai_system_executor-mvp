@@ -16,7 +16,7 @@ export class OpenAIProvider {
     // Reasoning models (o1, o1-mini, o1-preview, gpt-5) don't support custom temperature
     const isReasoningModel = this.model.startsWith('o1') || this.model.startsWith('gpt-5');
     
-    const requestParams: any = {
+    const requestParams: OpenAI.ChatCompletionCreateParams = {
       model: this.model,
       messages: messages.map(m => ({ role: m.role, content: m.content })),
       response_format: { type: "json_object" }
