@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://executor-mvp/clarification-request.schema.json",
+  "title": "ClarificationRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["questions"],
+  "properties": {
+    "questions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/question"
+      }
+    }
+  },
+  "definitions": {
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "type"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "text": { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": ["choice", "text", "number"]
+        },
+        "options": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "const": "choice" } },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "options": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 },
+                "minItems": 1
+              }
+            },
+            "required": ["options"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "enum": ["text", "number"] } },
+            "required": ["type"]
+          },
+          "then": {
+            "not": {
+              "required": ["options"]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,702 @@
+{
+  "contract_version": "2.2.0",
+  "contract_meta": {
+    "created": "2025-10-06",
+    "phase": "2B",
+    "phase_name": "Interactive Clarification - UI Integration & Flow",
+    "prerequisite_phase": "Phase 2A (backend clarification + observability fixes)",
+    "rationale": "Phase 2B integrates clarification into user flow: prompt augmentation, execute integration, UI form, end-to-end wiring. This is UI-heavy work - known danger zone requiring strict governance.",
+    "references": [
+      "Azure AI Foundry Agent Observability (2025)",
+      "Phase 2 Roadmap Document",
+      "Phase 2A Completion Report",
+      "Observability Fix Report"
+    ],
+    "danger_zone_acknowledgment": "UI integration historically triggers scope creep and 'just one more tweak' behavior. Strict win isolation enforced."
+  },
+  "project": {
+    "name": "executor-mvp",
+    "current_phase": "2B",
+    "goal": "Complete clarification flow: augment prompts with answers, integrate into execute flow, build UI form, wire end-to-end. User can ask for code, see questions, answer them, get better generation.",
+    "scope": "Wins 14-17 only",
+    "estimated_time": "4-6 wins over 1-2 weeks at sustainable pace",
+    "out_of_scope": [
+      "Telemetry updates for clarification (Phase 2C)",
+      "Smart defaults (Phase 2C)",
+      "Multi-turn repair improvements",
+      "Analytics dashboard",
+      "Advanced form validation beyond required fields",
+      "Styling polish (functional UI only)"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "observe_evaluate_proceed",
+    "description": "Agent verifies Phase 2A completion, then builds UI integration incrementally. STRICT win isolation - each win must be complete and demoed before next.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true,
+    "ui_danger_zone_protocol": {
+      "mandatory_demo_after_each_win": true,
+      "no_chaining_wins": true,
+      "explicit_stop_after_win_16_or_17": "Assess with wife before continuing",
+      "scope_creep_triggers": [
+        "Adding form styling beyond functional",
+        "Adding field validation beyond required/type checking",
+        "Modifying existing UI outside clarification flow",
+        "Adding features not in win specification"
+      ]
+    }
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "linux|macos",
+      "env_vars_required": [],
+      "optional_env_vars": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"],
+      "verify_commands": [
+        {
+          "cmd": "node -v",
+          "expect_regex": "^v20\\.",
+          "on_fail": "Install Node.js 20.x (LTS) before proceeding."
+        },
+        {
+          "cmd": "npm -v",
+          "expect_exit_code": 0
+        }
+      ]
+    }
+  },
+  "observability": {
+    "description": "Continues 2025 agent observability pillars with enhanced UI event tracking",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "evaluation_file": ".automation/evaluation_results.json",
+    "monitoring": {
+      "task_status_tracking": true,
+      "verification_pass_fail": true,
+      "elapsed_time_per_task": true,
+      "ui_interaction_events": true
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": ["timestamp", "task_id", "action", "status", "cmd", "exit_code", "stdout_excerpt", "stderr_excerpt"]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_each_win": true,
+      "quality_dimensions": ["correctness", "completeness", "safety", "usability"]
+    },
+    "governance": {
+      "halt_on_security_violation": true,
+      "require_explicit_verification": true,
+      "no_destructive_operations_without_confirmation": true,
+      "mandatory_demo_after_ui_changes": true
+    }
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npm run lint",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "must_pass": true
+    },
+    "tests": {
+      "command": "npm test",
+      "expected": {
+        "exit_code": 0,
+        "no_failed_suites": true
+      },
+      "coverage": {
+        "min_line_pct": 80,
+        "min_branch_pct": 75
+      }
+    },
+    "schemas": {
+      "ajv_strict": true,
+      "draft_version": "2020-12"
+    },
+    "ui_functional_standards": {
+      "no_broken_layouts": true,
+      "all_buttons_clickable": true,
+      "form_fields_accessible": true,
+      "error_states_visible": true,
+      "focus_management_basic": true,
+      "styling_requirement": "functional_only_no_polish"
+    }
+  },
+  "high_level_stages": [
+    "phase2a_verification",
+    "prompt_augmentation",
+    "execute_integration",
+    "ui_form_creation",
+    "end_to_end_wiring",
+    "phase2b_validation"
+  ],
+  "tasks": [
+    {
+      "id": "P2A-V01",
+      "stage": "phase2a_verification",
+      "title": "Verify Phase 2A + Observability Fix completion",
+      "type": "verification",
+      "description": "Confirm Phase 2A backend and observability fixes are complete before starting Phase 2B",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "test -f contracts/clarification-request.schema.json && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f src/clarification/detectMissing.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f src/clarification/generateQuestions.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "grep -q '/api/clarify' src/server.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f .automation/execution_trace.jsonl && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f .automation/evaluation_results.json && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "npm test 2>&1 | tail -5",
+          "capture_output": true,
+          "expect_exit_code": 0
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify Phase 2A + observability complete before starting UI work",
+        "success_criteria": "All Phase 2A artifacts exist, observability files present, tests pass",
+        "on_fail": "HALT - Phase 2A and observability must be complete before Phase 2B"
+      },
+      "trace_context": {
+        "decision_point": "phase2a_verification",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "W14",
+      "stage": "prompt_augmentation",
+      "title": "Win #14: Prompt Augmentation Logic",
+      "type": "win",
+      "description": "Create augmentPrompt function that merges original prompt with clarification answers into complete prompt",
+      "time_estimate_minutes": 35,
+      "danger_zone": false,
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/clarification/augmentPrompt.ts",
+          "content_spec": {
+            "function_signature": "export function augmentPrompt(originalPrompt: string, clarifications: ClarificationResponse): string",
+            "behavior": "Take original prompt + answers array, format as context prepended to prompt",
+            "format_example": "Framework: FastAPI, Port: 8000, Database: PostgreSQL\\n\\nOriginal request: build me an API",
+            "edge_cases": [
+              "No clarifications: return original prompt unchanged",
+              "Empty answers array: return original prompt unchanged",
+              "Missing answer values: skip that question in output"
+            ]
+          }
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/clarification/augmentPrompt.test.ts",
+          "test_cases": [
+            "no clarifications - returns original prompt",
+            "one clarification - prepends formatted context",
+            "multiple clarifications - formats all answers",
+            "missing answer value - skips that question",
+            "validates output is string",
+            "preserves original prompt content"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/clarification/augmentPrompt.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'export function augmentPrompt' src/clarification/augmentPrompt.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- augmentPrompt.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Function correctly merges prompt and answers",
+        "Handles all edge cases gracefully",
+        "All 6+ test cases pass",
+        "TypeScript compiles without errors",
+        "Output format is clear and readable"
+      ],
+      "demo_requirement": {
+        "manual_test": "Call augmentPrompt with sample data, verify output format makes sense",
+        "approval_needed": "Developer confirms augmented prompts look good before proceeding"
+      },
+      "trace_context": {
+        "decision_point": "prompt_augmentation_implemented",
+        "win_number": 14
+      }
+    },
+    {
+      "id": "W15",
+      "stage": "execute_integration",
+      "title": "Win #15: Integrate Clarification into Execute Flow",
+      "type": "win",
+      "description": "Modify /api/execute to accept optional clarifications and use augmented prompt for generation",
+      "time_estimate_minutes": 45,
+      "danger_zone": false,
+      "actions": [
+        {
+          "type": "edit_file",
+          "file": "src/server.ts",
+          "route": "POST /api/execute",
+          "ensure": [
+            "Accept request body: {prompt: string, clarifications?: ClarificationResponse}",
+            "If clarifications present, validate against schema",
+            "If clarifications present, call augmentPrompt",
+            "Use augmented prompt for LLM generation",
+            "Return response includes: {generated, clarificationsUsed: boolean}"
+          ]
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/api/execute-with-clarifications.test.ts",
+          "test_cases": [
+            "execute without clarifications - works as before",
+            "execute with valid clarifications - uses augmented prompt",
+            "execute with invalid clarifications - returns 400 error",
+            "response includes clarificationsUsed flag",
+            "augmented prompt passed to LLM (verify via mock)",
+            "existing execute flow unchanged when no clarifications"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'clarifications' src/server.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- execute-with-clarifications.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test",
+          "expect_exit_code": 0,
+          "rationale": "Verify existing tests still pass"
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Execute endpoint accepts optional clarifications",
+        "Validation works correctly",
+        "Augmented prompt used for generation",
+        "Backward compatibility maintained (no clarifications still works)",
+        "All tests pass including existing ones",
+        "TypeScript compiles without errors"
+      ],
+      "demo_requirement": {
+        "manual_test": "POST to /api/execute with clarifications via curl/Postman, verify it works",
+        "approval_needed": "Developer confirms backend integration works before UI"
+      },
+      "trace_context": {
+        "decision_point": "execute_integration_complete",
+        "win_number": 15
+      }
+    },
+    {
+      "id": "W16",
+      "stage": "ui_form_creation",
+      "title": "Win #16: UI Clarification Form",
+      "type": "win",
+      "description": "Add UI form to display questions and collect answers. FUNCTIONAL ONLY - no styling polish.",
+      "time_estimate_minutes": 45,
+      "danger_zone": true,
+      "ui_scope_limits": {
+        "styling": "Basic CSS for readability only. No colors, animations, or polish.",
+        "validation": "Required field checking only. No advanced validation.",
+        "features": "Display questions, collect answers, submit button. Nothing else.",
+        "forbidden": [
+          "Custom styling beyond basic layout",
+          "Field validation beyond required checks",
+          "Any features not explicitly in win description",
+          "Modifications to existing UI outside clarification"
+        ]
+      },
+      "actions": [
+        {
+          "type": "edit_file",
+          "file": "public/index.html",
+          "ensure": [
+            "Add <div id='clarificationSection'> after prompt textarea",
+            "Add <form id='clarificationForm'> (initially hidden)",
+            "Add container for dynamically rendered questions",
+            "Add 'Answer Questions' button",
+            "Add 'Skip Questions' button",
+            "Basic CSS for form layout (functional only)"
+          ]
+        },
+        {
+          "type": "edit_file",
+          "file": "public/script.js",
+          "ensure": [
+            "After user submits prompt, call /api/clarify",
+            "If questions returned, show clarificationSection",
+            "Render questions based on type: text inputs, number inputs, radio buttons for choices",
+            "Collect answers on 'Answer Questions' click",
+            "Store originalPrompt and answers in memory",
+            "On 'Skip Questions' click, use original prompt only",
+            "Maintain existing execute flow logic"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'clarificationSection' public/index.html",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q '/api/clarify' public/script.js",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test",
+          "expect_exit_code": 0,
+          "rationale": "Backend tests should still pass"
+        }
+      ],
+      "success_criteria": [
+        "Clarification section appears when questions exist",
+        "Questions render correctly based on type",
+        "Answers collectible via form",
+        "Skip button works (uses original prompt)",
+        "Layout is functional (doesn't need to be pretty)",
+        "No JavaScript errors in browser console",
+        "Existing UI functionality unchanged"
+      ],
+      "demo_requirement": {
+        "manual_test": "Open UI, enter incomplete prompt, verify questions appear, fill form, verify answers collected",
+        "approval_needed": "Developer AND wife review UI - confirm functional, confirm no scope creep",
+        "scope_creep_check": [
+          "Did you add styling beyond basic layout?",
+          "Did you add features not in win spec?",
+          "Did you modify existing UI outside clarification?",
+          "Can you stop now without 'just one more thing'?"
+        ]
+      },
+      "mandatory_break_after": {
+        "duration_minutes": 30,
+        "rationale": "UI work complete. Step away. Assess before continuing to Win #17."
+      },
+      "trace_context": {
+        "decision_point": "ui_form_created",
+        "win_number": 16,
+        "danger_zone": true
+      }
+    },
+    {
+      "id": "CHECKPOINT",
+      "stage": "ui_form_creation",
+      "title": "MANDATORY CHECKPOINT: Assess before Win #17",
+      "type": "governance",
+      "description": "Required pause after UI work. Consult with wife before proceeding to end-to-end wiring.",
+      "actions": [
+        {
+          "type": "manual_assessment",
+          "questions": [
+            "Did Win #16 complete within scope?",
+            "Any signs of scope creep or 'just one more tweak' thinking?",
+            "Energy level adequate for full-stack wiring?",
+            "Wife approval to continue today, or better to start Win #17 tomorrow?"
+          ]
+        }
+      ],
+      "decision_points": {
+        "continue_today": "If all assessments positive and wife approves, proceed to W17",
+        "stop_for_today": "If any concerns or fatigue, STOP. Tag current state, resume tomorrow.",
+        "on_scope_creep_detected": "HALT Phase 2B. Review what was added beyond spec. Remove or document for Phase 2C."
+      },
+      "trace_context": {
+        "decision_point": "checkpoint_after_ui",
+        "critical": true,
+        "governance_enforcement": true
+      }
+    },
+    {
+      "id": "W17",
+      "stage": "end_to_end_wiring",
+      "title": "Win #17: Connect UI Question Flow to Execute",
+      "type": "win",
+      "description": "Wire UI form submission to /api/execute with both prompt and answers. Complete the full flow.",
+      "time_estimate_minutes": 45,
+      "danger_zone": true,
+      "prerequisite": "CHECKPOINT must be explicitly passed",
+      "actions": [
+        {
+          "type": "edit_file",
+          "file": "public/script.js",
+          "ensure": [
+            "On 'Answer Questions' click, collect form answers",
+            "Format answers as ClarificationResponse",
+            "Submit to /api/execute with {prompt: originalPrompt, clarifications: answers}",
+            "Display loading state during generation",
+            "Show results same as existing execute flow",
+            "Handle errors gracefully (invalid answers, network errors)"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'clarifications' public/script.js",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Full flow works: prompt → questions → answers → generation",
+        "Skip flow works: prompt → generation (no questions)",
+        "Error handling present",
+        "Loading states visible",
+        "Results display correctly",
+        "No JavaScript console errors",
+        "Existing flows unchanged"
+      ],
+      "demo_requirement": {
+        "manual_test": "Complete end-to-end flow multiple times with different prompts",
+        "test_scenarios": [
+          "Complete prompt (no questions) - should work as before",
+          "Incomplete prompt (with questions) - should show form, collect answers, generate",
+          "Skip questions - should use original prompt",
+          "Invalid answers - should show error"
+        ],
+        "approval_needed": "Developer AND wife review full flow - confirm it works, confirm Phase 2B scope complete"
+      },
+      "trace_context": {
+        "decision_point": "end_to_end_complete",
+        "win_number": 17,
+        "danger_zone": true
+      }
+    },
+    {
+      "id": "P2B-GATE",
+      "stage": "phase2b_validation",
+      "title": "Phase 2B validation gate",
+      "type": "validation",
+      "description": "Final validation that Phase 2B UI integration is complete before declaring phase done",
+      "actions": [
+        {
+          "type": "validate",
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "test -f src/clarification/augmentPrompt.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "grep -q 'clarifications' src/server.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "grep -q 'clarificationSection' public/index.html",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "manual_test",
+          "description": "End-to-end flow verification",
+          "test_complete_flow": "Incomplete prompt → questions appear → fill answers → generate with augmented context",
+          "test_skip_flow": "Incomplete prompt → questions appear → skip → generate with original prompt",
+          "test_no_questions_flow": "Complete prompt → no questions → generate normally"
+        }
+      ],
+      "evaluation": {
+        "intent": "Confirm Phase 2B UI integration is production-ready",
+        "success_criteria": "All tests pass, all flows work end-to-end, no scope creep detected, governance checkpoints passed",
+        "on_pass": "Phase 2B COMPLETE - Ready for Phase 2C decision (telemetry + smart defaults)",
+        "on_fail": "HALT - Fix issues before declaring 2B complete"
+      },
+      "trace_context": {
+        "decision_point": "phase2b_gate",
+        "reasoning_required": true,
+        "critical": true,
+        "gate_type": "go_no_go"
+      }
+    }
+  ],
+  "execution_order": [
+    "P2A-V01",
+    "W14",
+    "W15",
+    "W16",
+    "CHECKPOINT",
+    "W17",
+    "P2B-GATE"
+  ],
+  "execution_semantics": {
+    "win_isolation": {
+      "description": "Each win must be complete, tested, and DEMOED before proceeding to next",
+      "implementation": "Run tests after each win. Manual demo required for W14-W17. Halt if demo fails or scope creep detected."
+    },
+    "gate_enforcement": {
+      "CHECKPOINT": {
+        "required": true,
+        "blocking": true,
+        "on_fail": "STOP Phase 2B. Do not proceed to W17 without explicit approval.",
+        "report": "Document checkpoint decision and rationale."
+      },
+      "P2B-GATE": {
+        "required": true,
+        "on_fail": "HALT execution. Do not proceed to Phase 2C.",
+        "report": "Generate diagnostic showing which validations failed."
+      }
+    },
+    "ui_danger_zone_protocol": {
+      "enforcement": "Strict scope limits on W16 and W17. No features beyond spec. No styling beyond functional.",
+      "mandatory_breaks": "30-minute break after W16. Checkpoint approval required before W17.",
+      "scope_creep_detection": "If any forbidden additions detected, HALT and remediate before continuing."
+    }
+  },
+  "completion_criteria": {
+    "phase2a_verified": true,
+    "augment_prompt_works": true,
+    "execute_integration_works": true,
+    "ui_form_functional": true,
+    "end_to_end_flow_works": true,
+    "all_tests_pass": true,
+    "coverage_maintained": true,
+    "manual_demos_approved": true,
+    "no_scope_creep_detected": true,
+    "checkpoint_passed": true
+  },
+  "fallback_policies": {
+    "phase2a_verification_fails": "HALT - Phase 2A must be complete before 2B.",
+    "test_fails": "Fix implementation, do not skip tests.",
+    "scope_creep_detected": "HALT. Remove additions or document for Phase 2C. Do not proceed until clean.",
+    "checkpoint_not_approved": "STOP for day. Resume W17 next session.",
+    "coverage_drops": "Add tests to maintain >80% coverage before proceeding.",
+    "ui_breaks_existing_functionality": "HALT. Revert UI changes. Isolate clarification better."
+  },
+  "reporting": {
+    "progress_file": ".automation/progress_phase2b.json",
+    "fields": ["task_id", "win_number", "status", "started_at", "finished_at", "elapsed_ms", "result", "errors", "demo_approved", "scope_creep_detected"],
+    "status_values": ["pending", "running", "success", "failed", "skipped", "blocked_on_checkpoint"],
+    "phase2b_report": {
+      "file": ".automation/phase2b_completion_report.json",
+      "fields": ["wins_completed", "checkpoint_passed", "gate_passed", "scope_violations", "timestamp", "next_phase", "diagnostics"]
+    }
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Prompt Augmentation Module",
+      "path": "src/clarification/augmentPrompt.ts",
+      "must_include_regex": "export function augmentPrompt"
+    },
+    {
+      "name": "Execute Integration",
+      "path": "src/server.ts",
+      "must_include_regex": "clarifications"
+    },
+    {
+      "name": "UI Clarification Section",
+      "path": "public/index.html",
+      "must_include_regex": "clarificationSection"
+    },
+    {
+      "name": "UI Clarification Logic",
+      "path": "public/script.js",
+      "must_include_regex": "/api/clarify"
+    },
+    {
+      "name": "Phase 2B Report",
+      "path": ".automation/phase2b_completion_report.json",
+      "must_exist": true,
+      "must_include_field": "gate_passed"
+    }
+  ],
+  "release_actions": [
+    {
+      "cmd": "git add .",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git commit -m \"feat(phase2b): complete clarification UI integration - prompt augmentation, execute flow, form, end-to-end wiring\"",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git tag phase2b-complete",
+      "expect_exit_code": 0
+    }
+  ],
+  "ai_executor_guidelines": {
+    "observability_first": "Trace all decisions. Log reasoning for each win completion.",
+    "win_isolation": "Complete and demo each win fully before proceeding to next. Do not mix wins.",
+    "ui_danger_zone": "W16 and W17 are UI-heavy. Strict scope enforcement. No additions beyond spec.",
+    "mandatory_demos": "W14-W17 require manual demos and approval before proceeding.",
+    "checkpoint_enforcement": "CHECKPOINT after W16 is mandatory. Cannot proceed to W17 without explicit pass.",
+    "test_driven": "Write tests for W14 and W15. Backend tests must cover clarification integration.",
+    "fail_fast": "If any test fails, halt and fix before proceeding.",
+    "gate_enforcement": "P2B-GATE must pass before declaring phase complete.",
+    "scope_creep_vigilance": "Any additions beyond win specifications must be flagged and removed or deferred to Phase 2C."
+  },
+  "governance_note": {
+    "for_human": "Phase 2B is UI integration - your acknowledged danger zone. The contract includes CHECKPOINT after W16 requiring wife approval before W17. Strict scope limits on UI work. Mandatory demos after each win. Take breaks. If at any point you feel the urge to add 'just one more thing' - STOP. That's the scope creep trigger. Phase 2C exists for enhancements."
+  }
+}

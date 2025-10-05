@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://executor-mvp/clarification-response.schema.json",
+  "title": "ClarificationResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["answers"],
+  "properties": {
+    "answers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/answer"
+      }
+    }
+  },
+  "definitions": {
+    "answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["questionId", "value"],
+      "properties": {
+        "questionId": { "type": "string", "minLength": 1 },
+        "value": {
+          "anyOf": [
+            { "type": "string" },
+            { "type": "number" },
+            { "type": "boolean" }
+          ]
+        }
+      }
+    }
+  }
+}

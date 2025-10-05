@@ -1,0 +1,13 @@
+{
+  "fixes_completed": ["OBS-FIX-01", "OBS-FIX-02"],
+  "gate_passed": true,
+  "timestamp": "2025-10-05T17:04:57Z",
+  "next_decision": "Schedule Phase 2B planning review",
+  "diagnostics": {
+    "trace_entries": 36,
+    "evaluation_entries": 12,
+    "lint": "passed",
+    "typecheck": "passed",
+    "tests": "passed"
+  }
+}

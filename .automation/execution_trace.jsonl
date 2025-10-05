@@ -21,3 +21,22 @@
 {"timestamp":"2025-10-05T07:44:00Z","task_id":"T14","status":"success","duration_ms":1800,"action":"e2e_flow_test"}
 {"timestamp":"2025-10-05T07:45:00Z","task_id":"T15","status":"success","duration_ms":2200,"action":"hardening_cleanup"}
 {"timestamp":"2025-10-05T07:46:00Z","task_id":"T16","status":"success","duration_ms":2000,"action":"final_validation"}
+{"timestamp":"2025-10-05T17:01:54.590Z","task_id":"task-dir","action":"ensure_dir","status":"running"}
+{"timestamp":"2025-10-05T17:02:01.120Z","task_id":"unknown","action":"test_run","status":"pass"}
+{"timestamp":"2025-10-05T17:03:47.729Z","task_id":"OBS-FIX-01","action":"test_action","status":"success","cmd":"npm test","exit_code":0,"stdout_excerpt":"All tests passed"}
+{"timestamp":"2025-10-05T17:03:47.743Z","task_id":"task-123","action":"test_action","status":"queued"}
+{"timestamp":"2025-10-05T17:03:47.746Z","task_id":"task-jsonl","action":"jsonl_check","status":"running"}
+{"timestamp":"2025-10-05T17:03:47.747Z","task_id":"task-jsonl","action":"jsonl_check","status":"complete"}
+{"timestamp":"2025-10-05T17:03:47.749Z","task_id":"task-dir","action":"ensure_dir","status":"running"}
+{"timestamp":"2025-10-05T17:04:50.918Z","task_id":"unknown","action":"generation_start","status":"unknown"}
+{"timestamp":"2025-10-05T17:04:50.926Z","task_id":"unknown","action":"test_run","status":"fail"}
+{"timestamp":"2025-10-05T17:04:50.926Z","task_id":"unknown","action":"repair_attempt","status":"unknown"}
+{"timestamp":"2025-10-05T17:04:50.927Z","task_id":"unknown","action":"test_run","status":"pass"}
+{"timestamp":"2025-10-05T17:04:50.960Z","task_id":"unknown","action":"generation_complete","status":"pass"}
+{"timestamp":"2025-10-05T17:04:57.642Z","task_id":"unknown","action":"test_run","status":"pass"}
+{"timestamp":"2025-10-05T17:13:44.482Z","task_id":"unknown","action":"generation_start","status":"unknown"}
+{"timestamp":"2025-10-05T17:13:44.488Z","task_id":"unknown","action":"test_run","status":"fail"}
+{"timestamp":"2025-10-05T17:13:44.492Z","task_id":"unknown","action":"repair_attempt","status":"unknown"}
+{"timestamp":"2025-10-05T17:13:44.493Z","task_id":"unknown","action":"test_run","status":"pass"}
+{"timestamp":"2025-10-05T17:13:44.496Z","task_id":"unknown","action":"generation_complete","status":"pass"}
+{"timestamp":"2025-10-05T17:13:45.118Z","task_id":"unknown","action":"test_run","status":"pass"}

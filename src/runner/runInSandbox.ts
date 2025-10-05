@@ -6,6 +6,7 @@ import path from "node:path";
 import { setTimeout as waitTimeout } from "node:timers/promises";
 
 import { validateRunResult, type RunResult } from "../contracts/validators.js";
+import { logEvaluationResult, type EvaluationResult } from "../evaluation/logResults.js";
 
 export interface RunInSandboxOptions {
   projectRoot: string;
@@ -121,6 +122,25 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
   const validation = validateRunResult(runResult);
   if (!validation.ok) {
     throw new Error(`runInSandbox produced invalid run result: ${validation.errors}`);
+  }
+
+  const evaluation: EvaluationResult = {
+    timestamp: finishedAt.toISOString(),
+    phase: process.env.EXECUTOR_PHASE ?? "2A-OBSERVABILITY-FIX",
+    task_id: options.projectSlug ? `run-tests:${options.projectSlug}` : "run-tests",
+    status: runResult.status === "pass" ? "pass" : "fail",
+    quality_dimensions: {
+      correctness: runResult.status === "pass",
+      completeness: runResult.passCount > 0,
+      safety: runResult.status !== "error"
+    },
+    notes: runResult.errorMessage
+  };
+
+  try {
+    await logEvaluationResult(evaluation);
+  } catch (err) {
+    console.warn("Failed to log evaluation result", err);
   }
 
   return runResult;

@@ -16,6 +16,9 @@ import { fileSha256 } from "./utils/checksum.js";
 import { logEvent } from "./telemetry/events.js";
 import type { ExecutorOutput, ExecutorFile } from "./executor/types.js";
 import type { RunResult } from "./contracts/validators.js";
+import { detectMissing } from "./clarification/detectMissing.js";
+import { generateQuestions } from "./clarification/generateQuestions.js";
+import { validateClarificationRequest } from "./contracts/validators.js";
 
 const app = express();
 app.use(cors());
@@ -74,6 +77,31 @@ function buildTestRunEntry(attempt: string, run: RunResult) {
     timestamp: run.timestamp
   };
 }
+
+app.post("/api/clarify", (req, res) => {
+  try {
+    const promptRaw = req.body?.prompt;
+    const prompt = typeof promptRaw === "string" ? promptRaw.trim() : "";
+    if (!prompt) {
+      return res.status(400).json({ error: "prompt required" });
+    }
+
+    const missing = detectMissing(prompt);
+    const questions = generateQuestions(missing);
+    const payload = { questions };
+    const validation = validateClarificationRequest(payload);
+    if (!validation.ok) {
+      console.error("Clarification payload failed validation", validation.errors);
+      return res.status(500).json({ error: "clarification contract violation" });
+    }
+
+    return res.json(payload);
+  } catch (err: unknown) {
+    console.error(err);
+    const message = err instanceof Error ? err.message : "internal error";
+    return res.status(500).json({ error: message });
+  }
+});
 
 app.post("/api/execute", async (req, res) => {
   try {
