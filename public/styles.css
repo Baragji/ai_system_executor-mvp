@@ -21,3 +21,12 @@ code { background: #0f172a; padding: 2px 6px; border-radius: 6px; border:1px sol
 .timeline-entry { padding: 12px; border-radius: 10px; border: 1px solid #1f2937; background: rgba(17, 24, 39, 0.85); }
 .timeline-entry h3 { margin: 0 0 8px; font-size: 16px; }
 .timeline-entry p { margin: 4px 0; }
+.clarification { margin-top: 24px; padding: 16px; border: 1px solid #334155; border-radius: 12px; background: rgba(15, 23, 42, 0.7); }
+.clarification h2 { margin-top: 0; }
+.clarification-hint { margin: 0 0 16px; color: #cbd5e1; font-size: 14px; }
+.clarification-questions { display: grid; gap: 16px; }
+.clarification-question { display: grid; gap: 8px; }
+.clarification-options { display: grid; gap: 8px; }
+.clarification-option { display: flex; align-items: center; gap: 8px; }
+.clarification-actions { display: flex; gap: 12px; margin-top: 20px; }
+.skip-button { background: #475569; }

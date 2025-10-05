@@ -18,7 +18,12 @@ import type { ExecutorOutput, ExecutorFile } from "./executor/types.js";
 import type { RunResult } from "./contracts/validators.js";
 import { detectMissing } from "./clarification/detectMissing.js";
 import { generateQuestions } from "./clarification/generateQuestions.js";
-import { validateClarificationRequest } from "./contracts/validators.js";
+import { augmentPrompt } from "./clarification/augmentPrompt.js";
+import {
+  validateClarificationRequest,
+  validateClarificationResponse
+} from "./contracts/validators.js";
+import type { ClarificationResponse } from "./clarification/types.js";
 
 const app = express();
 app.use(cors());
@@ -78,6 +83,64 @@ function buildTestRunEntry(attempt: string, run: RunResult) {
   };
 }
 
+// Sanitize model output before schema validation to improve resilience.
+// - Drops unknown top-level properties
+// - Normalizes file paths (removes leading "./")
+// - Ensures files array contains only { path, contents } with string types
+export function sanitizeExecutorOutput(data: unknown): unknown {
+  if (!data || typeof data !== "object") return data;
+  const obj = data as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  const invalidStart = /^([/]|[A-Za-z]:|\.{1,2}|\\)/;
+
+  if (typeof obj.project_name === "string") {
+    out.project_name = obj.project_name;
+  }
+
+  if (Array.isArray(obj.files)) {
+    const files = obj.files
+      .map((f: unknown) => {
+        if (!f || typeof f !== "object") return null;
+        const fo = f as Record<string, unknown>;
+        const rawPath = typeof fo.path === "string" ? fo.path : null;
+        const rawContents = typeof fo.contents === "string" ? fo.contents : null;
+        if (!rawPath || !rawContents) return null;
+        const normalizedPath = rawPath.replace(/^(?:\.\/)+/, "");
+        if (invalidStart.test(normalizedPath)) return null;
+        return { path: normalizedPath, contents: rawContents };
+      })
+      .filter((f: unknown) => !!f);
+    if (files.length > 0) {
+      out.files = files as unknown[];
+    }
+  }
+
+  if (Array.isArray(obj.notes)) {
+    out.notes = (obj.notes as unknown[]).filter(n => typeof n === "string");
+  }
+
+  // Infer hasTests=true if any test files present; default false if missing.
+  if (Array.isArray(out.files)) {
+    const files = out.files as { path: string; contents: string }[];
+    const hasTestFiles = files.some(f =>
+      /(^|\/)__(tests)__\//.test(f.path) ||
+      /(^|\/)tests\//.test(f.path) ||
+      /\.test\.[tj]s$/.test(f.path)
+    );
+    let hasTestsFlag: boolean | undefined = typeof obj.hasTests === "boolean" ? (obj.hasTests as boolean) : undefined;
+    if (hasTestFiles) {
+      hasTestsFlag = true;
+    } else if (hasTestsFlag === undefined) {
+      hasTestsFlag = false;
+    }
+    out.hasTests = hasTestsFlag;
+  } else if (typeof obj.hasTests === "boolean") {
+    out.hasTests = obj.hasTests as boolean;
+  }
+
+  return out;
+}
+
 app.post("/api/clarify", (req, res) => {
   try {
     const promptRaw = req.body?.prompt;
@@ -105,14 +168,38 @@ app.post("/api/clarify", (req, res) => {
 
 app.post("/api/execute", async (req, res) => {
   try {
-    const prompt: string = (req.body?.prompt || "").toString();
+    const promptRaw = req.body?.prompt;
+    const originalPrompt: string = promptRaw === undefined ? "" : promptRaw.toString();
+    const promptForValidation = originalPrompt.trim();
     const projectNameRaw: string | undefined = req.body?.projectName;
-    if (!prompt || prompt.length < 3) return res.status(400).json({ error: "prompt required" });
+    if (!promptForValidation || promptForValidation.length < 3) {
+      return res.status(400).json({ error: "prompt required" });
+    }
+
+    let clarificationsUsed = false;
+    let clarifications: ClarificationResponse | undefined;
+
+    if (req.body?.clarifications !== undefined) {
+      const validation = validateClarificationResponse(req.body.clarifications);
+      if (!validation.ok) {
+        return res.status(400).json({ error: "invalid clarifications", details: validation.errors });
+      }
+      clarifications = validation.value;
+    }
+
+    let effectivePrompt = originalPrompt;
+    if (clarifications) {
+      const augmented = augmentPrompt(originalPrompt, clarifications);
+      if (augmented !== originalPrompt) {
+        clarificationsUsed = true;
+        effectivePrompt = augmented;
+      }
+    }
 
     const systemPrompt = await fs.readFile("src/executor/systemPrompt.md", "utf-8");
     const messages = [
       { role: "system" as const, content: systemPrompt },
-      { role: "user" as const, content: prompt }
+      { role: "user" as const, content: effectivePrompt }
     ];
 
     const raw = await generateJSON(messages);
@@ -123,7 +210,9 @@ app.post("/api/execute", async (req, res) => {
       return res.status(422).json({ error: "Model did not return valid JSON", raw });
     }
 
-    const result = validateExecutorOutput(data);
+    // Pre-validate sanitization to strip extras and normalize paths
+    const sanitized = sanitizeExecutorOutput(data);
+    const result = validateExecutorOutput(sanitized);
     if (!result.ok) {
       return res.status(422).json({ error: "JSON failed schema validation", details: result.errors });
     }
@@ -160,7 +249,7 @@ app.post("/api/execute", async (req, res) => {
         projectSlug: slug,
         failure: initialRun,
         originalFiles: output.files,
-        prompt
+        prompt: effectivePrompt
       });
       await logEvent("repair_attempt", {
         project: slug,
@@ -178,7 +267,14 @@ app.post("/api/execute", async (req, res) => {
     const fileMetadata = await computeFileChecksums(collectFilePaths(output.files, repair), targetRoot);
     const meta = {
       created_at: new Date().toISOString(),
-      source_prompt: prompt,
+      source_prompt: effectivePrompt,
+      original_prompt: originalPrompt,
+      clarifications: clarifications
+        ? {
+            used: clarificationsUsed,
+            answers: clarifications.answers
+          }
+        : { used: false, answers: [] },
       notes: output.notes || [],
       testRuns: testRuns.map((run, idx) => buildTestRunEntry(idx === 0 ? "initial" : "repair", run)),
       repair: repair
@@ -218,7 +314,9 @@ app.post("/api/execute", async (req, res) => {
         initial: initialRun,
         afterRepair: repair?.runResult ?? null
       },
-      repair: meta.repair
+      repair: meta.repair,
+      clarificationsUsed,
+      generated: effectivePrompt
     });
   } catch (err: unknown) {
     console.error(err);
