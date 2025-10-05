@@ -1,9 +1,6 @@
-{"name":"generation_start","timestamp":"2025-10-05T07:56:29.211Z","payload":{"project":"phase1-demo"}}
-{"name":"test_run","timestamp":"2025-10-05T07:56:29.214Z","payload":{"project":"phase1-demo","stage":"initial","status":"fail"}}
-{"name":"repair_attempt","timestamp":"2025-10-05T07:56:29.215Z","payload":{"project":"phase1-demo","attempted":true,"repaired":true}}
-{"name":"test_run","timestamp":"2025-10-05T07:56:29.215Z","payload":{"project":"phase1-demo","stage":"post_repair","status":"pass"}}
-{"name":"generation_complete","timestamp":"2025-10-05T07:56:29.218Z","payload":{"project":"phase1-demo","status":"pass"}}
-{"name":"test_run","timestamp":"2025-10-05T07:56:33.553Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
-{"name":"generation_start","timestamp":"2025-10-05T10:05:05.239Z","payload":{"project":"hello-world-html"}}
-{"name":"test_run","timestamp":"2025-10-05T10:05:06.552Z","payload":{"project":"hello-world-html","stage":"initial","status":"pass"}}
-{"name":"generation_complete","timestamp":"2025-10-05T10:05:06.553Z","payload":{"project":"hello-world-html","status":"pass"}}
+{"name":"generation_start","timestamp":"2025-10-05T11:59:24.717Z","payload":{"project":"phase1-demo"}}
+{"name":"test_run","timestamp":"2025-10-05T11:59:24.722Z","payload":{"project":"phase1-demo","stage":"initial","status":"fail"}}
+{"name":"repair_attempt","timestamp":"2025-10-05T11:59:24.782Z","payload":{"project":"phase1-demo","attempted":true,"repaired":true}}
+{"name":"test_run","timestamp":"2025-10-05T11:59:24.784Z","payload":{"project":"phase1-demo","stage":"post_repair","status":"pass"}}
+{"name":"generation_complete","timestamp":"2025-10-05T11:59:24.831Z","payload":{"project":"phase1-demo","status":"pass"}}
+{"name":"test_run","timestamp":"2025-10-05T11:59:25.277Z","payload":{"project":"passing","stage":"manual","status":"pass"}}

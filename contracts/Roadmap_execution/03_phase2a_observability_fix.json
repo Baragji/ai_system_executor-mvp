@@ -1,0 +1,413 @@
+{
+  "contract_version": "2.1.1",
+  "contract_meta": {
+    "created": "2025-10-05",
+    "phase": "2A-OBSERVABILITY-FIX",
+    "phase_name": "Phase 2A Observability Remediation",
+    "prerequisite_phase": "Phase 2A (backend clarification complete)",
+    "rationale": "Audit revealed trace/telemetry location mismatch and missing evaluation results logging. Fix critical observability infrastructure before Phase 2B UI complexity.",
+    "references": [
+      "Phase 2A Audit Report",
+      "Phase 2A Contract Observability Requirements"
+    ]
+  },
+  "project": {
+    "name": "executor-mvp",
+    "current_phase": "2A-OBSERVABILITY-FIX",
+    "goal": "Wire telemetry events to contracted trace location (.automation/execution_trace.jsonl) and implement evaluation results logging (.automation/evaluation_results.json)",
+    "scope": "Two critical fixes only - no feature additions",
+    "estimated_time": "30-40 minutes total",
+    "out_of_scope": [
+      "Validator file naming (cosmetic)",
+      "Meta file Phase 2 telemetry (Phase 2C scope)",
+      "Any Phase 2B features",
+      "Any UI changes"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "observe_evaluate_proceed",
+    "description": "Fix observability infrastructure gaps identified in audit. Minimal scope, maximum traceability.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "linux|macos",
+      "env_vars_required": [],
+      "optional_env_vars": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"]
+    }
+  },
+  "observability": {
+    "description": "THIS phase fixes observability - meta irony noted",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "evaluation_file": ".automation/evaluation_results.json",
+    "fix_verification": "After fixes, both files must contain recent entries with correct structure"
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npm run lint",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "must_pass": true
+    },
+    "tests": {
+      "command": "npm test",
+      "expected": {
+        "exit_code": 0,
+        "no_failed_suites": true
+      },
+      "coverage": {
+        "min_line_pct": 80,
+        "min_branch_pct": 75
+      }
+    }
+  },
+  "high_level_stages": [
+    "phase2a_verification",
+    "trace_location_fix",
+    "evaluation_logging_fix",
+    "observability_validation"
+  ],
+  "tasks": [
+    {
+      "id": "P2A-V01",
+      "stage": "phase2a_verification",
+      "title": "Verify Phase 2A completion before observability fix",
+      "type": "verification",
+      "description": "Confirm Phase 2A backend is functional before modifying observability infrastructure",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "test -f contracts/clarification-request.schema.json && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f src/clarification/detectMissing.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "grep -q '/api/clarify' src/server.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "npm test 2>&1 | tail -5",
+          "capture_output": true,
+          "expect_exit_code": 0
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify Phase 2A complete before touching observability",
+        "success_criteria": "All Phase 2A artifacts exist and tests pass",
+        "on_fail": "HALT - Phase 2A must be complete before observability fixes"
+      },
+      "trace_context": {
+        "decision_point": "phase2a_verification",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "OBS-FIX-01",
+      "stage": "trace_location_fix",
+      "title": "Fix #1: Wire telemetry to contracted trace location",
+      "type": "fix",
+      "description": "Modify logEvent to dual-write: maintain .telemetry/events.log AND write structured entries to .automation/execution_trace.jsonl",
+      "time_estimate_minutes": 20,
+      "audit_reference": "Discrepancy #1: Trace vs telemetry location mismatch",
+      "actions": [
+        {
+          "type": "edit_file",
+          "file": "src/telemetry/events.ts",
+          "ensure": [
+            "Keep existing .telemetry/events.log write (backward compatibility)",
+            "Add secondary write to .automation/execution_trace.jsonl",
+            "Format for trace file: {timestamp, task_id, action, status, cmd?, exit_code?, stdout_excerpt?, stderr_excerpt?}",
+            "Use append mode for both files",
+            "Handle missing .automation/ directory gracefully (create if needed)"
+          ]
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/telemetry/dual-write.test.ts",
+          "test_cases": [
+            "logEvent writes to both .telemetry/events.log and .automation/execution_trace.jsonl",
+            "trace file entries have required fields (timestamp, task_id, action, status)",
+            "trace file is valid JSONL (one JSON object per line)",
+            "creates .automation/ directory if missing"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/telemetry/events.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'execution_trace.jsonl' src/telemetry/events.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- dual-write.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "logEvent function writes to both locations",
+        "Trace file format matches contract specification",
+        "All tests pass",
+        "Backward compatibility maintained (.telemetry/events.log still works)",
+        "TypeScript compiles without errors"
+      ],
+      "trace_context": {
+        "decision_point": "trace_location_fixed",
+        "fix_number": 1
+      }
+    },
+    {
+      "id": "OBS-FIX-02",
+      "stage": "evaluation_logging_fix",
+      "title": "Fix #4: Add evaluation results logging",
+      "type": "fix",
+      "description": "Create post-test hook that writes pass/fail and quality dimensions to .automation/evaluation_results.json",
+      "time_estimate_minutes": 20,
+      "audit_reference": "Discrepancy #4: Evaluation results file not wired to runtime",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/evaluation/logResults.ts",
+          "content_spec": {
+            "function_signature": "export async function logEvaluationResult(evaluation: EvaluationResult): Promise<void>",
+            "evaluation_structure": {
+              "timestamp": "ISO 8601 string",
+              "phase": "string (e.g., '2A', '2B')",
+              "task_id": "string",
+              "status": "'pass' | 'fail'",
+              "quality_dimensions": {
+                "correctness": "boolean",
+                "completeness": "boolean",
+                "safety": "boolean"
+              },
+              "notes": "optional string"
+            },
+            "behavior": "Append JSON object to .automation/evaluation_results.json (create file if missing, valid JSONL format)"
+          }
+        },
+        {
+          "type": "edit_file",
+          "file": "src/runner/runInSandbox.ts",
+          "ensure": [
+            "Import logEvaluationResult",
+            "After test run completes, call logEvaluationResult with test outcome",
+            "Quality dimensions based on test result: correctness=(status==='pass'), completeness=(passCount>0), safety=(no security errors)"
+          ]
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/evaluation/logResults.test.ts",
+          "test_cases": [
+            "logEvaluationResult writes to .automation/evaluation_results.json",
+            "creates file if missing",
+            "appends without overwriting existing entries",
+            "produces valid JSONL format",
+            "includes all required fields (timestamp, phase, task_id, status, quality_dimensions)"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/evaluation/logResults.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'logEvaluationResult' src/runner/runInSandbox.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- logResults.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "logEvaluationResult function writes structured evaluation data",
+        "runInSandbox calls evaluation logger after tests",
+        "Evaluation file format matches contract specification",
+        "All tests pass",
+        "TypeScript compiles without errors"
+      ],
+      "trace_context": {
+        "decision_point": "evaluation_logging_fixed",
+        "fix_number": 2
+      }
+    },
+    {
+      "id": "OBS-GATE",
+      "stage": "observability_validation",
+      "title": "Observability fix validation gate",
+      "type": "validation",
+      "description": "Verify both fixes work correctly before declaring observability remediation complete",
+      "actions": [
+        {
+          "type": "validate",
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "manual_test",
+          "description": "Trigger test run and verify both files updated",
+          "steps": [
+            "Run: npm test",
+            "Check .automation/execution_trace.jsonl has recent entries with correct format",
+            "Check .automation/evaluation_results.json has recent entries with quality dimensions",
+            "Verify both files are valid JSONL (each line is valid JSON)"
+          ]
+        }
+      ],
+      "evaluation": {
+        "intent": "Confirm observability infrastructure fixed and functional",
+        "success_criteria": "All tests pass, both trace and evaluation files populate correctly during test runs, manual verification passes",
+        "on_pass": "Observability Fix COMPLETE - Ready for Phase 2B decision",
+        "on_fail": "HALT - Fix observability issues before proceeding"
+      },
+      "trace_context": {
+        "decision_point": "observability_fix_gate",
+        "reasoning_required": true,
+        "critical": true,
+        "gate_type": "go_no_go"
+      }
+    }
+  ],
+  "execution_order": [
+    "P2A-V01",
+    "OBS-FIX-01",
+    "OBS-FIX-02",
+    "OBS-GATE"
+  ],
+  "execution_semantics": {
+    "fix_isolation": {
+      "description": "Each fix must be complete and tested before proceeding to next",
+      "implementation": "Run tests after each fix. Halt if any test fails."
+    },
+    "gate_enforcement": {
+      "OBS-GATE": {
+        "required": true,
+        "on_fail": "HALT execution. Do not proceed to Phase 2B.",
+        "report": "Generate diagnostic showing which observability validations failed."
+      }
+    },
+    "minimal_scope": {
+      "enforcement": "ONLY fix the two audit items. No feature additions. No UI changes. No refactoring.",
+      "rationale": "Observability fixes should be surgical - get in, fix, verify, get out."
+    }
+  },
+  "completion_criteria": {
+    "phase2a_verified": true,
+    "trace_location_fixed": true,
+    "evaluation_logging_fixed": true,
+    "both_files_populate": true,
+    "all_tests_pass": true,
+    "coverage_maintained": true,
+    "manual_verification_passes": true
+  },
+  "fallback_policies": {
+    "phase2a_verification_fails": "HALT - Phase 2A must be complete before observability fixes.",
+    "test_fails": "Fix implementation, do not skip tests.",
+    "file_write_errors": "Ensure .automation/ directory exists with correct permissions.",
+    "coverage_drops": "Add tests to maintain >80% coverage before proceeding."
+  },
+  "reporting": {
+    "progress_file": ".automation/progress_obs_fix.json",
+    "fields": ["task_id", "fix_number", "status", "started_at", "finished_at", "elapsed_ms", "result", "errors"],
+    "status_values": ["pending", "running", "success", "failed"],
+    "observability_fix_report": {
+      "file": ".automation/observability_fix_report.json",
+      "fields": ["fixes_completed", "gate_passed", "timestamp", "next_decision", "diagnostics"]
+    }
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Dual-write Telemetry Module",
+      "path": "src/telemetry/events.ts",
+      "must_include_regex": "execution_trace\\.jsonl"
+    },
+    {
+      "name": "Evaluation Logger",
+      "path": "src/evaluation/logResults.ts",
+      "must_include_regex": "export.*function logEvaluationResult"
+    },
+    {
+      "name": "Execution Trace File",
+      "path": ".automation/execution_trace.jsonl",
+      "must_exist": true,
+      "must_be_valid_jsonl": true
+    },
+    {
+      "name": "Evaluation Results File",
+      "path": ".automation/evaluation_results.json",
+      "must_exist": true,
+      "must_be_valid_jsonl": true
+    },
+    {
+      "name": "Observability Fix Report",
+      "path": ".automation/observability_fix_report.json",
+      "must_exist": true,
+      "must_include_field": "gate_passed"
+    }
+  ],
+  "release_actions": [
+    {
+      "cmd": "git add .",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git commit -m \"fix(observability): wire telemetry to contracted trace location and add evaluation logging\"",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git tag phase2a-observability-fix-complete",
+      "expect_exit_code": 0
+    }
+  ],
+  "ai_executor_guidelines": {
+    "observability_first": "These fixes ARE the observability infrastructure. Extra care with testing.",
+    "minimal_scope": "ONLY the two fixes. No feature creep. No 'while we're here' additions.",
+    "backward_compatibility": "Keep .telemetry/events.log working. Dual-write, don't replace.",
+    "test_driven": "Write tests for both fixes. Verify both files populate correctly.",
+    "fail_fast": "If any test fails, halt and fix before proceeding.",
+    "gate_enforcement": "OBS-GATE must pass before declaring remediation complete.",
+    "manual_verification_required": "Actually run tests and check both files manually. Don't assume."
+  },
+  "governance_note": {
+    "for_human": "This is a 30-40 minute focused fix. No UI work. No feature additions. Just infrastructure repair. After OBS-GATE passes, STOP. Take break. Assess with wife whether to proceed to Phase 2B today or tomorrow. Do not chain into 2B without explicit decision."
+  }
+}
