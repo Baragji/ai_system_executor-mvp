@@ -15,6 +15,12 @@ const repairHistoryContent = document.getElementById("repairHistoryContent");
 const repairHistoryTimeline = document.getElementById("repairHistoryTimeline");
 const repairHistoryToggle = document.getElementById("toggleRepairHistory");
 const repairHistorySummaryEl = document.getElementById("repairHistorySummary");
+const taskPlanSection = document.getElementById("taskPlanSection");
+const taskPlanProgressFill = document.getElementById("taskPlanProgressFill");
+const taskPlanSummary = document.getElementById("taskPlanSummary");
+const subtaskListEl = document.getElementById("subtaskList");
+const currentSubtaskLabel = document.getElementById("currentSubtaskLabel");
+const estimatedCompletionLabel = document.getElementById("estimatedCompletionLabel");
 
 let currentProjectSlug = null;
 let pendingQuestions = [];
@@ -46,6 +52,154 @@ function renderStatus(runResult) {
   span.className = statusClass;
   span.textContent = runResult.status.toUpperCase();
   return span;
+}
+
+function statusIcon(status) {
+  switch (status) {
+    case "completed":
+      return "✅";
+    case "failed":
+      return "❌";
+    case "in_progress":
+      return "⚙️";
+    default:
+      return "⏳";
+  }
+}
+
+function formatDuration(ms) {
+  if (!ms || ms <= 0) {
+    return "-";
+  }
+  if (ms < 1000) {
+    return `${ms}ms`;
+  }
+  const seconds = ms / 1000;
+  if (seconds < 60) {
+    return `${seconds.toFixed(1)}s`;
+  }
+  const minutes = seconds / 60;
+  return `${minutes.toFixed(1)}m`;
+}
+
+function resetTaskPlanUI() {
+  if (taskPlanSection) {
+    taskPlanSection.classList.add("hidden");
+  }
+  if (taskPlanProgressFill) {
+    taskPlanProgressFill.style.width = "0%";
+  }
+  if (taskPlanSummary) {
+    taskPlanSummary.textContent = "";
+  }
+  if (currentSubtaskLabel) {
+    currentSubtaskLabel.textContent = "Not started";
+  }
+  if (estimatedCompletionLabel) {
+    estimatedCompletionLabel.textContent = "Pending";
+  }
+  if (subtaskListEl) {
+    subtaskListEl.innerHTML = "";
+  }
+}
+
+function formatEstimate(estimate) {
+  if (!estimate) return "Unknown";
+  const when = new Date(estimate.estimatedCompletionTimestamp);
+  const remainingMinutes = estimate.estimatedRemainingMs / 60000;
+  const isValidDate = !Number.isNaN(when.getTime());
+  const timePart = Number.isFinite(remainingMinutes)
+    ? `${remainingMinutes.toFixed(1)} minutes`
+    : "--";
+  const whenText = isValidDate ? when.toLocaleTimeString() : "Unknown time";
+  return `${whenText} (${timePart}, confidence ${estimate.confidenceLevel})`;
+}
+
+function renderTaskPlan(taskPlan, executionResult, timeEstimate) {
+  if (!taskPlanSection || !taskPlan || !Array.isArray(taskPlan.subtasks) || taskPlan.subtasks.length === 0) {
+    resetTaskPlanUI();
+    return;
+  }
+
+  const resultMap = new Map();
+  if (executionResult?.subtaskResults) {
+    executionResult.subtaskResults.forEach(result => {
+      resultMap.set(result.subtaskId, result);
+    });
+  }
+
+  const progress = executionResult?.progress;
+  const completed = progress?.completedSubtasks ?? Array.from(resultMap.values()).filter(r => r.status === "completed").length;
+  const failed = progress?.failedSubtasks ?? Array.from(resultMap.values()).filter(r => r.status === "failed").length;
+  const percent = Math.min(
+    100,
+    Math.round(
+      progress?.percentComplete ?? (completed / taskPlan.subtasks.length) * 100
+    )
+  );
+  if (taskPlanProgressFill) {
+    taskPlanProgressFill.style.width = `${percent}%`;
+  }
+
+  if (taskPlanSummary) {
+    taskPlanSummary.textContent = `Completed ${completed} of ${taskPlan.subtasks.length} · Failed ${failed} · Status: ${executionResult?.status ?? "pending"}`;
+  }
+
+  if (currentSubtaskLabel) {
+    const current = progress?.currentSubtask
+      ?? taskPlan.subtasks.find(subtask => (resultMap.get(subtask.id)?.status ?? subtask.status) === "in_progress")
+      ?? taskPlan.subtasks.find(subtask => (resultMap.get(subtask.id)?.status ?? subtask.status) === "pending");
+    currentSubtaskLabel.textContent = current ? current.title : "Complete";
+  }
+
+  if (estimatedCompletionLabel) {
+    estimatedCompletionLabel.textContent = formatEstimate(timeEstimate);
+  }
+
+  if (subtaskListEl) {
+    subtaskListEl.innerHTML = "";
+    taskPlan.subtasks.forEach(subtask => {
+      const listItem = document.createElement("li");
+      listItem.className = "subtask-item";
+      const executionStatus = resultMap.get(subtask.id)?.status ?? subtask.status ?? "pending";
+      if (executionStatus === "in_progress") {
+        listItem.classList.add("current");
+      }
+
+      const header = document.createElement("div");
+      header.className = "subtask-header";
+      const icon = document.createElement("span");
+      icon.className = "status-icon";
+      icon.textContent = statusIcon(executionStatus);
+      const title = document.createElement("span");
+      title.textContent = subtask.title;
+      header.append(icon, title);
+      listItem.appendChild(header);
+
+      const description = document.createElement("p");
+      description.textContent = subtask.description;
+      listItem.appendChild(description);
+
+      if (Array.isArray(subtask.dependencies) && subtask.dependencies.length > 0) {
+        const dependency = document.createElement("span");
+        dependency.className = "dependency";
+        dependency.textContent = `Depends on: ${subtask.dependencies.join(" → ")}`;
+        listItem.appendChild(dependency);
+      }
+
+      const result = resultMap.get(subtask.id);
+      if (result?.durationMs) {
+        const duration = document.createElement("span");
+        duration.className = "subtask-duration";
+        duration.textContent = `Duration: ${formatDuration(result.durationMs)}`;
+        listItem.appendChild(duration);
+      }
+
+      subtaskListEl.appendChild(listItem);
+    });
+  }
+
+  taskPlanSection.classList.remove("hidden");
 }
 
 function renderTimelineEntry(label, runResult) {
@@ -406,6 +560,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
   testControlsEl.classList.add("hidden");
   currentProjectSlug = null;
   renderRepairHistory(null);
+  resetTaskPlanUI();
 
   const payload = { prompt };
   if (projectName) {
@@ -429,6 +584,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
     }
 
     resultEl.textContent = JSON.stringify(data, null, 2);
+    renderTaskPlan(data.taskPlan, data.planExecutionResult, data.timeEstimate);
     if (data?.browse_url) {
       resultEl.appendChild(document.createElement("br"));
       resultEl.appendChild(renderLink(data.browse_url));

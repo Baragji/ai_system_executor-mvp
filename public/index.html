@@ -33,6 +33,27 @@
 
       <pre id="result" class="result"></pre>
 
+      <section id="taskPlanSection" class="task-plan hidden">
+        <h2>Task Plan Progress</h2>
+        <div class="plan-overview">
+          <div class="progress-container">
+            <div id="taskPlanProgressFill" class="progress-fill"></div>
+          </div>
+          <div id="taskPlanSummary" class="plan-summary"></div>
+        </div>
+        <div class="plan-meta">
+          <div>
+            <span class="meta-label">Current Subtask:</span>
+            <span id="currentSubtaskLabel" class="meta-value">Not started</span>
+          </div>
+          <div>
+            <span class="meta-label">Estimated Completion:</span>
+            <span id="estimatedCompletionLabel" class="meta-value">Pending</span>
+          </div>
+        </div>
+        <ul id="subtaskList" class="subtask-list"></ul>
+      </section>
+
       <section id="testControls" class="test-controls hidden">
         <h2>Test &amp; Repair Timeline</h2>
         <button id="runTestsBtn" class="run-tests">Run Tests</button>

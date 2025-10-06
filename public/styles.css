@@ -58,3 +58,20 @@ code { background: #0f172a; padding: 2px 6px; border-radius: 6px; border:1px sol
 .clarification-option { display: flex; align-items: center; gap: 8px; }
 .clarification-actions { display: flex; gap: 12px; margin-top: 20px; }
 .skip-button { background: #475569; }
+.task-plan { margin-top: 24px; padding: 16px; border-radius: 12px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.7); }
+.task-plan h2 { margin: 0 0 12px; }
+.plan-overview { display: grid; gap: 12px; }
+.progress-container { width: 100%; height: 12px; border-radius: 999px; background: rgba(30, 41, 59, 0.8); overflow: hidden; border: 1px solid rgba(148, 163, 184, 0.3); }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #34d399, #60a5fa); transition: width 0.3s ease; width: 0%; }
+.plan-summary { font-size: 14px; color: #cbd5e1; }
+.plan-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; font-size: 14px; color: #cbd5e1; }
+.meta-label { font-weight: 600; margin-right: 6px; }
+.meta-value { color: #e2e8f0; }
+.subtask-list { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 10px; }
+.subtask-item { padding: 12px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.2); background: rgba(17, 24, 39, 0.9); display: grid; gap: 6px; }
+.subtask-item.current { border-color: rgba(52, 211, 153, 0.6); box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.25); }
+.subtask-header { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.status-icon { font-size: 18px; }
+.dependency { font-size: 12px; color: #94a3b8; }
+.subtask-duration { font-size: 12px; color: #a1a1aa; }
+.task-plan.hidden { display: none; }
