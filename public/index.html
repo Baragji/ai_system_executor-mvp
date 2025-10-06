@@ -38,6 +38,16 @@
         <button id="runTestsBtn" class="run-tests">Run Tests</button>
         <div id="testStatus" class="test-status"></div>
         <div id="repairTimeline" class="repair-timeline"></div>
+        <section id="repairHistorySection" class="repair-history hidden">
+          <div class="repair-history-header">
+            <h3>Repair History</h3>
+            <span id="repairHistorySummary" class="history-summary-label"></span>
+            <button id="toggleRepairHistory" type="button" class="history-toggle">Show</button>
+          </div>
+          <div id="repairHistoryContent" class="repair-history-content hidden">
+            <div id="repairHistoryTimeline" class="history-timeline"></div>
+          </div>
+        </section>
       </section>
     </main>
     <script src="/script.js"></script>

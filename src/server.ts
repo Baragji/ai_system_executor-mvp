@@ -11,12 +11,12 @@ import { generateJSON } from "./llm/index.js";
 import { validateExecutorOutput } from "./executor/schema.js";
 import { writeFiles } from "./executor/writeFiles.js";
 import { runInSandbox } from "./runner/runInSandbox.js";
-import { repairOnce } from "./repair/repairOnce.js";
-import type { RepairOutcome } from "./repair/repairOnce.js";
+import { multiTurnRepair } from "./repair/multiTurnRepair.js";
 import { fileSha256 } from "./utils/checksum.js";
 import { logEvent } from "./telemetry/events.js";
 import type { ExecutorOutput, ExecutorFile } from "./executor/types.js";
 import type { RunResult } from "./contracts/validators.js";
+import type { FailureCategory, RepairHistory, TestResultSummary } from "./contracts/repairHistoryValidator.js";
 import { detectMissing } from "./clarification/detectMissing.js";
 import { generateQuestions } from "./clarification/generateQuestions.js";
 import { augmentPrompt } from "./clarification/augmentPrompt.js";
@@ -104,30 +104,96 @@ async function computeFileChecksums(pathsToHash: string[], projectRoot: string) 
   return entries;
 }
 
-function collectFilePaths(files: ExecutorFile[], repair?: RepairOutcome | undefined): string[] {
+async function collectFilePaths(
+  projectRoot: string,
+  files: ExecutorFile[],
+  extraPaths: string[]
+): Promise<string[]> {
   const paths = new Set(files.map(file => file.path));
-  if (repair) {
-    for (const artifact of repair.artifacts) {
-      if (artifact.action === "delete") {
-        paths.delete(artifact.path);
-      } else {
-        paths.add(artifact.path);
+  for (const candidate of extraPaths) {
+    if (!candidate) continue;
+    paths.add(candidate);
+  }
+
+  const existing: string[] = [];
+  for (const candidate of paths) {
+    const absolute = path.join(projectRoot, candidate);
+    try {
+      await fs.access(absolute);
+      existing.push(candidate);
+    } catch {
+      // Skip files that no longer exist after repairs (deleted during attempts)
+    }
+  }
+
+  return existing;
+}
+
+function buildTestRunEntry(attempt: string, run: RunResult | TestResultSummary) {
+  return {
+    attempt,
+    status: run.status,
+    passCount: run.passCount,
+    failCount: run.failCount,
+    durationMs: run.durationMs ?? 0,
+    logsPath: run.logsPath,
+    timestamp: "timestamp" in run && run.timestamp ? run.timestamp : new Date().toISOString()
+  };
+}
+
+function gatherChangedPaths(history: RepairHistory | null | undefined): string[] {
+  if (!history) return [];
+  const paths = new Set<string>();
+  for (const attempt of history.attempts) {
+    for (const changed of attempt.changedFiles) {
+      if (changed) {
+        paths.add(changed);
       }
     }
   }
   return Array.from(paths);
 }
 
-function buildTestRunEntry(attempt: string, run: RunResult) {
+function buildRepairSummary(initialRun: RunResult, history: RepairHistory) {
+  const attempted = initialRun.status !== "pass";
+  const finalAttempt = history.attempts.at(-1);
+  const finalStatus = finalAttempt?.testResult.status ?? initialRun.status;
+
   return {
-    attempt,
-    status: run.status,
-    passCount: run.passCount,
-    failCount: run.failCount,
-    durationMs: run.durationMs,
-    logsPath: run.logsPath,
-    timestamp: run.timestamp
+    attempted,
+    repaired: finalStatus === "pass",
+    appliedFiles: finalAttempt?.changedFiles.length ?? 0,
+    notes: [] as string[],
+    error: finalStatus === "pass" ? null : `final status: ${history.finalStatus}`,
+    artifacts: [] as unknown[]
   };
+}
+
+function buildRepairMetrics(history: RepairHistory) {
+  const totalAttempts = history.attempts.length;
+  const successAttempt = history.successAttemptNumber;
+  const timePerAttempt = history.attempts.map(attempt => attempt.durationMs);
+  const failureTypes = history.attempts
+    .map(attempt => attempt.failureAnalysis?.category)
+    .filter((category): category is FailureCategory => Boolean(category));
+  const exhausted = history.finalStatus === "exhausted";
+  const efficiency = successAttempt && totalAttempts > 0 && !exhausted
+    ? successAttempt / totalAttempts
+    : 0;
+
+  const metrics: Record<string, unknown> = {
+    totalAttempts,
+    timePerAttempt,
+    failureTypes,
+    exhausted,
+    attemptEfficiency: Number.isFinite(efficiency) ? Number(efficiency.toFixed(2)) : 0
+  };
+
+  if (successAttempt) {
+    metrics.successAttempt = successAttempt;
+  }
+
+  return metrics;
 }
 
 // Sanitize model output before schema validation to improve resilience.
@@ -288,31 +354,41 @@ app.post("/api/execute", async (req, res) => {
     });
     await logEvent("test_run", { project: slug, stage: "initial", status: initialRun.status });
 
-    let repair: RepairOutcome | undefined;
-    let testRuns: RunResult[] = [initialRun];
+    const repairHistory = await multiTurnRepair({
+      projectPath: targetRoot,
+      projectSlug: slug,
+      originalPrompt: effectivePrompt,
+      generatedFiles: output.files.map(file => file.path),
+      initialTestResult: initialRun
+    });
 
+    await logEvent("repair_attempt", {
+      project: slug,
+      attempts: repairHistory.totalAttempts,
+      finalStatus: repairHistory.finalStatus,
+      successAttempt: repairHistory.successAttemptNumber ?? null
+    });
+
+    const testRunEntries = [buildTestRunEntry("initial", initialRun)];
     if (initialRun.status !== "pass") {
-      repair = await repairOnce({
-        projectRoot: targetRoot,
-        projectSlug: slug,
-        failure: initialRun,
-        originalFiles: output.files,
-        prompt: effectivePrompt
-      });
-      await logEvent("repair_attempt", {
-        project: slug,
-        attempted: repair.attempted,
-        repaired: repair.repaired,
-        error: repair.error
-      });
-
-      if (repair.runResult) {
-        testRuns = [initialRun, repair.runResult];
-        await logEvent("test_run", { project: slug, stage: "post_repair", status: repair.runResult.status });
+      for (const attempt of repairHistory.attempts) {
+        testRunEntries.push(buildTestRunEntry(`repair-${attempt.number}`, attempt.testResult));
+        await logEvent("test_run", {
+          project: slug,
+          stage: `repair-${attempt.number}`,
+          status: attempt.testResult.status
+        });
       }
     }
 
-    const fileMetadata = await computeFileChecksums(collectFilePaths(output.files, repair), targetRoot);
+    const afterRepairResult = initialRun.status === "pass"
+      ? null
+      : repairHistory.attempts.at(-1)?.testResult ?? null;
+    const finalStatus = afterRepairResult?.status ?? initialRun.status;
+
+    const changedPaths = gatherChangedPaths(repairHistory);
+    const relevantPaths = await collectFilePaths(targetRoot, output.files, changedPaths);
+    const fileMetadata = await computeFileChecksums(relevantPaths, targetRoot);
     const storedQuestions = consumeClarificationQuestions(originalPrompt) ?? [];
     let clarificationQuestions: ClarificationQuestion[] = storedQuestions;
     let clarificationAsked = clarificationQuestions.length > 0;
@@ -324,12 +400,17 @@ app.post("/api/execute", async (req, res) => {
     const clarificationAnswers: ClarificationAnswer[] = clarifications
       ? clarifications.answers.map<ClarificationAnswer>(answer => ({ ...answer }))
       : [];
-    const finalStatus = repair?.runResult?.status ?? initialRun.status;
     const clarificationTelemetry = {
       asked: clarificationAsked,
       questions: clarificationQuestions,
       answers: clarificationAnswers,
       improvedSuccess: clarificationsUsed && finalStatus === "pass"
+    };
+
+    const repairSummary = buildRepairSummary(initialRun, repairHistory);
+    const responseTestResults = {
+      initial: initialRun,
+      afterRepair: afterRepairResult
     };
 
     const meta = {
@@ -343,24 +424,10 @@ app.post("/api/execute", async (req, res) => {
         asked: clarificationTelemetry.asked
       },
       notes: output.notes || [],
-      testRuns: testRuns.map((run, idx) => buildTestRunEntry(idx === 0 ? "initial" : "repair", run)),
-      repair: repair
-        ? {
-            attempted: repair.attempted,
-            repaired: repair.repaired,
-            appliedFiles: repair.appliedFiles,
-            notes: repair.notes,
-            error: repair.error ?? null,
-            artifacts: repair.artifacts
-          }
-        : {
-            attempted: false,
-            repaired: initialRun.status === "pass",
-            appliedFiles: 0,
-            notes: [],
-            error: null,
-            artifacts: []
-          },
+      testRuns: testRunEntries,
+      repair: repairSummary,
+      repairMetrics: buildRepairMetrics(repairHistory),
+      repairHistory,
       files: fileMetadata
     };
 
@@ -368,7 +435,7 @@ app.post("/api/execute", async (req, res) => {
 
     await logEvent("generation_complete", {
       project: slug,
-      status: repair?.runResult?.status ?? initialRun.status
+      status: finalStatus
     });
 
     return res.json({
@@ -377,10 +444,9 @@ app.post("/api/execute", async (req, res) => {
       files_written: output.files.length,
       browse_url: `/output/${slug}/`,
       abs_path: targetRoot,
-      testResults: {
-        initial: initialRun,
-        afterRepair: repair?.runResult ?? null
-      },
+      testResults: responseTestResults,
+      repairMetrics: meta.repairMetrics,
+      repairHistory,
       repair: meta.repair,
       clarificationsUsed,
       generated: effectivePrompt
