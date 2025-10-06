@@ -1,0 +1,1011 @@
+{
+  "contract_version": "4.1.0",
+  "contract_meta": {
+    "created": "2025-10-06",
+    "phase": "4A",
+    "phase_name": "Task Planning & Monitoring - Foundation",
+    "prerequisite_phase": "Phase 3 (Multi-turn repair complete)",
+    "rationale": "Phase 4 split into two contracts with smaller wins and validation checkpoints. 4A builds task decomposition foundation: planning contracts, decomposer, validator, progress tracker. Includes pre/post validation to prevent building wrong solutions.",
+    "references": [
+      "Phase 4 Roadmap Document",
+      "Phase 3 Completion Report"
+    ],
+    "architectural_note": "Phase 4 introduces system making architectural decisions (decomposition strategy, subtask ordering). Validation checkpoints critical to ensure correctness."
+  },
+  "project": {
+    "name": "executor-mvp",
+    "current_phase": "4A",
+    "goal": "Build foundation for task planning: decompose complex requests into subtasks, validate decompositions, track execution progress. System can break 'todo app with auth' into 5 subtasks and show progress.",
+    "scope": "Foundation wins only - contracts, decomposer, validator, progress tracker",
+    "estimated_time": "5-6 wins over 2-3 weeks at sustainable pace",
+    "work_profile": "Backend planning logic, validation, data structures - no UI yet, no full integration yet",
+    "out_of_scope": [
+      "Sequential execution of subtasks (Phase 4B)",
+      "UI progress display (Phase 4B)",
+      "Estimated time remaining (Phase 4B)",
+      "Memory/learning (Phase 5)",
+      "Production hardening (Phase 4.5 decision after Phase 4)"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_validation_checkpoints",
+    "verification_strategy": "observe_validate_proceed",
+    "description": "Agent verifies Phase 3 completion, builds planning foundation with mandatory validation after each win. Pre-validation ensures we're building the right thing. Post-validation ensures it works correctly.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true,
+    "validation_protocol": {
+      "pre_validation": "Before implementing win, validate approach against real use cases",
+      "post_validation": "After implementing win, validate output quality against examples",
+      "mandatory_checkpoints": true
+    }
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "linux|macos",
+      "env_vars_required": [],
+      "optional_env_vars": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"]
+    }
+  },
+  "observability": {
+    "description": "Enhanced observability for planning decisions and decomposition quality",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "evaluation_file": ".automation/evaluation_results.json",
+    "monitoring": {
+      "task_status_tracking": true,
+      "verification_pass_fail": true,
+      "elapsed_time_per_task": true,
+      "decomposition_quality_tracking": true,
+      "validation_checkpoint_results": true
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": ["timestamp", "task_id", "action", "status", "cmd", "exit_code", "stdout_excerpt", "stderr_excerpt", "validation_result"]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_each_win": true,
+      "quality_dimensions": ["correctness", "completeness", "safety", "architectural_soundness"]
+    }
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npm run lint",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "must_pass": true
+    },
+    "tests": {
+      "command": "npm test",
+      "expected": {
+        "exit_code": 0,
+        "no_failed_suites": true
+      },
+      "coverage": {
+        "min_line_pct": 80,
+        "min_branch_pct": 75
+      }
+    },
+    "schemas": {
+      "ajv_strict": true,
+      "draft_version": "2020-12"
+    },
+    "validation": {
+      "pre_implementation": "Validate approach with 3-5 real examples before coding",
+      "post_implementation": "Validate output quality with 5-10 test cases",
+      "checkpoint_approval": "Developer must approve validation results before proceeding"
+    }
+  },
+  "high_level_stages": [
+    "phase3_verification",
+    "planning_contracts",
+    "task_decomposer",
+    "decomposition_validator",
+    "progress_tracker",
+    "dependency_analyzer",
+    "phase4a_validation"
+  ],
+  "tasks": [
+    {
+      "id": "P3-V01",
+      "stage": "phase3_verification",
+      "title": "Verify Phase 3 completion",
+      "type": "verification",
+      "description": "Confirm Phase 3 (Multi-turn repair) is complete before starting Phase 4A planning foundation",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "test -f src/repair/multiTurnRepair.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "grep -q 'multiTurnRepair' src/server.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "grep -q 'repairHistorySection' public/index.html && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "npm test 2>&1 | tail -5",
+          "capture_output": true,
+          "expect_exit_code": 0
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify Phase 3 multi-turn repair complete before planning foundation",
+        "success_criteria": "All Phase 3 artifacts exist and tests pass",
+        "on_fail": "HALT - Phase 3 must be complete before Phase 4A"
+      },
+      "trace_context": {
+        "decision_point": "phase3_verification",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "W28-PRE",
+      "stage": "planning_contracts",
+      "title": "Pre-Validation: Task Plan Contract Design",
+      "type": "validation_checkpoint",
+      "description": "Before implementing, validate task plan structure against real use cases",
+      "validation_mode": "pre_implementation",
+      "actions": [
+        {
+          "type": "manual_validation",
+          "validation_questions": [
+            "What does a task plan look like for 'build todo app with auth'?",
+            "What fields are needed: subtask name, description, dependencies, estimated complexity?",
+            "How do we represent dependencies: array of subtask IDs? Ordered list?",
+            "What validation rules: minimum 2 subtasks, maximum 10, unique IDs?",
+            "Should we include success criteria per subtask?"
+          ],
+          "example_use_cases": [
+            "Simple: 'build Flask hello world' -> 2-3 subtasks",
+            "Medium: 'build todo app with auth' -> 5-7 subtasks",
+            "Complex: 'build e-commerce site' -> 8-10 subtasks"
+          ],
+          "validation_criteria": [
+            "Structure handles all example cases",
+            "Dependencies representable clearly",
+            "Validation rules prevent degenerate cases (1 subtask, circular deps)"
+          ]
+        }
+      ],
+      "approval_required": {
+        "developer_must_review": "Example task plans for all use cases",
+        "approval_criteria": "Structure makes sense, validation rules adequate",
+        "on_rejection": "Revise structure, re-validate before implementing"
+      },
+      "trace_context": {
+        "decision_point": "task_plan_structure_validated",
+        "validation_type": "pre_implementation",
+        "critical": true
+      }
+    },
+    {
+      "id": "W28",
+      "stage": "planning_contracts",
+      "title": "Win #28: Define Task Plan Contracts",
+      "type": "win",
+      "description": "Create task-plan.schema.json and subtask.schema.json for decomposed task representation",
+      "time_estimate_minutes": 40,
+      "prerequisite": "W28-PRE must be approved",
+      "work_profile": "Schema definition based on validated structure",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "contracts/subtask.schema.json",
+          "content_spec": {
+            "based_on_validation": "W28-PRE approved structure",
+            "schema_structure": {
+              "type": "object",
+              "required": ["id", "title", "description", "status"],
+              "properties": {
+                "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+                "title": {"type": "string", "minLength": 5, "maxLength": 100},
+                "description": {"type": "string", "minLength": 10, "maxLength": 500},
+                "status": {"type": "string", "enum": ["pending", "in_progress", "completed", "failed"]},
+                "dependencies": {"type": "array", "items": {"type": "string"}},
+                "estimatedComplexity": {"type": "string", "enum": ["low", "medium", "high"]},
+                "successCriteria": {"type": "string"}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        {
+          "type": "create_file",
+          "file": "contracts/task-plan.schema.json",
+          "content_spec": {
+            "based_on_validation": "W28-PRE approved structure",
+            "schema_structure": {
+              "type": "object",
+              "required": ["originalPrompt", "subtasks", "totalSubtasks"],
+              "properties": {
+                "originalPrompt": {"type": "string"},
+                "subtasks": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 10,
+                  "items": {"$ref": "subtask.schema.json"}
+                },
+                "totalSubtasks": {"type": "integer", "minimum": 2, "maximum": 10},
+                "decompositionStrategy": {"type": "string"}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        {
+          "type": "create_validators",
+          "file": "src/contracts/taskPlanValidator.ts",
+          "ensure": [
+            "Import both schemas",
+            "Export validateTaskPlan and validateSubtask",
+            "Add custom validation: no circular dependencies, dependency IDs exist in subtasks array"
+          ]
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/contracts/task-plan.test.ts",
+          "test_cases": [
+            "valid simple plan (2-3 subtasks)",
+            "valid medium plan (5-7 subtasks) with dependencies",
+            "valid complex plan (8-10 subtasks)",
+            "invalid: only 1 subtask",
+            "invalid: more than 10 subtasks",
+            "invalid: circular dependencies",
+            "invalid: dependency references non-existent subtask ID",
+            "invalid: duplicate subtask IDs"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f contracts/task-plan.schema.json && test -f contracts/subtask.schema.json",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'validateTaskPlan' src/contracts/taskPlanValidator.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- task-plan.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Both schemas exist and valid",
+        "Validator enforces schema and custom rules",
+        "All test cases pass",
+        "Circular dependency detection works",
+        "Dependency ID validation works"
+      },
+      "trace_context": {
+        "decision_point": "task_plan_contracts_created",
+        "win_number": 28
+      }
+    },
+    {
+      "id": "W28-POST",
+      "stage": "planning_contracts",
+      "title": "Post-Validation: Task Plan Contract Quality",
+      "type": "validation_checkpoint",
+      "description": "After implementing, validate schemas work correctly with real examples",
+      "validation_mode": "post_implementation",
+      "actions": [
+        {
+          "type": "manual_validation",
+          "test_examples": [
+            "Create task plan JSON for 'build Flask hello world'",
+            "Create task plan JSON for 'build todo app with auth'",
+            "Create task plan JSON for 'build e-commerce site'",
+            "Validate all examples pass schema validation",
+            "Validate circular dependency detection catches invalid cases",
+            "Validate dependency ID validation catches invalid cases"
+          ],
+          "validation_criteria": [
+            "All valid examples pass validation",
+            "All invalid examples correctly rejected",
+            "Error messages are helpful and specific",
+            "Schema constraints prevent degenerate cases"
+          ]
+        }
+      ],
+      "approval_required": {
+        "developer_must_review": "Validation results for all test examples",
+        "approval_criteria": "Schemas work correctly, validation catches all edge cases",
+        "on_rejection": "Fix schema/validator issues before proceeding to next win"
+      },
+      "trace_context": {
+        "decision_point": "task_plan_contracts_validated",
+        "validation_type": "post_implementation",
+        "critical": true
+      }
+    },
+    {
+      "id": "W29-PRE",
+      "stage": "task_decomposer",
+      "title": "Pre-Validation: Decomposition Strategy",
+      "type": "validation_checkpoint",
+      "description": "Before implementing decomposer, validate decomposition approach",
+      "validation_mode": "pre_implementation",
+      "prerequisite": "W28-POST must be approved",
+      "actions": [
+        {
+          "type": "manual_validation",
+          "validation_questions": [
+            "What decomposition strategies exist: by-feature, by-layer, by-dependency?",
+            "How do we prompt LLM to decompose consistently?",
+            "What constraints: 2-10 subtasks, dependencies make sense, no circular deps?",
+            "How do we handle ambiguous prompts: 'build an app' vs 'build todo app with auth'?",
+            "Should we use clarification (Phase 2) before decomposition?"
+          ],
+          "example_prompts": [
+            "'build Flask hello world' -> what subtasks?",
+            "'build todo app with auth' -> what subtasks?",
+            "'build REST API for blog' -> what subtasks?",
+            "'build e-commerce site' -> what subtasks?"
+          ],
+          "validation_criteria": [
+            "Decomposition strategy produces reasonable subtasks",
+            "Number of subtasks appropriate to complexity",
+            "Dependencies logical and acyclic",
+            "Subtasks actionable (not too vague)"
+          ]
+        }
+      ],
+      "approval_required": {
+        "developer_must_review": "Proposed decomposition for all examples",
+        "approval_criteria": "Strategy produces good decompositions, handles edge cases",
+        "on_rejection": "Revise strategy, add clarification step if needed"
+      },
+      "trace_context": {
+        "decision_point": "decomposition_strategy_validated",
+        "validation_type": "pre_implementation",
+        "critical": true
+      }
+    },
+    {
+      "id": "W29",
+      "stage": "task_decomposer",
+      "title": "Win #29: Task Decomposer",
+      "type": "win",
+      "description": "Create decomposeTask.ts that breaks complex prompts into subtask plans",
+      "time_estimate_minutes": 50,
+      "prerequisite": "W29-PRE must be approved",
+      "work_profile": "LLM prompt engineering and task decomposition logic",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/planning/decomposeTask.ts",
+          "content_spec": {
+            "based_on_validation": "W29-PRE approved strategy",
+            "function_signature": "export async function decomposeTask(prompt: string, clarifications?: ClarificationResponse): Promise<TaskPlan>",
+            "decomposition_logic": [
+              "Analyze prompt complexity",
+              "If ambiguous and no clarifications: suggest returning error with clarification recommendation",
+              "Build LLM prompt for decomposition using approved strategy",
+              "Include constraints: 2-10 subtasks, logical dependencies, actionable descriptions",
+              "Call LLM for decomposition",
+              "Parse response into TaskPlan structure",
+              "Validate against task-plan schema",
+              "Return validated TaskPlan"
+            ],
+            "error_handling": [
+              "LLM returns invalid JSON: retry once",
+              "Validation fails: return error with details",
+              "Prompt too vague: suggest clarification"
+            ]
+          }
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/planning/decomposeTask.test.ts",
+          "test_cases": [
+            "simple prompt: 'build Flask hello world' -> 2-3 subtasks",
+            "medium prompt: 'build todo app with auth' -> 5-7 subtasks",
+            "complex prompt: 'build e-commerce site' -> 8-10 subtasks",
+            "with clarifications: uses clarification data in decomposition",
+            "invalid LLM response: handles gracefully",
+            "validation failure: returns helpful error",
+            "too vague prompt: suggests clarification"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/planning/decomposeTask.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'export async function decomposeTask' src/planning/decomposeTask.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- decomposeTask.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Decomposes prompts into valid task plans",
+        "Respects 2-10 subtask constraint",
+        "Dependencies logical and acyclic",
+        "Uses clarifications when provided",
+        "Handles errors gracefully",
+        "All test cases pass"
+      ],
+      "trace_context": {
+        "decision_point": "task_decomposer_implemented",
+        "win_number": 29
+      }
+    },
+    {
+      "id": "W29-POST",
+      "stage": "task_decomposer",
+      "title": "Post-Validation: Decomposition Quality",
+      "type": "validation_checkpoint",
+      "description": "After implementing, validate decomposition quality with real LLM",
+      "validation_mode": "post_implementation",
+      "actions": [
+        {
+          "type": "manual_validation",
+          "live_llm_tests": [
+            "Decompose: 'build Flask hello world'",
+            "Decompose: 'build todo app with auth'",
+            "Decompose: 'build REST API for blog'",
+            "Decompose: 'build e-commerce site'",
+            "Decompose: 'build calculator app'",
+            "Review all decompositions for quality, dependency logic, subtask clarity"
+          ],
+          "validation_criteria": [
+            "Subtasks are actionable and clear",
+            "Dependencies make logical sense",
+            "Number of subtasks appropriate to complexity",
+            "No circular dependencies",
+            "Decomposition strategy consistent across prompts"
+          ]
+        }
+      ],
+      "approval_required": {
+        "developer_must_review": "All 5+ live decompositions",
+        "approval_criteria": "Decomposition quality acceptable, no major issues",
+        "on_rejection": "Tune LLM prompt, adjust constraints, re-test"
+      },
+      "trace_context": {
+        "decision_point": "decomposition_quality_validated",
+        "validation_type": "post_implementation",
+        "critical": true
+      }
+    },
+    {
+      "id": "W30-PRE",
+      "stage": "decomposition_validator",
+      "title": "Pre-Validation: Decomposition Validation Approach",
+      "type": "validation_checkpoint",
+      "description": "Before implementing validator, determine what makes a good decomposition",
+      "validation_mode": "pre_implementation",
+      "prerequisite": "W29-POST must be approved",
+      "actions": [
+        {
+          "type": "manual_validation",
+          "validation_questions": [
+            "What quality metrics: subtask clarity, dependency logic, coverage completeness?",
+            "How do we detect bad decompositions: too vague, too granular, missing critical steps?",
+            "Should we validate against original prompt: does decomposition cover all requirements?",
+            "What automated checks: subtask count, dependency acyclic check, description length?",
+            "What human-review triggers: flag decompositions with potential issues?"
+          ],
+          "example_bad_decompositions": [
+            "Too vague: 'Step 1: Set up project, Step 2: Build features'",
+            "Too granular: 'Step 1: Create directory, Step 2: Install package, Step 3: Import library...'",
+            "Missing critical: Todo app without database step",
+            "Circular: Task A depends on B, B depends on A"
+          ],
+          "validation_criteria": [
+            "Validator catches all bad decomposition patterns",
+            "Automated checks cover common issues",
+            "Human review flags edge cases"
+          ]
+        }
+      ],
+      "approval_required": {
+        "developer_must_review": "Validation approach and quality metrics",
+        "approval_criteria": "Approach comprehensive, catches bad decompositions",
+        "on_rejection": "Add more quality metrics, refine bad pattern detection"
+      },
+      "trace_context": {
+        "decision_point": "validation_approach_defined",
+        "validation_type": "pre_implementation",
+        "critical": true
+      }
+    },
+    {
+      "id": "W30",
+      "stage": "decomposition_validator",
+      "title": "Win #30: Decomposition Validator",
+      "type": "win",
+      "description": "Create validateDecomposition.ts that scores decomposition quality",
+      "time_estimate_minutes": 45,
+      "prerequisite": "W30-PRE must be approved",
+      "work_profile": "Quality analysis and validation logic",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/planning/validateDecomposition.ts",
+          "content_spec": {
+            "based_on_validation": "W30-PRE approved metrics",
+            "function_signature": "export function validateDecomposition(plan: TaskPlan, originalPrompt: string): DecompositionQuality",
+            "return_type": {
+              "score": "0-100 quality score",
+              "issues": "array of detected issues",
+              "warnings": "array of potential concerns",
+              "requiresHumanReview": "boolean flag"
+            },
+            "quality_checks": [
+              "Subtask count appropriate (2-10)",
+              "Subtask descriptions adequate length (10-500 chars)",
+              "Dependencies acyclic",
+              "Coverage: does decomposition address original prompt",
+              "Granularity: not too vague, not too detailed",
+              "Critical steps present (database if data needed, auth if mentioned, tests always)"
+            ],
+            "scoring": [
+              "Each issue: -10 points",
+              "Each warning: -5 points",
+              "Base score: 100",
+              "Minimum score: 0",
+              "requiresHumanReview if score <70"
+            ]
+          }
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/planning/validateDecomposition.test.ts",
+          "test_cases": [
+            "good decomposition: high score, no issues",
+            "too vague subtasks: detects issue",
+            "too granular subtasks: detects issue",
+            "missing critical step: detects issue",
+            "circular dependency: detects issue",
+            "adequate but not perfect: warnings, medium score",
+            "requiresHumanReview flag set correctly"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/planning/validateDecomposition.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'export function validateDecomposition' src/planning/validateDecomposition.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- validateDecomposition.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Validator scores decomposition quality",
+        "Detects all bad decomposition patterns",
+        "Issues and warnings helpful and specific",
+        "requiresHumanReview flag accurate",
+        "All test cases pass"
+      ],
+      "trace_context": {
+        "decision_point": "decomposition_validator_implemented",
+        "win_number": 30
+      }
+    },
+    {
+      "id": "W30-POST",
+      "stage": "decomposition_validator",
+      "title": "Post-Validation: Validator Accuracy",
+      "type": "validation_checkpoint",
+      "description": "After implementing, validate validator catches bad decompositions",
+      "validation_mode": "post_implementation",
+      "actions": [
+        {
+          "type": "manual_validation",
+          "test_decompositions": [
+            "Run W29 decompositions through validator",
+            "Create intentionally bad decompositions (too vague, missing steps, circular)",
+            "Verify validator catches all bad patterns",
+            "Verify good decompositions score high (>80)",
+            "Verify mediocre decompositions flagged appropriately"
+          ],
+          "validation_criteria": [
+            "Validator catches all intentional bad patterns",
+            "Good decompositions score >80",
+            "requiresHumanReview flag appropriate",
+            "Issues and warnings actionable"
+          ]
+        }
+      ],
+      "approval_required": {
+        "developer_must_review": "Validator results for 10+ decompositions",
+        "approval_criteria": "Validator accurate, catches issues, scoring reasonable",
+        "on_rejection": "Tune scoring weights, add more quality checks"
+      },
+      "trace_context": {
+        "decision_point": "validator_accuracy_confirmed",
+        "validation_type": "post_implementation",
+        "critical": true
+      }
+    },
+    {
+      "id": "W31",
+      "stage": "progress_tracker",
+      "title": "Win #31: Progress Tracker",
+      "type": "win",
+      "description": "Create progress tracker that monitors subtask execution status",
+      "time_estimate_minutes": 40,
+      "prerequisite": "W30-POST must be approved",
+      "work_profile": "State management and progress monitoring",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/planning/progressTracker.ts",
+          "content_spec": {
+            "class_structure": "export class ProgressTracker",
+            "state": {
+              "taskPlan": "TaskPlan",
+              "currentSubtaskIndex": "number",
+              "startTime": "Date",
+              "subtaskResults": "Map<subtaskId, ExecutionResult>"
+            },
+            "methods": [
+              "constructor(plan: TaskPlan)",
+              "getCurrentSubtask(): Subtask",
+              "markSubtaskComplete(id: string, result: ExecutionResult)",
+              "markSubtaskFailed(id: string, error: Error)",
+              "getProgress(): ProgressSnapshot",
+              "isComplete(): boolean",
+              "getNextSubtask(): Subtask | null"
+            ],
+            "progress_snapshot": {
+              "totalSubtasks": "number",
+              "completedSubtasks": "number",
+              "failedSubtasks": "number",
+              "currentSubtask": "Subtask | null",
+              "elapsedMs": "number",
+              "percentComplete": "number"
+            }
+          }
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/planning/progressTracker.test.ts",
+          "test_cases": [
+            "initialize with task plan",
+            "track subtask completion",
+            "track subtask failure",
+            "calculate progress percentage",
+            "detect completion",
+            "get next subtask respecting dependencies",
+            "handle out-of-order completion (dependencies satisfied)"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/planning/progressTracker.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'export class ProgressTracker' src/planning/progressTracker.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- progressTracker.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Tracks subtask execution state",
+        "Calculates progress accurately",
+        "Respects dependencies when getting next subtask",
+        "Handles completion and failure",
+        "All test cases pass"
+      ],
+      "demo_requirement": {
+        "manual_test": "Create task plan, simulate subtask execution, verify progress tracking",
+        "approval_needed": "Developer confirms tracker behavior correct"
+      },
+      "trace_context": {
+        "decision_point": "progress_tracker_implemented",
+        "win_number": 31
+      }
+    },
+    {
+      "id": "W32",
+      "stage": "dependency_analyzer",
+      "title": "Win #32: Dependency Analyzer",
+      "type": "win",
+      "description": "Create dependency analyzer that validates and visualizes subtask dependencies",
+      "time_estimate_minutes": 40,
+      "work_profile": "Graph analysis and dependency logic",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/planning/analyzeDependencies.ts",
+          "content_spec": {
+            "function_signature": "export function analyzeDependencies(plan: TaskPlan): DependencyAnalysis",
+            "return_type": {
+              "isAcyclic": "boolean",
+              "cycles": "array of subtask ID arrays forming cycles",
+              "executionOrder": "topologically sorted subtask IDs",
+              "parallelizable": "array of subtask sets that can run in parallel",
+              "criticalPath": "array of subtask IDs on longest dependency chain"
+            },
+            "analysis_logic": [
+              "Build dependency graph from task plan",
+              "Detect cycles using depth-first search",
+              "Compute topological sort for execution order",
+              "Identify parallelizable subtasks (no shared dependencies)",
+              "Calculate critical path (longest dependency chain)"
+            ]
+          }
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/planning/analyzeDependencies.test.ts",
+          "test_cases": [
+            "acyclic graph: detects correctly",
+            "cyclic graph: detects cycle",
+            "linear dependencies: correct execution order",
+            "parallel subtasks: identifies parallelizable sets",
+            "critical path: identifies longest chain",
+            "complex graph: handles correctly"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/planning/analyzeDependencies.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'export function analyzeDependencies' src/planning/analyzeDependencies.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- analyzeDependencies.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Detects cycles correctly",
+        "Computes valid topological sort",
+        "Identifies parallelizable subtasks",
+        "Calculates critical path",
+        "All test cases pass"
+      ],
+      "demo_requirement": {
+        "manual_test": "Analyze W29 decompositions, verify dependency analysis correct",
+        "approval_needed": "Developer confirms analysis accurate"
+      },
+      "trace_context": {
+        "decision_point": "dependency_analyzer_implemented",
+        "win_number": 32
+      }
+    },
+    {
+      "id": "P4A-GATE",
+      "stage": "phase4a_validation",
+      "title": "Phase 4A validation gate",
+      "type": "validation",
+      "description": "Final validation that Phase 4A planning foundation is complete before moving to Phase 4B (execution)",
+      "actions": [
+        {
+          "type": "validate",
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "test -f contracts/task-plan.schema.json && test -f contracts/subtask.schema.json",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "test -f src/planning/decomposeTask.ts && test -f src/planning/validateDecomposition.ts && test -f src/planning/progressTracker.ts && test -f src/planning/analyzeDependencies.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "manual_test",
+          "description": "End-to-end Phase 4A validation",
+          "test_scenarios": [
+            "Decompose 5 varied prompts (simple to complex)",
+            "Validate all decompositions score >70",
+            "Verify dependency analysis correct for all",
+            "Simulate progress tracking through subtasks",
+            "Confirm all validation checkpoints passed"
+          ]
+        }
+      ],
+      "evaluation": {
+        "intent": "Confirm Phase 4A foundation is production-ready before Phase 4B execution",
+        "success_criteria": "All tests pass, all validation checkpoints approved, decomposition quality good, dependency analysis accurate",
+        "on_pass": "Phase 4A COMPLETE - Ready for Phase 4B (sequential execution and UI)",
+        "on_fail": "HALT - Fix issues before proceeding to Phase 4B"
+      },
+      "trace_context": {
+        "decision_point": "phase4a_gate",
+        "reasoning_required": true,
+        "critical": true,
+        "gate_type": "go_no_go"
+      }
+    }
+  ],
+  "execution_order": [
+    "P3-V01",
+    "W28-PRE",
+    "W28",
+    "W28-POST",
+    "W29-PRE",
+    "W29",
+    "W29-POST",
+    "W30-PRE",
+    "W30",
+    "W30-POST",
+    "W31",
+    "W32",
+    "P4A-GATE"
+  ],
+  "execution_semantics": {
+    "win_isolation": {
+      "description": "Each win must be complete, tested, and validated before proceeding",
+      "implementation": "Pre-validation before implementation, post-validation after implementation, developer approval at checkpoints"
+    },
+    "validation_checkpoints": {
+      "mandatory": true,
+      "pre_implementation": "Validate approach before coding",
+      "post_implementation": "Validate quality after coding",
+      "approval_required": "Developer must approve validation results"
+    },
+    "gate_enforcement": {
+      "P4A-GATE": {
+        "required": true,
+        "on_fail": "HALT execution. Do not proceed to Phase 4B.",
+        "report": "Generate diagnostic showing which validations failed."
+      }
+    }
+  },
+  "completion_criteria": {
+    "phase3_verified": true,
+    "task_plan_contracts_created": true,
+    "task_decomposer_works": true,
+    "decomposition_validator_works": true,
+    "progress_tracker_works": true,
+    "dependency_analyzer_works": true,
+    "all_validation_checkpoints_passed": true,
+    "all_tests_pass": true,
+    "coverage_maintained": true,
+    "decomposition_quality_good": true
+  },
+  "fallback_policies": {
+    "phase3_verification_fails": "HALT - Phase 3 must be complete before Phase 4A.",
+    "validation_checkpoint_fails": "Stop at that checkpoint, address issues, re-validate before continuing.",
+    "test_fails": "Fix implementation, do not skip tests.",
+    "coverage_drops": "Add tests to maintain >80% coverage before proceeding.",
+    "decomposition_quality_poor": "Tune LLM prompts, adjust constraints, re-test."
+  },
+  "reporting": {
+    "progress_file": ".automation/progress_phase4a.json",
+    "fields": ["task_id", "win_number", "status", "started_at", "finished_at", "elapsed_ms", "result", "errors", "validation_checkpoint_passed"],
+    "status_values": ["pending", "running", "success", "failed", "blocked_on_validation"],
+    "phase4a_report": {
+      "file": ".automation/phase4a_completion_report.json",
+      "fields": ["wins_completed", "validation_checkpoints_passed", "gate_passed", "timestamp", "next_phase", "diagnostics"]
+    }
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Task Plan Schema",
+      "path": "contracts/task-plan.schema.json",
+      "must_include_regex": "subtasks"
+    },
+    {
+      "name": "Subtask Schema",
+      "path": "contracts/subtask.schema.json",
+      "must_include_regex": "dependencies"
+    },
+    {
+      "name": "Task Decomposer",
+      "path": "src/planning/decomposeTask.ts",
+      "must_include_regex": "export async function decomposeTask"
+    },
+    {
+      "name": "Decomposition Validator",
+      "path": "src/planning/validateDecomposition.ts",
+      "must_include_regex": "export function validateDecomposition"
+    },
+    {
+      "name": "Progress Tracker",
+      "path": "src/planning/progressTracker.ts",
+      "must_include_regex": "export class ProgressTracker"
+    },
+    {
+      "name": "Dependency Analyzer",
+      "path": "src/planning/analyzeDependencies.ts",
+      "must_include_regex": "export function analyzeDependencies"
+    },
+    {
+      "name": "Phase 4A Report",
+      "path": ".automation/phase4a_completion_report.json",
+      "must_exist": true,
+      "must_include_field": "gate_passed"
+    }
+  ],
+  "release_actions": [
+    {
+      "cmd": "git add .",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git commit -m \"feat(phase4a): task planning foundation - decomposition, validation, progress tracking, dependency analysis\"",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git tag phase4a-complete",
+      "expect_exit_code": 0
+    }
+  ],
+  "ai_executor_guidelines": {
+    "observability_first": "Trace all decisions. Log reasoning for each win and validation checkpoint.",
+    "validation_mandatory": "Never skip pre/post validation checkpoints. Wait for developer approval.",
+    "win_isolation": "Complete and validate each win fully before proceeding to next.",
+    "test_driven": "Write comprehensive tests for all planning logic.",
+    "fail_fast": "If any test or validation fails, halt and fix before proceeding.",
+    "gate_enforcement": "P4A-GATE must pass before declaring phase complete.",
+    "quality_focus": "Decomposition quality is critical - poor decompositions make execution fail."
+  },
+  "governance_note": {
+    "for_human": "Phase 4A builds planning foundation with mandatory validation checkpoints. Each win has pre-validation (validate approach) and post-validation (validate quality). Developer must approve validation results before proceeding. This ensures we build the right thing correctly. Estimated 2-3 weeks at sustainable pace. After P4A-GATE, assess with wife whether to proceed to Phase 4B or take break."
+  }
+}
