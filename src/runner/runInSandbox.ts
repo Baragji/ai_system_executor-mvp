@@ -23,14 +23,40 @@ function parseCounts(log: string): { passCount: number; failCount: number } {
   let failCount = 0;
 
   const lines = log.split(/\r?\n/);
+  // Strip common ANSI color codes to make regexes robust across CLI outputs
+  // Use RegExp constructed from a string to avoid eslint no-control-regex on literal
+  // eslint-disable-next-line no-control-regex
+  const ANSI_RE = new RegExp("\\u001B\\[[0-9;]*m", "g");
+  const stripAnsi = (s: string) => s.replace(ANSI_RE, "");
+
   for (const rawLine of lines) {
-    const line = rawLine.trim();
+    const line = stripAnsi(rawLine).trim();
     if (!line) continue;
+
+    // Vitest/Jest style: "Tests: 3 passed, 1 failed"
     if (/^Tests?\b/i.test(line)) {
       const passMatch = line.match(/(\d+)\s+passed/i);
-      if (passMatch?.[1]) passCount = Number.parseInt(passMatch[1], 10);
+      const passGroup = passMatch?.[1];
+      if (passGroup !== undefined) {
+        passCount = Number.parseInt(passGroup, 10);
+      }
+
       const failMatch = line.match(/(\d+)\s+failed/i);
-      if (failMatch?.[1]) failCount = Number.parseInt(failMatch[1], 10);
+      const failGroup = failMatch?.[1];
+      if (failGroup !== undefined) {
+        failCount = Number.parseInt(failGroup, 10);
+      }
+      continue;
+    }
+
+    // Node test TAP summary: "# pass 2", "# fail 1"
+    const tapMatch = line.match(/^#\s*(pass|fail|tests)\s+(\d+)/i);
+    if (tapMatch) {
+      const key = tapMatch[1]!.toLowerCase();
+      const val = Number.parseInt(tapMatch[2]!, 10);
+      if (key === "pass") passCount = val;
+      if (key === "fail") failCount = val;
+      continue;
     }
   }
 
