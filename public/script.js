@@ -10,11 +10,24 @@ const clarificationSection = document.getElementById("clarificationSection");
 const clarificationForm = document.getElementById("clarificationForm");
 const clarificationQuestionsEl = document.getElementById("clarificationQuestions");
 const skipClarificationsBtn = document.getElementById("skipClarifications");
+const repairHistorySection = document.getElementById("repairHistorySection");
+const repairHistoryContent = document.getElementById("repairHistoryContent");
+const repairHistoryTimeline = document.getElementById("repairHistoryTimeline");
+const repairHistoryToggle = document.getElementById("toggleRepairHistory");
+const repairHistorySummaryEl = document.getElementById("repairHistorySummary");
 
 let currentProjectSlug = null;
 let pendingQuestions = [];
 let storedPrompt = "";
 let storedProjectName = "";
+let repairHistoryExpanded = false;
+
+if (repairHistoryToggle) {
+  repairHistoryToggle.addEventListener("click", () => {
+    repairHistoryExpanded = !repairHistoryExpanded;
+    setRepairHistoryVisibility(repairHistoryExpanded);
+  });
+}
 
 function renderLink(url) {
   const a = document.createElement("a");
@@ -72,6 +85,155 @@ function renderTimelineEntry(label, runResult) {
   }
 
   return entry;
+}
+
+function setRepairHistoryVisibility(expanded) {
+  if (!repairHistorySection || !repairHistoryContent || !repairHistoryToggle) return;
+  if (expanded) {
+    repairHistorySection.classList.remove("collapsed");
+    repairHistoryContent.classList.remove("hidden");
+    repairHistoryToggle.textContent = "Hide";
+  } else {
+    repairHistorySection.classList.add("collapsed");
+    repairHistoryContent.classList.add("hidden");
+    repairHistoryToggle.textContent = "Show";
+  }
+}
+
+function summarizeRepairHistory(history) {
+  if (!history) return "";
+  if (history.finalStatus === "exhausted") {
+    return "All attempts exhausted";
+  }
+  if (history.successAttemptNumber) {
+    return `Success on attempt ${history.successAttemptNumber}`;
+  }
+  if (history.finalStatus === "pass") {
+    return "Repair succeeded";
+  }
+  return `Final status: ${history.finalStatus}`;
+}
+
+function renderRepairHistory(history) {
+  if (!repairHistorySection || !repairHistoryTimeline || !repairHistorySummaryEl) {
+    return;
+  }
+
+  if (!history || !Array.isArray(history.attempts) || history.attempts.length === 0) {
+    repairHistorySection.classList.add("hidden");
+    repairHistoryTimeline.innerHTML = "";
+    if (repairHistorySummaryEl) {
+      repairHistorySummaryEl.textContent = "";
+    }
+    setRepairHistoryVisibility(false);
+    repairHistoryExpanded = false;
+    return;
+  }
+
+  repairHistorySection.classList.remove("hidden");
+  repairHistoryExpanded = true;
+  setRepairHistoryVisibility(true);
+
+  repairHistorySummaryEl.textContent = summarizeRepairHistory(history);
+  repairHistoryTimeline.innerHTML = "";
+
+  const totalAttempts = history.totalAttempts || history.attempts.length;
+
+  history.attempts.forEach(attempt => {
+    const attemptEl = document.createElement("div");
+    const statusClass = attempt.status === "pass"
+      ? "status-pass"
+      : attempt.status === "fail"
+        ? "status-fail"
+        : attempt.status === "error"
+          ? "status-error"
+          : "";
+    attemptEl.className = `history-attempt ${statusClass}`.trim();
+    if (history.successAttemptNumber === attempt.number) {
+      attemptEl.classList.add("attempt-success");
+    }
+
+    const header = document.createElement("div");
+    header.className = "history-attempt-header";
+
+    const badge = document.createElement("span");
+    badge.className = "history-attempt-badge";
+    badge.textContent = `${attempt.number}/${totalAttempts}`;
+    header.appendChild(badge);
+
+    const icon = document.createElement("span");
+    icon.className = "history-status-icon";
+    icon.textContent = attempt.status === "pass" ? "✅" : attempt.status === "fail" ? "⚠️" : "❌";
+    header.appendChild(icon);
+
+    const title = document.createElement("h4");
+    title.textContent = `Attempt ${attempt.number}`;
+    header.appendChild(title);
+
+    attemptEl.appendChild(header);
+
+    if (attempt.summary) {
+      const summary = document.createElement("p");
+      summary.className = "history-summary";
+      summary.textContent = attempt.summary;
+      attemptEl.appendChild(summary);
+    }
+
+    const counts = document.createElement("p");
+    const testResult = attempt.testResult || {};
+    counts.textContent = `Pass: ${testResult.passCount ?? 0} | Fail: ${testResult.failCount ?? 0}`;
+    attemptEl.appendChild(counts);
+
+    const duration = document.createElement("span");
+    duration.className = "duration";
+    duration.textContent = `Duration: ${attempt.durationMs ?? 0}ms`;
+    attemptEl.appendChild(duration);
+
+    const filesHeading = document.createElement("p");
+    filesHeading.textContent = "Changed files:";
+    attemptEl.appendChild(filesHeading);
+
+    const filesList = document.createElement("ul");
+    filesList.className = "history-files";
+    if (Array.isArray(attempt.changedFiles) && attempt.changedFiles.length > 0) {
+      attempt.changedFiles.forEach(file => {
+        const item = document.createElement("li");
+        item.textContent = file;
+        filesList.appendChild(item);
+      });
+    } else {
+      const item = document.createElement("li");
+      item.textContent = "No files changed";
+      filesList.appendChild(item);
+    }
+    attemptEl.appendChild(filesList);
+
+    if (testResult.logsPath && currentProjectSlug) {
+      const logs = document.createElement("p");
+      const link = document.createElement("a");
+      link.href = `/output/${currentProjectSlug}/${testResult.logsPath}`;
+      link.textContent = "View logs";
+      link.target = "_blank";
+      logs.appendChild(link);
+      attemptEl.appendChild(logs);
+    }
+
+    repairHistoryTimeline.appendChild(attemptEl);
+  });
+
+  const footer = document.createElement("div");
+  footer.className = "history-footer";
+  if (history.finalStatus === "exhausted") {
+    footer.classList.add("exhausted");
+    footer.textContent = "All attempts exhausted without a passing result.";
+  } else if (history.successAttemptNumber) {
+    footer.textContent = `Repair succeeded on attempt ${history.successAttemptNumber}.`;
+  } else if (history.finalStatus === "pass") {
+    footer.textContent = "Repair succeeded.";
+  } else {
+    footer.textContent = `Final status: ${history.finalStatus}.`;
+  }
+  repairHistoryTimeline.appendChild(footer);
 }
 
 function renderTestLifecycle(testResults, repair) {
@@ -243,6 +405,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
   resultEl.textContent = "Generating project...";
   testControlsEl.classList.add("hidden");
   currentProjectSlug = null;
+  renderRepairHistory(null);
 
   const payload = { prompt };
   if (projectName) {
@@ -272,6 +435,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
       currentProjectSlug = data.project;
       testControlsEl.classList.remove("hidden");
       renderTestLifecycle(data.testResults, data.repair);
+      renderRepairHistory(data.repairHistory);
     } else {
       currentProjectSlug = null;
     }

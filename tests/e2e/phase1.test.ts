@@ -31,29 +31,54 @@ const initialRun: RunResult = {
   timestamp: new Date().toISOString()
 };
 
-const repairedRun: RunResult = {
-  status: "pass",
-  passCount: 2,
-  failCount: 0,
-  durationMs: 900,
-  logsPath: "logs/repair.log",
-  timestamp: new Date().toISOString()
-};
-
 vi.mock("../../src/runner/runInSandbox.js", () => ({
   runInSandbox: vi.fn(async () => initialRun)
 }));
 
-vi.mock("../../src/repair/repairOnce.js", () => ({
-  repairOnce: vi.fn(async () => ({
-    attempted: true,
-    repaired: true,
-    appliedFiles: 1,
-    artifacts: [],
-    runResult: repairedRun,
-    notes: ["patched"],
-    error: undefined
-  }))
+const repairHistory = {
+  attempts: [
+    {
+      number: 1,
+      status: "fail" as const,
+      startedAt: new Date().toISOString(),
+      finishedAt: new Date().toISOString(),
+      changedFiles: ["src/index.ts"],
+      summary: "Attempt 1 failed",
+      testResult: {
+        status: "fail" as const,
+        passCount: 1,
+        failCount: 1,
+        durationMs: 1100,
+        logsPath: "logs/attempt1.log"
+      },
+      durationMs: 1100,
+      cumulativeTime: 1100
+    },
+    {
+      number: 2,
+      status: "pass" as const,
+      startedAt: new Date().toISOString(),
+      finishedAt: new Date().toISOString(),
+      changedFiles: ["src/index.ts"],
+      summary: "Attempt 2 passed",
+      testResult: {
+        status: "pass" as const,
+        passCount: 2,
+        failCount: 0,
+        durationMs: 900,
+        logsPath: "logs/repair.log"
+      },
+      durationMs: 900,
+      cumulativeTime: 2000
+    }
+  ],
+  finalStatus: "pass" as const,
+  totalAttempts: 2,
+  successAttemptNumber: 2
+};
+
+vi.mock("../../src/repair/multiTurnRepair.js", () => ({
+  multiTurnRepair: vi.fn(async () => repairHistory)
 }));
 
 const OUTPUT_DIR = path.resolve("output");
@@ -79,12 +104,15 @@ describe("phase1 e2e flow", () => {
     expect(res.body.testResults.afterRepair.status).toBe("pass");
     expect(res.body.repair.attempted).toBe(true);
     expect(res.body.repair.repaired).toBe(true);
+    expect(res.body.repairHistory.totalAttempts).toBe(2);
+    expect(res.body.repairHistory.successAttemptNumber).toBe(2);
 
     const metaPath = path.join(OUTPUT_DIR, "phase1-demo", "_executor_meta.json");
     const metaRaw = await fs.readFile(metaPath, "utf-8");
     const meta = JSON.parse(metaRaw);
-    expect(meta.testRuns).toHaveLength(2);
+    expect(meta.testRuns).toHaveLength(3);
     expect(meta.repair.attempted).toBe(true);
+    expect(meta.repairHistory.totalAttempts).toBe(2);
     expect(meta.files.length).toBeGreaterThanOrEqual(2);
 
     const telemetry = await fs.readFile(TELEMETRY_FILE, "utf-8");
