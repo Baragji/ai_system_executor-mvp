@@ -6,6 +6,8 @@ import path from "node:path";
 import { setTimeout as waitTimeout } from "node:timers/promises";
 
 import { validateRunResult, type RunResult } from "../contracts/validators.js";
+import { ensureDependencies } from "./installDeps.js";
+import { detectTestCommand } from "./detectTestCommand.js";
 import { logEvaluationResult, type EvaluationResult } from "../evaluation/logResults.js";
 
 export interface RunInSandboxOptions {
@@ -71,11 +73,12 @@ function deriveStatus(exitCode: number | null, timedOut: boolean): RunResult["st
 }
 
 export async function runInSandbox(options: RunInSandboxOptions): Promise<RunResult> {
-  const { projectRoot, projectSlug, command = "npm test", timeoutMs = DEFAULT_TIMEOUT_MS } = options;
+  const { projectRoot, projectSlug, command: providedCommand, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
   const env: Record<string, string | undefined> = {
     ...process.env,
     ...options.env,
-    FORCE_COLOR: "0"
+    FORCE_COLOR: "0",
+    CI: "1"
   };
 
   await fs.mkdir(projectRoot, { recursive: true });
@@ -86,6 +89,39 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
 
   const logStream = createWriteStream(logFilePath, { encoding: "utf-8" });
   let combinedOutput = "";
+
+  let installSummary = "[install] skipped (node_modules present or package.json missing)";
+  let installPerformed = false;
+  try {
+    const installResult = await ensureDependencies(projectRoot, timeoutMs);
+    if (installResult.installed) {
+      installPerformed = true;
+      installSummary = `[install] ran ${installResult.command}`;
+      combinedOutput += `${installSummary}\n`;
+      logStream.write(`${installSummary}\n`);
+      if (installResult.stdout) {
+        combinedOutput += installResult.stdout;
+        logStream.write(installResult.stdout);
+      }
+      if (installResult.stderr) {
+        combinedOutput += installResult.stderr;
+        logStream.write(installResult.stderr);
+      }
+    }
+  } catch (installError) {
+    const message = installError instanceof Error ? installError.message : String(installError);
+    logStream.write(`[install] failed: ${message}\n`);
+    logStream.end();
+    throw installError;
+  }
+
+  const command = providedCommand ?? detectTestCommand(projectRoot);
+  if (!installPerformed) {
+    combinedOutput += `${installSummary}\n`;
+    logStream.write(`${installSummary}\n`);
+  }
+  combinedOutput += `[sandbox] running ${command}\n`;
+  logStream.write(`[sandbox] running ${command}\n`);
 
   const startedAt = new Date();
   const child = spawn(command, {

@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 
 import Ajv2020, { type ErrorObject, type JSONSchemaType } from "ajv/dist/2020";
 import addFormats from "ajv-formats";
+import type { RepairStrategy } from "../repair/strategySelector.js";
 
 const requireJson = createRequire(import.meta.url);
 const schema = requireJson("../../contracts/repair-history.schema.json");
@@ -44,6 +45,7 @@ export interface RepairAttemptRecord {
   finishedAt?: string;
   changedFiles: string[];
   summary?: string;
+  strategy?: RepairStrategy;
   testResult: TestResultSummary;
   failureAnalysis?: FailureAnalysis;
   durationMs: number;

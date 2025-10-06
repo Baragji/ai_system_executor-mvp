@@ -8,6 +8,7 @@ import {
   buildRepairPrompt,
   type PreviousAttemptSummary
 } from "./buildRepairPrompt.js";
+import { selectStrategy } from "./strategySelector.js";
 import { generateDiff } from "./generateDiff.js";
 import {
   validateRepairHistory,
@@ -290,13 +291,17 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
     const startedAtIso = new Date(attemptStart).toISOString();
     const fileContextPaths = Array.from(knownFiles).sort();
     const fileContext = await gatherFileContext(context.projectPath, fileContextPaths);
+    const selectedStrategy = currentFailureAnalysis
+      ? selectStrategy(currentFailureAnalysis.category, attemptNumber)
+      : null;
 
     const prompt = buildRepairPrompt({
       attemptNumber,
       failureAnalysis: currentFailureAnalysis,
       previousAttempts: previousSummaries,
       originalPrompt: context.originalPrompt,
-      maxAttempts: 4
+      maxAttempts: 4,
+      strategyOverride: selectedStrategy
     });
 
     const messages: LLMMessage[] = [
@@ -397,6 +402,7 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
       finishedAt: finishedAtIso,
       changedFiles,
       summary,
+      strategy: selectedStrategy ?? undefined,
       testResult: mapRunResult(runResult),
       failureAnalysis: failureAnalysis ?? undefined,
       durationMs,
@@ -410,7 +416,8 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
       status: attemptStatus,
       summary,
       failureAnalysis,
-      durationMs
+      durationMs,
+      strategy: selectedStrategy
     });
 
     if (attemptStatus === "pass") {

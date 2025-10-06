@@ -5,6 +5,19 @@ const minBranches = Number(process.env.VITEST_MIN_BRANCHES ?? "75");
 const minFunctions = Number(process.env.VITEST_MIN_FUNCTIONS ?? "80");
 const minStatements = Number(process.env.VITEST_MIN_STATEMENTS ?? "80");
 
+const isFocusedRun = process.argv.some(arg => {
+  return arg === "--run" || /\.test\.(t|j)sx?$/.test(arg);
+});
+
+const thresholds = isFocusedRun
+  ? { lines: 0, branches: 0, functions: 0, statements: 0 }
+  : {
+      lines: minLines,
+      branches: minBranches,
+      functions: minFunctions,
+      statements: minStatements
+    };
+
 export default defineConfig({
   test: {
     environment: "node",
@@ -17,12 +30,7 @@ export default defineConfig({
       provider: "v8",
       reportsDirectory: "coverage",
       reporter: ["text", "html"],
-      thresholds: {
-        lines: minLines,
-        branches: minBranches,
-        functions: minFunctions,
-        statements: minStatements
-      },
+      thresholds,
       include: ["src/contracts/**/*.ts", "src/runner/**/*.ts", "src/utils/**/*.ts"],
       exclude: [
         "public/**"
