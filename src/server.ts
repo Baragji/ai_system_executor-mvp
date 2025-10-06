@@ -29,6 +29,17 @@ import type {
   ClarificationQuestion,
   ClarificationResponse
 } from "./clarification/types.js";
+import { decomposeTask } from "./planning/decomposeTask.js";
+import { validateDecomposition } from "./planning/validateDecomposition.js";
+import { executeTaskPlan } from "./planning/executeTaskPlan.js";
+import { estimateCompletion } from "./planning/estimateCompletion.js";
+import type {
+  PlanExecutionContext,
+  PlanExecutionResult,
+  SubtaskResult,
+  TaskPlan,
+  TimeEstimate
+} from "./planning/types.js";
 
 const app = express();
 app.use(cors());
@@ -152,6 +163,264 @@ function gatherChangedPaths(history: RepairHistory | null | undefined): string[]
     }
   }
   return Array.from(paths);
+}
+
+function isComplexPrompt(prompt: string, clarifications?: ClarificationResponse): boolean {
+  const normalized = prompt.toLowerCase();
+  const featureIndicators = [" and ", " with ", "feature", "module", "api", "database", "auth", "dashboard", "workflow"];
+  const bulletLike = /\n-\s|\n\d+\./.test(prompt);
+  const multipleSentences = prompt.split(/[.!?]/).filter(chunk => chunk.trim().length > 0).length >= 2;
+  if (clarifications && clarifications.answers.length > 0) {
+    return true;
+  }
+  if (prompt.length > 180 || bulletLike || multipleSentences) {
+    return true;
+  }
+  return featureIndicators.some(indicator => normalized.includes(indicator));
+}
+
+async function generateExecutorOutputFromPrompt(
+  systemPrompt: string,
+  userPrompt: string,
+  { enforceTests }: { enforceTests: boolean }
+): Promise<ExecutorOutput> {
+  const messages = [
+    { role: "system" as const, content: systemPrompt },
+    { role: "user" as const, content: userPrompt }
+  ];
+
+  const raw = await generateJSON(messages);
+  let data: unknown;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    throw new Error("Model did not return valid JSON");
+  }
+
+  const sanitized = sanitizeExecutorOutput(data);
+  const validation = validateExecutorOutput(sanitized);
+  if (!validation.ok) {
+    throw new Error(`JSON failed schema validation: ${validation.errors}`);
+  }
+
+  const output = validation.value;
+  if (enforceTests && !output.hasTests) {
+    throw new Error("Generated output must include tests and set hasTests=true");
+  }
+
+  return output;
+}
+
+function collectPlanGeneratedFiles(results: SubtaskResult[]): string[] {
+  const files = new Set<string>();
+  results.forEach(result => {
+    result.generatedFiles.forEach(file => files.add(file));
+  });
+  return Array.from(files);
+}
+
+function createPlanExecutionContext(
+  params: {
+    targetRoot: string;
+    slug: string;
+    effectivePrompt: string;
+    clarifications?: ClarificationResponse;
+    systemPrompt: string;
+  }
+): PlanExecutionContext {
+  const { targetRoot, slug, effectivePrompt, clarifications, systemPrompt } = params;
+
+  return {
+    projectPath: targetRoot,
+    projectSlug: slug,
+    originalPrompt: effectivePrompt,
+    clarifications,
+    previousSubtaskResults: [],
+    generateSubtaskOutput: request =>
+      generateExecutorOutputFromPrompt(systemPrompt, request.prompt, { enforceTests: false }),
+    writeFiles: (rootDir, files) => writeFiles(rootDir, files),
+    runTests: options => runInSandbox(options),
+    multiTurnRepair: context => multiTurnRepair(context),
+    logTelemetry: event =>
+      logEvent("plan_progress", {
+        project: slug,
+        subtask: event.subtaskId,
+        status: event.status,
+        percent: Number(event.progress.percentComplete.toFixed(2))
+      }),
+    onProgressUpdate: snapshot =>
+      logEvent("plan_snapshot", {
+        project: slug,
+        completed: snapshot.completedSubtasks,
+        failed: snapshot.failedSubtasks,
+        percent: Number(snapshot.percentComplete.toFixed(2))
+      }),
+    now: () => Date.now()
+  };
+}
+
+async function executePlanFlow(params: {
+  plan: TaskPlan;
+  planQuality: number;
+  targetRoot: string;
+  slug: string;
+  effectivePrompt: string;
+  originalPrompt: string;
+  clarifications?: ClarificationResponse;
+  clarificationsUsed: boolean;
+  systemPrompt: string;
+  clarificationQuestions: ClarificationQuestion[];
+  clarificationsAsked: boolean;
+  projectName: string;
+}): Promise<{ response: unknown; meta: unknown; status: PlanExecutionResult["status"]; timeEstimate: TimeEstimate; planExecutionResult: PlanExecutionResult }>
+{
+  const {
+    plan,
+    planQuality,
+    targetRoot,
+    slug,
+    effectivePrompt,
+    originalPrompt,
+    clarifications,
+    clarificationsUsed,
+    systemPrompt,
+    clarificationQuestions,
+    clarificationsAsked,
+    projectName
+  } = params;
+
+  await ensureMetaDirectory(targetRoot);
+  await logEvent("generation_start", { project: slug, mode: "plan" });
+
+  const context = createPlanExecutionContext({
+    targetRoot,
+    slug,
+    effectivePrompt,
+    clarifications,
+    systemPrompt
+  });
+
+  const planExecutionResult = await executeTaskPlan(plan, context);
+  const timeEstimate = estimateCompletion(planExecutionResult.progress, plan);
+  const generatedFiles = collectPlanGeneratedFiles(planExecutionResult.subtaskResults);
+
+  const fileMetadata = await computeFileChecksums(
+    await collectFilePaths(
+      targetRoot,
+      generatedFiles.map(pathname => ({ path: pathname, contents: "" })),
+      []
+    ),
+    targetRoot
+  );
+
+  const lastResult = planExecutionResult.subtaskResults.at(-1) ?? null;
+  const lastHistory = lastResult?.repairHistory ?? null;
+  const finalStatus = planExecutionResult.status === "completed" ? "pass" : "fail";
+
+  const responseTestResults = {
+    initial: lastResult?.testResult ?? null,
+    afterRepair: lastHistory?.attempts.at(-1)?.testResult ?? null
+  };
+
+  const testRunEntries = [] as ReturnType<typeof buildTestRunEntry>[];
+  planExecutionResult.subtaskResults.forEach(result => {
+    if (result.testResult) {
+      testRunEntries.push(buildTestRunEntry(result.subtaskId, result.testResult));
+    }
+    result.repairHistory?.attempts.forEach(attempt => {
+      testRunEntries.push(buildTestRunEntry(`${result.subtaskId}-repair-${attempt.number}`, attempt.testResult));
+    });
+  });
+
+  const clarificationAnswers: ClarificationAnswer[] = clarifications
+    ? clarifications.answers.map(answer => ({ ...answer }))
+    : [];
+
+  const clarificationTelemetry = {
+    asked: clarificationsAsked,
+    questions: clarificationQuestions,
+    answers: clarificationAnswers,
+    improvedSuccess: clarificationsUsed && finalStatus === "pass"
+  };
+
+  const repairMetrics = lastHistory ? buildRepairMetrics(lastHistory) : {};
+  const repairSummary = lastHistory
+    ? buildRepairSummary(
+        responseTestResults.initial ?? {
+          status: "fail",
+          passCount: 0,
+          failCount: 1,
+          durationMs: lastResult?.durationMs ?? 0,
+          logsPath: "",
+          timestamp: new Date().toISOString()
+        },
+        lastHistory
+      )
+    : { attempted: false, repaired: true, appliedFiles: 0, notes: [], error: null, artifacts: [] };
+
+  const meta = {
+    created_at: new Date().toISOString(),
+    source_prompt: effectivePrompt,
+    original_prompt: originalPrompt,
+    clarification: clarificationTelemetry,
+    clarifications: {
+      used: clarificationsUsed,
+      answers: clarificationAnswers,
+      asked: clarificationTelemetry.asked
+    },
+    notes: [],
+    testRuns: testRunEntries,
+    repair: repairSummary,
+    repairMetrics,
+    repairHistory: lastHistory,
+    files: fileMetadata,
+    taskPlanUsed: true,
+    decompositionQuality: planQuality,
+    subtaskResults: planExecutionResult.subtaskResults,
+    planningMetrics: {
+      totalSubtasks: plan.subtasks.length,
+      completedSubtasks: planExecutionResult.completedSubtasks.length,
+      failedSubtasks: planExecutionResult.failedSubtasks.length,
+      totalPlanDuration: planExecutionResult.totalDurationMs
+    }
+  };
+
+  const metaPath = path.join(targetRoot, "_executor_meta.json");
+  try {
+    await fs.writeFile(metaPath, JSON.stringify(meta, null, 2), "utf-8");
+  } catch (err) {
+    const code = (err as { code?: string } | null | undefined)?.code;
+    if (code === "ENOENT") {
+      await fs.mkdir(targetRoot, { recursive: true });
+      await fs.writeFile(metaPath, JSON.stringify(meta, null, 2), "utf-8");
+    } else {
+      throw err;
+    }
+  }
+
+  await logEvent("generation_complete", { project: slug, status: finalStatus, mode: "plan" });
+
+  const responsePayload = {
+    ok: true,
+    project: slug,
+    files_written: generatedFiles.length,
+    browse_url: `/output/${slug}/`,
+    abs_path: targetRoot,
+    testResults: responseTestResults,
+    repairMetrics,
+    repairHistory: lastHistory,
+    repair: repairSummary,
+    clarificationsUsed,
+    generated: effectivePrompt,
+    taskPlanUsed: true,
+    taskPlan: plan,
+    planExecutionResult,
+    timeEstimate,
+    decompositionQuality: planQuality,
+    projectName
+  };
+
+  return { response: responsePayload, meta, status: planExecutionResult.status, timeEstimate, planExecutionResult };
 }
 
 function buildRepairSummary(initialRun: RunResult, history: RepairHistory) {
@@ -311,34 +580,62 @@ app.post("/api/execute", async (req, res) => {
     }
 
     const systemPrompt = await fs.readFile("src/executor/systemPrompt.md", "utf-8");
-    const messages = [
-      { role: "system" as const, content: systemPrompt },
-      { role: "user" as const, content: effectivePrompt }
-    ];
+    const projectNameInput = typeof projectNameRaw === "string" ? projectNameRaw.trim() : "";
 
-    const raw = await generateJSON(messages);
-    let data: unknown;
+    const storedQuestions = consumeClarificationQuestions(originalPrompt) ?? [];
+    let clarificationQuestions = storedQuestions;
+    let clarificationAsked = clarificationQuestions.length > 0;
+    if (!clarificationAsked && clarifications && clarifications.answers.length > 0) {
+      const missingAgain = detectMissing(originalPrompt);
+      clarificationQuestions = generateQuestions(missingAgain, originalPrompt);
+      clarificationAsked = clarificationQuestions.length > 0;
+    }
+
+    if (isComplexPrompt(effectivePrompt, clarifications)) {
+      try {
+        const plan = await decomposeTask(effectivePrompt, clarifications);
+        const quality = validateDecomposition(plan, effectivePrompt);
+        if (quality.score >= 70) {
+          const planProjectName = projectNameInput || plan.originalPrompt || "planned-project";
+          const slug = slugify(planProjectName, { lower: true, strict: true }) || `planned-${Date.now()}`;
+          const targetRoot = path.join(OUTPUT_DIR, slug);
+
+          try {
+            const planResult = await executePlanFlow({
+              plan,
+              planQuality: quality.score,
+              targetRoot,
+              slug,
+              effectivePrompt,
+              originalPrompt,
+              clarifications,
+              clarificationsUsed,
+              systemPrompt,
+              clarificationQuestions,
+              clarificationsAsked: clarificationAsked,
+              projectName: planProjectName
+            });
+
+            return res.json(planResult.response);
+          } catch (planError) {
+            console.error("Plan execution failed, falling back to single execution", planError);
+            // Fall through to single execution below
+          }
+        }
+      } catch (error) {
+        console.warn("Planning decomposition failed, falling back to single execution", error);
+        // Fall through to single execution below
+      }
+    }
+
+    let output: ExecutorOutput;
     try {
-      data = JSON.parse(raw);
-    } catch {
-      return res.status(422).json({ error: "Model did not return valid JSON", raw });
+      output = await generateExecutorOutputFromPrompt(systemPrompt, effectivePrompt, { enforceTests: true });
+    } catch (error) {
+      return res.status(422).json({ error: (error as Error).message });
     }
 
-    // Pre-validate sanitization to strip extras and normalize paths
-    const sanitized = sanitizeExecutorOutput(data);
-    const result = validateExecutorOutput(sanitized);
-    if (!result.ok) {
-      return res.status(422).json({ error: "JSON failed schema validation", details: result.errors });
-    }
-
-    const output = result.value as ExecutorOutput;
-    if (!output.hasTests) {
-      return res.status(422).json({ error: "Generated output must include tests and set hasTests=true" });
-    }
-
-    const projectName = (projectNameRaw && projectNameRaw.trim().length > 0)
-      ? projectNameRaw.trim()
-      : (output.project_name || "generated-project");
+    const projectName = projectNameInput || output.project_name || "generated-project";
     const slug = slugify(projectName, { lower: true, strict: true });
     const targetRoot = path.join(OUTPUT_DIR, slug);
 
@@ -389,14 +686,6 @@ app.post("/api/execute", async (req, res) => {
     const changedPaths = gatherChangedPaths(repairHistory);
     const relevantPaths = await collectFilePaths(targetRoot, output.files, changedPaths);
     const fileMetadata = await computeFileChecksums(relevantPaths, targetRoot);
-    const storedQuestions = consumeClarificationQuestions(originalPrompt) ?? [];
-    let clarificationQuestions: ClarificationQuestion[] = storedQuestions;
-    let clarificationAsked = clarificationQuestions.length > 0;
-    if (!clarificationAsked && clarifications && clarifications.answers.length > 0) {
-      const missingAgain = detectMissing(originalPrompt);
-      clarificationQuestions = generateQuestions(missingAgain, originalPrompt);
-      clarificationAsked = clarificationQuestions.length > 0;
-    }
     const clarificationAnswers: ClarificationAnswer[] = clarifications
       ? clarifications.answers.map<ClarificationAnswer>(answer => ({ ...answer }))
       : [];
@@ -428,7 +717,11 @@ app.post("/api/execute", async (req, res) => {
       repair: repairSummary,
       repairMetrics: buildRepairMetrics(repairHistory),
       repairHistory,
-      files: fileMetadata
+      files: fileMetadata,
+      taskPlanUsed: false,
+      decompositionQuality: null,
+      subtaskResults: [],
+      planningMetrics: null
     };
 
     // Write metadata with a retry in case the target directory was removed concurrently
@@ -461,7 +754,13 @@ app.post("/api/execute", async (req, res) => {
       repairHistory,
       repair: meta.repair,
       clarificationsUsed,
-      generated: effectivePrompt
+      generated: effectivePrompt,
+      taskPlanUsed: false,
+      taskPlan: null,
+      planExecutionResult: null,
+      timeEstimate: null,
+      decompositionQuality: null,
+      projectName
     });
   } catch (err: unknown) {
     console.error(err);

@@ -4,7 +4,6 @@ import path from "node:path";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { app } from "../../src/server.js";
 import type { RunResult } from "../../src/contracts/validators.js";
 
 vi.mock("../../src/llm/index.js", () => ({
@@ -80,6 +79,14 @@ const repairHistory = {
 vi.mock("../../src/repair/multiTurnRepair.js", () => ({
   multiTurnRepair: vi.fn(async () => repairHistory)
 }));
+
+vi.mock("../../src/planning/decomposeTask.js", () => ({
+  decomposeTask: vi.fn(async () => {
+    throw new Error("Skip planning in phase1 tests");
+  })
+}));
+
+import { app } from "../../src/server.js";
 
 const OUTPUT_DIR = path.resolve("output");
 const TELEMETRY_FILE = path.resolve(".telemetry/events.log");

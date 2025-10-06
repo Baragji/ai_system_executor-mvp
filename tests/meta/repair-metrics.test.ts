@@ -30,6 +30,12 @@ vi.mock("../../src/repair/multiTurnRepair.js", () => ({
   multiTurnRepair: vi.fn()
 }));
 
+vi.mock("../../src/planning/decomposeTask.js", () => ({
+  decomposeTask: vi.fn(async () => {
+    throw new Error("Skip planning in metrics tests");
+  })
+}));
+
 import { app } from "../../src/server.js";
 import { runInSandbox } from "../../src/runner/runInSandbox.js";
 import { multiTurnRepair } from "../../src/repair/multiTurnRepair.js";
@@ -101,6 +107,7 @@ function writeMetaPath(projectName: string) {
 beforeEach(async () => {
   // Targeted cleanup: only this file's project and telemetry log
   await fs.rm(path.join(OUTPUT_DIR, "metrics-demo"), { recursive: true, force: true });
+  await fs.mkdir(OUTPUT_DIR, { recursive: true });
   await fs.mkdir(TELEMETRY_DIR, { recursive: true });
   await fs.rm(TELEMETRY_FILE, { force: true });
   runInSandboxMock.mockReset();

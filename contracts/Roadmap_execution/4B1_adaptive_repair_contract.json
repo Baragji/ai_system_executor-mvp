@@ -1,0 +1,209 @@
+{
+  "contract_version": "4B1.0.0",
+  "contract_meta": {
+    "created": "2025-10-06",
+    "phase": "4B1",
+    "phase_name": "Adaptive Multi-Turn Repair Strategy",
+    "prerequisite_phase": "Phase 4B (planning orchestration present)",
+    "rationale": "Evidence in src/repair/buildRepairPrompt.ts:1 shows generic guidance only; no adaptation by FailureCategory beyond listing failures. src/repair/analyzeFailure.ts:62-90 classifies failures into 'syntax'|'timeout'|'assertion'|'exception'|'multiple' but this signal is unused to tailor prompts. src/repair/multiTurnRepair.ts:240-266 builds messages without strategy branching; attempts can repeat ineffective patterns. .automation/evaluation_results.json indicates mixed repair outcomes across runs. This contract introduces a strategy selector mapping failure categories and attempt number to targeted instructions (e.g., syntax → focus on parser error line; timeout → performance/async fixes; assertion → align behavior with tests; exception → add guards). It integrates selected strategy into prompts and (optionally) records it per attempt. Expected impact: fewer wasted attempts, higher pass rate by attempt ≤3, improved clarity in repair history.",
+    "references": [
+      "Phase 4B Contract",
+      "src/repair/multiTurnRepair.ts:240",
+      "src/repair/buildRepairPrompt.ts:1",
+      ".automation/evaluation_results.json"
+    ]
+  },
+  "project": {
+    "name": "executor-mvp",
+    "current_phase": "4B1",
+    "goal": "Select and apply adaptive repair strategies based on failure analysis and attempt number to increase successful repairs and reduce attempts.",
+    "scope": "Strategy selector, prompt integration, optional history annotation, unit/integration tests",
+    "out_of_scope": [
+      "Changing test frameworks",
+      "Non-Node language repair tactics",
+      "Parallelizing repair attempts"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "observe_evaluate_proceed",
+    "description": "Verify 4B baseline exists, add adaptive strategy with full tests, validate outcomes.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "linux|macos",
+      "env_vars_required": [],
+      "optional_env_vars": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"],
+      "verify_commands": [
+        { "cmd": "node -v", "expect_regex": "^v20\\.", "on_fail": "HALT - Use Node 20.x for contract execution" },
+        { "cmd": "npm -v", "expect_exit_code": 0 }
+      ]
+    }
+  },
+  "observability": {
+    "description": "Trace strategy selection for each repair attempt",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "evaluation_file": ".automation/evaluation_results.json",
+    "monitoring": { "task_status_tracking": true, "verification_pass_fail": true, "elapsed_time_per_task": true },
+    "logging": {
+      "format": "jsonl",
+      "fields": ["timestamp", "task_id", "action", "status", "cmd", "exit_code", "stdout_excerpt", "stderr_excerpt"]
+    },
+    "evaluation": { "continuous": true, "evaluate_after_each_win": true, "quality_dimensions": ["correctness", "completeness", "safety"] }
+  },
+  "global_quality_standards": {
+    "lint": { "command": "npm run lint", "must_pass": true, "max_warnings": 0 },
+    "typecheck": { "command": "npm run typecheck", "must_pass": true },
+    "tests": {
+      "command": "npm test",
+      "expected": { "exit_code": 0, "no_failed_suites": true },
+      "coverage": { "min_line_pct": 80, "min_branch_pct": 75 }
+    },
+    "schemas": { "ajv_strict": true, "draft_version": "2020-12" }
+  },
+  "high_level_stages": [
+    "phase4b_verification",
+    "strategy_selector",
+    "prompt_integration",
+    "history_annotation",
+    "phase_validation"
+  ],
+  "tasks": [
+    {
+      "id": "P4B-V01",
+      "stage": "phase4b_verification",
+      "title": "Verify Phase 4B baseline present",
+      "type": "verification",
+      "description": "Ensure planning/repair artifacts exist before adding adaptive strategy",
+      "verification_mode": "observe_only",
+      "actions": [
+        { "type": "observe", "cmd": "test -f src/repair/multiTurnRepair.ts && echo 'exists' || echo 'missing'", "capture_output": true, "expect_stdout": "exists" },
+        { "type": "observe", "cmd": "test -f src/repair/analyzeFailure.ts && echo 'exists' || echo 'missing'", "capture_output": true, "expect_stdout": "exists" },
+        { "type": "observe", "cmd": "test -f src/repair/buildRepairPrompt.ts && echo 'exists' || echo 'missing'", "capture_output": true, "expect_stdout": "exists" }
+      ],
+      "evaluation": { "intent": "Confirm repair pipeline exists", "success_criteria": "All artifacts exist" },
+      "trace_context": { "decision_point": "phase4b_verification", "reasoning_required": true, "critical": true }
+    },
+    {
+      "id": "W41",
+      "stage": "strategy_selector",
+      "title": "Win #41: Add repair strategy selector",
+      "type": "win",
+      "description": "Create strategySelector.ts that maps FailureCategory + attemptNumber to strategy enum and returns targeted guidance text.",
+      "time_estimate_minutes": 45,
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/repair/strategySelector.ts",
+          "content_spec": {
+            "exports": ["export type RepairStrategy", "export function selectStrategy(category: FailureCategory, attempt: 1|2|3|4): RepairStrategy", "export function strategyGuidance(strategy: RepairStrategy): string"],
+            "strategies": ["syntax_focus", "timeout_focus", "assertion_focus", "exception_hardening", "multiple_prioritize"],
+            "logic": "Map category + attempt to strategy. For attempt>=3 add conservative guidance."
+          }
+        },
+        { "type": "create_tests", "file": "tests/repair/strategySelector.test.ts", "content_spec": "Cover all categories and attempts 1-4" }
+      ],
+      "validation": [
+        { "cmd": "test -f src/repair/strategySelector.ts", "expect_exit_code": 0 },
+        { "cmd": "npm test -- strategySelector.test.ts", "expect_exit_code": 0 },
+        { "cmd": "npm run typecheck", "expect_exit_code": 0 }
+      ],
+      "success_criteria": ["Strategy enum exported", "Selector returns expected strategy per category/attempt", "All tests pass", "TypeScript compiles without errors"],
+      "trace_context": { "decision_point": "strategy_defined", "win_number": 41 }
+    },
+    {
+      "id": "W42",
+      "stage": "prompt_integration",
+      "title": "Win #42: Integrate strategy into repair prompts",
+      "type": "win",
+      "description": "Modify buildRepairPrompt to include strategy-guided instructions; update multiTurnRepair to pass FailureCategory and attempt number.",
+      "time_estimate_minutes": 45,
+      "actions": [
+        { "type": "edit", "file": "src/repair/buildRepairPrompt.ts", "content_spec": "Import strategySelector, append strategyGuidance() to instruction section based on category and attempt." },
+        { "type": "edit", "file": "src/repair/multiTurnRepair.ts", "content_spec": "Pass attemptNumber and currentFailureAnalysis.category to buildRepairPrompt or selector as needed." },
+        { "type": "create_tests", "file": "tests/repair/buildRepairPrompt.adaptive.test.ts", "content_spec": "Asserts prompts contain strategy-specific guidance for each category." }
+      ],
+      "validation": [
+        { "cmd": "rg -n \"strategyGuidance\" src/repair/buildRepairPrompt.ts", "expect_exit_code": 0 },
+        { "cmd": "npm test -- buildRepairPrompt.adaptive.test.ts", "expect_exit_code": 0 },
+        { "cmd": "npm run typecheck", "expect_exit_code": 0 }
+      ],
+      "success_criteria": ["Prompts include category-specific guidance", "Strategy applied for attempts ≥1", "All tests pass", "TypeScript compiles without errors"],
+      "trace_context": { "decision_point": "prompt_integration", "win_number": 42 }
+    },
+    {
+      "id": "W43",
+      "stage": "history_annotation",
+      "title": "Win #43: Optional strategy annotation in history",
+      "type": "win",
+      "description": "Optionally record selected strategy per attempt in RepairHistory with non-breaking schema update and tests.",
+      "time_estimate_minutes": 45,
+      "actions": [
+        { "type": "edit", "file": "contracts/repair-history.schema.json", "content_spec": "Add optional attempt.strategy: string enum of strategies" },
+        { "type": "edit", "file": "src/contracts/repairHistoryValidator.ts", "content_spec": "Expand TS types to include strategy? field; ajv compile remains strict." },
+        { "type": "edit", "file": "src/repair/multiTurnRepair.ts", "content_spec": "Attach strategy to attempt records." },
+        { "type": "create_tests", "file": "tests/contracts/repair-history.adaptive.test.ts", "content_spec": "Validator accepts history with/without strategy; multiTurnRepair populates field" }
+      ],
+      "validation": [
+        { "cmd": "rg -n \"strategy\" contracts/repair-history.schema.json", "expect_exit_code": 0 },
+        { "cmd": "npm test -- repair-history.adaptive.test.ts", "expect_exit_code": 0 },
+        { "cmd": "npm run typecheck", "expect_exit_code": 0 }
+      ],
+      "success_criteria": ["Schema remains backward compatible", "History can include strategy field", "All tests pass", "TypeScript compiles without errors"],
+      "trace_context": { "decision_point": "history_annotation", "win_number": 43 }
+    },
+    {
+      "id": "4B1-GATE",
+      "stage": "phase_validation",
+      "title": "Phase 4B1 validation gate",
+      "type": "validation",
+      "description": "Ensure lint/typecheck/tests green and key artifacts present",
+      "actions": [
+        { "type": "validate", "cmd": "npm run lint", "expect_exit_code": 0 },
+        { "type": "validate", "cmd": "npm run typecheck", "expect_exit_code": 0 },
+        { "type": "validate", "cmd": "npm test", "expect_exit_code": 0 },
+        { "type": "validate", "cmd": "test -f src/repair/strategySelector.ts && rg -q 'strategyGuidance' src/repair/buildRepairPrompt.ts", "expect_exit_code": 0 }
+      ]
+    }
+  ],
+  "execution_order": ["P4B-V01", "W41", "W42", "W43", "4B1-GATE"],
+  "completion_criteria": {
+    "strategy_selector_exists": true,
+    "prompts_adaptive": true,
+    "tests_green": true,
+    "coverage_maintained": true
+  },
+  "fallback_policies": {
+    "test_fail": "Fix implementation before proceeding",
+    "typecheck_fail": "Resolve typing issues before gate",
+    "lint_fail": "Fix lint issues before gate"
+  },
+  "reporting": {
+    "progress_file": ".automation/progress_phase4b1.json",
+    "fields": ["task_id", "win_number", "status", "started_at", "finished_at", "elapsed_ms", "result", "errors"],
+    "phase_report": { "file": ".automation/phase4b1_completion_report.json", "fields": ["wins_completed", "gate_passed", "timestamp", "diagnostics"] }
+  },
+  "final_artifacts_verification": [
+    { "name": "Strategy Selector", "path": "src/repair/strategySelector.ts", "must_include_regex": "export function selectStrategy" },
+    { "name": "Prompt Integration", "path": "src/repair/buildRepairPrompt.ts", "must_include_regex": "strategyGuidance" },
+    { "name": "Phase 4B1 Report", "path": ".automation/phase4b1_completion_report.json", "must_exist": true, "must_include_field": "gate_passed" }
+  ],
+  "release_actions": [
+    { "cmd": "git add .", "expect_exit_code": 0 },
+    { "cmd": "git commit -m \"feat(4B1): adaptive repair strategy and prompt integration\"", "expect_exit_code": 0 },
+    { "cmd": "git tag 4B1-complete", "expect_exit_code": 0 }
+  ],
+  "ai_executor_guidelines": {
+    "observability_first": "Trace selected strategy per attempt in logs",
+    "win_isolation": "Implement and test selector before integration",
+    "phase_specific_guidance": "Prefer minimal, targeted diffs informed by category",
+    "test_driven": "Add selector tests first",
+    "fail_fast": "Do not proceed on failing tests",
+    "gate_enforcement": "4B1-GATE must pass before completion"
+  }
+}
+
