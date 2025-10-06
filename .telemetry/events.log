@@ -1,6 +1,7 @@
-{"name":"generation_start","timestamp":"2025-10-05T21:51:33.545Z","payload":{"project":"phase1-demo"}}
-{"name":"test_run","timestamp":"2025-10-05T21:51:33.550Z","payload":{"project":"phase1-demo","stage":"initial","status":"fail"}}
-{"name":"repair_attempt","timestamp":"2025-10-05T21:51:33.550Z","payload":{"project":"phase1-demo","attempted":true,"repaired":true}}
-{"name":"test_run","timestamp":"2025-10-05T21:51:33.550Z","payload":{"project":"phase1-demo","stage":"post_repair","status":"pass"}}
-{"name":"generation_complete","timestamp":"2025-10-05T21:51:33.552Z","payload":{"project":"phase1-demo","status":"pass"}}
-{"name":"test_run","timestamp":"2025-10-05T21:51:34.506Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
+{"name":"generation_start","timestamp":"2025-10-06T09:28:21.553Z","payload":{"project":"phase1-demo"}}
+{"name":"test_run","timestamp":"2025-10-06T09:28:21.556Z","payload":{"project":"phase1-demo","stage":"initial","status":"fail"}}
+{"name":"repair_attempt","timestamp":"2025-10-06T09:28:21.556Z","payload":{"project":"phase1-demo","attempts":2,"finalStatus":"pass","successAttempt":2}}
+{"name":"test_run","timestamp":"2025-10-06T09:28:21.557Z","payload":{"project":"phase1-demo","stage":"repair-1","status":"fail"}}
+{"name":"test_run","timestamp":"2025-10-06T09:28:21.557Z","payload":{"project":"phase1-demo","stage":"repair-2","status":"pass"}}
+{"name":"generation_complete","timestamp":"2025-10-06T09:28:21.563Z","payload":{"project":"phase1-demo","status":"pass"}}
+{"name":"test_run","timestamp":"2025-10-06T09:28:34.765Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
