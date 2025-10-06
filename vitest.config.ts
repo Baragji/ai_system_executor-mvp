@@ -1,5 +1,10 @@
 import { defineConfig } from "vitest/config";
 
+const minLines = Number(process.env.VITEST_MIN_LINES ?? "80");
+const minBranches = Number(process.env.VITEST_MIN_BRANCHES ?? "75");
+const minFunctions = Number(process.env.VITEST_MIN_FUNCTIONS ?? "80");
+const minStatements = Number(process.env.VITEST_MIN_STATEMENTS ?? "80");
+
 export default defineConfig({
   test: {
     environment: "node",
@@ -13,10 +18,10 @@ export default defineConfig({
       reportsDirectory: "coverage",
       reporter: ["text", "html"],
       thresholds: {
-        lines: 80,
-        branches: 75,
-        functions: 80,
-        statements: 80
+        lines: minLines,
+        branches: minBranches,
+        functions: minFunctions,
+        statements: minStatements
       },
       include: ["src/contracts/**/*.ts", "src/runner/**/*.ts", "src/utils/**/*.ts"],
       exclude: [

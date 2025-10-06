@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://executor-mvp/contracts/task-plan.schema.json",
+  "title": "Task Plan",
+  "type": "object",
+  "required": ["originalPrompt", "subtasks", "totalSubtasks"],
+  "properties": {
+    "originalPrompt": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subtasks": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 10,
+      "items": {
+        "$ref": "subtask.schema.json"
+      }
+    },
+    "totalSubtasks": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 10
+    },
+    "decompositionStrategy": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}
