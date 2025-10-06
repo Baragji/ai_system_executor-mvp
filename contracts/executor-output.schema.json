@@ -67,6 +67,35 @@
         "answers",
         "improvedSuccess"
       ]
+    },
+    "repairMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "totalAttempts": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "successAttempt": { "anyOf": [
+          { "type": "integer", "minimum": 1, "maximum": 4 },
+          { "type": "null" }
+        ] },
+        "timePerAttempt": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0 },
+          "maxItems": 4
+        },
+        "failureTypes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "exhausted": { "type": "boolean" },
+        "attemptEfficiency": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": [
+        "totalAttempts",
+        "timePerAttempt",
+        "failureTypes",
+        "exhausted",
+        "attemptEfficiency"
+      ]
     }
   },
   "required": [

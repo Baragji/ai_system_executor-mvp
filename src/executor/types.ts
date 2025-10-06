@@ -2,6 +2,15 @@ import type { ClarificationAnswer, ClarificationQuestion } from "../clarificatio
 
 export type ExecutorFile = { path: string; contents: string };
 
+export interface RepairMetrics {
+  totalAttempts: number;
+  successAttempt?: number | null;
+  timePerAttempt: number[];
+  failureTypes: string[];
+  exhausted: boolean;
+  attemptEfficiency: number;
+}
+
 export interface ExecutorClarificationTelemetry {
   asked: boolean;
   questions: ClarificationQuestion[];
@@ -15,4 +24,5 @@ export type ExecutorOutput = {
   notes?: string[];
   hasTests: boolean;
   clarification?: ExecutorClarificationTelemetry;
+  repairMetrics?: RepairMetrics;
 };

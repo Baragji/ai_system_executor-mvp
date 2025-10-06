@@ -30,3 +30,19 @@ code { background: #0f172a; padding: 2px 6px; border-radius: 6px; border:1px sol
 .clarification-option { display: flex; align-items: center; gap: 8px; }
 .clarification-actions { display: flex; gap: 12px; margin-top: 20px; }
 .skip-button { background: #475569; }
+.repair-history { margin-top: 24px; padding: 16px; border: 1px solid #334155; border-radius: 12px; background: rgba(15, 23, 42, 0.7); }
+.repair-history h2 { margin-top: 0; }
+.repair-history-timeline { display: grid; gap: 12px; margin-top: 12px; }
+.repair-history-item { border: 1px solid #1f2937; border-radius: 10px; padding: 12px; background: rgba(17, 24, 39, 0.85); }
+.repair-history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.repair-history-badge { font-weight: 600; background: rgba(79, 70, 229, 0.2); color: #a5b4fc; padding: 4px 10px; border-radius: 999px; font-size: 12px; }
+.repair-history-status { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.repair-history-status.status-pass { color: #22c55e; }
+.repair-history-status.status-fail { color: #f97316; }
+.repair-history-status.status-error { color: #f87171; }
+.repair-history-success { border-color: #22c55e; }
+.repair-history-exhausted { border-color: #f97316; }
+.repair-history-files { margin: 8px 0; padding-left: 18px; color: #cbd5e1; }
+.repair-history-files li { margin: 2px 0; }
+.repair-history-duration { font-size: 12px; color: #94a3b8; }
+.repair-history-summary { margin: 6px 0; color: #e2e8f0; }

@@ -6,6 +6,8 @@ const testControlsEl = document.getElementById("testControls");
 const runTestsBtn = document.getElementById("runTestsBtn");
 const testStatusEl = document.getElementById("testStatus");
 const repairTimelineEl = document.getElementById("repairTimeline");
+const repairHistorySection = document.getElementById("repairHistorySection");
+const repairHistoryTimeline = document.getElementById("repairHistoryTimeline");
 const clarificationSection = document.getElementById("clarificationSection");
 const clarificationForm = document.getElementById("clarificationForm");
 const clarificationQuestionsEl = document.getElementById("clarificationQuestions");
@@ -72,6 +74,128 @@ function renderTimelineEntry(label, runResult) {
   }
 
   return entry;
+}
+
+function resetRepairHistory() {
+  if (repairHistoryTimeline) {
+    repairHistoryTimeline.innerHTML = "";
+  }
+  if (repairHistorySection) {
+    repairHistorySection.classList.add("hidden");
+  }
+}
+
+function statusEmoji(status) {
+  switch (status) {
+    case "pass":
+      return "✅";
+    case "fail":
+      return "⚠️";
+    default:
+      return "❌";
+  }
+}
+
+function renderRepairHistory(history, metrics) {
+  if (!repairHistorySection || !repairHistoryTimeline) return;
+  if (!history || !Array.isArray(history.attempts) || history.attempts.length === 0) {
+    resetRepairHistory();
+    return;
+  }
+
+  repairHistoryTimeline.innerHTML = "";
+  const total = history.totalAttempts ?? history.attempts.length;
+
+  history.attempts.forEach(attempt => {
+    const item = document.createElement("div");
+    item.className = "repair-history-item";
+    if (history.successAttemptNumber && attempt.number === history.successAttemptNumber) {
+      item.classList.add("repair-history-success");
+    }
+    if (history.finalStatus === "exhausted" && attempt.number === history.attempts.length) {
+      item.classList.add("repair-history-exhausted");
+    }
+
+    const header = document.createElement("div");
+    header.className = "repair-history-header";
+
+    const badge = document.createElement("span");
+    badge.className = "repair-history-badge";
+    badge.textContent = `${attempt.number}/${total}`;
+    header.appendChild(badge);
+
+    const status = attempt.testResult?.status ?? "fail";
+    const statusLabel = document.createElement("span");
+    statusLabel.className = `repair-history-status status-${status}`;
+    statusLabel.textContent = `${statusEmoji(status)} ${status.toUpperCase()}`;
+    header.appendChild(statusLabel);
+
+    item.appendChild(header);
+
+    if (attempt.summary) {
+      const summary = document.createElement("p");
+      summary.className = "repair-history-summary";
+      summary.textContent = attempt.summary;
+      item.appendChild(summary);
+    }
+
+    if (Array.isArray(attempt.changedFiles) && attempt.changedFiles.length > 0) {
+      const fileList = document.createElement("ul");
+      fileList.className = "repair-history-files";
+      attempt.changedFiles.forEach(file => {
+        const li = document.createElement("li");
+        li.textContent = file;
+        fileList.appendChild(li);
+      });
+      item.appendChild(fileList);
+    }
+
+    if (attempt.testResult) {
+      const testInfo = document.createElement("p");
+      const passCount = attempt.testResult.passCount ?? 0;
+      const failCount = attempt.testResult.failCount ?? 0;
+      testInfo.textContent = `Tests: ${passCount} pass · ${failCount} fail`;
+      item.appendChild(testInfo);
+    }
+
+    const duration = document.createElement("p");
+    duration.className = "repair-history-duration";
+    const attemptDuration = attempt.durationMs ?? attempt.testResult?.durationMs;
+    const cumulative = attempt.cumulativeTime ?? attemptDuration ?? 0;
+    if (attemptDuration != null) {
+      duration.textContent = `Duration: ${attemptDuration}ms • Cumulative: ${cumulative}ms`;
+    } else {
+      duration.textContent = `Cumulative: ${cumulative}ms`;
+    }
+    item.appendChild(duration);
+
+    repairHistoryTimeline.appendChild(item);
+  });
+
+  if (history.finalStatus === "exhausted") {
+    const note = document.createElement("p");
+    note.className = "repair-history-summary";
+    note.textContent = "All attempts exhausted without passing tests.";
+    repairHistoryTimeline.appendChild(note);
+  }
+
+  if (metrics && typeof metrics === "object" && metrics !== null) {
+    const metricLine = document.createElement("p");
+    metricLine.className = "repair-history-duration";
+    const efficiency = typeof metrics.attemptEfficiency === "number"
+      ? `Efficiency: ${(metrics.attemptEfficiency * 100).toFixed(0)}%`
+      : null;
+    const average = Array.isArray(metrics.timePerAttempt) && metrics.timePerAttempt.length > 0
+      ? `Average duration: ${Math.round(metrics.timePerAttempt.reduce((acc, value) => acc + value, 0) / metrics.timePerAttempt.length)}ms`
+      : null;
+    const parts = [efficiency, average].filter(part => part && part.length > 0);
+    if (parts.length > 0) {
+      metricLine.textContent = parts.join(" • ");
+      repairHistoryTimeline.appendChild(metricLine);
+    }
+  }
+
+  repairHistorySection.classList.remove("hidden");
 }
 
 function renderTestLifecycle(testResults, repair) {
@@ -240,6 +364,7 @@ function collectClarificationAnswers() {
 
 async function executeRequest({ prompt, projectName, clarifications }) {
   resetClarificationUI();
+  resetRepairHistory();
   resultEl.textContent = "Generating project...";
   testControlsEl.classList.add("hidden");
   currentProjectSlug = null;
@@ -262,6 +387,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
     const data = await resp.json();
     if (!resp.ok) {
       resultEl.textContent = `Error: ${data?.error || resp.statusText}`;
+      resetRepairHistory();
       return;
     }
 
@@ -272,11 +398,14 @@ async function executeRequest({ prompt, projectName, clarifications }) {
       currentProjectSlug = data.project;
       testControlsEl.classList.remove("hidden");
       renderTestLifecycle(data.testResults, data.repair);
+      renderRepairHistory(data.repairHistory, data.repairMetrics);
     } else {
       currentProjectSlug = null;
+      resetRepairHistory();
     }
   } catch (err) {
     resultEl.textContent = String(err);
+    resetRepairHistory();
   }
 }
 

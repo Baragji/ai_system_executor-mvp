@@ -1,4 +1,8 @@
-import { createTwoFilesPatch, parsePatch } from "diff";
+import { createRequire } from "node:module";
+
+const requireDiff = createRequire(import.meta.url);
+const diffModule = requireDiff("diff") as typeof import("diff");
+const { createTwoFilesPatch, parsePatch } = diffModule;
 
 export interface FileDiff {
   file: string;

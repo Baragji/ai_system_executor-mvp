@@ -42,13 +42,23 @@ vi.mock("../../src/runner/runInSandbox.js", () => ({
   runInSandbox: vi.fn(async () => sandboxResult)
 }));
 
-vi.mock("../../src/repair/repairOnce.js", () => ({
-  repairOnce: vi.fn(async () => ({
-    attempted: false,
-    repaired: false,
-    appliedFiles: 0,
-    artifacts: [],
-    notes: []
+vi.mock("../../src/repair/multiTurnRepair.js", () => ({
+  multiTurnRepair: vi.fn(async () => ({
+    attempts: [
+      {
+        number: 1,
+        changedFiles: [],
+        testResult: {
+          status: "fail",
+          passCount: 0,
+          failCount: 1
+        },
+        durationMs: 0,
+        cumulativeTime: 0
+      }
+    ],
+    finalStatus: "fail",
+    totalAttempts: 1
   }))
 }));
 

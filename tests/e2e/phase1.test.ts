@@ -44,15 +44,29 @@ vi.mock("../../src/runner/runInSandbox.js", () => ({
   runInSandbox: vi.fn(async () => initialRun)
 }));
 
-vi.mock("../../src/repair/repairOnce.js", () => ({
-  repairOnce: vi.fn(async () => ({
-    attempted: true,
-    repaired: true,
-    appliedFiles: 1,
-    artifacts: [],
-    runResult: repairedRun,
-    notes: ["patched"],
-    error: undefined
+vi.mock("../../src/repair/multiTurnRepair.js", () => ({
+  multiTurnRepair: vi.fn(async () => ({
+    attempts: [
+      {
+        number: 1,
+        changedFiles: ["src/index.ts"],
+        startedAt: new Date().toISOString(),
+        finishedAt: new Date().toISOString(),
+        summary: "patched",
+        testResult: {
+          status: "pass",
+          passCount: 2,
+          failCount: 0,
+          durationMs: repairedRun.durationMs,
+          logsPath: repairedRun.logsPath
+        },
+        durationMs: repairedRun.durationMs,
+        cumulativeTime: repairedRun.durationMs
+      }
+    ],
+    finalStatus: "pass",
+    totalAttempts: 1,
+    successAttemptNumber: 1
   }))
 }));
 
