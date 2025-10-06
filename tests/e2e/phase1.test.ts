@@ -87,7 +87,8 @@ const TELEMETRY_FILE = path.resolve(".telemetry/events.log");
 describe("phase1 e2e flow", () => {
   beforeEach(async () => {
     await fs.rm(OUTPUT_DIR, { recursive: true, force: true });
-    await fs.rm(path.dirname(TELEMETRY_FILE), { recursive: true, force: true });
+    await fs.mkdir(path.dirname(TELEMETRY_FILE), { recursive: true });
+    await fs.rm(TELEMETRY_FILE, { force: true });
   });
 
   afterEach(async () => {

@@ -431,7 +431,19 @@ app.post("/api/execute", async (req, res) => {
       files: fileMetadata
     };
 
-    await fs.writeFile(path.join(targetRoot, "_executor_meta.json"), JSON.stringify(meta, null, 2), "utf-8");
+    // Write metadata with a retry in case the target directory was removed concurrently
+    const metaPath = path.join(targetRoot, "_executor_meta.json");
+    try {
+      await fs.writeFile(metaPath, JSON.stringify(meta, null, 2), "utf-8");
+    } catch (err: unknown) {
+      const code = (err as { code?: string } | null | undefined)?.code;
+      if (code === "ENOENT") {
+        await fs.mkdir(targetRoot, { recursive: true });
+        await fs.writeFile(metaPath, JSON.stringify(meta, null, 2), "utf-8");
+      } else {
+        throw err;
+      }
+    }
 
     await logEvent("generation_complete", {
       project: slug,

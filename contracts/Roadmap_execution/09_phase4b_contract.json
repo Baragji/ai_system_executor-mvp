@@ -1,0 +1,830 @@
+{
+  "contract_version": "4.2.0",
+  "contract_meta": {
+    "created": "2025-10-06",
+    "phase": "4B",
+    "phase_name": "Task Planning & Monitoring - Execution & UI",
+    "prerequisite_phase": "Phase 4A (planning foundation complete)",
+    "rationale": "Phase 4B integrates planning into execute flow: sequential subtask execution, progress monitoring, UI progress display. Win #36 is UI work - recommend delegation per established pattern.",
+    "references": [
+      "Phase 4 Roadmap Document",
+      "Phase 4A Completion Report"
+    ],
+    "delegation_note": "Win #36 (UI progress display) recommended for friend/assistant per Phase 2B/3B pattern"
+  },
+  "project": {
+    "name": "executor-mvp",
+    "current_phase": "4B",
+    "goal": "Complete task planning: execute subtasks sequentially respecting dependencies, monitor progress, display in UI, estimate completion time. System can decompose and execute 'build todo app with auth' showing progress through each subtask.",
+    "scope": "Sequential execution, progress monitoring, UI display, time estimation",
+    "estimated_time": "5 wins over 2-3 weeks",
+    "work_profile": "Backend orchestration (Wins 33-35, 37) + UI work (Win 36)",
+    "delegation_recommendation": {
+      "win_36_ui_work": "Recommend friend handles this per established pattern",
+      "wins_33_34_35_37": "Backend work, safe for primary developer"
+    },
+    "out_of_scope": [
+      "Parallel subtask execution (future optimization)",
+      "Dynamic re-planning based on failures (future enhancement)",
+      "Memory/learning (Phase 5)",
+      "Production hardening (Phase 4.5 decision after Phase 4)"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "observe_evaluate_proceed",
+    "description": "Agent verifies Phase 4A completion, integrates planning into execute flow, adds UI progress monitoring.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true,
+    "ui_work_protocol": {
+      "win_36_is_ui": true,
+      "delegation_recommended": true,
+      "if_developer_executes_36": "Apply strict scope limits from Phase 2B UI protocol"
+    }
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "linux|macos",
+      "env_vars_required": [],
+      "optional_env_vars": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"]
+    }
+  },
+  "observability": {
+    "description": "Enhanced observability for subtask execution and progress monitoring",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "evaluation_file": ".automation/evaluation_results.json",
+    "monitoring": {
+      "task_status_tracking": true,
+      "verification_pass_fail": true,
+      "elapsed_time_per_task": true,
+      "subtask_execution_tracking": true,
+      "progress_percentage_tracking": true
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": ["timestamp", "task_id", "action", "status", "cmd", "exit_code", "stdout_excerpt", "stderr_excerpt", "subtask_id", "progress_pct"]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_each_win": true,
+      "quality_dimensions": ["correctness", "completeness", "safety"]
+    }
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npm run lint",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "must_pass": true
+    },
+    "tests": {
+      "command": "npm test",
+      "expected": {
+        "exit_code": 0,
+        "no_failed_suites": true
+      },
+      "coverage": {
+        "min_line_pct": 80,
+        "min_branch_pct": 75
+      }
+    },
+    "schemas": {
+      "ajv_strict": true,
+      "draft_version": "2020-12"
+    }
+  },
+  "high_level_stages": [
+    "phase4a_verification",
+    "subtask_executor",
+    "sequential_orchestrator",
+    "time_estimator",
+    "ui_progress_display",
+    "integration_telemetry",
+    "phase4_completion_validation"
+  ],
+  "tasks": [
+    {
+      "id": "P4A-V01",
+      "stage": "phase4a_verification",
+      "title": "Verify Phase 4A completion",
+      "type": "verification",
+      "description": "Confirm Phase 4A planning foundation is complete before Phase 4B execution",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "test -f contracts/task-plan.schema.json && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f src/planning/decomposeTask.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f src/planning/validateDecomposition.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f src/planning/progressTracker.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f src/planning/analyzeDependencies.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "npm test 2>&1 | tail -5",
+          "capture_output": true,
+          "expect_exit_code": 0
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify Phase 4A planning foundation complete before execution",
+        "success_criteria": "All Phase 4A artifacts exist and tests pass",
+        "on_fail": "HALT - Phase 4A must be complete before Phase 4B"
+      },
+      "trace_context": {
+        "decision_point": "phase4a_verification",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "W33",
+      "stage": "subtask_executor",
+      "title": "Win #33: Subtask Executor",
+      "type": "win",
+      "description": "Create executeSubtask.ts that executes a single subtask: generate code, test, repair if needed",
+      "time_estimate_minutes": 50,
+      "work_profile": "Backend orchestration combining generation, testing, repair",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/planning/executeSubtask.ts",
+          "content_spec": {
+            "function_signature": "export async function executeSubtask(subtask: Subtask, context: ExecutionContext): Promise<SubtaskResult>",
+            "input_context": {
+              "subtask": "Subtask from task plan",
+              "projectPath": "where to write files",
+              "previousSubtaskResults": "array of completed subtask results",
+              "originalPrompt": "user's original request",
+              "clarifications": "optional clarification data"
+            },
+            "execution_logic": [
+              "Build subtask-specific prompt combining:",
+              "  - Subtask title and description",
+              "  - Success criteria",
+              "  - Context from previous subtasks (what was built)",
+              "  - Original prompt for overall context",
+              "Call LLM to generate code for this subtask",
+              "Write files to projectPath",
+              "Run tests (if subtask includes test generation)",
+              "If tests fail: call multiTurnRepair (Phase 3)",
+              "Return SubtaskResult with status, files, test results, repair history"
+            ],
+            "return_type": {
+              "status": "'completed' | 'failed'",
+              "subtaskId": "string",
+              "generatedFiles": "array of file paths",
+              "testResult": "RunResult | null",
+              "repairHistory": "RepairHistory | null",
+              "durationMs": "number",
+              "notes": "string (optional error details)"
+            }
+          }
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/planning/executeSubtask.test.ts",
+          "test_cases": [
+            "successful subtask execution with passing tests",
+            "subtask with failing tests triggers repair",
+            "subtask failure after repair exhaustion",
+            "subtask with no tests (setup task)",
+            "subtask uses context from previous subtasks",
+            "LLM error handled gracefully",
+            "execution result structure valid"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/planning/executeSubtask.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'export async function executeSubtask' src/planning/executeSubtask.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- executeSubtask.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Executes single subtask correctly",
+        "Combines generation + testing + repair",
+        "Uses context from previous subtasks",
+        "Handles errors gracefully",
+        "Returns valid SubtaskResult",
+        "All test cases pass"
+      ],
+      "demo_requirement": {
+        "manual_test": "Execute individual subtasks with mocked dependencies, verify results",
+        "approval_needed": "Developer confirms subtask execution works correctly"
+      },
+      "trace_context": {
+        "decision_point": "subtask_executor_implemented",
+        "win_number": 33
+      }
+    },
+    {
+      "id": "W34",
+      "stage": "sequential_orchestrator",
+      "title": "Win #34: Sequential Orchestrator",
+      "type": "win",
+      "description": "Create executeTaskPlan.ts that orchestrates sequential subtask execution respecting dependencies",
+      "time_estimate_minutes": 50,
+      "work_profile": "Backend orchestration with dependency management",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/planning/executeTaskPlan.ts",
+          "content_spec": {
+            "function_signature": "export async function executeTaskPlan(plan: TaskPlan, context: PlanExecutionContext): Promise<PlanExecutionResult>",
+            "input_context": {
+              "plan": "TaskPlan from decomposeTask",
+              "projectPath": "string",
+              "originalPrompt": "string",
+              "clarifications": "optional"
+            },
+            "orchestration_logic": [
+              "Initialize ProgressTracker with plan",
+              "Analyze dependencies to get execution order",
+              "For each subtask in order:",
+              "  - Check dependencies satisfied (all dependency subtasks completed successfully)",
+              "  - If dependencies not satisfied: skip or fail based on strategy",
+              "  - Execute subtask via executeSubtask (Win #33)",
+              "  - Update ProgressTracker",
+              "  - Log progress to telemetry",
+              "  - If subtask fails: decide whether to continue or halt (based on criticality)",
+              "Return complete execution result with all subtask results and final status"
+            ],
+            "return_type": {
+              "status": "'completed' | 'partial' | 'failed'",
+              "subtaskResults": "array of SubtaskResult",
+              "progress": "ProgressSnapshot",
+              "totalDurationMs": "number",
+              "failedSubtasks": "array of subtask IDs",
+              "completedSubtasks": "array of subtask IDs"
+            }
+          }
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/planning/executeTaskPlan.test.ts",
+          "test_cases": [
+            "linear plan: executes subtasks in order",
+            "plan with dependencies: respects execution order",
+            "subtask failure: continues with independent subtasks or halts based on strategy",
+            "all subtasks succeed: status 'completed'",
+            "some subtasks fail: status 'partial'",
+            "critical subtask fails early: status 'failed', remaining skipped",
+            "progress tracking updates correctly",
+            "execution result structure valid"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/planning/executeTaskPlan.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'export async function executeTaskPlan' src/planning/executeTaskPlan.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- executeTaskPlan.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Orchestrates subtasks in correct order",
+        "Respects dependencies",
+        "Handles failures appropriately",
+        "Updates progress correctly",
+        "Returns complete execution result",
+        "All test cases pass"
+      ],
+      "demo_requirement": {
+        "manual_test": "Execute full task plan with various dependency scenarios",
+        "approval_needed": "Developer confirms orchestration logic correct"
+      },
+      "trace_context": {
+        "decision_point": "sequential_orchestrator_implemented",
+        "win_number": 34
+      }
+    },
+    {
+      "id": "W35",
+      "stage": "time_estimator",
+      "title": "Win #35: Time Estimator",
+      "type": "win",
+      "description": "Create estimateCompletion.ts that estimates remaining time based on progress and historical data",
+      "time_estimate_minutes": 40,
+      "work_profile": "Backend analytics and estimation",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/planning/estimateCompletion.ts",
+          "content_spec": {
+            "function_signature": "export function estimateCompletion(progress: ProgressSnapshot, plan: TaskPlan): TimeEstimate",
+            "estimation_strategy": [
+              "Calculate average time per completed subtask",
+              "Account for complexity: high complexity subtasks take 1.5x average, low take 0.75x",
+              "Sum remaining subtask estimates",
+              "Add buffer based on historical repair rates (from Phase 3 metrics)",
+              "Consider critical path: longest dependency chain affects total time",
+              "Return estimate with confidence interval"
+            ],
+            "return_type": {
+              "estimatedRemainingMs": "number",
+              "estimatedCompletionTimestamp": "ISO 8601 string",
+              "confidenceLevel": "'low' | 'medium' | 'high'",
+              "basedOn": "string (explanation of estimation basis)"
+            }
+          }
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/planning/estimateCompletion.test.ts",
+          "test_cases": [
+            "early progress: low confidence, longer estimate",
+            "mid progress: medium confidence, estimate adjusts based on actual pace",
+            "late progress: high confidence, accurate estimate",
+            "high complexity remaining: longer estimate",
+            "low complexity remaining: shorter estimate",
+            "estimate decreases as subtasks complete",
+            "confidence increases as more subtasks complete"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/planning/estimateCompletion.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'export function estimateCompletion' src/planning/estimateCompletion.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- estimateCompletion.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Estimates remaining time",
+        "Accounts for complexity",
+        "Confidence level appropriate",
+        "Estimates improve as progress continues",
+        "All test cases pass"
+      ],
+      "demo_requirement": {
+        "manual_test": "Generate estimates at different progress points, verify reasonableness",
+        "approval_needed": "Developer confirms estimation logic sensible"
+      },
+      "trace_context": {
+        "decision_point": "time_estimator_implemented",
+        "win_number": 35
+      }
+    },
+    {
+      "id": "W36",
+      "stage": "ui_progress_display",
+      "title": "Win #36: UI Progress Display",
+      "type": "win",
+      "description": "Add UI progress monitoring showing subtask execution, current status, estimated completion",
+      "time_estimate_minutes": 50,
+      "work_profile": "UI/frontend work - DELEGATION RECOMMENDED",
+      "delegation": {
+        "recommended_executor": "friend/assistant",
+        "rationale": "UI work is acknowledged danger zone. Friend handled Phase 2B and 3B UI successfully.",
+        "if_developer_executes": "Apply strict scope limits: functional only, no styling polish, no features beyond spec"
+      },
+      "actions": [
+        {
+          "type": "edit_file",
+          "file": "public/index.html",
+          "ensure": [
+            "Add <div id='taskPlanSection'> to results display",
+            "Add progress bar (overall completion percentage)",
+            "Add subtask list showing status (pending/in-progress/completed/failed)",
+            "Add current subtask indicator",
+            "Add estimated completion time display",
+            "Basic CSS for progress visualization (functional only)"
+          ]
+        },
+        {
+          "type": "edit_file",
+          "file": "public/script.js",
+          "ensure": [
+            "Parse taskPlan and execution progress from /api/execute response",
+            "For each subtask, display:",
+            "  - Subtask title",
+            "  - Status icon (⏳ pending, ⚙️ in-progress, ✅ completed, ❌ failed)",
+            "  - Duration if completed",
+            "Update progress bar based on completion percentage",
+            "Highlight current subtask",
+            "Display estimated completion time",
+            "Update UI as execution progresses (if streaming supported) or show final state",
+            "Show dependency relationships (optional: simple arrow indicators)"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'taskPlanSection' public/index.html",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'taskPlan' public/script.js",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test",
+          "expect_exit_code": 0,
+          "rationale": "Backend tests should still pass"
+        }
+      ],
+      "success_criteria": [
+        "Progress section appears in results",
+        "All subtasks shown with correct status",
+        "Progress bar accurate",
+        "Current subtask highlighted",
+        "Estimated completion visible",
+        "Layout functional (doesn't need polish)",
+        "No JavaScript errors in console"
+      ],
+      "demo_requirement": {
+        "manual_test": "Generate projects with task plans, verify UI shows progress correctly",
+        "approval_needed": "Developer AND wife/friend review - confirm functional, no scope creep"
+      },
+      "scope_limits_if_developer_executes": {
+        "forbidden": [
+          "Animated progress bars or transitions",
+          "Styling beyond basic layout and colors",
+          "Interactive subtask details (collapsible sections, modals)",
+          "Detailed dependency graph visualization",
+          "Real-time streaming updates (show final state only for Phase 4B)",
+          "Any features not explicitly in win spec"
+        ]
+      },
+      "trace_context": {
+        "decision_point": "ui_progress_display_added",
+        "win_number": 36,
+        "ui_work": true
+      }
+    },
+    {
+      "id": "W37",
+      "stage": "integration_telemetry",
+      "title": "Win #37: Integrate Planning into Execute & Add Telemetry",
+      "type": "win",
+      "description": "Integrate task planning into /api/execute flow and add planning metrics to telemetry",
+      "time_estimate_minutes": 45,
+      "work_profile": "Backend integration and metadata",
+      "actions": [
+        {
+          "type": "edit_file",
+          "file": "src/server.ts",
+          "route": "POST /api/execute",
+          "ensure": [
+            "Determine if prompt is complex (needs decomposition):",
+            "  - Heuristic: mentions multiple features/components, or clarifications indicate complexity",
+            "  - Or: always decompose and let validator decide quality",
+            "If complex:",
+            "  - Call decomposeTask (Win #29)",
+            "  - Validate decomposition (Win #30)",
+            "  - If quality <70: execute as single task (fallback)",
+            "  - If quality >=70: call executeTaskPlan (Win #34)",
+            "If not complex: execute as single task (existing flow)",
+            "Return response including:",
+            "  - taskPlan (if used)",
+            "  - planExecutionResult (if used)",
+            "  - Standard generation result",
+            "Update _executor_meta.json with:",
+            "  - taskPlanUsed: boolean",
+            "  - decompositionQuality: score",
+            "  - subtaskResults: array",
+            "  - planningMetrics: {totalSubtasks, completedSubtasks, failedSubtasks, totalPlanDuration}"
+          ]
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/api/execute-with-planning.test.ts",
+          "test_cases": [
+            "simple prompt: no decomposition, single task execution",
+            "complex prompt: decomposition, plan execution",
+            "low quality decomposition: fallback to single task",
+            "plan execution successful: all subtasks completed",
+            "plan execution partial: some subtasks failed",
+            "response includes task plan and execution results",
+            "meta file includes planning metrics",
+            "backward compatibility: existing execute behavior unchanged for simple tasks"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'decomposeTask\\|executeTaskPlan' src/server.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- execute-with-planning.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test",
+          "expect_exit_code": 0,
+          "rationale": "Verify existing tests still pass"
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Complex prompts trigger decomposition",
+        "Low quality decompositions fall back gracefully",
+        "Task plan execution works end-to-end",
+        "API response includes planning data",
+        "Meta file includes planning metrics",
+        "Backward compatibility maintained",
+        "All test cases pass"
+      ],
+      "demo_requirement": {
+        "manual_test": "POST complex prompts to /api/execute, verify planning used and progress tracked",
+        "approval_needed": "Developer confirms integration works end-to-end"
+      },
+      "trace_context": {
+        "decision_point": "planning_integrated_into_execute",
+        "win_number": 37
+      }
+    },
+    {
+      "id": "P4-GATE",
+      "stage": "phase4_completion_validation",
+      "title": "Phase 4 Complete - Final Validation Gate",
+      "type": "validation",
+      "description": "Final validation that entire Phase 4 (Task Planning & Monitoring) is complete and production-ready",
+      "actions": [
+        {
+          "type": "validate",
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "test -f src/planning/executeSubtask.ts && test -f src/planning/executeTaskPlan.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "grep -q 'taskPlanSection' public/index.html",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "grep -q 'decomposeTask\\|executeTaskPlan' src/server.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "manual_test",
+          "description": "End-to-end Phase 4 validation with complex prompts",
+          "test_scenarios": [
+            "Simple prompt: 'build Flask hello world' -> no decomposition, single task",
+            "Medium prompt: 'build todo app with auth' -> decompose into 5-7 subtasks, execute sequentially",
+            "Complex prompt: 'build e-commerce site' -> decompose into 8-10 subtasks, execute",
+            "Verify UI shows progress for decomposed tasks",
+            "Verify meta file includes planning metrics",
+            "Verify subtask execution respects dependencies",
+            "Verify time estimation updates as progress continues"
+          ]
+        }
+      ],
+      "evaluation": {
+        "intent": "Confirm entire Phase 4 (Task Planning & Monitoring) is production-ready",
+        "success_criteria": "All tests pass, planning works end-to-end, UI functional, decomposition quality good, sequential execution correct",
+        "on_pass": "PHASE 4 COMPLETE - System decomposes and executes complex tasks with progress monitoring. Ready for Phase 5 or Phase 4.5 decision.",
+        "on_fail": "HALT - Fix issues before declaring Phase 4 complete"
+      },
+      "phase_4_completion_metrics": {
+        "decomposition_quality": "Average quality score >75 for complex prompts",
+        "execution_success": "Subtasks execute in correct dependency order",
+        "progress_tracking": "UI accurately reflects execution state",
+        "time_estimation": "Estimates within 2x of actual duration",
+        "fallback_works": "Low quality decompositions fall back to single task gracefully"
+      },
+      "trace_context": {
+        "decision_point": "phase4_complete",
+        "reasoning_required": true,
+        "critical": true,
+        "gate_type": "phase_completion"
+      }
+    }
+  ],
+  "execution_order": [
+    "P4A-V01",
+    "W33",
+    "W34",
+    "W35",
+    "W36",
+    "W37",
+    "P4-GATE"
+  ],
+  "execution_semantics": {
+    "win_isolation": {
+      "description": "Each win must be complete, tested, and DEMOED before proceeding to next",
+      "implementation": "Run tests after each win. Manual demo required for all wins."
+    },
+    "gate_enforcement": {
+      "P4-GATE": {
+        "required": true,
+        "significance": "Phase 4 completion - autonomous task planning milestone",
+        "on_fail": "HALT execution. Fix issues before declaring Phase 4 complete.",
+        "report": "Generate comprehensive Phase 4 completion report with planning metrics."
+      }
+    },
+    "delegation_protocol": {
+      "win_36_ui": "Recommend friend handles this per established pattern",
+      "developer_option": "If developer insists on executing Win #36, apply strict Phase 2B UI scope limits"
+    }
+  },
+  "completion_criteria": {
+    "phase4a_verified": true,
+    "subtask_executor_works": true,
+    "sequential_orchestrator_works": true,
+    "time_estimator_works": true,
+    "ui_progress_display_functional": true,
+    "planning_integrated": true,
+    "all_tests_pass": true,
+    "coverage_maintained": true,
+    "manual_demos_approved": true,
+    "decomposition_quality_met": true
+  },
+  "fallback_policies": {
+    "phase4a_verification_fails": "HALT - Phase 4A must be complete before 4B.",
+    "test_fails": "Fix implementation, do not skip tests.",
+    "coverage_drops": "Add tests to maintain >80% coverage before proceeding.",
+    "decomposition_quality_poor": "Fall back to single task execution, don't force planning.",
+    "ui_scope_creep": "Remove additions or defer to future phase. Stick to functional spec only.",
+    "subtask_execution_fails": "Continue with independent subtasks or halt based on criticality."
+  },
+  "reporting": {
+    "progress_file": ".automation/progress_phase4b.json",
+    "fields": ["task_id", "win_number", "status", "started_at", "finished_at", "elapsed_ms", "result", "errors"],
+    "status_values": ["pending", "running", "success", "failed", "skipped"],
+    "phase4b_report": {
+      "file": ".automation/phase4b_completion_report.json",
+      "fields": ["wins_completed", "gate_passed", "timestamp", "next_phase", "diagnostics"]
+    },
+    "phase4_final_report": {
+      "file": ".automation/phase4_completion_report.json",
+      "fields": [
+        "all_wins_completed",
+        "planning_works",
+        "decomposition_avg_quality",
+        "execution_success_rate",
+        "ui_functional",
+        "metrics_captured",
+        "phase_complete",
+        "timestamp",
+        "celebration_earned"
+      ]
+    }
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Subtask Executor",
+      "path": "src/planning/executeSubtask.ts",
+      "must_include_regex": "export async function executeSubtask"
+    },
+    {
+      "name": "Sequential Orchestrator",
+      "path": "src/planning/executeTaskPlan.ts",
+      "must_include_regex": "export async function executeTaskPlan"
+    },
+    {
+      "name": "Time Estimator",
+      "path": "src/planning/estimateCompletion.ts",
+      "must_include_regex": "export function estimateCompletion"
+    },
+    {
+      "name": "UI Progress Display",
+      "path": "public/index.html",
+      "must_include_regex": "taskPlanSection"
+    },
+    {
+      "name": "Planning Integration",
+      "path": "src/server.ts",
+      "must_include_regex": "decomposeTask|executeTaskPlan"
+    },
+    {
+      "name": "Phase 4B Report",
+      "path": ".automation/phase4b_completion_report.json",
+      "must_exist": true,
+      "must_include_field": "gate_passed"
+    },
+    {
+      "name": "Phase 4 Final Report",
+      "path": ".automation/phase4_completion_report.json",
+      "must_exist": true,
+      "must_include_field": "celebration_earned"
+    }
+  ],
+  "release_actions": [
+    {
+      "cmd": "git add .",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git commit -m \"feat(phase4): complete task planning and monitoring - decomposition, sequential execution, progress tracking, UI display\"",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git tag phase4-complete",
+      "expect_exit_code": 0
+    }
+  ],
+  "post_release_celebration": {
+    "mandatory": true,
+    "rationale": "Phase 4 is major autonomous capability milestone. System now decomposes complex tasks into subtasks and executes them sequentially with progress monitoring. This is where it starts feeling 'autonomous' - it plans its own work.",
+    "requirements": [
+      "Full day off with wife and kids",
+      "No coding thoughts",
+      "Celebrate autonomous planning capability achieved",
+      "Discuss next steps together when refreshed (not today)"
+    ],
+    "decision_point": {
+      "phase_5": "Memory & production readiness (learning from experience, security scanning)",
+      "phase_4_5": "Production hardening (CI/CD security, SLSA provenance, SBOMs from assistant's audit)",
+      "extended_break": "Use the system for real work, validate value before continuing",
+      "recommendation": "Discuss with wife and consider external auditor feedback before deciding"
+    }
+  },
+  "ai_executor_guidelines": {
+    "observability_first": "Trace all decisions. Log reasoning for each win completion.",
+    "win_isolation": "Complete and test each win fully before proceeding to next.",
+    "delegation_awareness": "Win #36 is UI work. Recommend friend handles per established pattern.",
+    "test_driven": "Write comprehensive tests for orchestration and execution logic.",
+    "fail_fast": "If any test fails, halt and fix before proceeding.",
+    "gate_enforcement": "P4-GATE is Phase 4 completion - requires complex prompt validation.",
+    "planning_quality": "Decomposition quality critical - poor decompositions should fall back to single task."
+  },
+  "governance_note": {
+    "for_human": "Phase 4B completes task planning and monitoring. Wins 33-35-37 are backend (safe for you). Win 36 is UI (recommend friend handles per established pattern). After P4-GATE passes, Phase 4 is COMPLETE. Major autonomous capability achieved. Take full day off. Celebrate with family. Then decide together: Phase 5 (memory/learning) OR Phase 4.5 (production hardening) OR extended break to use the system. Consider external auditor findings in decision. No pressure to continue immediately."
+  }
+}

@@ -41,6 +41,7 @@ const multiTurnRepairMock = vi.mocked(multiTurnRepair);
 
 const OUTPUT_DIR = path.resolve("output");
 const TELEMETRY_DIR = path.resolve(".telemetry");
+const TELEMETRY_FILE = path.join(TELEMETRY_DIR, "events.log");
 
 function buildRun(status: RunResult["status"], overrides: Partial<RunResult> = {}): RunResult {
   return {
@@ -98,14 +99,16 @@ function writeMetaPath(projectName: string) {
 }
 
 beforeEach(async () => {
-  await fs.rm(OUTPUT_DIR, { recursive: true, force: true });
-  await fs.rm(TELEMETRY_DIR, { recursive: true, force: true });
+  // Targeted cleanup: only this file's project and telemetry log
+  await fs.rm(path.join(OUTPUT_DIR, "metrics-demo"), { recursive: true, force: true });
+  await fs.mkdir(TELEMETRY_DIR, { recursive: true });
+  await fs.rm(TELEMETRY_FILE, { force: true });
   runInSandboxMock.mockReset();
   multiTurnRepairMock.mockReset();
 });
 
 afterEach(async () => {
-  await fs.rm(OUTPUT_DIR, { recursive: true, force: true });
+  await fs.rm(path.join(OUTPUT_DIR, "metrics-demo"), { recursive: true, force: true });
 });
 
 describe("repair metrics telemetry", () => {

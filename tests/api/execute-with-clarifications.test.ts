@@ -56,7 +56,8 @@ describe("POST /api/execute with clarifications", () => {
   beforeEach(async () => {
     lastMessages = null;
     await fs.rm(PROJECT_DIR, { recursive: true, force: true });
-    await fs.rm(path.dirname(TELEMETRY_FILE), { recursive: true, force: true });
+    await fs.mkdir(path.dirname(TELEMETRY_FILE), { recursive: true });
+    await fs.rm(TELEMETRY_FILE, { force: true });
   });
 
   afterEach(async () => {

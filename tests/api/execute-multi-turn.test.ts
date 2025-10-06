@@ -72,15 +72,17 @@ function buildHistory(attempts: RepairHistory["attempts"], finalStatus: RepairHi
 }
 
 beforeEach(async () => {
-  await fs.rm(OUTPUT_DIR, { recursive: true, force: true });
-  await fs.rm(path.dirname(TELEMETRY_FILE), { recursive: true, force: true });
+  // Targeted cleanup: only remove this test's project and truncate telemetry log
+  await fs.rm(path.join(OUTPUT_DIR, "multi-turn-demo"), { recursive: true, force: true });
+  await fs.mkdir(path.dirname(TELEMETRY_FILE), { recursive: true });
+  await fs.rm(TELEMETRY_FILE, { force: true });
   generateJSONMock.mockClear();
   runInSandboxMock.mockReset();
   multiTurnRepairMock.mockReset();
 });
 
 afterEach(async () => {
-  await fs.rm(OUTPUT_DIR, { recursive: true, force: true });
+  await fs.rm(path.join(OUTPUT_DIR, "multi-turn-demo"), { recursive: true, force: true });
 });
 
 describe("/api/execute multi-turn integration", () => {
