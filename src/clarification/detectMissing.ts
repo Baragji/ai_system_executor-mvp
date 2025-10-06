@@ -65,15 +65,6 @@ const TEST_KEYWORDS = [
   "rspec"
 ];
 
-const SOFTWARE_TERMS = [
-  "build",
-  "create",
-  "develop",
-  "generate",
-  // Broaden detection to match common phrasing in UI placeholder
-  "make"
-];
-
 const PROJECT_TERMS = [
   "app",
   "application",

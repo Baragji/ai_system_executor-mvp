@@ -1,3 +1,6 @@
-{"name":"test_run","timestamp":"2025-10-05T19:39:43.156Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-05T19:39:43.554Z","payload":{"project":"simple-frontend","attempted":true,"repaired":false}}
-{"name":"test_run","timestamp":"2025-10-05T19:39:43.555Z","payload":{"project":"simple-frontend","stage":"post_repair","status":"fail"}}
+{"name":"generation_start","timestamp":"2025-10-05T21:51:33.545Z","payload":{"project":"phase1-demo"}}
+{"name":"test_run","timestamp":"2025-10-05T21:51:33.550Z","payload":{"project":"phase1-demo","stage":"initial","status":"fail"}}
+{"name":"repair_attempt","timestamp":"2025-10-05T21:51:33.550Z","payload":{"project":"phase1-demo","attempted":true,"repaired":true}}
+{"name":"test_run","timestamp":"2025-10-05T21:51:33.550Z","payload":{"project":"phase1-demo","stage":"post_repair","status":"pass"}}
+{"name":"generation_complete","timestamp":"2025-10-05T21:51:33.552Z","payload":{"project":"phase1-demo","status":"pass"}}
+{"name":"test_run","timestamp":"2025-10-05T21:51:34.506Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
