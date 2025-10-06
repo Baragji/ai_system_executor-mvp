@@ -428,11 +428,15 @@ function renderTestLifecycle(testResults, repair) {
   }
 
   const latest = testResults.afterRepair || testResults.initial;
-  testStatusEl.append("Latest result: ", renderStatus(latest));
-  const stats = document.createElement("div");
-  stats.textContent = `Pass: ${latest.passCount} | Fail: ${latest.failCount}`;
-  testStatusEl.appendChild(document.createElement("br"));
-  testStatusEl.appendChild(stats);
+  if (latest) {
+    testStatusEl.append("Latest result: ", renderStatus(latest));
+    const stats = document.createElement("div");
+    stats.textContent = `Pass: ${latest.passCount} | Fail: ${latest.failCount}`;
+    testStatusEl.appendChild(document.createElement("br"));
+    testStatusEl.appendChild(stats);
+  } else {
+    testStatusEl.textContent = "No tests executed for this generation.";
+  }
 }
 
 function resetClarificationUI() {
@@ -556,7 +560,7 @@ function collectClarificationAnswers() {
 
 async function executeRequest({ prompt, projectName, clarifications }) {
   resetClarificationUI();
-  resultEl.textContent = "Generating project...";
+  resultEl.textContent = "Planning and executing your project... This may take several minutes for complex requests.";
   testControlsEl.classList.add("hidden");
   currentProjectSlug = null;
   renderRepairHistory(null);

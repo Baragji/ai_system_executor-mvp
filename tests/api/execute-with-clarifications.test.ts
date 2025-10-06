@@ -52,6 +52,12 @@ vi.mock("../../src/repair/repairOnce.js", () => ({
   }))
 }));
 
+vi.mock("../../src/planning/decomposeTask.js", () => ({
+  decomposeTask: vi.fn(async () => {
+    throw new Error("Skip planning in clarification tests");
+  })
+}));
+
 describe("POST /api/execute with clarifications", () => {
   beforeEach(async () => {
     lastMessages = null;

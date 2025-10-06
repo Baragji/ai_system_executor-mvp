@@ -30,6 +30,12 @@ vi.mock("../../src/repair/multiTurnRepair.js", () => ({
   multiTurnRepair: vi.fn()
 }));
 
+vi.mock("../../src/planning/decomposeTask.js", () => ({
+  decomposeTask: vi.fn(async () => {
+    throw new Error("Skip planning in multi-turn tests");
+  })
+}));
+
 import { app } from "../../src/server.js";
 import { generateJSON } from "../../src/llm/index.js";
 import { runInSandbox } from "../../src/runner/runInSandbox.js";
@@ -74,6 +80,7 @@ function buildHistory(attempts: RepairHistory["attempts"], finalStatus: RepairHi
 beforeEach(async () => {
   // Targeted cleanup: only remove this test's project and truncate telemetry log
   await fs.rm(path.join(OUTPUT_DIR, "multi-turn-demo"), { recursive: true, force: true });
+  await fs.mkdir(OUTPUT_DIR, { recursive: true });
   await fs.mkdir(path.dirname(TELEMETRY_FILE), { recursive: true });
   await fs.rm(TELEMETRY_FILE, { force: true });
   generateJSONMock.mockClear();

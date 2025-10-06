@@ -90,7 +90,7 @@ const multiTurnRepairMock = vi.mocked(multiTurnRepair);
 const OUTPUT_DIR = path.resolve("output");
 
 beforeEach(async () => {
-  await fs.rm(OUTPUT_DIR, { recursive: true, force: true });
+  await fs.mkdir(OUTPUT_DIR, { recursive: true });
   decomposeTaskMock.mockReset();
   validateDecompositionMock.mockReset();
   executeTaskPlanMock.mockReset();
@@ -101,7 +101,11 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  await fs.rm(OUTPUT_DIR, { recursive: true, force: true });
+  // Clean up only specific test projects, not the whole output dir
+  const projects = ["fallback-project", "planned-project"];
+  for (const proj of projects) {
+    await fs.rm(path.join(OUTPUT_DIR, proj), { recursive: true, force: true });
+  }
 });
 
 function createPlanExecutionResult(status: "completed" | "partial" | "failed" = "completed") {

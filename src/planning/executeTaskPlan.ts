@@ -59,6 +59,9 @@ function mergePreviousResults(
   };
 }
 
+const MAX_PLAN_DURATION_MS = 4 * 60 * 1000; // 4 minutes total to avoid browser timeout
+const MAX_CONSECUTIVE_FAILURES = 2; // Halt after 2 consecutive failures
+
 export async function executeTaskPlan(
   plan: TaskPlan,
   context: PlanExecutionContext
@@ -88,8 +91,25 @@ export async function executeTaskPlan(
   const completed: string[] = [];
   const failed: string[] = [];
   let halted = false;
+  let consecutiveFailures = 0;
 
   for (const subtaskId of executionOrder) {
+    // Check if we're approaching browser timeout limit
+    const elapsed = (context.now ? context.now() : Date.now()) - start;
+    if (elapsed > MAX_PLAN_DURATION_MS) {
+      halted = true;
+      const note = `Plan execution halted after ${Math.round(elapsed / 1000)}s to avoid browser timeout. Completed ${completed.length}/${plan.subtasks.length} subtasks.`;
+      console.warn(note);
+      break;
+    }
+
+    // Halt if too many consecutive failures
+    if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+      halted = true;
+      const note = `Plan execution halted after ${consecutiveFailures} consecutive failures. Completed ${completed.length}/${plan.subtasks.length} subtasks.`;
+      console.warn(note);
+      break;
+    }
     const subtask = plan.subtasks.find(item => item.id === subtaskId);
     if (!subtask) {
       continue;
@@ -129,9 +149,11 @@ export async function executeTaskPlan(
     if (result.status === "completed") {
       tracker.markSubtaskComplete(subtask.id, toExecutionResult(result));
       completed.push(subtask.id);
+      consecutiveFailures = 0; // Reset on success
     } else {
       tracker.markSubtaskFailed(subtask.id, new Error(result.notes ?? "Subtask failed"));
       failed.push(subtask.id);
+      consecutiveFailures++;
     }
 
     await emitProgress(context, tracker.getProgress(), result);

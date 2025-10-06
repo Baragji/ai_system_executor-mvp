@@ -599,25 +599,32 @@ app.post("/api/execute", async (req, res) => {
           const planProjectName = projectNameInput || plan.originalPrompt || "planned-project";
           const slug = slugify(planProjectName, { lower: true, strict: true }) || `planned-${Date.now()}`;
           const targetRoot = path.join(OUTPUT_DIR, slug);
-          const planResult = await executePlanFlow({
-            plan,
-            planQuality: quality.score,
-            targetRoot,
-            slug,
-            effectivePrompt,
-            originalPrompt,
-            clarifications,
-            clarificationsUsed,
-            systemPrompt,
-            clarificationQuestions,
-            clarificationsAsked: clarificationAsked,
-            projectName: planProjectName
-          });
 
-          return res.json(planResult.response);
+          try {
+            const planResult = await executePlanFlow({
+              plan,
+              planQuality: quality.score,
+              targetRoot,
+              slug,
+              effectivePrompt,
+              originalPrompt,
+              clarifications,
+              clarificationsUsed,
+              systemPrompt,
+              clarificationQuestions,
+              clarificationsAsked: clarificationAsked,
+              projectName: planProjectName
+            });
+
+            return res.json(planResult.response);
+          } catch (planError) {
+            console.error("Plan execution failed, falling back to single execution", planError);
+            // Fall through to single execution below
+          }
         }
       } catch (error) {
-        console.warn("Planning attempt failed, falling back to single execution", error);
+        console.warn("Planning decomposition failed, falling back to single execution", error);
+        // Fall through to single execution below
       }
     }
 
