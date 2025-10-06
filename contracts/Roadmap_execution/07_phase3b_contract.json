@@ -1,0 +1,689 @@
+{
+  "contract_version": "3.2.0",
+  "contract_meta": {
+    "created": "2025-10-06",
+    "phase": "3B",
+    "phase_name": "Multi-Turn Repair - Integration & UI",
+    "prerequisite_phase": "Phase 3A (multi-turn foundation complete)",
+    "rationale": "Phase 3B integrates multi-turn tooling into execute flow and adds UI repair history display. Win #26 is UI work - recommend delegation to friend per established pattern.",
+    "references": [
+      "Phase 3 Roadmap Document",
+      "Phase 3A Completion Report"
+    ],
+    "delegation_note": "Win #26 (UI repair history) recommended for friend/assistant due to UI danger zone pattern from Phase 2"
+  },
+  "project": {
+    "name": "executor-mvp",
+    "current_phase": "3B",
+    "goal": "Integrate multi-turn repair into execute flow, add UI repair history visualization, capture repair metrics in telemetry. Complete Phase 3.",
+    "scope": "Wins 24-27 only",
+    "estimated_time": "4 wins over 2-4 sessions",
+    "work_profile": "Backend integration (Wins 24-25, 27) + UI work (Win 26)",
+    "delegation_recommendation": {
+      "win_26_ui_work": "Recommend friend handles this per Phase 2B pattern",
+      "wins_24_25_27": "Backend work, safe for primary developer"
+    },
+    "out_of_scope": [
+      "Phase 4 planning features",
+      "Advanced repair strategies",
+      "Unlimited repair attempts",
+      "Any Phase 4+ features"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "observe_evaluate_proceed",
+    "description": "Agent verifies Phase 3A completion, integrates multi-turn loop, adds UI, captures metrics.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true,
+    "ui_work_protocol": {
+      "win_26_is_ui": true,
+      "delegation_recommended": true,
+      "if_developer_executes_26": "Apply strict scope limits from Phase 2B UI protocol"
+    }
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "linux|macos",
+      "env_vars_required": [],
+      "optional_env_vars": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"]
+    }
+  },
+  "observability": {
+    "description": "Enhanced repair observability with multi-attempt tracking",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "evaluation_file": ".automation/evaluation_results.json",
+    "monitoring": {
+      "task_status_tracking": true,
+      "verification_pass_fail": true,
+      "elapsed_time_per_task": true,
+      "repair_attempt_tracking": true
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": ["timestamp", "task_id", "action", "status", "cmd", "exit_code", "stdout_excerpt", "stderr_excerpt"]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_each_win": true,
+      "quality_dimensions": ["correctness", "completeness", "safety"]
+    }
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npm run lint",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "must_pass": true
+    },
+    "tests": {
+      "command": "npm test",
+      "expected": {
+        "exit_code": 0,
+        "no_failed_suites": true
+      },
+      "coverage": {
+        "min_line_pct": 80,
+        "min_branch_pct": 75
+      }
+    },
+    "schemas": {
+      "ajv_strict": true,
+      "draft_version": "2020-12"
+    }
+  },
+  "high_level_stages": [
+    "phase3a_verification",
+    "multi_turn_loop",
+    "execute_integration",
+    "ui_repair_history",
+    "metrics_telemetry",
+    "phase3_completion_validation"
+  ],
+  "tasks": [
+    {
+      "id": "P3A-V01",
+      "stage": "phase3a_verification",
+      "title": "Verify Phase 3A completion",
+      "type": "verification",
+      "description": "Confirm Phase 3A foundation tools are complete before Phase 3B integration",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "test -f contracts/repair-history.schema.json && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f src/repair/analyzeFailure.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f src/repair/generateDiff.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "test -f src/repair/buildRepairPrompt.ts && echo 'exists' || echo 'missing'",
+          "capture_output": true,
+          "expect_stdout": "exists"
+        },
+        {
+          "type": "observe",
+          "cmd": "npm test 2>&1 | tail -5",
+          "capture_output": true,
+          "expect_exit_code": 0
+        }
+      ],
+      "evaluation": {
+        "intent": "Verify Phase 3A tooling complete before integration",
+        "success_criteria": "All Phase 3A artifacts exist and tests pass",
+        "on_fail": "HALT - Phase 3A must be complete before Phase 3B"
+      },
+      "trace_context": {
+        "decision_point": "phase3a_verification",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "W24",
+      "stage": "multi_turn_loop",
+      "title": "Win #24: Multi-Turn Repair Loop",
+      "type": "win",
+      "description": "Create multiTurnRepair.ts that orchestrates up to 4 repair attempts using Phase 3A tools",
+      "time_estimate_minutes": 50,
+      "work_profile": "Backend orchestration logic",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/repair/multiTurnRepair.ts",
+          "content_spec": {
+            "function_signature": "export async function multiTurnRepair(context: MultiTurnContext): Promise<RepairHistory>",
+            "input_context": {
+              "projectPath": "string",
+              "initialTestResult": "RunResult from first test run",
+              "originalPrompt": "string",
+              "generatedFiles": "array of file paths"
+            },
+            "loop_logic": [
+              "Initialize repair-history with attempt #1 (existing single repair from Phase 1)",
+              "Loop up to 3 additional times (max 4 total):",
+              "  - Call analyzeFailure (Win #21) on test output",
+              "  - Call buildRepairPrompt (Win #23) with attempt context",
+              "  - Call LLM for repair",
+              "  - Parse LLM response for file changes",
+              "  - Call generateDiff (Win #22) for each change",
+              "  - Apply changes to files",
+              "  - Run tests via runInSandbox",
+              "  - Record attempt in repair-history",
+              "  - If status === 'pass': set successAttemptNumber, break early",
+              "  - If attempt 4 and still failing: set finalStatus = 'exhausted'",
+              "Return complete RepairHistory validated against schema"
+            ],
+            "early_termination": "Stop immediately on first successful test run, don't waste attempts",
+            "error_handling": "Catch LLM errors, file write errors, test execution errors - record in attempt, continue to next if attempts remain"
+          }
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/repair/multiTurnRepair.test.ts",
+          "test_cases": [
+            "success on attempt 2 - stops early, sets successAttemptNumber",
+            "success on attempt 4 - uses all attempts",
+            "all 4 attempts exhausted - finalStatus = 'exhausted'",
+            "early termination works - doesn't run attempt 4 if 3 passes",
+            "error handling - LLM error doesn't crash loop",
+            "repair history structure valid - passes schema validation",
+            "cumulative time increases correctly",
+            "previous attempt context passed to buildRepairPrompt"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/repair/multiTurnRepair.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'export async function multiTurnRepair' src/repair/multiTurnRepair.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- multiTurnRepair.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Correctly orchestrates up to 4 repair attempts",
+        "Stops early on first success",
+        "Uses all Phase 3A tools correctly",
+        "Handles errors gracefully",
+        "Returns valid RepairHistory",
+        "All test cases pass"
+      ],
+      "demo_requirement": {
+        "manual_test": "Mock repair scenarios with varying success points, verify early termination",
+        "approval_needed": "Developer confirms loop logic handles all scenarios correctly"
+      },
+      "trace_context": {
+        "decision_point": "multi_turn_loop_implemented",
+        "win_number": 24
+      }
+    },
+    {
+      "id": "W25",
+      "stage": "execute_integration",
+      "title": "Win #25: Integrate Multi-Turn into Execute",
+      "type": "win",
+      "description": "Replace single-repair call in /api/execute with multiTurnRepair loop",
+      "time_estimate_minutes": 40,
+      "work_profile": "Backend API integration",
+      "actions": [
+        {
+          "type": "edit_file",
+          "file": "src/server.ts",
+          "route": "POST /api/execute",
+          "ensure": [
+            "After initial test failure, call multiTurnRepair instead of repairOnce",
+            "Update response schema to include repairHistory field",
+            "Maintain backward compatibility - existing testResults field still present",
+            "Return complete repair-history showing all attempts",
+            "Handle case where initial test passes (no repair needed)"
+          ]
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/api/execute-multi-turn.test.ts",
+          "test_cases": [
+            "execute with initial pass - no repair attempts",
+            "execute with single repair success - repairHistory has 1 attempt",
+            "execute with multi-turn success - repairHistory shows progression",
+            "execute with all attempts exhausted - repairHistory shows 4 attempts",
+            "response includes both testResults and repairHistory",
+            "backward compatibility - existing execute tests still pass"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'multiTurnRepair' src/server.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- execute-multi-turn.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test",
+          "expect_exit_code": 0,
+          "rationale": "Verify existing tests still pass"
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Execute endpoint uses multi-turn repair",
+        "API response includes complete repair history",
+        "Backward compatibility maintained",
+        "All test cases pass including existing ones",
+        "TypeScript compiles without errors"
+      ],
+      "demo_requirement": {
+        "manual_test": "POST to /api/execute with failing prompt, verify multi-turn repair runs",
+        "approval_needed": "Developer confirms integration works end-to-end"
+      },
+      "trace_context": {
+        "decision_point": "execute_integration_complete",
+        "win_number": 25
+      }
+    },
+    {
+      "id": "W26",
+      "stage": "ui_repair_history",
+      "title": "Win #26: Update UI to Show Repair History",
+      "type": "win",
+      "description": "Add UI repair history display showing multi-turn repair attempts with timeline",
+      "time_estimate_minutes": 45,
+      "work_profile": "UI/frontend work - DELEGATION RECOMMENDED",
+      "delegation": {
+        "recommended_executor": "friend/assistant",
+        "rationale": "UI work is acknowledged danger zone. Friend handled Phase 2B UI successfully.",
+        "if_developer_executes": "Apply strict scope limits from Phase 2B: functional only, no styling polish, no features beyond spec"
+      },
+      "actions": [
+        {
+          "type": "edit_file",
+          "file": "public/index.html",
+          "ensure": [
+            "Add <div id='repairHistorySection'> to results display",
+            "Add expandable section for repair attempts",
+            "Basic CSS for timeline layout (functional only)"
+          ]
+        },
+        {
+          "type": "edit_file",
+          "file": "public/script.js",
+          "ensure": [
+            "Parse repairHistory from /api/execute response",
+            "For each attempt, display:",
+            "  - Attempt number badge (1/4, 2/4, etc.)",
+            "  - Status icon (⚠️ failed → ✅ passed)",
+            "  - Changed files list",
+            "  - Test results (pass/fail counts)",
+            "  - Duration",
+            "Add visual timeline connecting attempts",
+            "Highlight successful attempt or show 'All attempts exhausted'",
+            "Progressive color coding (yellow → green for success, yellow → red for exhaustion)"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'repairHistorySection' public/index.html",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'repairHistory' public/script.js",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test",
+          "expect_exit_code": 0,
+          "rationale": "Backend tests should still pass"
+        }
+      ],
+      "success_criteria": [
+        "Repair history section appears in results",
+        "All attempts shown with correct status",
+        "Timeline visualization clear",
+        "Early termination visible (doesn't show attempts 3-4 if passed at 2)",
+        "Exhaustion state clearly indicated",
+        "Layout functional (doesn't need to be polished)",
+        "No JavaScript errors in console"
+      ],
+      "demo_requirement": {
+        "manual_test": "Generate projects with varying repair scenarios, verify UI shows history correctly",
+        "approval_needed": "Developer AND wife/friend review - confirm functional, no scope creep"
+      },
+      "scope_limits_if_developer_executes": {
+        "forbidden": [
+          "Custom animations or transitions",
+          "Styling beyond basic layout and colors",
+          "Interactive timeline features (zoom, filter, etc.)",
+          "Detailed diff viewing in UI",
+          "Any features not explicitly in win spec"
+        ]
+      },
+      "trace_context": {
+        "decision_point": "ui_repair_history_added",
+        "win_number": 26,
+        "ui_work": true
+      }
+    },
+    {
+      "id": "W27",
+      "stage": "metrics_telemetry",
+      "title": "Win #27: Add Repair Metrics to Telemetry",
+      "type": "win",
+      "description": "Update _executor_meta.json to include detailed repair metrics for analytics",
+      "time_estimate_minutes": 40,
+      "work_profile": "Backend data structure and metadata",
+      "actions": [
+        {
+          "type": "edit_schema",
+          "file": "contracts/executor-output.schema.json",
+          "ensure": [
+            "Add optional repairMetrics field",
+            "Structure: {totalAttempts, successAttempt?, timePerAttempt: [], failureTypes: [], exhausted: boolean, attemptEfficiency: number}"
+          ]
+        },
+        {
+          "type": "edit_file",
+          "file": "src/server.ts",
+          "ensure": [
+            "When repair completes, calculate metrics from RepairHistory",
+            "Include in _executor_meta.json:",
+            "  - totalAttempts (1-4)",
+            "  - successAttempt (which attempt succeeded, if any)",
+            "  - timePerAttempt array",
+            "  - failureTypes (categories from analyzeFailure)",
+            "  - exhausted boolean",
+            "  - attemptEfficiency (0-1 scale: successAttempt/totalAttempts, 0 if exhausted)"
+          ]
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/meta/repair-metrics.test.ts",
+          "test_cases": [
+            "meta includes repair metrics when repair used",
+            "attemptEfficiency calculated correctly",
+            "timePerAttempt array has correct length",
+            "failureTypes captured from failure analysis",
+            "exhausted flag set correctly",
+            "meta correct when no repair needed"
+          ]
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'repairMetrics' contracts/executor-output.schema.json",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- repair-metrics.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Schema updated with repairMetrics field",
+        "Meta file includes complete repair metrics",
+        "Metrics calculation correct",
+        "All test cases pass",
+        "Backward compatibility maintained"
+      ],
+      "demo_requirement": {
+        "manual_test": "Generate project with multi-turn repair, verify _executor_meta.json includes metrics",
+        "approval_needed": "Developer confirms metrics useful for future analytics"
+      },
+      "trace_context": {
+        "decision_point": "repair_metrics_added",
+        "win_number": 27
+      }
+    },
+    {
+      "id": "P3-GATE",
+      "stage": "phase3_completion_validation",
+      "title": "Phase 3 Complete - Final Validation Gate",
+      "type": "validation",
+      "description": "Final validation that entire Phase 3 (Multi-Turn Repair) is complete and production-ready",
+      "actions": [
+        {
+          "type": "validate",
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "test -f src/repair/multiTurnRepair.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "grep -q 'multiTurnRepair' src/server.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "grep -q 'repairHistorySection' public/index.html",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "manual_test",
+          "description": "End-to-end Phase 3 validation with 20 varied prompts",
+          "test_scenarios": [
+            "Simple task (should pass on attempt 1-2)",
+            "Complex task (may need 3-4 attempts)",
+            "Task that exhausts (verify graceful failure)",
+            "Task that passes initially (no repair needed)",
+            "Verify UI shows repair history correctly",
+            "Verify meta file includes repair metrics",
+            "Success rate >80% within 4 attempts"
+          ]
+        }
+      ],
+      "evaluation": {
+        "intent": "Confirm entire Phase 3 (Multi-Turn Repair) is production-ready",
+        "success_criteria": "All tests pass, multi-turn repair works end-to-end, success rate >80%, UI functional, metrics captured",
+        "on_pass": "PHASE 3 COMPLETE - System handles complex tasks with bounded multi-turn repair. Ready for Phase 4 decision.",
+        "on_fail": "HALT - Fix issues before declaring Phase 3 complete"
+      },
+      "phase_3_completion_metrics": {
+        "success_rate": ">80% of standard tasks green within 4 attempts",
+        "early_termination": "Stops on first success, doesn't waste attempts",
+        "failure_analysis": "Concise and actionable (<500 tokens)",
+        "ui_clarity": "Wife/friend can understand repair progression",
+        "telemetry": "Complete repair data captured"
+      },
+      "trace_context": {
+        "decision_point": "phase3_complete",
+        "reasoning_required": true,
+        "critical": true,
+        "gate_type": "phase_completion"
+      }
+    }
+  ],
+  "execution_order": [
+    "P3A-V01",
+    "W24",
+    "W25",
+    "W26",
+    "W27",
+    "P3-GATE"
+  ],
+  "execution_semantics": {
+    "win_isolation": {
+      "description": "Each win must be complete, tested, and DEMOED before proceeding to next",
+      "implementation": "Run tests after each win. Manual demo required for all wins."
+    },
+    "gate_enforcement": {
+      "P3-GATE": {
+        "required": true,
+        "significance": "Phase 3 completion - major capability milestone",
+        "on_fail": "HALT execution. Fix issues before declaring Phase 3 complete.",
+        "report": "Generate comprehensive Phase 3 completion report with success metrics."
+      }
+    },
+    "delegation_protocol": {
+      "win_26_ui": "Recommend friend handles this per established pattern",
+      "developer_option": "If developer insists on executing Win #26, apply strict Phase 2B UI scope limits"
+    }
+  },
+  "completion_criteria": {
+    "phase3a_verified": true,
+    "multi_turn_loop_works": true,
+    "execute_integration_works": true,
+    "ui_repair_history_functional": true,
+    "repair_metrics_captured": true,
+    "success_rate_met": true,
+    "all_tests_pass": true,
+    "coverage_maintained": true,
+    "manual_demos_approved": true
+  },
+  "fallback_policies": {
+    "phase3a_verification_fails": "HALT - Phase 3A must be complete before 3B.",
+    "test_fails": "Fix implementation, do not skip tests.",
+    "coverage_drops": "Add tests to maintain >80% coverage before proceeding.",
+    "success_rate_below_80": "Analyze failures, improve failure analysis or repair prompts, re-test.",
+    "ui_scope_creep": "Remove additions or defer to future phase. Stick to functional spec only."
+  },
+  "reporting": {
+    "progress_file": ".automation/progress_phase3b.json",
+    "fields": ["task_id", "win_number", "status", "started_at", "finished_at", "elapsed_ms", "result", "errors"],
+    "status_values": ["pending", "running", "success", "failed", "skipped"],
+    "phase3b_report": {
+      "file": ".automation/phase3b_completion_report.json",
+      "fields": ["wins_completed", "gate_passed", "timestamp", "next_phase", "diagnostics"]
+    },
+    "phase3_final_report": {
+      "file": ".automation/phase3_completion_report.json",
+      "fields": [
+        "all_wins_completed",
+        "multi_turn_works",
+        "success_rate",
+        "average_attempts_to_success",
+        "exhaustion_rate",
+        "ui_functional",
+        "metrics_captured",
+        "phase_complete",
+        "timestamp",
+        "celebration_earned"
+      ]
+    }
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Multi-Turn Loop",
+      "path": "src/repair/multiTurnRepair.ts",
+      "must_include_regex": "export async function multiTurnRepair"
+    },
+    {
+      "name": "Execute Integration",
+      "path": "src/server.ts",
+      "must_include_regex": "multiTurnRepair"
+    },
+    {
+      "name": "UI Repair History",
+      "path": "public/index.html",
+      "must_include_regex": "repairHistorySection"
+    },
+    {
+      "name": "Repair Metrics Schema",
+      "path": "contracts/executor-output.schema.json",
+      "must_include_regex": "repairMetrics"
+    },
+    {
+      "name": "Phase 3B Report",
+      "path": ".automation/phase3b_completion_report.json",
+      "must_exist": true,
+      "must_include_field": "gate_passed"
+    },
+    {
+      "name": "Phase 3 Final Report",
+      "path": ".automation/phase3_completion_report.json",
+      "must_exist": true,
+      "must_include_field": "celebration_earned"
+    }
+  ],
+  "release_actions": [
+    {
+      "cmd": "git add .",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git commit -m \"feat(phase3): complete multi-turn repair - bounded 4-attempt loop, UI history, metrics\"",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git tag phase3-complete",
+      "expect_exit_code": 0
+    }
+  ],
+  "post_release_celebration": {
+    "mandatory": true,
+    "rationale": "Phase 3 is major capability milestone. System now handles complex tasks with up to 4 repair attempts. Expected >80% success rate on standard tasks.",
+    "requirements": [
+      "Full day off with wife and kids",
+      "No coding thoughts",
+      "Celebrate autonomous repair capability achieved",
+      "Discuss Phase 4 decision together when refreshed (not today)",
+      "Consider: continue to Phase 4 OR implement Phase 4.5 (production hardening) OR extended break"
+    ]
+  },
+  "ai_executor_guidelines": {
+    "observability_first": "Trace all decisions. Log reasoning for each win completion.",
+    "win_isolation": "Complete and test each win fully before proceeding to next.",
+    "delegation_awareness": "Win #26 is UI work. Recommend friend handles per established pattern.",
+    "test_driven": "Write comprehensive tests for multi-turn loop and integration.",
+    "fail_fast": "If any test fails, halt and fix before proceeding.",
+    "gate_enforcement": "P3-GATE is Phase 3 completion - requires 20-prompt validation and >80% success rate.",
+    "success_metrics": "Track and report: average attempts to success, exhaustion rate, most common failures."
+  },
+  "governance_note": {
+    "for_human": "Phase 3B completes multi-turn repair. Wins 24-25-27 are backend (safe for you). Win 26 is UI (recommend friend handles per Phase 2B pattern). After P3-GATE passes, Phase 3 is COMPLETE. Major milestone. Take full day off. Celebrate with family. Then decide: Phase 4 (planning/monitoring) OR Phase 4.5 (production hardening from assistant's list) OR extended break. No pressure to continue immediately."
+  }
+}
