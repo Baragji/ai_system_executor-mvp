@@ -1,0 +1,213 @@
+[
+  {
+    "contract": "4B2_sandbox_install_contract.json",
+    "task_id": "P4B2-V01",
+    "title": "Verify runner exists",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/runner/runInSandbox.ts && echo exists || echo missing",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B2_sandbox_install_contract.json",
+    "task_id": "W44",
+    "title": "Win #44: Add safe installDeps",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/runner/installDeps.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- installDeps.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B2_sandbox_install_contract.json",
+    "task_id": "W45",
+    "title": "Win #45: Add detectTestCommand",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/runner/detectTestCommand.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- detectTestCommand.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B2_sandbox_install_contract.json",
+    "task_id": "W46",
+    "title": "Win #46: Integrate into runInSandbox",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "rg -n \"ensureDependencies|detectTestCommand\" src/runner/runInSandbox.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- runInSandbox.integration.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B2_sandbox_install_contract.json",
+    "task_id": "4B2-GATE",
+    "title": "Phase 4B2 validation gate",
+    "type": "validation",
+    "validation_steps": [
+      {
+        "cmd": "npm run lint",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/runner/installDeps.ts && test -f src/runner/detectTestCommand.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "task_id": "ARTIFACT:Install helper",
+    "title": "Verify artifact Install helper",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/runner/installDeps.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"ensureDependencies\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "4B2_sandbox_install_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Detect test command",
+    "title": "Verify artifact Detect test command",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/runner/detectTestCommand.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"detectTestCommand\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "4B2_sandbox_install_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Phase 4B2 Report",
+    "title": "Verify artifact Phase 4B2 Report",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/phase4b2_completion_report.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true},{\"check\":\"must_include_field\",\"field\":\"gate_passed\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/phase4b2_completion_report.json"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "4B2_sandbox_install_contract.json"
+  }
+]

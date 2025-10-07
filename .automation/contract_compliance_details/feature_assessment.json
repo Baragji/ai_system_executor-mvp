@@ -1,0 +1,262 @@
+[
+  {
+    "feature": "Generation & Schema Validation",
+    "criteria": [
+      {
+        "id": "GEN-001",
+        "description": "LLM output is sanitized and validated against executor-output schema; rejects invalid JSON.",
+        "commands": [
+          {
+            "cmd": "npm test --silent -- tests/executor/sanitizeOutput.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          },
+          {
+            "cmd": "rg -n 'validateExecutorOutput' src/server.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "GEN-002",
+        "description": "Files are written to output/<slug> with safe path rules.",
+        "commands": [
+          {
+            "cmd": "rg -n 'isSafeRelative' src/executor/writeFiles.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "feature": "Sandboxed Test Runner",
+    "criteria": [
+      {
+        "id": "RUN-001",
+        "description": "Runner installs dependencies safely (npm ci --ignore-scripts) if needed and selects test command.",
+        "commands": [
+          {
+            "cmd": "npm test --silent -- tests/runner/installDeps.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          },
+          {
+            "cmd": "npm test --silent -- tests/runner/detectTestCommand.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "RUN-002",
+        "description": "Runner captures logs and returns run-result matching schema.",
+        "commands": [
+          {
+            "cmd": "npm test --silent -- tests/runner/runInSandbox.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "feature": "Clarification",
+    "criteria": [
+      {
+        "id": "CLR-001",
+        "description": "Server returns clarification questions and tracks Q&A in meta.",
+        "commands": [
+          {
+            "cmd": "npm test --silent -- tests/api/clarify-route.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          },
+          {
+            "cmd": "npm test --silent -- tests/meta/clarification-telemetry.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "feature": "Multi-Turn Repair",
+    "criteria": [
+      {
+        "id": "REP-001",
+        "description": "Up to 4 attempts with adaptive strategy guidance; history validated; early stop on pass.",
+        "commands": [
+          {
+            "cmd": "npm test --silent -- tests/repair/multiTurnRepair.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "feature": "Planning (4A/4B foundations)",
+    "criteria": [
+      {
+        "id": "PLAN-001",
+        "description": "Decomposition produces 2–10 subtasks; validator scores quality and detects cycles.",
+        "commands": [
+          {
+            "cmd": "npm test --silent -- tests/planning/decomposeTask.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          },
+          {
+            "cmd": "npm test --silent -- tests/planning/validateDecomposition.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PLAN-002",
+        "description": "Task plan executes sequentially with dependency guards, progress tracking, and time guard.",
+        "commands": [
+          {
+            "cmd": "npm test --silent -- tests/planning/executeTaskPlan.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PLAN-003",
+        "description": "Subtask generation wrapper retries once on invalid JSON/schema and is integrated in context.",
+        "commands": [
+          {
+            "cmd": "npm test --silent -- tests/planning/generateSubtaskOutput.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          },
+          {
+            "cmd": "npm test --silent -- tests/planning/executeSubtask.resilience.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "feature": "Observability",
+    "criteria": [
+      {
+        "id": "OBS-001",
+        "description": "Telemetry events and execution trace lines are written and include task_id/subtask_id/progress_pct when available.",
+        "commands": [
+          {
+            "cmd": "npm test --silent -- tests/telemetry/dual-write.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          },
+          {
+            "cmd": "npm test --silent -- tests/contracts/execution-trace.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          },
+          {
+            "cmd": "npm test --silent -- tests/telemetry/plan-trace.test.ts",
+            "exit_code": null,
+            "stdout": "",
+            "stderr": "",
+            "passed": false,
+            "notes": [
+              "Command not executed during audit; manual evidence required."
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
