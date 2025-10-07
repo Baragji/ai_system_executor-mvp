@@ -23,3 +23,45 @@ Files are written to `./output/<project>`.
 ## Contract
 - `contracts/executor-output.schema.json`
 - `src/executor/systemPrompt.md`
+
+## UI Validation
+
+This project includes production-ready UI validation infrastructure:
+
+### Features
+- **Visual Regression Testing** - Playwright with screenshot comparison
+- **Accessibility Testing** - axe-core for WCAG 2.1 AA compliance
+- **Performance Testing** - Lighthouse CI with budgets for Core Web Vitals
+- **Automated CI/CD** - GitHub Actions workflows for every PR
+
+### Quick Start
+
+```bash
+# Install Playwright browsers
+npx playwright install chromium --with-deps
+
+# Run UI tests locally
+npm run test:ui
+
+# Run performance audits
+npm run test:lighthouse
+
+# Run complete UI validation
+npm run validate:ui
+```
+
+### Documentation
+See [docs/UI_VALIDATION.md](docs/UI_VALIDATION.md) for:
+- Complete setup guide
+- Test writing patterns
+- Playwright MCP server integration
+- Troubleshooting tips
+- Best practices
+
+### Evidence & Compliance
+All UI validation runs generate artifacts in `.automation/`:
+- `playwright-report/` - Visual test results and screenshots
+- `lighthouse-reports/` - Performance audit reports
+- `ui_compliance_report.json` - Consolidated compliance report
+
+Contract schema: `contracts/ui-validation-result.schema.json`

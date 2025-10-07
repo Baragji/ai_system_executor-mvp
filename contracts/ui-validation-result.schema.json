@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ui-validation-result.schema.json",
+  "title": "UI Validation Result",
+  "description": "Result from running UI validation including Playwright visual/a11y tests and Lighthouse performance/SEO checks",
+  "type": "object",
+  "required": ["timestamp", "status", "playwright", "lighthouse", "notes"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when validation ran"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pass", "fail", "error"],
+      "description": "Overall validation status"
+    },
+    "playwright": {
+      "type": "object",
+      "required": ["status", "totalTests", "passedTests", "failedTests", "durationMs", "violations"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["pass", "fail", "error", "skipped"],
+          "description": "Playwright test execution status"
+        },
+        "totalTests": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of Playwright tests run"
+        },
+        "passedTests": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of tests that passed"
+        },
+        "failedTests": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of tests that failed"
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Test execution time in milliseconds"
+        },
+        "reportPath": {
+          "type": "string",
+          "description": "Path to detailed HTML report"
+        },
+        "violations": {
+          "type": "array",
+          "description": "List of visual or accessibility violations found",
+          "items": {
+            "type": "object",
+            "required": ["type", "test", "message"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["visual", "accessibility"],
+                "description": "Type of violation"
+              },
+              "test": {
+                "type": "string",
+                "description": "Test name where violation was found"
+              },
+              "message": {
+                "type": "string",
+                "description": "Violation description"
+              }
+            }
+          }
+        }
+      }
+    },
+    "lighthouse": {
+      "type": "object",
+      "required": ["status", "performanceScore", "accessibilityScore", "bestPracticesScore", "seoScore"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["pass", "fail", "error", "skipped"],
+          "description": "Lighthouse CI execution status"
+        },
+        "performanceScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Performance score (0-1)"
+        },
+        "accessibilityScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Accessibility score (0-1)"
+        },
+        "bestPracticesScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Best practices score (0-1)"
+        },
+        "seoScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "SEO score (0-1)"
+        },
+        "reportPath": {
+          "type": "string",
+          "description": "Path to detailed Lighthouse report"
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "description": "Human-readable notes about the validation run",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

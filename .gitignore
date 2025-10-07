@@ -5,3 +5,15 @@ output
 .nyc_output
 coverage
 .DS_Store
+
+# Playwright artifacts
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Lighthouse CI artifacts
+.lighthouseci/
+
+# Automation artifacts (some are tracked for evidence)
+.automation/playwright-report/
+.automation/lighthouse-reports/*.html
