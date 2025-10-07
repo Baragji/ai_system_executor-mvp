@@ -1,7 +1,7 @@
-{"name":"generation_start","timestamp":"2025-10-07T12:36:04.002Z","payload":{"project":"phase1-demo"}}
-{"name":"test_run","timestamp":"2025-10-07T12:36:04.005Z","payload":{"project":"phase1-demo","stage":"initial","status":"fail"}}
-{"name":"repair_attempt","timestamp":"2025-10-07T12:36:04.006Z","payload":{"project":"phase1-demo","attempts":2,"finalStatus":"pass","successAttempt":2}}
-{"name":"test_run","timestamp":"2025-10-07T12:36:04.008Z","payload":{"project":"phase1-demo","stage":"repair-1","status":"fail"}}
-{"name":"test_run","timestamp":"2025-10-07T12:36:04.008Z","payload":{"project":"phase1-demo","stage":"repair-2","status":"pass"}}
-{"name":"generation_complete","timestamp":"2025-10-07T12:36:04.011Z","payload":{"project":"phase1-demo","status":"pass"}}
-{"name":"test_run","timestamp":"2025-10-07T12:36:08.209Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
+{"name":"generation_start","timestamp":"2025-10-07T12:47:50.910Z","payload":{"project":"phase1-demo"}}
+{"name":"test_run","timestamp":"2025-10-07T12:47:50.913Z","payload":{"project":"phase1-demo","stage":"initial","status":"fail"}}
+{"name":"repair_attempt","timestamp":"2025-10-07T12:47:50.914Z","payload":{"project":"phase1-demo","attempts":2,"finalStatus":"pass","successAttempt":2}}
+{"name":"test_run","timestamp":"2025-10-07T12:47:50.915Z","payload":{"project":"phase1-demo","stage":"repair-1","status":"fail"}}
+{"name":"test_run","timestamp":"2025-10-07T12:47:50.915Z","payload":{"project":"phase1-demo","stage":"repair-2","status":"pass"}}
+{"name":"generation_complete","timestamp":"2025-10-07T12:47:50.918Z","payload":{"project":"phase1-demo","status":"pass"}}
+{"name":"test_run","timestamp":"2025-10-07T12:47:55.132Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
