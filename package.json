@@ -15,7 +15,7 @@
     "test:ui": "playwright test",
     "test:ui:headed": "playwright test --headed",
     "test:ui:debug": "playwright test --debug",
-    "test:lighthouse": "lhci autorun --config=lighthouserc.js",
+    "test:lighthouse": "node scripts/run-lhci.mjs",
     "validate:ui": "npm run test:ui && npm run test:lighthouse"
   },
   "dependencies": {
