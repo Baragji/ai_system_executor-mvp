@@ -1,0 +1,227 @@
+[
+  {
+    "contract": "4B1_adaptive_repair_contract.json",
+    "task_id": "P4B-V01",
+    "title": "Verify Phase 4B baseline present",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/repair/multiTurnRepair.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/repair/analyzeFailure.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/repair/buildRepairPrompt.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B1_adaptive_repair_contract.json",
+    "task_id": "W41",
+    "title": "Win #41: Add repair strategy selector",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/repair/strategySelector.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- strategySelector.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B1_adaptive_repair_contract.json",
+    "task_id": "W42",
+    "title": "Win #42: Integrate strategy into repair prompts",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "rg -n \"strategyGuidance\" src/repair/buildRepairPrompt.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- buildRepairPrompt.adaptive.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B1_adaptive_repair_contract.json",
+    "task_id": "W43",
+    "title": "Win #43: Optional strategy annotation in history",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "rg -n \"strategy\" contracts/repair-history.schema.json",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- repair-history.adaptive.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B1_adaptive_repair_contract.json",
+    "task_id": "4B1-GATE",
+    "title": "Phase 4B1 validation gate",
+    "type": "validation",
+    "validation_steps": [
+      {
+        "cmd": "npm run lint",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/repair/strategySelector.ts && rg -q 'strategyGuidance' src/repair/buildRepairPrompt.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "task_id": "ARTIFACT:Strategy Selector",
+    "title": "Verify artifact Strategy Selector",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/repair/strategySelector.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export function selectStrategy\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "4B1_adaptive_repair_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Prompt Integration",
+    "title": "Verify artifact Prompt Integration",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/repair/buildRepairPrompt.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"strategyGuidance\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "4B1_adaptive_repair_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Phase 4B1 Report",
+    "title": "Verify artifact Phase 4B1 Report",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/phase4b1_completion_report.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true},{\"check\":\"must_include_field\",\"field\":\"gate_passed\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/phase4b1_completion_report.json"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "4B1_adaptive_repair_contract.json"
+  }
+]

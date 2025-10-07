@@ -1,0 +1,182 @@
+[
+  {
+    "contract": "4B3_subtask_resilience_contract.json",
+    "task_id": "P4B3-V01",
+    "title": "Verify plan execution artifacts",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/planning/executeSubtask.ts && echo exists || echo missing",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B3_subtask_resilience_contract.json",
+    "task_id": "W47",
+    "title": "Win #47: Create resilient generator wrapper",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/planning/generateSubtaskOutput.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- generateSubtaskOutput.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B3_subtask_resilience_contract.json",
+    "task_id": "W48",
+    "title": "Win #48: Integrate wrapper into plan context",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "rg -n \"generateSubtaskOutputWithRetry\" src/server.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B3_subtask_resilience_contract.json",
+    "task_id": "W49",
+    "title": "Win #49: ExecuteSubtask resilience tests",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "npm test -- executeSubtask.resilience.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B3_subtask_resilience_contract.json",
+    "task_id": "4B3-GATE",
+    "title": "Phase 4B3 validation gate",
+    "type": "validation",
+    "validation_steps": [
+      {
+        "cmd": "npm run lint",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/planning/generateSubtaskOutput.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "task_id": "ARTIFACT:Wrapper",
+    "title": "Verify artifact Wrapper",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/planning/generateSubtaskOutput.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"generateSubtaskOutputWithRetry\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "4B3_subtask_resilience_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Phase 4B3 Report",
+    "title": "Verify artifact Phase 4B3 Report",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/phase4b3_completion_report.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true},{\"check\":\"must_include_field\",\"field\":\"gate_passed\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/phase4b3_completion_report.json"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "4B3_subtask_resilience_contract.json"
+  }
+]

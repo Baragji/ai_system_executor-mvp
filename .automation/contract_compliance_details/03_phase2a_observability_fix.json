@@ -1,0 +1,246 @@
+[
+  {
+    "contract": "03_phase2a_observability_fix.json",
+    "task_id": "P2A-V01",
+    "title": "Verify Phase 2A completion before observability fix",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -f contracts/clarification-request.schema.json && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/clarification/detectMissing.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q '/api/clarify' src/server.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test 2>&1 | tail -5",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "03_phase2a_observability_fix.json",
+    "task_id": "OBS-FIX-01",
+    "title": "Fix #1: Wire telemetry to contracted trace location",
+    "type": "fix",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/telemetry/events.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'execution_trace.jsonl' src/telemetry/events.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- dual-write.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "03_phase2a_observability_fix.json",
+    "task_id": "OBS-FIX-02",
+    "title": "Fix #4: Add evaluation results logging",
+    "type": "fix",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/evaluation/logResults.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'logEvaluationResult' src/runner/runInSandbox.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- logResults.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "03_phase2a_observability_fix.json",
+    "task_id": "OBS-GATE",
+    "title": "Observability fix validation gate",
+    "type": "validation",
+    "validation_steps": [
+      {
+        "cmd": "npm run lint",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "task_id": "ARTIFACT:Dual-write Telemetry Module",
+    "title": "Verify artifact Dual-write Telemetry Module",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/telemetry/events.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"execution_trace\\\\.jsonl\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "03_phase2a_observability_fix.json"
+  },
+  {
+    "task_id": "ARTIFACT:Evaluation Logger",
+    "title": "Verify artifact Evaluation Logger",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/evaluation/logResults.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export.*function logEvaluationResult\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "03_phase2a_observability_fix.json"
+  },
+  {
+    "task_id": "ARTIFACT:Execution Trace File",
+    "title": "Verify artifact Execution Trace File",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/execution_trace.jsonl",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/execution_trace.jsonl"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "03_phase2a_observability_fix.json"
+  },
+  {
+    "task_id": "ARTIFACT:Evaluation Results File",
+    "title": "Verify artifact Evaluation Results File",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/evaluation_results.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/evaluation_results.json"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "03_phase2a_observability_fix.json"
+  },
+  {
+    "task_id": "ARTIFACT:Observability Fix Report",
+    "title": "Verify artifact Observability Fix Report",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/observability_fix_report.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true},{\"check\":\"must_include_field\",\"field\":\"gate_passed\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/observability_fix_report.json"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "03_phase2a_observability_fix.json"
+  }
+]
