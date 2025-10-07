@@ -32,7 +32,7 @@ function extractNumber(value: unknown): number | undefined {
 function buildTraceEntry(event: TelemetryEvent): ExecutionTraceEntry {
   const payload = (event.payload ?? {}) as Record<string, unknown>;
   const candidateTaskId =
-    extractString(payload.taskId) ?? extractString(payload.task_id);
+    extractString(payload.taskId) ?? extractString(payload.task_id) ?? extractString(payload.project);
   const candidateStatus = extractString(payload.status);
 
   const traceEntry: ExecutionTraceEntry = {

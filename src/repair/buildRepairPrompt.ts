@@ -91,7 +91,8 @@ function buildInstructionSection(
 ): string {
   const lines = [
     "ONLY fix the failing parts. Return JSON diff format.",
-    "Constraints: no full rewrites. Preserve working code."
+    "Constraints: no full rewrites. Preserve working code.",
+    "For each artifact with action=add or action=modify, you MUST include that file in the 'files' array with its full final contents; otherwise the repair will be rejected."
   ];
 
   if (strategy) {

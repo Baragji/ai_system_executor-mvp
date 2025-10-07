@@ -11,8 +11,8 @@ const fixturesRoot = path.resolve("tests/fixtures");
 
 describe.sequential("POST /api/run-tests", () => {
   beforeAll(async () => {
-    await fs.rm(OUTPUT_DIR, { recursive: true, force: true });
     await fs.mkdir(OUTPUT_DIR, { recursive: true });
+    await fs.rm(path.join(OUTPUT_DIR, "passing"), { recursive: true, force: true });
     await fs.cp(path.join(fixturesRoot, "passing-project"), path.join(OUTPUT_DIR, "passing"), {
       recursive: true
     });

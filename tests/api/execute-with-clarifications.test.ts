@@ -62,8 +62,8 @@ describe("POST /api/execute with clarifications", () => {
   beforeEach(async () => {
     lastMessages = null;
     await fs.rm(PROJECT_DIR, { recursive: true, force: true });
+    // Do not reset global telemetry file to avoid cross-test interference
     await fs.mkdir(path.dirname(TELEMETRY_FILE), { recursive: true });
-    await fs.rm(TELEMETRY_FILE, { force: true });
   });
 
   afterEach(async () => {

@@ -1,0 +1,240 @@
+{
+  "checklist_version": "1.0.0",
+  "created": "2025-10-06T00:00:00Z",
+  "description": "Executable validation framework for roadmap/contract compliance and feature assessment. All steps are machine-parsable and reference concrete repo paths.",
+  "sources": {
+    "roadmap": "Roadmap_complete_overview_win_edition.md",
+    "contracts_dir": "contracts/Roadmap_execution",
+    "contracts": [
+      "contracts/Roadmap_execution/01_remediation_contract_v2.json",
+      "contracts/Roadmap_execution/02_phase2a_contract.json",
+      "contracts/Roadmap_execution/03_phase2a_observability_fix.json",
+      "contracts/Roadmap_execution/04_phase2b_contract.json",
+      "contracts/Roadmap_execution/05_phase2c_contract.json",
+      "contracts/Roadmap_execution/06_phase3a_contract.json",
+      "contracts/Roadmap_execution/07_phase3b_contract.json",
+      "contracts/Roadmap_execution/08_phase4a_contract.json",
+      "contracts/Roadmap_execution/09_phase4b_contract.json",
+      "contracts/Roadmap_execution/4B1_adaptive_repair_contract.json",
+      "contracts/Roadmap_execution/4B2_sandbox_install_contract.json",
+      "contracts/Roadmap_execution/4B3_subtask_resilience_contract.json",
+      "contracts/Roadmap_execution/4B4_planning_telemetry_contract.json"
+    ]
+  },
+  "environment": {
+    "node_version": ">=20.10.0 <21",
+    "package_manager": "npm",
+    "os": "linux|macos",
+    "verify": [
+      { "cmd": "node -v", "expect_regex": "^v20\\.", "on_fail": "HALT: Use Node 20.x for compliance run" },
+      { "cmd": "npm -v", "expect_exit_code": 0 }
+    ]
+  },
+  "outputs": {
+    "summary_report": ".automation/contract_compliance_report.json",
+    "details_dir": ".automation/contract_compliance_details",
+    "trace_file": ".automation/execution_trace.jsonl"
+  },
+  "documentation_standards": {
+    "summary_schema": {
+      "timestamp": "ISO-8601",
+      "overall_status": "pass|fail|partial",
+      "phases": [
+        {
+          "contract": "string",
+          "status": "pass|fail|partial",
+          "wins_total": "number",
+          "wins_passed": "number",
+          "gate_passed": "boolean",
+          "gaps": [ { "id": "string", "title": "string", "severity": "low|medium|high|critical" } ]
+        }
+      ],
+      "metrics": {
+        "lint_pass": "boolean",
+        "typecheck_pass": "boolean",
+        "tests_pass": "boolean",
+        "coverage": { "lines": "number", "branches": "number" }
+      }
+    },
+    "detail_entry_schema": {
+      "contract": "string",
+      "task_id": "string",
+      "title": "string",
+      "type": "win|verification|validation_checkpoint",
+      "validation_steps": [ { "cmd": "string", "exit_code": "number", "stdout": "string", "stderr": "string" } ],
+      "result": "pass|fail|skipped",
+      "evidence": [ "file:path#L?" ],
+      "notes": "string"
+    },
+    "gap_entry_schema": {
+      "id": "string",
+      "contract": "string",
+      "requirement": "string",
+      "observed": "string",
+      "evidence": [ "file:path#L?" ],
+      "severity": "low|medium|high|critical",
+      "recommendation": "string"
+    }
+  },
+  "compliance_methodology": {
+    "phase_sequence": [
+      "01_remediation_contract_v2.json",
+      "02_phase2a_contract.json",
+      "03_phase2a_observability_fix.json",
+      "04_phase2b_contract.json",
+      "05_phase2c_contract.json",
+      "06_phase3a_contract.json",
+      "07_phase3b_contract.json",
+      "08_phase4a_contract.json",
+      "09_phase4b_contract.json",
+      "4B1_adaptive_repair_contract.json",
+      "4B2_sandbox_install_contract.json",
+      "4B3_subtask_resilience_contract.json",
+      "4B4_planning_telemetry_contract.json"
+    ],
+    "for_each_contract": {
+      "load_json": true,
+      "validate_schema": true,
+      "tasks_loop": [
+        {
+          "when": "task.type in ['win','verification','validation_checkpoint']",
+          "execute_validation_commands": "run each task.validation[*].cmd and assert expect_exit_code if present",
+          "record": "per-step stdout/stderr/exit_code",
+          "status_rule": "pass if all validation commands match expectations; else fail"
+        }
+      ],
+      "final_artifacts": "if contract has final_artifacts_verification, check path existence and regex/field constraints",
+      "gate_validation": "if contract has a GATE task in execution_order, assert all commands pass"
+    }
+  },
+  "feature_assessment": [
+    {
+      "feature": "Generation & Schema Validation",
+      "criteria": [
+        {
+          "id": "GEN-001",
+          "description": "LLM output is sanitized and validated against executor-output schema; rejects invalid JSON.",
+          "evidence": ["src/server.ts:182", "src/executor/outputProcessing.ts:1", "src/contracts/validators.ts:7"],
+          "commands": [
+            { "cmd": "npm test --silent -- tests/executor/sanitizeOutput.test.ts", "expect_exit_code": 0 },
+            { "cmd": "rg -n 'validateExecutorOutput' src/server.ts", "expect_exit_code": 0 }
+          ]
+        },
+        {
+          "id": "GEN-002",
+          "description": "Files are written to output/<slug> with safe path rules.",
+          "evidence": ["src/executor/writeFiles.ts:1"],
+          "commands": [ { "cmd": "rg -n 'isSafeRelative' src/executor/writeFiles.ts", "expect_exit_code": 0 } ]
+        }
+      ]
+    },
+    {
+      "feature": "Sandboxed Test Runner",
+      "criteria": [
+        {
+          "id": "RUN-001",
+          "description": "Runner installs dependencies safely (npm ci --ignore-scripts) if needed and selects test command.",
+          "evidence": ["src/runner/installDeps.ts:1", "src/runner/detectTestCommand.ts:1", "src/runner/runInSandbox.ts:120"],
+          "commands": [
+            { "cmd": "npm test --silent -- tests/runner/installDeps.test.ts", "expect_exit_code": 0 },
+            { "cmd": "npm test --silent -- tests/runner/detectTestCommand.test.ts", "expect_exit_code": 0 }
+          ]
+        },
+        {
+          "id": "RUN-002",
+          "description": "Runner captures logs and returns run-result matching schema.",
+          "evidence": ["src/runner/runInSandbox.ts:38", "src/contracts/validators.ts:7"],
+          "commands": [ { "cmd": "npm test --silent -- tests/runner/runInSandbox.test.ts", "expect_exit_code": 0 } ]
+        }
+      ]
+    },
+    {
+      "feature": "Clarification",
+      "criteria": [
+        {
+          "id": "CLR-001",
+          "description": "Server returns clarification questions and tracks Q&A in meta.",
+          "evidence": ["src/server.ts:520", "src/server.ts:664"],
+          "commands": [
+            { "cmd": "npm test --silent -- tests/api/clarify-route.test.ts", "expect_exit_code": 0 },
+            { "cmd": "npm test --silent -- tests/meta/clarification-telemetry.test.ts", "expect_exit_code": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Multi-Turn Repair",
+      "criteria": [
+        {
+          "id": "REP-001",
+          "description": "Up to 4 attempts with adaptive strategy guidance; history validated; early stop on pass.",
+          "evidence": ["src/repair/strategySelector.ts:1", "src/repair/buildRepairPrompt.ts:1", "src/repair/multiTurnRepair.ts:250", "src/contracts/repairHistoryValidator.ts:1"],
+          "commands": [ { "cmd": "npm test --silent -- tests/repair/multiTurnRepair.test.ts", "expect_exit_code": 0 } ]
+        }
+      ]
+    },
+    {
+      "feature": "Planning (4A/4B foundations)",
+      "criteria": [
+        {
+          "id": "PLAN-001",
+          "description": "Decomposition produces 2–10 subtasks; validator scores quality and detects cycles.",
+          "evidence": ["src/planning/decomposeTask.ts:1", "src/planning/validateDecomposition.ts:1"],
+          "commands": [
+            { "cmd": "npm test --silent -- tests/planning/decomposeTask.test.ts", "expect_exit_code": 0 },
+            { "cmd": "npm test --silent -- tests/planning/validateDecomposition.test.ts", "expect_exit_code": 0 }
+          ]
+        },
+        {
+          "id": "PLAN-002",
+          "description": "Task plan executes sequentially with dependency guards, progress tracking, and time guard.",
+          "evidence": ["src/planning/executeTaskPlan.ts:65", "src/planning/executeTaskPlan.ts:108", "src/planning/executeTaskPlan.ts:173"],
+          "commands": [ { "cmd": "npm test --silent -- tests/planning/executeTaskPlan.test.ts", "expect_exit_code": 0 } ]
+        },
+        {
+          "id": "PLAN-003",
+          "description": "Subtask generation wrapper retries once on invalid JSON/schema and is integrated in context.",
+          "evidence": ["src/planning/generateSubtaskOutput.ts:17", "src/server.ts:200"],
+          "commands": [
+            { "cmd": "npm test --silent -- tests/planning/generateSubtaskOutput.test.ts", "expect_exit_code": 0 },
+            { "cmd": "npm test --silent -- tests/planning/executeSubtask.resilience.test.ts", "expect_exit_code": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "feature": "Observability",
+      "criteria": [
+        {
+          "id": "OBS-001",
+          "description": "Telemetry events and execution trace lines are written and include task_id/subtask_id/progress_pct when available.",
+          "evidence": ["src/telemetry/events.ts:33", "contracts/execution-trace.schema.json:1", "src/contracts/executionTraceValidator.ts:1"],
+          "commands": [
+            { "cmd": "npm test --silent -- tests/telemetry/dual-write.test.ts", "expect_exit_code": 0 },
+            { "cmd": "npm test --silent -- tests/contracts/execution-trace.test.ts", "expect_exit_code": 0 },
+            { "cmd": "npm test --silent -- tests/telemetry/plan-trace.test.ts", "expect_exit_code": 0 }
+          ]
+        }
+      ]
+    }
+  ],
+  "gap_analysis": {
+    "dimensions": ["correctness", "completeness", "safety", "observability", "performance"],
+    "rating": { "scale": [0, 1, 2, 3], "labels": { "0": "absent", "1": "partial", "2": "meets", "3": "exceeds" } },
+    "method": [
+      { "step": "Compare each contract task.success_criteria to observed evidence/tests", "output": "gap entries where unmet" },
+      { "step": "Classify severity based on user impact and roadmap dependency", "output": "severity level" },
+      { "step": "Propose actionable remediation", "output": "recommendation text" }
+    ]
+  },
+  "execution_instructions": [
+    { "id": "ENV-VERIFY", "cmd": "node -v", "expect_regex": "^v20\\.", "on_fail": "HALT" },
+    { "id": "LINT", "cmd": "npm run -s lint", "expect_exit_code": 0 },
+    { "id": "TYPECHECK", "cmd": "npm run -s typecheck", "expect_exit_code": 0 },
+    { "id": "TEST-ALL", "cmd": "npm test --silent", "expect_exit_code": 0 },
+    { "id": "CONTRACT-LOOP", "instruction": "For each contracts[*], load JSON; iterate tasks; run validation commands; record per-task results to details_dir" },
+    { "id": "ARTIFACT-CHECK", "instruction": "For each contract final_artifacts_verification, assert path and regex/field rules; record evidence" },
+    { "id": "SUMMARY-WRITE", "instruction": "Aggregate per-contract status and metrics into outputs.summary_report (JSON) with summary_schema" }
+  ]
+}
+
