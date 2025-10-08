@@ -40,7 +40,13 @@ async function main() {
         pwa: cats.pwa?.score ?? null,
       };
       summary.reports.push(entry);
-    } catch {}
+    } catch (err) {
+      // Skip malformed/invalid report files; optional debug logging
+      if (process.env.DEBUG_LH_COMPLIANCE === '1') {
+        const msg = err && typeof err === 'object' && 'message' in err ? err.message : String(err);
+        console.warn(`Skipping report ${file}: ${msg}`);
+      }
+    }
   }
 
   // Compute simple averages if multiple reports
@@ -65,4 +71,3 @@ main().catch(err => {
   console.error(err);
   process.exit(1);
 });
-
