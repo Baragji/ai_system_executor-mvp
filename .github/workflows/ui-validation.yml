@@ -63,6 +63,9 @@ jobs:
   lighthouse:
     name: Lighthouse Performance & SEO
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -85,13 +88,36 @@ jobs:
           npx wait-on http://localhost:3000/healthz
 
       - name: Run Lighthouse
-        uses: treosh/lighthouse-ci-action@v10
+        uses: treosh/lighthouse-ci-action@v12
         with:
           urls: |
             http://localhost:3000/
-          uploadArtifacts: true
+          uploadArtifacts: false
           artifactName: lighthouseReports
+          temporaryPublicStorage: true
           configPath: ''
+
+      - name: Collect Lighthouse JSON reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p lighthouse-reports
+          # Copy reports from common output folders
+          if ls ./.lighthouseci/*.json >/dev/null 2>&1; then
+            cp ./.lighthouseci/*.json lighthouse-reports/ || true
+          fi
+          if ls ./lighthouse-results/*.json >/dev/null 2>&1; then
+            cp ./lighthouse-results/*.json lighthouse-reports/ || true
+          fi
+          echo "Collected $(ls -1 lighthouse-reports | wc -l) files into lighthouse-reports/"
+
+      - name: Upload lighthouse artifacts (explicit)
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouseReports
+          path: lighthouse-reports/
+          retention-days: 7
+          if-no-files-found: warn
 
   compliance:
     name: Generate UI Compliance Report
