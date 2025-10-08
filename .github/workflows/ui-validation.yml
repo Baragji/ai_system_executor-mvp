@@ -89,7 +89,7 @@ jobs:
           urls: |
             http://localhost:3000/
           uploadArtifacts: true
-          artifactName: lighthouse-reports
+          artifactName: lighthouse_reports
           configPath: ''
 
   compliance:
