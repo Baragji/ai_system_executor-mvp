@@ -17,7 +17,6 @@ jobs:
   playwright:
     name: Playwright Visual & A11y Tests
     runs-on: ubuntu-latest
-    continue-on-error: true  # Non-blocking until visual baselines established
     steps:
       - name: Checkout
         uses: actions/checkout@v4
