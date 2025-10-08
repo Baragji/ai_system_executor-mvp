@@ -20,6 +20,24 @@ Use a prompt like:
 
 Files are written to `./output/<project>`.
 
+## 📍 Quick Navigation
+
+**New to this repo?** Start here:
+- **[FILE_INDEX.md](FILE_INDEX.md)** - Quick map: what's where (2 min read)
+- **[CDI_INFRASTRUCTURE.md](CDI_INFRASTRUCTURE.md)** - CDI pattern overview (5 min read)
+
+**Working on Phase A?**
+- Contract: `contracts/Roadmap_execution/11_phaseA_contract_enhanced.json`
+- Stack rules: `ai-stack.json`
+- AI instructions: `.github/copilot-instructions.md`
+
+**Need to validate something?**
+```bash
+npm run contract:check    # Validate contracts
+npm run sbom              # Generate SBOM
+npm run validate:all      # Run all checks
+```
+
 ## Contract
 - `contracts/executor-output.schema.json`
 - `src/executor/systemPrompt.md`

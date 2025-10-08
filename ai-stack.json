@@ -1,0 +1,74 @@
+{
+  "version": "1.0.0",
+  "description": "Stack compliance lock for AI agents - defines allowed languages, frameworks, and constraints",
+  "language": "TypeScript",
+  "allowed_extensions": [".ts", ".js", ".json", ".html", ".css", ".md"],
+  "forbidden_extensions": [".py", ".rb", ".php", ".java"],
+  "frameworks": ["Express"],
+  "frontend": {
+    "location": "/public",
+    "allowed_frameworks": "none - vanilla JS/CSS only",
+    "constraint": "No React, Vue, or other frameworks in /public"
+  },
+  "test": {
+    "framework": "Vitest",
+    "cmd": "vitest run --reporter=default",
+    "timeoutSec": 120,
+    "coverage_required": {
+      "line": 80,
+      "branch": 75
+    }
+  },
+  "build": {
+    "cmd": "npm run build",
+    "output": "dist/"
+  },
+  "style": {
+    "tools": ["eslint"],
+    "auto_fix": true,
+    "max_warnings": 0
+  },
+  "constraints": [
+    "No Python code anywhere in project",
+    "Frontend code must live under /public only",
+    "No new frameworks without explicit approval",
+    "All changes must pass lint + typecheck + tests",
+    "Contract changes require CODEOWNERS approval"
+  ],
+  "evidence_requirements": [
+    "Test run summary with exit 0",
+    "Contract schema validation passes",
+    "SBOM artifact generated (SPDX or CycloneDX)",
+    "Discovery note with integration points",
+    "No stack compliance violations"
+  ],
+  "anti_drift_rules": {
+    "protected_files": [
+      "ai-stack.json",
+      ".github/copilot-instructions.md",
+      ".github/workflows/*",
+      "contracts/schemas/*"
+    ],
+    "modification_requires": "CODEOWNERS approval",
+    "enforcement": "CI + GitHub rulesets"
+  },
+  "discovery_protocol": {
+    "required_before": "any code changes",
+    "steps": [
+      "Identify exact integration points (file + line + function)",
+      "Document current implementation with code snippets",
+      "Verify stack compliance",
+      "Check for breaking changes",
+      "Generate discovery note"
+    ],
+    "output": ".automation/phase*_discovery.json and .md"
+  },
+  "metadata": {
+    "created": "2025-10-08",
+    "current_phase": "A - UI Baseline Fixes",
+    "next_phase": "B - Trust Engine (verification spine)",
+    "purpose": "Enforce stack consistency and prevent AI-induced drift",
+    "enforcement_level": "strict",
+    "violation_action": "HALT execution immediately"
+  }
+}

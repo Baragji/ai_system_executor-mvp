@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://umca.local/schemas/roadmap_phase.schema.json",
+  "title": "Roadmap Phase Contract Schema",
+  "description": "Schema for validating phase contracts in CDI pattern with discovery and evidence requirements",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "contract_meta",
+    "project",
+    "execution_model",
+    "stack_compliance",
+    "high_level_stages",
+    "tasks",
+    "execution_order",
+    "completion_criteria"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "pattern": "^[A-Z]\\.\\d+\\.\\d+$",
+      "description": "Version like A.2.0"
+    },
+    "contract_meta": {
+      "type": "object",
+      "required": ["created", "phase", "phase_name", "prerequisite_phase", "rationale"],
+      "properties": {
+        "created": {"type": "string", "format": "date"},
+        "phase": {"type": "string", "pattern": "^[A-Z]$"},
+        "phase_name": {"type": "string"},
+        "prerequisite_phase": {"type": "string"},
+        "enhancement": {"type": "string"},
+        "rationale": {"type": "string", "minLength": 50},
+        "references": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "required": ["name", "current_phase", "goal", "scope", "estimated_time"],
+      "properties": {
+        "name": {"type": "string"},
+        "current_phase": {"type": "string"},
+        "goal": {"type": "string", "minLength": 30},
+        "scope": {"type": "string"},
+        "estimated_time": {"type": "string"},
+        "work_profile": {"type": "string"},
+        "out_of_scope": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "execution_model": {
+      "type": "object",
+      "required": ["type", "verification_strategy", "description"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["autonomous_with_verification", "discovery_then_autonomous", "human_in_loop"]
+        },
+        "verification_strategy": {"type": "string"},
+        "description": {"type": "string"},
+        "failure_mode": {"type": "string"},
+        "no_assumptions": {"type": "boolean"},
+        "evidence_required": {"type": "boolean"}
+      }
+    },
+    "stack_compliance": {
+      "type": "object",
+      "required": ["enforced_by", "language", "test_command", "constraints"],
+      "properties": {
+        "enforced_by": {"type": "string"},
+        "language": {"type": "string"},
+        "frameworks": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "test_command": {"type": "string"},
+        "constraints": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1
+        },
+        "validation": {"type": "string"}
+      }
+    },
+    "observability": {
+      "type": "object",
+      "required": ["trace_file", "monitoring", "logging"],
+      "properties": {
+        "description": {"type": "string"},
+        "trace_file": {"type": "string"},
+        "discovery_file": {"type": "string"},
+        "evidence_file": {"type": "string"},
+        "evaluation_file": {"type": "string"},
+        "monitoring": {"type": "object"},
+        "logging": {"type": "object"},
+        "evaluation": {"type": "object"}
+      }
+    },
+    "global_quality_standards": {
+      "type": "object",
+      "required": ["lint", "typecheck", "tests"],
+      "properties": {
+        "lint": {
+          "type": "object",
+          "required": ["command", "must_pass"],
+          "properties": {
+            "command": {"type": "string"},
+            "must_pass": {"type": "boolean"},
+            "max_warnings": {"type": "integer", "minimum": 0}
+          }
+        },
+        "typecheck": {
+          "type": "object",
+          "required": ["command", "must_pass"],
+          "properties": {
+            "command": {"type": "string"},
+            "must_pass": {"type": "boolean"}
+          }
+        },
+        "tests": {
+          "type": "object",
+          "required": ["command"],
+          "properties": {
+            "command": {"type": "string"},
+            "expected": {"type": "object"},
+            "coverage": {"type": "object"}
+          }
+        },
+        "contract_schema": {
+          "type": "object",
+          "properties": {
+            "command": {"type": "string"},
+            "must_pass": {"type": "boolean"}
+          }
+        },
+        "sbom": {
+          "type": "object",
+          "properties": {
+            "command": {"type": "string"},
+            "must_generate": {"type": "string"}
+          }
+        }
+      }
+    },
+    "high_level_stages": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 3
+    },
+    "tasks": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["id", "stage", "title", "type", "description"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^(P\\d+-V\\d+|PA-[A-Z]+|WA\\d+)$"
+          },
+          "stage": {"type": "string"},
+          "title": {"type": "string"},
+          "type": {
+            "type": "string",
+            "enum": ["verification", "discovery", "win", "evidence", "validation"]
+          },
+          "description": {"type": "string", "minLength": 20},
+          "time_estimate_minutes": {"type": "integer", "minimum": 1},
+          "prerequisite": {"type": "string"},
+          "verification_mode": {"type": "string"},
+          "work_profile": {"type": "string"},
+          "actions": {
+            "type": "array",
+            "minItems": 1
+          },
+          "validation": {"type": "array"},
+          "success_criteria": {
+            "type": "array",
+            "items": {"type": "string"},
+            "minItems": 1
+          },
+          "evidence_requirements": {"type": "object"},
+          "evaluation": {"type": "object"},
+          "trace_context": {"type": "object"}
+        }
+      }
+    },
+    "execution_order": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(P\\d+-V\\d+|PA-[A-Z]+|WA\\d+)$"
+      },
+      "minItems": 3
+    },
+    "execution_semantics": {
+      "type": "object",
+      "required": ["win_isolation", "gate_enforcement"],
+      "properties": {
+        "discovery_first": {"type": "object"},
+        "win_isolation": {"type": "object"},
+        "evidence_backed": {"type": "object"},
+        "gate_enforcement": {"type": "object"},
+        "frontend_only": {"type": "object"}
+      }
+    },
+    "completion_criteria": {
+      "type": "object",
+      "required": ["all_tests_pass", "lint_passes"],
+      "additionalProperties": {"type": "boolean"}
+    },
+    "fallback_policies": {
+      "type": "object",
+      "patternProperties": {
+        ".*": {"type": "string"}
+      }
+    },
+    "reporting": {
+      "type": "object",
+      "required": ["progress_file", "fields"],
+      "properties": {
+        "progress_file": {"type": "string"},
+        "fields": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "status_values": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "final_artifacts_verification": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "path"],
+        "properties": {
+          "name": {"type": "string"},
+          "path": {"type": "string"},
+          "must_exist": {"type": "boolean"},
+          "must_include_regex": {"type": "string"},
+          "must_include_field": {"type": "string"},
+          "min_lines": {"type": "integer"}
+        }
+      },
+      "minItems": 1
+    },
+    "release_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["cmd", "expect_exit_code"],
+        "properties": {
+          "cmd": {"type": "string"},
+          "expect_exit_code": {"type": "integer"}
+        }
+      }
+    },
+    "ai_executor_guidelines": {
+      "type": "object",
+      "patternProperties": {
+        ".*": {"type": "string"}
+      }
+    },
+    "governance_note": {
+      "type": "object",
+      "properties": {
+        "for_human": {"type": "string"}
+      }
+    }
+  },
+  "additionalProperties": false
+}
