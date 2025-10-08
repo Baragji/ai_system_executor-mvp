@@ -36,13 +36,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          echo "Node version:" && node -v
+          echo "npm version:" && npm -v
           if [ -f pnpm-lock.yaml ]; then
+            echo "Detected pnpm-lock.yaml → using pnpm"
             npm i -g pnpm
             pnpm install --frozen-lockfile
-          elif [ -f package-lock.json ]; then
+          elif [ -f package.json ] && [ -f package-lock.json ] && grep -q '"lockfileVersion"' package-lock.json; then
+            echo "Detected valid package-lock.json → running npm ci"
             npm ci
           else
-            echo "No lockfile found; falling back to 'npm install'"
+            echo "Valid lockfile not found → falling back to npm install"
             npm install
           fi
 
@@ -101,13 +105,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          echo "Node version:" && node -v
+          echo "npm version:" && npm -v
           if [ -f pnpm-lock.yaml ]; then
+            echo "Detected pnpm-lock.yaml → using pnpm"
             npm i -g pnpm
             pnpm install --frozen-lockfile
-          elif [ -f package-lock.json ]; then
+          elif [ -f package.json ] && [ -f package-lock.json ] && grep -q '"lockfileVersion"' package-lock.json; then
+            echo "Detected valid package-lock.json → running npm ci"
             npm ci
           else
-            echo "No lockfile found; falling back to 'npm install'"
+            echo "Valid lockfile not found → falling back to npm install"
             npm install
           fi
 
