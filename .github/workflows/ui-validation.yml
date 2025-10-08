@@ -114,19 +114,22 @@ jobs:
 
       - name: Download Playwright Results
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: playwright-results
           path: .automation/
 
       - name: Download Lighthouse Reports
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: lighthouse-reports
           path: .automation/lighthouse-reports/
 
       - name: Generate UI Compliance Report
         run: |
-          cat > .automation/ui_compliance_report.json << 'EOF'
+          mkdir -p .automation
+          cat > .automation/ui_compliance_report.json << EOF
           {
             "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "workflow_run": "${{ github.run_id }}",

@@ -1,4 +1,3 @@
-import { chromium } from "@playwright/test";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -14,8 +13,6 @@ import { dirname, resolve } from "node:path";
  */
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
-const defaultChromeBinary = chromium.executablePath();
-const chromeBinary = process.env.PLAYWRIGHT_CHROME ?? defaultChromeBinary;
 const chromeWrapper = resolve(moduleDir, "scripts", "chrome-with-flags.sh");
 
 export default {
