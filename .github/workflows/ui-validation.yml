@@ -1,0 +1,121 @@
+name: UI Validation
+
+on:
+  pull_request:
+  push:
+    branches: [ main, '**' ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright:
+    name: Playwright Visual & A11y Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies (incl. dev)
+        run: npm ci
+
+      - name: Build server
+        run: npm run build
+
+      - name: Start server
+        run: |
+          nohup node dist/server.js > server.log 2>&1 &
+          npx wait-on http://localhost:3000/healthz
+
+      - name: Install Playwright browsers
+        uses: microsoft/playwright-github-action@v1
+
+      - name: Run UI tests
+        run: npx playwright test -c playwright.config.ts --reporter=html
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload Playwright results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7
+
+  lighthouse:
+    name: Lighthouse Performance & SEO
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies (incl. dev)
+        run: npm ci
+
+      - name: Build server
+        run: npm run build
+
+      - name: Start server
+        run: |
+          nohup node dist/server.js > server.log 2>&1 &
+          npx wait-on http://localhost:3000/healthz
+
+      - name: Run Lighthouse
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            http://localhost:3000/
+          uploadArtifacts: true
+          artifactName: lighthouse-reports
+          configPath: ''
+
+  compliance:
+    name: Generate UI Compliance Report
+    runs-on: ubuntu-latest
+    needs: [lighthouse]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download lighthouse artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: lighthouse-reports
+
+      - name: Generate compliance summary
+        run: node scripts/generate-ui-compliance.mjs
+        env:
+          LH_INPUT_DIR: lighthouse-reports
+          OUTPUT_DIR: .automation
+
+      - name: Upload compliance report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-compliance-report
+          path: .automation/lighthouse-reports/
+          retention-days: 7
+

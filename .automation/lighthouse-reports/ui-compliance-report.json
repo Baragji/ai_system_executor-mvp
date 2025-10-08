@@ -1,0 +1,22 @@
+{
+  "created_at": "2025-10-08T13:35:50.739Z",
+  "inputs_dir": "lighthouse-reports",
+  "reports": [
+    {
+      "file": "sample.json",
+      "url": "http://localhost:3000/",
+      "performance": 0.95,
+      "accessibility": 0.9,
+      "bestPractices": 0.85,
+      "seo": 0.98,
+      "pwa": null
+    }
+  ],
+  "overall": {
+    "performance": 0.95,
+    "accessibility": 0.9,
+    "bestPractices": 0.85,
+    "seo": 0.98,
+    "pwa": null
+  }
+}

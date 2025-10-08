@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 
-import Ajv2020, { type JSONSchemaType } from "ajv/dist/2020";
+import Ajv2020, { type JSONSchemaType } from "ajv/dist/2020.js";
 
 const requireJson = createRequire(import.meta.url);
 const schema = requireJson("../../contracts/execution-trace.schema.json");
