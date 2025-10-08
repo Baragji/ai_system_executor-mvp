@@ -27,8 +27,24 @@ jobs:
           node-version: '20.x'
           cache: 'npm'
 
+      - name: "Diagnostics: list repo root"
+        run: |
+          pwd
+          ls -la
+
       - name: Install dependencies (incl. dev)
-        run: npm ci
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f pnpm-lock.yaml ]; then
+            npm i -g pnpm
+            pnpm install --frozen-lockfile
+          elif [ -f package-lock.json ]; then
+            npm ci
+          else
+            echo "No lockfile found; falling back to 'npm install'"
+            npm install
+          fi
 
       - name: Build server
         run: npm run build
@@ -76,8 +92,24 @@ jobs:
           node-version: '20.x'
           cache: 'npm'
 
+      - name: "Diagnostics: list repo root"
+        run: |
+          pwd
+          ls -la
+
       - name: Install dependencies (incl. dev)
-        run: npm ci
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f pnpm-lock.yaml ]; then
+            npm i -g pnpm
+            pnpm install --frozen-lockfile
+          elif [ -f package-lock.json ]; then
+            npm ci
+          else
+            echo "No lockfile found; falling back to 'npm install'"
+            npm install
+          fi
 
       - name: Build server
         run: npm run build
