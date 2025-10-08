@@ -1,0 +1,968 @@
+{
+    "contract_version": "A.2.0",
+    "contract_meta": {
+      "created": "2025-10-08",
+      "phase": "A",
+      "phase_name": "UI Baseline Fixes - CDI Enhanced",
+      "prerequisite_phase": "Phase 4 (Task planning & testing complete)",
+      "enhancement": "Added CDI discovery phase, evidence requirements, and anti-drift guardrails while preserving all implementation detail",
+      "rationale": "Research findings (04_ai_integration_pattern.md) applied: selective discovery before changes, evidence-backed validation, stack compliance enforcement",
+      "references": [
+        "UX_UI_TEST_REPORT.md",
+        "UX_IMPROVEMENT_ACTION_PLAN.md",
+        "Trust Engine Roadmap",
+        "04_ai_integration_pattern.md (CDI MVS)"
+      ]
+    },
+    "project": {
+      "name": "executor-mvp",
+      "current_phase": "A",
+      "goal": "Fix critical UI perception issues with discovery-first approach and evidence-backed validation",
+      "scope": "Discovery task + Wins A1-A3 + Evidence collection",
+      "estimated_time": "4 hours total (1hr discovery + 3hrs wins)",
+      "work_profile": "Discovery phase + Frontend JavaScript, HTML, CSS - no backend changes",
+      "out_of_scope": [
+        "SSE/real-time progress (Phase C)",
+        "Trust Engine backend (Phase B)",
+        "New schemas or backend logic"
+      ]
+    },
+    "execution_model": {
+      "type": "discovery_then_autonomous",
+      "verification_strategy": "discover_validate_implement_prove",
+      "description": "Agent performs discovery to map integration points, then implements with detailed guidance, then provides evidence",
+      "failure_mode": "halt_and_report",
+      "no_assumptions": true,
+      "evidence_required": true
+    },
+    "stack_compliance": {
+      "enforced_by": "ai-stack.json",
+      "language": "TypeScript",
+      "frameworks": ["Express"],
+      "test_command": "vitest run --reporter=default",
+      "constraints": [
+        "no python",
+        "frontend under /public only",
+        "no new frameworks"
+      ],
+      "validation": "Contract schema + CI gates"
+    },
+    "environments": {
+      "dev": {
+        "node_version": ">=20.10.0 <21",
+        "package_manager": "npm",
+        "os": "linux|macos",
+        "env_vars_required": [],
+        "optional_env_vars": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"]
+      }
+    },
+    "observability": {
+      "description": "CDI-enhanced observability: discovery decisions + implementation trace + evidence collection",
+      "trace_file": ".automation/execution_trace.jsonl",
+      "discovery_file": ".automation/phaseA_discovery.json",
+      "evidence_file": ".automation/phaseA_evidence.json",
+      "evaluation_file": ".automation/evaluation_results.json",
+      "monitoring": {
+        "discovery_phase_tracking": true,
+        "integration_point_validation": true,
+        "evidence_collection_tracking": true,
+        "task_status_tracking": true,
+        "verification_pass_fail": true,
+        "elapsed_time_per_task": true
+      },
+      "logging": {
+        "format": "jsonl",
+        "fields": ["timestamp", "task_id", "action", "status", "cmd", "exit_code", "stdout_excerpt", "stderr_excerpt", "discovery_note", "evidence_type"]
+      },
+      "evaluation": {
+        "continuous": true,
+        "evaluate_after_discovery": true,
+        "evaluate_after_each_win": true,
+        "quality_dimensions": ["correctness", "completeness", "safety", "evidence_quality"]
+      }
+    },
+    "global_quality_standards": {
+      "lint": {
+        "command": "npm run lint",
+        "must_pass": true,
+        "max_warnings": 0
+      },
+      "typecheck": {
+        "command": "npm run typecheck",
+        "must_pass": true
+      },
+      "tests": {
+        "command": "npm test",
+        "expected": {
+          "exit_code": 0,
+          "no_failed_suites": true
+        },
+        "coverage": {
+          "min_line_pct": 80,
+          "min_branch_pct": 75
+        }
+      },
+      "contract_schema": {
+        "command": "npm run contract:check",
+        "must_pass": true
+      },
+      "sbom": {
+        "command": "npm run sbom",
+        "must_generate": "sbom.spdx.json"
+      }
+    },
+    "high_level_stages": [
+      "phase4_verification",
+      "discovery_phase",
+      "success_card_implementation",
+      "loading_states_implementation",
+      "error_formatting_implementation",
+      "evidence_collection",
+      "phaseA_validation"
+    ],
+    "tasks": [
+      {
+        "id": "P4-V01",
+        "stage": "phase4_verification",
+        "title": "Verify Phase 4 completion + stack compliance",
+        "type": "verification",
+        "description": "Confirm Phase 4 complete and verify ai-stack.json compliance before discovery",
+        "verification_mode": "observe_only",
+        "actions": [
+          {
+            "type": "observe",
+            "cmd": "test -f src/planning/decomposeTask.ts && echo 'exists' || echo 'missing'",
+            "capture_output": true,
+            "expect_stdout": "exists"
+          },
+          {
+            "type": "observe",
+            "cmd": "test -f src/runner/runInSandbox.ts && echo 'exists' || echo 'missing'",
+            "capture_output": true,
+            "expect_stdout": "exists"
+          },
+          {
+            "type": "observe",
+            "cmd": "test -f ai-stack.json && echo 'exists' || echo 'missing'",
+            "capture_output": true,
+            "expect_stdout": "exists",
+            "on_missing": "HALT - ai-stack.json must exist before Phase A execution"
+          },
+          {
+            "type": "observe",
+            "cmd": "grep -q 'taskPlanSection' public/index.html && echo 'exists' || echo 'missing'",
+            "capture_output": true,
+            "expect_stdout": "exists"
+          },
+          {
+            "type": "observe",
+            "cmd": "npm test 2>&1 | tail -5",
+            "capture_output": true,
+            "expect_exit_code": 0
+          }
+        ],
+        "evaluation": {
+          "intent": "Verify Phase 4 complete and stack lock exists",
+          "success_criteria": "All Phase 4 artifacts exist, ai-stack.json present, tests pass",
+          "on_fail": "HALT - Prerequisites not met"
+        },
+        "trace_context": {
+          "decision_point": "prerequisites_verified",
+          "reasoning_required": true,
+          "critical": true
+        }
+      },
+      {
+        "id": "PA-DISC",
+        "stage": "discovery_phase",
+        "title": "Discovery Phase - Map UI Integration Points",
+        "type": "discovery",
+        "description": "Discover and document integration points for all 3 wins before making any changes",
+        "time_estimate_minutes": 60,
+        "actions": [
+          {
+            "type": "discover",
+            "cmd": "grep -n 'resultEl' public/script.js",
+            "capture_output": true,
+            "purpose": "Find all result rendering locations"
+          },
+          {
+            "type": "discover",
+            "cmd": "grep -n 'executeRequest' public/script.js | head -30",
+            "capture_output": true,
+            "purpose": "Identify execution flow and where to hook success/loading/error"
+          },
+          {
+            "type": "discover",
+            "cmd": "grep -n 'textContent.*=' public/script.js | grep result",
+            "capture_output": true,
+            "purpose": "Find where results are currently rendered (to replace with card)"
+          },
+          {
+            "type": "discover",
+            "cmd": "grep -n 'catch' public/script.js",
+            "capture_output": true,
+            "purpose": "Find all error handling locations"
+          },
+          {
+            "type": "discover",
+            "cmd": "ls -la public/*.css",
+            "capture_output": true,
+            "purpose": "Identify CSS files for styling"
+          },
+          {
+            "type": "analyze",
+            "requirement": "For each win, identify exact integration point (file + line + function/selector)",
+            "output": ".automation/phaseA_discovery.json",
+            "fields": {
+              "win_a1_integration": {
+                "file": "public/script.js",
+                "function": "executeRequest (specific line where resultEl.textContent is set)",
+                "current_implementation": "snippet showing current result rendering",
+                "proposed_hook": "Replace resultEl.textContent with renderSuccessCard() call",
+                "dependencies": ["resultEl DOM element", "data object structure"],
+                "breaking_changes": "none - progressive enhancement"
+              },
+              "win_a2_integration": {
+                "file": "public/script.js",
+                "function": "executeRequest (loading message location)",
+                "current_implementation": "snippet showing current loading text",
+                "proposed_hook": "Replace static text with updateLoadingPhase() call",
+                "dependencies": ["resultEl", "setInterval for phase updates"],
+                "breaking_changes": "none"
+              },
+              "win_a3_integration": {
+                "file": "public/script.js",
+                "function": "catch blocks in executeRequest and startClarificationFlow",
+                "current_implementation": "snippet showing current error handling",
+                "proposed_hook": "Replace error textContent with formatError() HTML",
+                "dependencies": ["error object structure"],
+                "breaking_changes": "none"
+              },
+              "css_integration": {
+                "file": "public/styles.css",
+                "append_location": "end of file",
+                "new_classes": [".success-card", ".spinner", ".error-card"]
+              },
+              "stack_compliance_check": {
+                "typescript": "confirmed - .js files can use JS",
+                "no_python": "confirmed - no .py files",
+                "frontend_only": "confirmed - changes under /public",
+                "no_frameworks": "confirmed - vanilla JS/CSS only"
+              }
+            }
+          },
+          {
+            "type": "document",
+            "requirement": "Create discovery note with code snippets (±10 lines each)",
+            "output": ".automation/phaseA_discovery_note.md",
+            "content": [
+              "# Phase A Discovery Note",
+              "## Win A1 Integration Point",
+              "- File: public/script.js",
+              "- Function: executeRequest",
+              "- Line: [exact line number]",
+              "- Current code snippet:",
+              "```javascript",
+              "[paste actual code ±10 lines]",
+              "```",
+              "- Justification: This is where successful execution results are rendered",
+              "",
+              "## Win A2 Integration Point",
+              "[same structure]",
+              "",
+              "## Win A3 Integration Point",
+              "[same structure]",
+              "",
+              "## Stack Compliance Verified",
+              "✓ TypeScript/JS only",
+              "✓ No Python",
+              "✓ Frontend under /public",
+              "✓ No new frameworks"
+            ]
+          }
+        ],
+        "validation": [
+          {
+            "cmd": "test -f .automation/phaseA_discovery.json",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "test -f .automation/phaseA_discovery_note.md",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "grep -q 'win_a1_integration' .automation/phaseA_discovery.json",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "wc -l .automation/phaseA_discovery_note.md | awk '{print $1 >= 30}'",
+            "expect_stdout": "1",
+            "reason": "Discovery note must be substantial (30+ lines with snippets)"
+          }
+        ],
+        "success_criteria": [
+          "All 3 win integration points identified with exact file/line/function",
+          "Code snippets captured for each integration point",
+          "Stack compliance verified (TypeScript, no Python, /public only)",
+          "Zero breaking changes identified",
+          "Discovery JSON and markdown note generated"
+        ],
+        "evaluation": {
+          "intent": "Map integration landscape before making changes",
+          "success_criteria": "Specific integration points documented with evidence",
+          "on_fail": "HALT - Cannot proceed without clear integration plan"
+        },
+        "trace_context": {
+          "decision_point": "discovery_complete",
+          "reasoning_required": true,
+          "critical": true
+        }
+      },
+      {
+        "id": "WA1",
+        "stage": "success_card_implementation",
+        "title": "Win #A1: Success Card (Replace JSON Dump)",
+        "type": "win",
+        "description": "Replace raw JSON output with formatted success card - using integration point from discovery",
+        "time_estimate_minutes": 75,
+        "work_profile": "Frontend JavaScript function, HTML structure, CSS styling",
+        "prerequisite": "PA-DISC complete - integration point identified",
+        "actions": [
+          {
+            "type": "edit_file",
+            "file": "public/script.js",
+            "content_spec": {
+              "new_function": "renderSuccessCard(data)",
+              "location": "After renderRepairHistory function, before executeRequest",
+              "implementation": [
+                "Function signature: function renderSuccessCard(data)",
+                "Detect success: if (!data.ok || !data.files_written) return false",
+                "Clear resultEl first",
+                "Create div.success-card with:",
+                "  - div.success-header: icon (✅) + h2 'Project Generated Successfully!'",
+                "  - div.success-metrics: 3 metric cards (files, tests, time)",
+                "  - div.file-list: h3 + ul of generated files with icons",
+                "  - div.action-buttons: primary 'Open Project' link + secondary 'Run Tests' button",
+                "  - details.raw-json: summary 'View Raw Response' + pre with JSON",
+                "Append card to resultEl",
+                "Return true to indicate success card rendered"
+              ]
+            }
+          },
+          {
+            "type": "edit_file",
+            "file": "public/script.js",
+            "content_spec": {
+              "modify_function": "executeRequest",
+              "location": "At integration point identified in PA-DISC",
+              "change": [
+                "After 'const data = await resp.json();'",
+                "Replace 'resultEl.textContent = JSON.stringify(data, null, 2);'",
+                "With: if (!renderSuccessCard(data)) { resultEl.textContent = JSON.stringify(data, null, 2); }"
+              ]
+            }
+          },
+          {
+            "type": "edit_file",
+            "file": "public/styles.css",
+            "content_spec": {
+              "add_styles": ".success-card",
+              "location": "End of file",
+              "css": [
+                ".success-card { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 24px; margin-top: 16px; }",
+                ".success-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }",
+                ".success-header .success-icon { font-size: 32px; }",
+                ".success-header h2 { margin: 0; color: #a7f3d0; }",
+                ".success-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }",
+                ".metric { text-align: center; padding: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; }",
+                ".metric-value { display: block; font-size: 28px; font-weight: bold; color: #a7f3d0; }",
+                ".metric-label { display: block; font-size: 14px; color: #94a3b8; margin-top: 4px; }",
+                ".file-list { margin-bottom: 24px; }",
+                ".file-list h3 { color: #e2e8f0; font-size: 16px; margin-bottom: 12px; }",
+                ".file-list ul { list-style: none; padding: 0; margin: 0; }",
+                ".file-list li { padding: 6px 0; color: #cbd5e1; font-family: 'Monaco', 'Courier New', monospace; font-size: 14px; }",
+                ".action-buttons { display: flex; gap: 12px; margin-bottom: 16px; }",
+                ".action-buttons .btn { padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s ease; }",
+                ".action-buttons .btn-primary { background: #3b82f6; color: white; }",
+                ".action-buttons .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }",
+                ".action-buttons .btn-secondary { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; }",
+                ".action-buttons .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }",
+                ".raw-json { margin-top: 16px; }",
+                ".raw-json summary { color: #94a3b8; cursor: pointer; font-size: 14px; }",
+                ".raw-json pre { margin-top: 12px; max-height: 300px; overflow-y: auto; }"
+              ]
+            }
+          }
+        ],
+        "validation": [
+          {
+            "cmd": "grep -q 'function renderSuccessCard' public/script.js",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "grep -q 'renderSuccessCard(data)' public/script.js",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "grep -q '\\.success-card' public/styles.css",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "npm run lint",
+            "expect_exit_code": 0
+          }
+        ],
+        "success_criteria": [
+          "renderSuccessCard function exists in script.js",
+          "Function called at discovered integration point",
+          "Success card shows: header, metrics, file list, action buttons, collapsed JSON",
+          "CSS styles make card visually distinct (green theme)",
+          "Lint passes, no console errors",
+          "JSON still available in collapsed details element"
+        ],
+        "evidence_requirements": {
+          "integration_snippet": "Code showing renderSuccessCard() call at exact location",
+          "test_run": "npm test output showing exit 0",
+          "visual_proof": "Manual test confirming success card renders correctly"
+        },
+        "trace_context": {
+          "decision_point": "success_card_implemented",
+          "win_number": "A1",
+          "evidence_collected": true
+        }
+      },
+      {
+        "id": "WA2",
+        "stage": "loading_states_implementation",
+        "title": "Win #A2: Loading States (Phase-Aware Messages)",
+        "type": "win",
+        "description": "Add spinner and phase-aware loading messages - using integration point from discovery",
+        "time_estimate_minutes": 55,
+        "work_profile": "Frontend JavaScript timing, HTML structure, CSS animations",
+        "prerequisite": "PA-DISC complete - loading message location identified",
+        "actions": [
+          {
+            "type": "edit_file",
+            "file": "public/script.js",
+            "content_spec": {
+              "new_function": "updateLoadingPhase()",
+              "location": "Before executeRequest function",
+              "implementation": [
+                "Add module-level variable: let loadingPhaseTimer = null;",
+                "Add module-level variable: let loadingPhase = 0;",
+                "Function signature: function updateLoadingPhase()",
+                "Phases:",
+                "  Phase 0 (0-10s): 'Analyzing your request...' + 'Reading requirements and preparing plan. (typically 10-20 seconds)'",
+                "  Phase 1 (10-30s): 'Creating execution plan...' + 'Breaking down into manageable steps. (typically 10-30 seconds)'",
+                "  Phase 2 (30s+): 'Building your project...' + 'Generating files and running tests. This may take several minutes.'",
+                "Update resultEl with spinner HTML + phase message",
+                "Return timer reference"
+              ]
+            }
+          },
+          {
+            "type": "edit_file",
+            "file": "public/script.js",
+            "content_spec": {
+              "modify_function": "executeRequest",
+              "location": "At loading state integration point from PA-DISC",
+              "changes": [
+                "Replace initial 'resultEl.textContent = \"Planning and executing...\"'",
+                "With: loadingPhase = 0; updateLoadingPhase();",
+                "Add: loadingPhaseTimer = setInterval(() => { loadingPhase++; updateLoadingPhase(); }, 10000);",
+                "In try/finally: clearInterval(loadingPhaseTimer); loadingPhaseTimer = null;"
+              ]
+            }
+          },
+          {
+            "type": "edit_file",
+            "file": "public/styles.css",
+            "content_spec": {
+              "add_styles": ".loading-state",
+              "location": "End of file",
+              "css": [
+                ".loading-state { text-align: center; padding: 40px 20px; }",
+                ".spinner { width: 40px; height: 40px; margin: 0 auto 20px; border: 4px solid rgba(148, 163, 184, 0.3); border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }",
+                "@keyframes spin { to { transform: rotate(360deg); } }",
+                ".loading-state h3 { color: #e2e8f0; font-size: 20px; margin: 0 0 12px 0; }",
+                ".loading-hint { color: #94a3b8; font-size: 14px; max-width: 400px; margin: 0 auto; line-height: 1.5; }"
+              ]
+            }
+          }
+        ],
+        "validation": [
+          {
+            "cmd": "grep -q 'function updateLoadingPhase' public/script.js",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "grep -q 'loadingPhaseTimer' public/script.js",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "grep -q '\\.spinner' public/styles.css",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "grep -q '@keyframes spin' public/styles.css",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "npm run lint",
+            "expect_exit_code": 0
+          }
+        ],
+        "success_criteria": [
+          "updateLoadingPhase function exists and works",
+          "Loading message updates every 10 seconds",
+          "Spinner animation visible and smooth",
+          "Three distinct phases with different messages",
+          "Timer cleared when generation completes",
+          "No visual jump or flicker between phases"
+        ],
+        "evidence_requirements": {
+          "integration_snippet": "Code showing updateLoadingPhase() implementation and timer setup",
+          "test_run": "npm test output showing exit 0",
+          "visual_proof": "Manual test showing phase transitions"
+        },
+        "trace_context": {
+          "decision_point": "loading_states_implemented",
+          "win_number": "A2",
+          "evidence_collected": true
+        }
+      },
+      {
+        "id": "WA3",
+        "stage": "error_formatting_implementation",
+        "title": "Win #A3: Error Message Formatting",
+        "type": "win",
+        "description": "Convert technical errors to user-friendly messages - using error handling points from discovery",
+        "time_estimate_minutes": 55,
+        "work_profile": "Frontend JavaScript error handling, HTML structure, CSS styling",
+        "prerequisite": "PA-DISC complete - error handling locations identified",
+        "actions": [
+          {
+            "type": "edit_file",
+            "file": "public/script.js",
+            "content_spec": {
+              "new_function": "formatError(error)",
+              "location": "Before executeRequest function",
+              "implementation": [
+                "Function signature: function formatError(error)",
+                "Define errorMap object with common errors:",
+                "  'Failed to fetch': {title: 'Connection Error', message: 'Unable to connect to server', action: 'Check server is running: npm run dev'}",
+                "  'ERR_CONNECTION_REFUSED': {title: 'Server Not Running', message: 'Backend service not responding', action: 'Start server: npm run dev'}",
+                "  'timeout': {title: 'Request Timeout', message: 'Operation took too long', action: 'Try simpler request or check logs'}",
+                "  'NetworkError': {title: 'Network Error', message: 'Network connection lost', action: 'Check internet connection'}",
+                "Match error string against errorMap keys",
+                "If match found, return formatted error card HTML",
+                "If no match, return generic friendly error with technical details collapsed",
+                "HTML structure: div.error-card with header, message, action, details"
+              ]
+            }
+          },
+          {
+            "type": "edit_file",
+            "file": "public/script.js",
+            "content_spec": {
+              "modify_function": "executeRequest",
+              "location": "At error handling integration point from PA-DISC",
+              "changes": [
+                "In catch block, replace 'resultEl.textContent = String(err);'",
+                "With: resultEl.innerHTML = formatError(err);"
+              ]
+            }
+          },
+          {
+            "type": "edit_file",
+            "file": "public/script.js",
+            "content_spec": {
+              "modify_function": "startClarificationFlow",
+              "location": "At error handling integration point from PA-DISC",
+              "changes": [
+                "In error handling, replace 'resultEl.textContent = String(err);'",
+                "With: resultEl.innerHTML = formatError(err);"
+              ]
+            }
+          },
+          {
+            "type": "edit_file",
+            "file": "public/styles.css",
+            "content_spec": {
+              "add_styles": ".error-card",
+              "location": "End of file",
+              "css": [
+                ".error-card { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 24px; margin-top: 16px; }",
+                ".error-card .error-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }",
+                ".error-card .error-icon { font-size: 24px; }",
+                ".error-card .error-title { margin: 0; color: #fca5a5; font-size: 20px; }",
+                ".error-card .error-message { color: #fecaca; margin-bottom: 16px; line-height: 1.6; }",
+                ".error-card .error-action { color: #cbd5e1; background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 6px; margin-bottom: 16px; font-family: 'Monaco', monospace; font-size: 14px; }",
+                ".error-card details { margin-top: 16px; }",
+                ".error-card summary { color: #94a3b8; cursor: pointer; font-size: 14px; }",
+                ".error-card pre { margin-top: 12px; color: #94a3b8; font-size: 12px; max-height: 200px; overflow-y: auto; }"
+              ]
+            }
+          }
+        ],
+        "validation": [
+          {
+            "cmd": "grep -q 'function formatError' public/script.js",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "grep -q 'formatError(err)' public/script.js",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "grep -q '\\.error-card' public/styles.css",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "npm run lint",
+            "expect_exit_code": 0
+          }
+        ],
+        "success_criteria": [
+          "formatError function exists and handles common errors",
+          "Error card shows: title, message, actionable steps",
+          "Technical details collapsed by default",
+          "All error paths use formatError (executeRequest, startClarificationFlow)",
+          "CSS makes errors distinct but not alarming (red theme, not aggressive)",
+          "Unknown errors still get friendly wrapping"
+        ],
+        "evidence_requirements": {
+          "integration_snippet": "Code showing formatError() calls at discovered error handling points",
+          "test_run": "npm test output showing exit 0",
+          "error_scenarios": "Manual test of connection error, timeout, unknown error"
+        },
+        "trace_context": {
+          "decision_point": "error_formatting_implemented",
+          "win_number": "A3",
+          "evidence_collected": true
+        }
+      },
+      {
+        "id": "PA-EVID",
+        "stage": "evidence_collection",
+        "title": "Collect and validate all evidence artifacts",
+        "type": "evidence",
+        "description": "Generate SBOM, validate contract schema, compile evidence for PA-GATE",
+        "time_estimate_minutes": 15,
+        "actions": [
+          {
+            "type": "validate",
+            "cmd": "npm run contract:check",
+            "expect_exit_code": 0,
+            "purpose": "Validate this contract against schema"
+          },
+          {
+            "type": "generate",
+            "cmd": "npm run sbom",
+            "expect_exit_code": 0,
+            "output": "sbom.spdx.json",
+            "purpose": "Generate SBOM artifact"
+          },
+          {
+            "type": "compile",
+            "output": ".automation/phaseA_evidence.json",
+            "content": {
+              "discovery_note": "Path to .automation/phaseA_discovery_note.md",
+              "integration_points": {
+                "win_a1": "File + line + snippet",
+                "win_a2": "File + line + snippet",
+                "win_a3": "File + line + snippet"
+              },
+              "test_results": {
+                "cmd": "npm test",
+                "exit_code": 0,
+                "timestamp": "ISO8601"
+              },
+              "contract_validation": {
+                "cmd": "npm run contract:check",
+                "exit_code": 0,
+                "timestamp": "ISO8601"
+              },
+              "sbom": {
+                "file": "sbom.spdx.json",
+                "format": "SPDX",
+                "exists": true
+              },
+              "stack_compliance": {
+                "verified": true,
+                "language": "TypeScript/JavaScript",
+                "no_python": true,
+                "frontend_only": true
+              }
+            }
+          }
+        ],
+        "validation": [
+          {
+            "cmd": "test -f .automation/phaseA_evidence.json",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "test -f sbom.spdx.json",
+            "expect_exit_code": 0
+          },
+          {
+            "cmd": "npm run contract:check",
+            "expect_exit_code": 0
+          }
+        ],
+        "success_criteria": [
+          "Evidence JSON exists with all required fields",
+          "SBOM artifact generated",
+          "Contract validates against schema",
+          "All test runs documented with exit codes"
+        ],
+        "trace_context": {
+          "decision_point": "evidence_compiled",
+          "reasoning_required": false,
+          "critical": true
+        }
+      },
+      {
+        "id": "PA-GATE",
+        "stage": "phaseA_validation",
+        "title": "Phase A validation gate (CDI-enhanced)",
+        "type": "validation",
+        "description": "Final validation with evidence requirements and stack compliance",
+        "actions": [
+          {
+            "type": "validate",
+            "cmd": "npm run lint",
+            "expect_exit_code": 0
+          },
+          {
+            "type": "validate",
+            "cmd": "npm run typecheck",
+            "expect_exit_code": 0
+          },
+          {
+            "type": "validate",
+            "cmd": "npm test",
+            "expect_exit_code": 0
+          },
+          {
+            "type": "validate",
+            "cmd": "npm run contract:check",
+            "expect_exit_code": 0
+          },
+          {
+            "type": "validate",
+            "cmd": "test -f sbom.spdx.json",
+            "expect_exit_code": 0
+          },
+          {
+            "type": "validate",
+            "cmd": "grep -q 'renderSuccessCard' public/script.js && grep -q 'updateLoadingPhase' public/script.js && grep -q 'formatError' public/script.js",
+            "expect_exit_code": 0
+          },
+          {
+            "type": "validate",
+            "cmd": "grep -q 'success-card' public/styles.css && grep -q 'spinner' public/styles.css && grep -q 'error-card' public/styles.css",
+            "expect_exit_code": 0
+          },
+          {
+            "type": "validate",
+            "description": "Verify discovery artifacts exist",
+            "cmd": "test -f .automation/phaseA_discovery.json && test -f .automation/phaseA_discovery_note.md && test -f .automation/phaseA_evidence.json",
+            "expect_exit_code": 0
+          },
+          {
+            "type": "manual_test",
+            "description": "End-to-end UI validation",
+            "tests": [
+              "Generate successful project - verify success card appears with metrics, files, buttons",
+              "Watch loading states - verify spinner animates, messages update every 10s",
+              "Stop server and try execute - verify friendly error message with connection guidance",
+              "All UI changes look professional, no raw JSON visible on success",
+              "No console errors during any flow"
+            ]
+          }
+        ],
+        "evaluation": {
+          "intent": "Confirm Phase A complete with CDI evidence and stack compliance",
+          "success_criteria": "All wins work, all evidence artifacts present, gates pass, stack compliant",
+          "on_pass": "Phase A COMPLETE - CDI pattern established. Ready for Phase B (Trust Engine)",
+          "on_fail": "HALT - Fix issues before declaring phase complete"
+        },
+        "trace_context": {
+          "decision_point": "phaseA_gate",
+          "reasoning_required": true,
+          "critical": true,
+          "gate_type": "go_no_go"
+        }
+      }
+    ],
+    "execution_order": [
+      "P4-V01",
+      "PA-DISC",
+      "WA1",
+      "WA2",
+      "WA3",
+      "PA-EVID",
+      "PA-GATE"
+    ],
+    "execution_semantics": {
+      "discovery_first": {
+        "description": "PA-DISC must complete successfully before any win implementation",
+        "enforcement": "Wins reference integration points from discovery",
+        "rationale": "Selective discovery prevents full-repo analysis and ensures precision"
+      },
+      "win_isolation": {
+        "description": "Each win must be complete, tested, and verified before next",
+        "implementation": "Visual verification + evidence collection after each win"
+      },
+      "evidence_backed": {
+        "description": "All claims must be backed by artifacts",
+        "artifacts": [
+          "Discovery note with code snippets",
+          "Test run outputs (exit 0)",
+          "Contract schema validation",
+          "SBOM file",
+          "Evidence compilation JSON"
+        ]
+      },
+      "gate_enforcement": {
+        "PA-GATE": {
+          "required": true,
+          "on_fail": "HALT execution. Do not proceed to Phase B.",
+          "evidence_check": "All evidence artifacts must exist and validate"
+        }
+      }
+    },
+    "completion_criteria": {
+      "phase4_verified": true,
+      "discovery_completed": true,
+      "all_integration_points_documented": true,
+      "success_card_works": true,
+      "loading_states_work": true,
+      "error_formatting_works": true,
+      "no_raw_json_visible": true,
+      "all_tests_pass": true,
+      "lint_passes": true,
+      "contract_validates": true,
+      "sbom_generated": true,
+      "evidence_artifacts_present": true,
+      "stack_compliant": true,
+      "manual_demos_approved": true
+    },
+    "fallback_policies": {
+      "phase4_verification_fails": "HALT - Phase 4 must be complete",
+      "discovery_fails": "HALT - Cannot implement without integration plan",
+      "stack_compliance_violation": "HALT - Reject changes violating ai-stack.json",
+      "evidence_missing": "HALT - Cannot pass gate without evidence",
+      "lint_fails": "Fix linting errors before proceeding",
+      "ui_breaks": "Revert changes, fix issue, re-test",
+      "console_errors": "Fix JavaScript errors before proceeding"
+    },
+    "reporting": {
+      "progress_file": ".automation/progress_phaseA.json",
+      "fields": ["task_id", "win_number", "status", "started_at", "finished_at", "elapsed_ms", "result", "errors", "evidence"],
+      "status_values": ["pending", "running", "success", "failed", "skipped"],
+      "phaseA_report": {
+        "file": ".automation/phaseA_completion_report.json",
+        "fields": [
+          "discovery_completed",
+          "wins_completed",
+          "gate_passed",
+          "evidence_artifacts",
+          "stack_compliance_verified",
+          "timestamp",
+          "next_phase",
+          "diagnostics"
+        ]
+      }
+    },
+    "final_artifacts_verification": [
+      {
+        "name": "Discovery JSON",
+        "path": ".automation/phaseA_discovery.json",
+        "must_exist": true,
+        "must_include_field": "win_a1_integration"
+      },
+      {
+        "name": "Discovery Note",
+        "path": ".automation/phaseA_discovery_note.md",
+        "must_exist": true,
+        "min_lines": 30
+      },
+      {
+        "name": "Evidence Compilation",
+        "path": ".automation/phaseA_evidence.json",
+        "must_exist": true,
+        "must_include_field": "discovery_note"
+      },
+      {
+        "name": "SBOM Artifact",
+        "path": "sbom.spdx.json",
+        "must_exist": true
+      },
+      {
+        "name": "Success Card Function",
+        "path": "public/script.js",
+        "must_include_regex": "function renderSuccessCard"
+      },
+      {
+        "name": "Loading Phase Function",
+        "path": "public/script.js",
+        "must_include_regex": "function updateLoadingPhase"
+      },
+      {
+        "name": "Error Formatter Function",
+        "path": "public/script.js",
+        "must_include_regex": "function formatError"
+      },
+      {
+        "name": "Success Card Styles",
+        "path": "public/styles.css",
+        "must_include_regex": "\\.success-card"
+      },
+      {
+        "name": "Spinner Styles",
+        "path": "public/styles.css",
+        "must_include_regex": "@keyframes spin"
+      },
+      {
+        "name": "Error Card Styles",
+        "path": "public/styles.css",
+        "must_include_regex": "\\.error-card"
+      },
+      {
+        "name": "Phase A Report",
+        "path": ".automation/phaseA_completion_report.json",
+        "must_exist": true,
+        "must_include_field": "gate_passed"
+      }
+    ],
+    "release_actions": [
+      {
+        "cmd": "git add .",
+        "expect_exit_code": 0
+      },
+      {
+        "cmd": "git commit -m \"feat(phaseA): UI baseline with CDI - discovery, wins, evidence\"",
+        "expect_exit_code": 0
+      },
+      {
+        "cmd": "git tag phaseA-complete-cdi",
+        "expect_exit_code": 0
+      }
+    ],
+    "ai_executor_guidelines": {
+      "discovery_mandatory": "PA-DISC must complete before any win. Document exact integration points with code snippets.",
+      "no_assumptions": "Never assume file structure. Always discover, then implement.",
+      "evidence_first": "Every claim must be backed by an artifact. No 'trust me' statements.",
+      "win_isolation": "Complete and verify each win fully before proceeding.",
+      "stack_compliance": "Verify against ai-stack.json at every step. Halt if violated.",
+      "gate_enforcement": "PA-GATE must pass before declaring phase complete.",
+      "quality_over_speed": "Ship perfect or never. No shortcuts."
+    },
+    "governance_note": {
+      "for_human": "Phase A enhanced with CDI pattern from research findings. Discovery phase ensures no assumptions, evidence requirements ensure proof, stack compliance prevents drift. All implementation detail preserved. This is the 'ship perfect' version."
+    }
+  }

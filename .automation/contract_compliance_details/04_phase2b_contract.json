@@ -1,0 +1,369 @@
+[
+  {
+    "contract": "04_phase2b_contract.json",
+    "task_id": "P2A-V01",
+    "title": "Verify Phase 2A + Observability Fix completion",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -f contracts/clarification-request.schema.json && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/clarification/detectMissing.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/clarification/generateQuestions.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q '/api/clarify' src/server.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f .automation/execution_trace.jsonl && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f .automation/evaluation_results.json && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test 2>&1 | tail -5",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "04_phase2b_contract.json",
+    "task_id": "W14",
+    "title": "Win #14: Prompt Augmentation Logic",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/clarification/augmentPrompt.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'export function augmentPrompt' src/clarification/augmentPrompt.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- augmentPrompt.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "04_phase2b_contract.json",
+    "task_id": "W15",
+    "title": "Win #15: Integrate Clarification into Execute Flow",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "grep -q 'clarifications' src/server.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- execute-with-clarifications.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "04_phase2b_contract.json",
+    "task_id": "W16",
+    "title": "Win #16: UI Clarification Form",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "grep -q 'clarificationSection' public/index.html",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q '/api/clarify' public/script.js",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run lint",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "04_phase2b_contract.json",
+    "task_id": "CHECKPOINT",
+    "title": "MANDATORY CHECKPOINT: Assess before Win #17",
+    "type": "governance",
+    "validation_steps": [],
+    "evidence": [],
+    "notes": [
+      "No executable validation steps; manual verification required."
+    ],
+    "result": "skipped"
+  },
+  {
+    "contract": "04_phase2b_contract.json",
+    "task_id": "W17",
+    "title": "Win #17: Connect UI Question Flow to Execute",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "grep -q 'clarifications' public/script.js",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run lint",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "04_phase2b_contract.json",
+    "task_id": "P2B-GATE",
+    "title": "Phase 2B validation gate",
+    "type": "validation",
+    "validation_steps": [
+      {
+        "cmd": "npm run lint",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/clarification/augmentPrompt.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'clarifications' src/server.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'clarificationSection' public/index.html",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "task_id": "ARTIFACT:Prompt Augmentation Module",
+    "title": "Verify artifact Prompt Augmentation Module",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/clarification/augmentPrompt.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export function augmentPrompt\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "04_phase2b_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Execute Integration",
+    "title": "Verify artifact Execute Integration",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/server.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"clarifications\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "04_phase2b_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:UI Clarification Section",
+    "title": "Verify artifact UI Clarification Section",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:public/index.html",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"clarificationSection\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "04_phase2b_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:UI Clarification Logic",
+    "title": "Verify artifact UI Clarification Logic",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:public/script.js",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"/api/clarify\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "04_phase2b_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Phase 2B Report",
+    "title": "Verify artifact Phase 2B Report",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/phase2b_completion_report.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true},{\"check\":\"must_include_field\",\"field\":\"gate_passed\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/phase2b_completion_report.json"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "04_phase2b_contract.json"
+  }
+]

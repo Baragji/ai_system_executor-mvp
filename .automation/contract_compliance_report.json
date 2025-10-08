@@ -1,0 +1,1988 @@
+{
+  "timestamp": "2025-10-07T07:03:41.858Z",
+  "overall_status": "fail",
+  "phases": [
+    {
+      "contract": "01_remediation_contract_v2.json",
+      "status": "fail",
+      "wins_total": 0,
+      "wins_passed": 0,
+      "gate_passed": false,
+      "gaps": [
+        {
+          "id": "01_remediation_contract_v2.json-P0-V01",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Verify Phase 0: Project structure exists",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-P0-V02",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Verify Phase 0: Dependencies installable",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-P0-V03",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Verify Phase 0: Core server module exists",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-P0-V04",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Verify Phase 0: UI files exist",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-P0-V05",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Verify Phase 0: LLM integration exists",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-P0-V06",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Verify Phase 0: Output directory exists",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-P0-EVAL",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Evaluate Phase 0 verification results",
+          "observed": "Manual verification required but no automated evidence.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-P0-R01",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Remediate: Create missing project structure",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-P0-R02",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Remediate: Fix package.json dependencies",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-P0-R03",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Remediate: Create minimal server",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-P0-R04",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Remediate: Create minimal UI",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-P0-R05",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Remediate: Create executor module",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-P0-R06",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Remediate: Create output directory",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-P0-GATE",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Phase 0 validation gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "critical",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T01",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Install dependencies",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T02",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Fix run-result schema JSON correctness",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T03",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Create/align TypeScript RunResult interface",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T04",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Remove duplicate runner and export single canonical module",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T05",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Enhance runInSandbox to compute pass/fail counts from log",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T06",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Align /api/run-tests response to unified schema",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T07",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Repair failing integration test expectations",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T08",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Add 'Run Tests' button and handler",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T09",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Introduce repairOnce logic",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T10",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Integrate repair into /api/execute flow",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T11",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Display automatic test + repair timeline",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T12",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Augment metadata with testRuns + file checksums",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T13",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Add lightweight event telemetry",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T14",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Implement deterministic E2E test with mock LLM",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T15",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Finalize lint, type, test pass & remove legacy runner",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "01_remediation_contract_v2.json-T16",
+          "contract": "01_remediation_contract_v2.json",
+          "requirement": "Production readiness gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        }
+      ]
+    },
+    {
+      "contract": "02_phase2a_contract.json",
+      "status": "fail",
+      "wins_total": 4,
+      "wins_passed": 0,
+      "gate_passed": false,
+      "gaps": [
+        {
+          "id": "02_phase2a_contract.json-P1-V01",
+          "contract": "02_phase2a_contract.json",
+          "requirement": "Verify Phase 1 completion",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "02_phase2a_contract.json-W10",
+          "contract": "02_phase2a_contract.json",
+          "requirement": "Win #10: Define Clarification Contracts",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "02_phase2a_contract.json-W11",
+          "contract": "02_phase2a_contract.json",
+          "requirement": "Win #11: Critical Info Detector",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "02_phase2a_contract.json-W12",
+          "contract": "02_phase2a_contract.json",
+          "requirement": "Win #12: Question Generator",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "02_phase2a_contract.json-W13",
+          "contract": "02_phase2a_contract.json",
+          "requirement": "Win #13: API Endpoint for Clarification",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "02_phase2a_contract.json-P2A-GATE",
+          "contract": "02_phase2a_contract.json",
+          "requirement": "Phase 2A validation gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "critical",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        }
+      ]
+    },
+    {
+      "contract": "03_phase2a_observability_fix.json",
+      "status": "fail",
+      "wins_total": 0,
+      "wins_passed": 0,
+      "gate_passed": false,
+      "gaps": [
+        {
+          "id": "03_phase2a_observability_fix.json-P2A-V01",
+          "contract": "03_phase2a_observability_fix.json",
+          "requirement": "Verify Phase 2A completion before observability fix",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "03_phase2a_observability_fix.json-OBS-FIX-01",
+          "contract": "03_phase2a_observability_fix.json",
+          "requirement": "Fix #1: Wire telemetry to contracted trace location",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "03_phase2a_observability_fix.json-OBS-FIX-02",
+          "contract": "03_phase2a_observability_fix.json",
+          "requirement": "Fix #4: Add evaluation results logging",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "03_phase2a_observability_fix.json-OBS-GATE",
+          "contract": "03_phase2a_observability_fix.json",
+          "requirement": "Observability fix validation gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "critical",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        }
+      ]
+    },
+    {
+      "contract": "04_phase2b_contract.json",
+      "status": "fail",
+      "wins_total": 4,
+      "wins_passed": 0,
+      "gate_passed": false,
+      "gaps": [
+        {
+          "id": "04_phase2b_contract.json-P2A-V01",
+          "contract": "04_phase2b_contract.json",
+          "requirement": "Verify Phase 2A + Observability Fix completion",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "04_phase2b_contract.json-W14",
+          "contract": "04_phase2b_contract.json",
+          "requirement": "Win #14: Prompt Augmentation Logic",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "04_phase2b_contract.json-W15",
+          "contract": "04_phase2b_contract.json",
+          "requirement": "Win #15: Integrate Clarification into Execute Flow",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "04_phase2b_contract.json-W16",
+          "contract": "04_phase2b_contract.json",
+          "requirement": "Win #16: UI Clarification Form",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "04_phase2b_contract.json-CHECKPOINT",
+          "contract": "04_phase2b_contract.json",
+          "requirement": "MANDATORY CHECKPOINT: Assess before Win #17",
+          "observed": "Manual verification required but no automated evidence.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "04_phase2b_contract.json-W17",
+          "contract": "04_phase2b_contract.json",
+          "requirement": "Win #17: Connect UI Question Flow to Execute",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "04_phase2b_contract.json-P2B-GATE",
+          "contract": "04_phase2b_contract.json",
+          "requirement": "Phase 2B validation gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "critical",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        }
+      ]
+    },
+    {
+      "contract": "05_phase2c_contract.json",
+      "status": "fail",
+      "wins_total": 2,
+      "wins_passed": 0,
+      "gate_passed": false,
+      "gaps": [
+        {
+          "id": "05_phase2c_contract.json-P2B-V01",
+          "contract": "05_phase2c_contract.json",
+          "requirement": "Verify Phase 2B completion",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "05_phase2c_contract.json-W18",
+          "contract": "05_phase2c_contract.json",
+          "requirement": "Win #18: Add Clarification to Telemetry",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "05_phase2c_contract.json-W19",
+          "contract": "05_phase2c_contract.json",
+          "requirement": "Win #19: Smart Default Suggestions",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "05_phase2c_contract.json-P2-GATE",
+          "contract": "05_phase2c_contract.json",
+          "requirement": "Phase 2 Complete - Final Validation Gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "critical",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        }
+      ]
+    },
+    {
+      "contract": "06_phase3a_contract.json",
+      "status": "fail",
+      "wins_total": 4,
+      "wins_passed": 0,
+      "gate_passed": false,
+      "gaps": [
+        {
+          "id": "06_phase3a_contract.json-P2-V01",
+          "contract": "06_phase3a_contract.json",
+          "requirement": "Verify Phase 2 completion",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "06_phase3a_contract.json-W20",
+          "contract": "06_phase3a_contract.json",
+          "requirement": "Win #20: Define Multi-Turn Contract",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "06_phase3a_contract.json-W21",
+          "contract": "06_phase3a_contract.json",
+          "requirement": "Win #21: Failure Analyzer",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "06_phase3a_contract.json-W22",
+          "contract": "06_phase3a_contract.json",
+          "requirement": "Win #22: Diff Generator",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "06_phase3a_contract.json-W23",
+          "contract": "06_phase3a_contract.json",
+          "requirement": "Win #23: Repair Prompt Generator",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "06_phase3a_contract.json-P3A-GATE",
+          "contract": "06_phase3a_contract.json",
+          "requirement": "Phase 3A validation gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "critical",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        }
+      ]
+    },
+    {
+      "contract": "07_phase3b_contract.json",
+      "status": "fail",
+      "wins_total": 4,
+      "wins_passed": 0,
+      "gate_passed": false,
+      "gaps": [
+        {
+          "id": "07_phase3b_contract.json-P3A-V01",
+          "contract": "07_phase3b_contract.json",
+          "requirement": "Verify Phase 3A completion",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "07_phase3b_contract.json-W24",
+          "contract": "07_phase3b_contract.json",
+          "requirement": "Win #24: Multi-Turn Repair Loop",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "07_phase3b_contract.json-W25",
+          "contract": "07_phase3b_contract.json",
+          "requirement": "Win #25: Integrate Multi-Turn into Execute",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "07_phase3b_contract.json-W26",
+          "contract": "07_phase3b_contract.json",
+          "requirement": "Win #26: Update UI to Show Repair History",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "07_phase3b_contract.json-W27",
+          "contract": "07_phase3b_contract.json",
+          "requirement": "Win #27: Add Repair Metrics to Telemetry",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "07_phase3b_contract.json-P3-GATE",
+          "contract": "07_phase3b_contract.json",
+          "requirement": "Phase 3 Complete - Final Validation Gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "critical",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        }
+      ]
+    },
+    {
+      "contract": "08_phase4a_contract.json",
+      "status": "fail",
+      "wins_total": 5,
+      "wins_passed": 0,
+      "gate_passed": false,
+      "gaps": [
+        {
+          "id": "08_phase4a_contract.json-P3-V01",
+          "contract": "08_phase4a_contract.json",
+          "requirement": "Verify Phase 3 completion",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "08_phase4a_contract.json-W28-PRE",
+          "contract": "08_phase4a_contract.json",
+          "requirement": "Pre-Validation: Task Plan Contract Design",
+          "observed": "Manual verification required but no automated evidence.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "08_phase4a_contract.json-W28",
+          "contract": "08_phase4a_contract.json",
+          "requirement": "Win #28: Define Task Plan Contracts",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "08_phase4a_contract.json-W28-POST",
+          "contract": "08_phase4a_contract.json",
+          "requirement": "Post-Validation: Task Plan Contract Quality",
+          "observed": "Manual verification required but no automated evidence.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "08_phase4a_contract.json-W29-PRE",
+          "contract": "08_phase4a_contract.json",
+          "requirement": "Pre-Validation: Decomposition Strategy",
+          "observed": "Manual verification required but no automated evidence.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "08_phase4a_contract.json-W29",
+          "contract": "08_phase4a_contract.json",
+          "requirement": "Win #29: Task Decomposer",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "08_phase4a_contract.json-W29-POST",
+          "contract": "08_phase4a_contract.json",
+          "requirement": "Post-Validation: Decomposition Quality",
+          "observed": "Manual verification required but no automated evidence.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "08_phase4a_contract.json-W30-PRE",
+          "contract": "08_phase4a_contract.json",
+          "requirement": "Pre-Validation: Decomposition Validation Approach",
+          "observed": "Manual verification required but no automated evidence.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "08_phase4a_contract.json-W30",
+          "contract": "08_phase4a_contract.json",
+          "requirement": "Win #30: Decomposition Validator",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "08_phase4a_contract.json-W30-POST",
+          "contract": "08_phase4a_contract.json",
+          "requirement": "Post-Validation: Validator Accuracy",
+          "observed": "Manual verification required but no automated evidence.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "08_phase4a_contract.json-W31",
+          "contract": "08_phase4a_contract.json",
+          "requirement": "Win #31: Progress Tracker",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "08_phase4a_contract.json-W32",
+          "contract": "08_phase4a_contract.json",
+          "requirement": "Win #32: Dependency Analyzer",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "08_phase4a_contract.json-P4A-GATE",
+          "contract": "08_phase4a_contract.json",
+          "requirement": "Phase 4A validation gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "critical",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        }
+      ]
+    },
+    {
+      "contract": "09_phase4b_contract.json",
+      "status": "fail",
+      "wins_total": 5,
+      "wins_passed": 0,
+      "gate_passed": false,
+      "gaps": [
+        {
+          "id": "09_phase4b_contract.json-P4A-V01",
+          "contract": "09_phase4b_contract.json",
+          "requirement": "Verify Phase 4A completion",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "09_phase4b_contract.json-W33",
+          "contract": "09_phase4b_contract.json",
+          "requirement": "Win #33: Subtask Executor",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "09_phase4b_contract.json-W34",
+          "contract": "09_phase4b_contract.json",
+          "requirement": "Win #34: Sequential Orchestrator",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "09_phase4b_contract.json-W35",
+          "contract": "09_phase4b_contract.json",
+          "requirement": "Win #35: Time Estimator",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "09_phase4b_contract.json-W36",
+          "contract": "09_phase4b_contract.json",
+          "requirement": "Win #36: UI Progress Display",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "09_phase4b_contract.json-W37",
+          "contract": "09_phase4b_contract.json",
+          "requirement": "Win #37: Integrate Planning into Execute & Add Telemetry",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "09_phase4b_contract.json-P4-GATE",
+          "contract": "09_phase4b_contract.json",
+          "requirement": "Phase 4 Complete - Final Validation Gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "critical",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        }
+      ]
+    },
+    {
+      "contract": "4B1_adaptive_repair_contract.json",
+      "status": "fail",
+      "wins_total": 3,
+      "wins_passed": 0,
+      "gate_passed": false,
+      "gaps": [
+        {
+          "id": "4B1_adaptive_repair_contract.json-P4B-V01",
+          "contract": "4B1_adaptive_repair_contract.json",
+          "requirement": "Verify Phase 4B baseline present",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "4B1_adaptive_repair_contract.json-W41",
+          "contract": "4B1_adaptive_repair_contract.json",
+          "requirement": "Win #41: Add repair strategy selector",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "4B1_adaptive_repair_contract.json-W42",
+          "contract": "4B1_adaptive_repair_contract.json",
+          "requirement": "Win #42: Integrate strategy into repair prompts",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "4B1_adaptive_repair_contract.json-W43",
+          "contract": "4B1_adaptive_repair_contract.json",
+          "requirement": "Win #43: Optional strategy annotation in history",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "4B1_adaptive_repair_contract.json-4B1-GATE",
+          "contract": "4B1_adaptive_repair_contract.json",
+          "requirement": "Phase 4B1 validation gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "critical",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        }
+      ]
+    },
+    {
+      "contract": "4B2_sandbox_install_contract.json",
+      "status": "fail",
+      "wins_total": 3,
+      "wins_passed": 0,
+      "gate_passed": false,
+      "gaps": [
+        {
+          "id": "4B2_sandbox_install_contract.json-P4B2-V01",
+          "contract": "4B2_sandbox_install_contract.json",
+          "requirement": "Verify runner exists",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "4B2_sandbox_install_contract.json-W44",
+          "contract": "4B2_sandbox_install_contract.json",
+          "requirement": "Win #44: Add safe installDeps",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "4B2_sandbox_install_contract.json-W45",
+          "contract": "4B2_sandbox_install_contract.json",
+          "requirement": "Win #45: Add detectTestCommand",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "4B2_sandbox_install_contract.json-W46",
+          "contract": "4B2_sandbox_install_contract.json",
+          "requirement": "Win #46: Integrate into runInSandbox",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "4B2_sandbox_install_contract.json-4B2-GATE",
+          "contract": "4B2_sandbox_install_contract.json",
+          "requirement": "Phase 4B2 validation gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "critical",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        }
+      ]
+    },
+    {
+      "contract": "4B3_subtask_resilience_contract.json",
+      "status": "fail",
+      "wins_total": 3,
+      "wins_passed": 0,
+      "gate_passed": false,
+      "gaps": [
+        {
+          "id": "4B3_subtask_resilience_contract.json-P4B3-V01",
+          "contract": "4B3_subtask_resilience_contract.json",
+          "requirement": "Verify plan execution artifacts",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "4B3_subtask_resilience_contract.json-W47",
+          "contract": "4B3_subtask_resilience_contract.json",
+          "requirement": "Win #47: Create resilient generator wrapper",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "4B3_subtask_resilience_contract.json-W48",
+          "contract": "4B3_subtask_resilience_contract.json",
+          "requirement": "Win #48: Integrate wrapper into plan context",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "4B3_subtask_resilience_contract.json-W49",
+          "contract": "4B3_subtask_resilience_contract.json",
+          "requirement": "Win #49: ExecuteSubtask resilience tests",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "4B3_subtask_resilience_contract.json-4B3-GATE",
+          "contract": "4B3_subtask_resilience_contract.json",
+          "requirement": "Phase 4B3 validation gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "critical",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        }
+      ]
+    },
+    {
+      "contract": "4B4_planning_telemetry_contract.json",
+      "status": "fail",
+      "wins_total": 3,
+      "wins_passed": 0,
+      "gate_passed": false,
+      "gaps": [
+        {
+          "id": "4B4_planning_telemetry_contract.json-P4B4-V01",
+          "contract": "4B4_planning_telemetry_contract.json",
+          "requirement": "Verify telemetry module present",
+          "observed": "Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "medium",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        },
+        {
+          "id": "4B4_planning_telemetry_contract.json-W50",
+          "contract": "4B4_planning_telemetry_contract.json",
+          "requirement": "Win #50: Add execution-trace schema + validator",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "4B4_planning_telemetry_contract.json-W51",
+          "contract": "4B4_planning_telemetry_contract.json",
+          "requirement": "Win #51: Map subtask and progress into trace",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "4B4_planning_telemetry_contract.json-W52",
+          "contract": "4B4_planning_telemetry_contract.json",
+          "requirement": "Win #52: Plan progress trace tests",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "high",
+          "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+        },
+        {
+          "id": "4B4_planning_telemetry_contract.json-4B4-GATE",
+          "contract": "4B4_planning_telemetry_contract.json",
+          "requirement": "Phase 4B4 validation gate",
+          "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+          "evidence": [],
+          "severity": "critical",
+          "recommendation": "Address validation gaps or provide evidence of completion."
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "lint_pass": true,
+    "typecheck_pass": true,
+    "tests_pass": true,
+    "coverage": {
+      "lines": 88.13,
+      "branches": 81.81
+    }
+  },
+  "gaps": [
+    {
+      "id": "01_remediation_contract_v2.json-P0-V01",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Verify Phase 0: Project structure exists",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-P0-V02",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Verify Phase 0: Dependencies installable",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-P0-V03",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Verify Phase 0: Core server module exists",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-P0-V04",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Verify Phase 0: UI files exist",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-P0-V05",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Verify Phase 0: LLM integration exists",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-P0-V06",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Verify Phase 0: Output directory exists",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-P0-EVAL",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Evaluate Phase 0 verification results",
+      "observed": "Manual verification required but no automated evidence.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-P0-R01",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Remediate: Create missing project structure",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-P0-R02",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Remediate: Fix package.json dependencies",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-P0-R03",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Remediate: Create minimal server",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-P0-R04",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Remediate: Create minimal UI",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-P0-R05",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Remediate: Create executor module",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-P0-R06",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Remediate: Create output directory",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-P0-GATE",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Phase 0 validation gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "critical",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T01",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Install dependencies",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T02",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Fix run-result schema JSON correctness",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T03",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Create/align TypeScript RunResult interface",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T04",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Remove duplicate runner and export single canonical module",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T05",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Enhance runInSandbox to compute pass/fail counts from log",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T06",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Align /api/run-tests response to unified schema",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T07",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Repair failing integration test expectations",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T08",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Add 'Run Tests' button and handler",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T09",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Introduce repairOnce logic",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T10",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Integrate repair into /api/execute flow",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T11",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Display automatic test + repair timeline",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T12",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Augment metadata with testRuns + file checksums",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T13",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Add lightweight event telemetry",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T14",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Implement deterministic E2E test with mock LLM",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T15",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Finalize lint, type, test pass & remove legacy runner",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "01_remediation_contract_v2.json-T16",
+      "contract": "01_remediation_contract_v2.json",
+      "requirement": "Production readiness gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "02_phase2a_contract.json-P1-V01",
+      "contract": "02_phase2a_contract.json",
+      "requirement": "Verify Phase 1 completion",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "02_phase2a_contract.json-W10",
+      "contract": "02_phase2a_contract.json",
+      "requirement": "Win #10: Define Clarification Contracts",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "02_phase2a_contract.json-W11",
+      "contract": "02_phase2a_contract.json",
+      "requirement": "Win #11: Critical Info Detector",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "02_phase2a_contract.json-W12",
+      "contract": "02_phase2a_contract.json",
+      "requirement": "Win #12: Question Generator",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "02_phase2a_contract.json-W13",
+      "contract": "02_phase2a_contract.json",
+      "requirement": "Win #13: API Endpoint for Clarification",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "02_phase2a_contract.json-P2A-GATE",
+      "contract": "02_phase2a_contract.json",
+      "requirement": "Phase 2A validation gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "critical",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "03_phase2a_observability_fix.json-P2A-V01",
+      "contract": "03_phase2a_observability_fix.json",
+      "requirement": "Verify Phase 2A completion before observability fix",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "03_phase2a_observability_fix.json-OBS-FIX-01",
+      "contract": "03_phase2a_observability_fix.json",
+      "requirement": "Fix #1: Wire telemetry to contracted trace location",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "03_phase2a_observability_fix.json-OBS-FIX-02",
+      "contract": "03_phase2a_observability_fix.json",
+      "requirement": "Fix #4: Add evaluation results logging",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "03_phase2a_observability_fix.json-OBS-GATE",
+      "contract": "03_phase2a_observability_fix.json",
+      "requirement": "Observability fix validation gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "critical",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "04_phase2b_contract.json-P2A-V01",
+      "contract": "04_phase2b_contract.json",
+      "requirement": "Verify Phase 2A + Observability Fix completion",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "04_phase2b_contract.json-W14",
+      "contract": "04_phase2b_contract.json",
+      "requirement": "Win #14: Prompt Augmentation Logic",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "04_phase2b_contract.json-W15",
+      "contract": "04_phase2b_contract.json",
+      "requirement": "Win #15: Integrate Clarification into Execute Flow",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "04_phase2b_contract.json-W16",
+      "contract": "04_phase2b_contract.json",
+      "requirement": "Win #16: UI Clarification Form",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "04_phase2b_contract.json-CHECKPOINT",
+      "contract": "04_phase2b_contract.json",
+      "requirement": "MANDATORY CHECKPOINT: Assess before Win #17",
+      "observed": "Manual verification required but no automated evidence.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "04_phase2b_contract.json-W17",
+      "contract": "04_phase2b_contract.json",
+      "requirement": "Win #17: Connect UI Question Flow to Execute",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "04_phase2b_contract.json-P2B-GATE",
+      "contract": "04_phase2b_contract.json",
+      "requirement": "Phase 2B validation gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "critical",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "05_phase2c_contract.json-P2B-V01",
+      "contract": "05_phase2c_contract.json",
+      "requirement": "Verify Phase 2B completion",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "05_phase2c_contract.json-W18",
+      "contract": "05_phase2c_contract.json",
+      "requirement": "Win #18: Add Clarification to Telemetry",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "05_phase2c_contract.json-W19",
+      "contract": "05_phase2c_contract.json",
+      "requirement": "Win #19: Smart Default Suggestions",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "05_phase2c_contract.json-P2-GATE",
+      "contract": "05_phase2c_contract.json",
+      "requirement": "Phase 2 Complete - Final Validation Gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "critical",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "06_phase3a_contract.json-P2-V01",
+      "contract": "06_phase3a_contract.json",
+      "requirement": "Verify Phase 2 completion",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "06_phase3a_contract.json-W20",
+      "contract": "06_phase3a_contract.json",
+      "requirement": "Win #20: Define Multi-Turn Contract",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "06_phase3a_contract.json-W21",
+      "contract": "06_phase3a_contract.json",
+      "requirement": "Win #21: Failure Analyzer",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "06_phase3a_contract.json-W22",
+      "contract": "06_phase3a_contract.json",
+      "requirement": "Win #22: Diff Generator",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "06_phase3a_contract.json-W23",
+      "contract": "06_phase3a_contract.json",
+      "requirement": "Win #23: Repair Prompt Generator",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "06_phase3a_contract.json-P3A-GATE",
+      "contract": "06_phase3a_contract.json",
+      "requirement": "Phase 3A validation gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "critical",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "07_phase3b_contract.json-P3A-V01",
+      "contract": "07_phase3b_contract.json",
+      "requirement": "Verify Phase 3A completion",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "07_phase3b_contract.json-W24",
+      "contract": "07_phase3b_contract.json",
+      "requirement": "Win #24: Multi-Turn Repair Loop",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "07_phase3b_contract.json-W25",
+      "contract": "07_phase3b_contract.json",
+      "requirement": "Win #25: Integrate Multi-Turn into Execute",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "07_phase3b_contract.json-W26",
+      "contract": "07_phase3b_contract.json",
+      "requirement": "Win #26: Update UI to Show Repair History",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "07_phase3b_contract.json-W27",
+      "contract": "07_phase3b_contract.json",
+      "requirement": "Win #27: Add Repair Metrics to Telemetry",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "07_phase3b_contract.json-P3-GATE",
+      "contract": "07_phase3b_contract.json",
+      "requirement": "Phase 3 Complete - Final Validation Gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "critical",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "08_phase4a_contract.json-P3-V01",
+      "contract": "08_phase4a_contract.json",
+      "requirement": "Verify Phase 3 completion",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "08_phase4a_contract.json-W28-PRE",
+      "contract": "08_phase4a_contract.json",
+      "requirement": "Pre-Validation: Task Plan Contract Design",
+      "observed": "Manual verification required but no automated evidence.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "08_phase4a_contract.json-W28",
+      "contract": "08_phase4a_contract.json",
+      "requirement": "Win #28: Define Task Plan Contracts",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "08_phase4a_contract.json-W28-POST",
+      "contract": "08_phase4a_contract.json",
+      "requirement": "Post-Validation: Task Plan Contract Quality",
+      "observed": "Manual verification required but no automated evidence.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "08_phase4a_contract.json-W29-PRE",
+      "contract": "08_phase4a_contract.json",
+      "requirement": "Pre-Validation: Decomposition Strategy",
+      "observed": "Manual verification required but no automated evidence.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "08_phase4a_contract.json-W29",
+      "contract": "08_phase4a_contract.json",
+      "requirement": "Win #29: Task Decomposer",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "08_phase4a_contract.json-W29-POST",
+      "contract": "08_phase4a_contract.json",
+      "requirement": "Post-Validation: Decomposition Quality",
+      "observed": "Manual verification required but no automated evidence.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "08_phase4a_contract.json-W30-PRE",
+      "contract": "08_phase4a_contract.json",
+      "requirement": "Pre-Validation: Decomposition Validation Approach",
+      "observed": "Manual verification required but no automated evidence.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "08_phase4a_contract.json-W30",
+      "contract": "08_phase4a_contract.json",
+      "requirement": "Win #30: Decomposition Validator",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "08_phase4a_contract.json-W30-POST",
+      "contract": "08_phase4a_contract.json",
+      "requirement": "Post-Validation: Validator Accuracy",
+      "observed": "Manual verification required but no automated evidence.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "08_phase4a_contract.json-W31",
+      "contract": "08_phase4a_contract.json",
+      "requirement": "Win #31: Progress Tracker",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "08_phase4a_contract.json-W32",
+      "contract": "08_phase4a_contract.json",
+      "requirement": "Win #32: Dependency Analyzer",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "08_phase4a_contract.json-P4A-GATE",
+      "contract": "08_phase4a_contract.json",
+      "requirement": "Phase 4A validation gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "critical",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "09_phase4b_contract.json-P4A-V01",
+      "contract": "09_phase4b_contract.json",
+      "requirement": "Verify Phase 4A completion",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "09_phase4b_contract.json-W33",
+      "contract": "09_phase4b_contract.json",
+      "requirement": "Win #33: Subtask Executor",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "09_phase4b_contract.json-W34",
+      "contract": "09_phase4b_contract.json",
+      "requirement": "Win #34: Sequential Orchestrator",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "09_phase4b_contract.json-W35",
+      "contract": "09_phase4b_contract.json",
+      "requirement": "Win #35: Time Estimator",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "09_phase4b_contract.json-W36",
+      "contract": "09_phase4b_contract.json",
+      "requirement": "Win #36: UI Progress Display",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "09_phase4b_contract.json-W37",
+      "contract": "09_phase4b_contract.json",
+      "requirement": "Win #37: Integrate Planning into Execute & Add Telemetry",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "09_phase4b_contract.json-P4-GATE",
+      "contract": "09_phase4b_contract.json",
+      "requirement": "Phase 4 Complete - Final Validation Gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "critical",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "4B1_adaptive_repair_contract.json-P4B-V01",
+      "contract": "4B1_adaptive_repair_contract.json",
+      "requirement": "Verify Phase 4B baseline present",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "4B1_adaptive_repair_contract.json-W41",
+      "contract": "4B1_adaptive_repair_contract.json",
+      "requirement": "Win #41: Add repair strategy selector",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "4B1_adaptive_repair_contract.json-W42",
+      "contract": "4B1_adaptive_repair_contract.json",
+      "requirement": "Win #42: Integrate strategy into repair prompts",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "4B1_adaptive_repair_contract.json-W43",
+      "contract": "4B1_adaptive_repair_contract.json",
+      "requirement": "Win #43: Optional strategy annotation in history",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "4B1_adaptive_repair_contract.json-4B1-GATE",
+      "contract": "4B1_adaptive_repair_contract.json",
+      "requirement": "Phase 4B1 validation gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "critical",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "4B2_sandbox_install_contract.json-P4B2-V01",
+      "contract": "4B2_sandbox_install_contract.json",
+      "requirement": "Verify runner exists",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "4B2_sandbox_install_contract.json-W44",
+      "contract": "4B2_sandbox_install_contract.json",
+      "requirement": "Win #44: Add safe installDeps",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "4B2_sandbox_install_contract.json-W45",
+      "contract": "4B2_sandbox_install_contract.json",
+      "requirement": "Win #45: Add detectTestCommand",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "4B2_sandbox_install_contract.json-W46",
+      "contract": "4B2_sandbox_install_contract.json",
+      "requirement": "Win #46: Integrate into runInSandbox",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "4B2_sandbox_install_contract.json-4B2-GATE",
+      "contract": "4B2_sandbox_install_contract.json",
+      "requirement": "Phase 4B2 validation gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "critical",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "4B3_subtask_resilience_contract.json-P4B3-V01",
+      "contract": "4B3_subtask_resilience_contract.json",
+      "requirement": "Verify plan execution artifacts",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "4B3_subtask_resilience_contract.json-W47",
+      "contract": "4B3_subtask_resilience_contract.json",
+      "requirement": "Win #47: Create resilient generator wrapper",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "4B3_subtask_resilience_contract.json-W48",
+      "contract": "4B3_subtask_resilience_contract.json",
+      "requirement": "Win #48: Integrate wrapper into plan context",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "4B3_subtask_resilience_contract.json-W49",
+      "contract": "4B3_subtask_resilience_contract.json",
+      "requirement": "Win #49: ExecuteSubtask resilience tests",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "4B3_subtask_resilience_contract.json-4B3-GATE",
+      "contract": "4B3_subtask_resilience_contract.json",
+      "requirement": "Phase 4B3 validation gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "critical",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "4B4_planning_telemetry_contract.json-P4B4-V01",
+      "contract": "4B4_planning_telemetry_contract.json",
+      "requirement": "Verify telemetry module present",
+      "observed": "Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "medium",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    },
+    {
+      "id": "4B4_planning_telemetry_contract.json-W50",
+      "contract": "4B4_planning_telemetry_contract.json",
+      "requirement": "Win #50: Add execution-trace schema + validator",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "4B4_planning_telemetry_contract.json-W51",
+      "contract": "4B4_planning_telemetry_contract.json",
+      "requirement": "Win #51: Map subtask and progress into trace",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "4B4_planning_telemetry_contract.json-W52",
+      "contract": "4B4_planning_telemetry_contract.json",
+      "requirement": "Win #52: Plan progress trace tests",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "high",
+      "recommendation": "Review implementation and ensure validations pass. Add automated checks if missing."
+    },
+    {
+      "id": "4B4_planning_telemetry_contract.json-4B4-GATE",
+      "contract": "4B4_planning_telemetry_contract.json",
+      "requirement": "Phase 4B4 validation gate",
+      "observed": "Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required. Command not executed during audit; manual evidence required.",
+      "evidence": [],
+      "severity": "critical",
+      "recommendation": "Address validation gaps or provide evidence of completion."
+    }
+  ]
+}

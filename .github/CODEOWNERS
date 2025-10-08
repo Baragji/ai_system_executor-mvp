@@ -1,0 +1,81 @@
+# CODEOWNERS - Protect Critical Files from Unauthorized Changes
+#
+# These files define the trust spine of the project and require
+# explicit approval before modification to prevent AI-induced drift
+# and maintain stack compliance.
+#
+# Format: path/pattern @github-username
+# Docs: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# ========================================
+# STACK COMPLIANCE & ANTI-DRIFT
+# ========================================
+
+# Stack lock file - defines allowed languages and frameworks
+ai-stack.json @yousefbaragji
+
+# Repository instructions for AI agents
+.github/copilot-instructions.md @yousefbaragji
+.github/instructions/*.instructions.md @yousefbaragji
+
+# ========================================
+# CI/CD & WORKFLOWS
+# ========================================
+
+# All GitHub Actions workflows
+.github/workflows/ @yousefbaragji
+
+# GitHub repository configuration
+.github/*.yml @yousefbaragji
+.github/*.yaml @yousefbaragji
+
+# ========================================
+# CONTRACT SCHEMAS & GOVERNANCE
+# ========================================
+
+# Contract schemas - validation backbone
+contracts/schemas/ @yousefbaragji
+
+# This file itself
+.github/CODEOWNERS @yousefbaragji
+
+# ========================================
+# SECURITY & CONFIGURATION
+# ========================================
+
+# Package configuration (dependencies)
+package.json @yousefbaragji
+package-lock.json @yousefbaragji
+
+# TypeScript configuration
+tsconfig.json @yousefbaragji
+
+# ESLint configuration
+eslint.config.js @yousefbaragji
+
+# Vitest configuration
+vitest.config.ts @yousefbaragji
+
+# ========================================
+# NOTES
+# ========================================
+#
+# Why these files are protected:
+#
+# 1. ai-stack.json - Prevents stack drift; any change could violate
+#    TypeScript-only constraint or allow Python
+#
+# 2. .github/ - CI/CD changes affect all validation gates; could
+#    disable required checks or bypass evidence requirements
+#
+# 3. contracts/schemas/ - Schema changes affect contract validation;
+#    could allow malformed contracts to pass
+#
+# 4. package.json - Dependency changes affect supply chain security;
+#    requires SBOM regeneration and security review
+#
+# 5. *.config.* - Tool configuration affects validation behavior;
+#    could disable linting, type checking, or test coverage
+#
+# All changes to these files trigger manual review to maintain
+# the integrity of the Trust Engine and prevent AI-induced drift.

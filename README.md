@@ -20,6 +20,66 @@ Use a prompt like:
 
 Files are written to `./output/<project>`.
 
+## 📍 Quick Navigation
+
+**New to this repo?** Start here:
+- **[FILE_INDEX.md](FILE_INDEX.md)** - Quick map: what's where (2 min read)
+- **[CDI_INFRASTRUCTURE.md](CDI_INFRASTRUCTURE.md)** - CDI pattern overview (5 min read)
+
+**Working on Phase A?**
+- Contract: `contracts/Roadmap_execution/11_phaseA_contract_enhanced.json`
+- Stack rules: `ai-stack.json`
+- AI instructions: `.github/copilot-instructions.md`
+
+**Need to validate something?**
+```bash
+npm run contract:check    # Validate contracts
+npm run sbom              # Generate SBOM
+npm run validate:all      # Run all checks
+```
+
 ## Contract
 - `contracts/executor-output.schema.json`
 - `src/executor/systemPrompt.md`
+
+## UI Validation
+
+This project includes production-ready UI validation infrastructure:
+
+### Features
+- **Visual Regression Testing** - Playwright with screenshot comparison
+- **Accessibility Testing** - axe-core for WCAG 2.1 AA compliance
+- **Performance Testing** - Lighthouse CI with budgets for Core Web Vitals
+- **Automated CI/CD** - GitHub Actions workflows for every PR
+
+### Quick Start
+
+```bash
+# Install Playwright browsers
+npx playwright install chromium --with-deps
+
+# Run UI tests locally
+npm run test:ui
+
+# Run performance audits
+npm run test:lighthouse
+
+# Run complete UI validation
+npm run validate:ui
+```
+
+### Documentation
+See [docs/UI_VALIDATION.md](docs/UI_VALIDATION.md) for:
+- Complete setup guide
+- Test writing patterns
+- Playwright MCP server integration
+- Troubleshooting tips
+- Best practices
+
+### Evidence & Compliance
+All UI validation runs generate artifacts in `.automation/`:
+- `playwright-report/` - Visual test results and screenshots
+- `lighthouse-reports/` - Performance audit reports
+- `ui_compliance_report.json` - Consolidated compliance report
+
+Contract schema: `contracts/ui-validation-result.schema.json`

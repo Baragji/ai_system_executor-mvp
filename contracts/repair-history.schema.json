@@ -62,6 +62,16 @@
           "uniqueItems": true
         },
         "summary": { "type": "string" },
+        "strategy": {
+          "type": "string",
+          "enum": [
+            "syntax_focus",
+            "timeout_focus",
+            "assertion_focus",
+            "exception_hardening",
+            "multiple_prioritize"
+          ]
+        },
         "testResult": { "$ref": "#/$defs/testResult" },
         "failureAnalysis": { "$ref": "#/$defs/failureAnalysis" },
         "durationMs": {

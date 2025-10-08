@@ -15,6 +15,8 @@ interface ExecutionTraceEntry {
   exit_code?: number;
   stdout_excerpt?: string;
   stderr_excerpt?: string;
+  subtask_id?: string;
+  progress_pct?: number;
 }
 
 function extractString(value: unknown): string | undefined {
@@ -30,7 +32,7 @@ function extractNumber(value: unknown): number | undefined {
 function buildTraceEntry(event: TelemetryEvent): ExecutionTraceEntry {
   const payload = (event.payload ?? {}) as Record<string, unknown>;
   const candidateTaskId =
-    extractString(payload.taskId) ?? extractString(payload.task_id);
+    extractString(payload.taskId) ?? extractString(payload.task_id) ?? extractString(payload.project);
   const candidateStatus = extractString(payload.status);
 
   const traceEntry: ExecutionTraceEntry = {
@@ -46,11 +48,15 @@ function buildTraceEntry(event: TelemetryEvent): ExecutionTraceEntry {
     extractString(payload.stdout_excerpt) ?? extractString(payload.stdout);
   const stderrExcerpt =
     extractString(payload.stderr_excerpt) ?? extractString(payload.stderr);
+  const subtaskId = extractString(payload.subtask) ?? extractString(payload.subtask_id);
+  const progress = extractNumber(payload.percent) ?? extractNumber(payload.progress_pct);
 
   if (cmd) traceEntry.cmd = cmd;
   if (exitCode !== undefined) traceEntry.exit_code = exitCode;
   if (stdoutExcerpt) traceEntry.stdout_excerpt = stdoutExcerpt;
   if (stderrExcerpt) traceEntry.stderr_excerpt = stderrExcerpt;
+  if (subtaskId) traceEntry.subtask_id = subtaskId;
+  if (progress !== undefined) traceEntry.progress_pct = progress;
 
   return traceEntry;
 }

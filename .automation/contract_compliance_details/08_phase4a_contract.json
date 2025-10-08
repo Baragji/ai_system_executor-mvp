@@ -1,0 +1,482 @@
+[
+  {
+    "contract": "08_phase4a_contract.json",
+    "task_id": "P3-V01",
+    "title": "Verify Phase 3 completion",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/repair/multiTurnRepair.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'multiTurnRepair' src/server.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'repairHistorySection' public/index.html && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test 2>&1 | tail -5",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "08_phase4a_contract.json",
+    "task_id": "W28-PRE",
+    "title": "Pre-Validation: Task Plan Contract Design",
+    "type": "validation_checkpoint",
+    "validation_steps": [],
+    "evidence": [],
+    "notes": [
+      "No executable validation steps; manual verification required."
+    ],
+    "result": "skipped"
+  },
+  {
+    "contract": "08_phase4a_contract.json",
+    "task_id": "W28",
+    "title": "Win #28: Define Task Plan Contracts",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f contracts/task-plan.schema.json && test -f contracts/subtask.schema.json",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'validateTaskPlan' src/contracts/taskPlanValidator.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- task-plan.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "08_phase4a_contract.json",
+    "task_id": "W28-POST",
+    "title": "Post-Validation: Task Plan Contract Quality",
+    "type": "validation_checkpoint",
+    "validation_steps": [],
+    "evidence": [],
+    "notes": [
+      "No executable validation steps; manual verification required."
+    ],
+    "result": "skipped"
+  },
+  {
+    "contract": "08_phase4a_contract.json",
+    "task_id": "W29-PRE",
+    "title": "Pre-Validation: Decomposition Strategy",
+    "type": "validation_checkpoint",
+    "validation_steps": [],
+    "evidence": [],
+    "notes": [
+      "No executable validation steps; manual verification required."
+    ],
+    "result": "skipped"
+  },
+  {
+    "contract": "08_phase4a_contract.json",
+    "task_id": "W29",
+    "title": "Win #29: Task Decomposer",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/planning/decomposeTask.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'export async function decomposeTask' src/planning/decomposeTask.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- decomposeTask.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "08_phase4a_contract.json",
+    "task_id": "W29-POST",
+    "title": "Post-Validation: Decomposition Quality",
+    "type": "validation_checkpoint",
+    "validation_steps": [],
+    "evidence": [],
+    "notes": [
+      "No executable validation steps; manual verification required."
+    ],
+    "result": "skipped"
+  },
+  {
+    "contract": "08_phase4a_contract.json",
+    "task_id": "W30-PRE",
+    "title": "Pre-Validation: Decomposition Validation Approach",
+    "type": "validation_checkpoint",
+    "validation_steps": [],
+    "evidence": [],
+    "notes": [
+      "No executable validation steps; manual verification required."
+    ],
+    "result": "skipped"
+  },
+  {
+    "contract": "08_phase4a_contract.json",
+    "task_id": "W30",
+    "title": "Win #30: Decomposition Validator",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/planning/validateDecomposition.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'export function validateDecomposition' src/planning/validateDecomposition.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- validateDecomposition.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "08_phase4a_contract.json",
+    "task_id": "W30-POST",
+    "title": "Post-Validation: Validator Accuracy",
+    "type": "validation_checkpoint",
+    "validation_steps": [],
+    "evidence": [],
+    "notes": [
+      "No executable validation steps; manual verification required."
+    ],
+    "result": "skipped"
+  },
+  {
+    "contract": "08_phase4a_contract.json",
+    "task_id": "W31",
+    "title": "Win #31: Progress Tracker",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/planning/progressTracker.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'export class ProgressTracker' src/planning/progressTracker.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- progressTracker.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "08_phase4a_contract.json",
+    "task_id": "W32",
+    "title": "Win #32: Dependency Analyzer",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/planning/analyzeDependencies.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'export function analyzeDependencies' src/planning/analyzeDependencies.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- analyzeDependencies.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "08_phase4a_contract.json",
+    "task_id": "P4A-GATE",
+    "title": "Phase 4A validation gate",
+    "type": "validation",
+    "validation_steps": [
+      {
+        "cmd": "npm run lint",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f contracts/task-plan.schema.json && test -f contracts/subtask.schema.json",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/planning/decomposeTask.ts && test -f src/planning/validateDecomposition.ts && test -f src/planning/progressTracker.ts && test -f src/planning/analyzeDependencies.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "task_id": "ARTIFACT:Task Plan Schema",
+    "title": "Verify artifact Task Plan Schema",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:contracts/task-plan.schema.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"subtasks\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "08_phase4a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Subtask Schema",
+    "title": "Verify artifact Subtask Schema",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:contracts/subtask.schema.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"dependencies\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "08_phase4a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Task Decomposer",
+    "title": "Verify artifact Task Decomposer",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/planning/decomposeTask.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export async function decomposeTask\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "08_phase4a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Decomposition Validator",
+    "title": "Verify artifact Decomposition Validator",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/planning/validateDecomposition.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export function validateDecomposition\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "08_phase4a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Progress Tracker",
+    "title": "Verify artifact Progress Tracker",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/planning/progressTracker.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export class ProgressTracker\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "08_phase4a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Dependency Analyzer",
+    "title": "Verify artifact Dependency Analyzer",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/planning/analyzeDependencies.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export function analyzeDependencies\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "08_phase4a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Phase 4A Report",
+    "title": "Verify artifact Phase 4A Report",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/phase4a_completion_report.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true},{\"check\":\"must_include_field\",\"field\":\"gate_passed\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/phase4a_completion_report.json"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "08_phase4a_contract.json"
+  }
+]

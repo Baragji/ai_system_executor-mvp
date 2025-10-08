@@ -1,0 +1,343 @@
+[
+  {
+    "contract": "06_phase3a_contract.json",
+    "task_id": "P2-V01",
+    "title": "Verify Phase 2 completion",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/clarification/detectMissing.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/clarification/augmentPrompt.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/clarification/suggestDefaults.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'clarificationSection' public/index.html && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test 2>&1 | tail -5",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "06_phase3a_contract.json",
+    "task_id": "W20",
+    "title": "Win #20: Define Multi-Turn Contract",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f contracts/repair-history.schema.json",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'validateRepairHistory' src/contracts/repairHistoryValidator.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- repair-history.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "06_phase3a_contract.json",
+    "task_id": "W21",
+    "title": "Win #21: Failure Analyzer",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/repair/analyzeFailure.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'export function analyzeFailure' src/repair/analyzeFailure.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- analyzeFailure.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "06_phase3a_contract.json",
+    "task_id": "W22",
+    "title": "Win #22: Diff Generator",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/repair/generateDiff.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'export function generateDiff' src/repair/generateDiff.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- generateDiff.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "06_phase3a_contract.json",
+    "task_id": "W23",
+    "title": "Win #23: Repair Prompt Generator",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/repair/buildRepairPrompt.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'export function buildRepairPrompt' src/repair/buildRepairPrompt.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- buildRepairPrompt.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "06_phase3a_contract.json",
+    "task_id": "P3A-GATE",
+    "title": "Phase 3A validation gate",
+    "type": "validation",
+    "validation_steps": [
+      {
+        "cmd": "npm run lint",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f contracts/repair-history.schema.json",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/repair/analyzeFailure.ts && test -f src/repair/generateDiff.ts && test -f src/repair/buildRepairPrompt.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "task_id": "ARTIFACT:Repair History Schema",
+    "title": "Verify artifact Repair History Schema",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:contracts/repair-history.schema.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"attempts\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "06_phase3a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Failure Analyzer",
+    "title": "Verify artifact Failure Analyzer",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/repair/analyzeFailure.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export function analyzeFailure\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "06_phase3a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Diff Generator",
+    "title": "Verify artifact Diff Generator",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/repair/generateDiff.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export function generateDiff\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "06_phase3a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Repair Prompt Builder",
+    "title": "Verify artifact Repair Prompt Builder",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/repair/buildRepairPrompt.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export function buildRepairPrompt\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "06_phase3a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Phase 3A Report",
+    "title": "Verify artifact Phase 3A Report",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/phase3a_completion_report.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true},{\"check\":\"must_include_field\",\"field\":\"gate_passed\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/phase3a_completion_report.json"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "06_phase3a_contract.json"
+  }
+]

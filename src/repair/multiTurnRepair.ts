@@ -8,6 +8,7 @@ import {
   buildRepairPrompt,
   type PreviousAttemptSummary
 } from "./buildRepairPrompt.js";
+import { selectStrategy } from "./strategySelector.js";
 import { generateDiff } from "./generateDiff.js";
 import {
   validateRepairHistory,
@@ -177,7 +178,8 @@ function buildAttemptSummary(
   attemptNumber: number,
   status: "pass" | "fail" | "error",
   diffSummaries: string[],
-  failureAnalysis: FailureAnalysis | null
+  failureAnalysis: FailureAnalysis | null,
+  errorDetails?: string
 ): string {
   if (status === "pass") {
     return diffSummaries.length > 0
@@ -195,7 +197,8 @@ function buildAttemptSummary(
       : `Attempt ${attemptNumber} failed without file changes. ${failureInfo}`;
   }
 
-  return `Attempt ${attemptNumber} encountered an error before tests could pass.`;
+  const detail = errorDetails ? ` Error: ${errorDetails}` : "";
+  return `Attempt ${attemptNumber} encountered an error before tests could pass.${detail}`;
 }
 
 async function recordDiffs(
@@ -290,13 +293,17 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
     const startedAtIso = new Date(attemptStart).toISOString();
     const fileContextPaths = Array.from(knownFiles).sort();
     const fileContext = await gatherFileContext(context.projectPath, fileContextPaths);
+    const selectedStrategy = currentFailureAnalysis
+      ? selectStrategy(currentFailureAnalysis.category, attemptNumber)
+      : null;
 
     const prompt = buildRepairPrompt({
       attemptNumber,
       failureAnalysis: currentFailureAnalysis,
       previousAttempts: previousSummaries,
       originalPrompt: context.originalPrompt,
-      maxAttempts: 4
+      maxAttempts: 4,
+      strategyOverride: selectedStrategy
     });
 
     const messages: LLMMessage[] = [
@@ -319,6 +326,7 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
     let changedFiles: string[] = [];
     let summary: string;
 
+    let lastErrorMessage: string | undefined;
     try {
       const raw = await generateJSON(messages);
       let parsed: unknown;
@@ -369,6 +377,7 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
+      lastErrorMessage = message;
       runResult = {
         status: "error",
         passCount: 0,
@@ -388,7 +397,7 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
     const durationMs = finishedAt - attemptStart;
     cumulativeTime += durationMs;
 
-    summary = buildAttemptSummary(attemptNumber, attemptStatus, diffSummaries, failureAnalysis);
+    summary = buildAttemptSummary(attemptNumber, attemptStatus, diffSummaries, failureAnalysis, lastErrorMessage);
 
     const attemptRecord: RepairAttemptRecord = {
       number: attemptNumber,
@@ -397,6 +406,7 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
       finishedAt: finishedAtIso,
       changedFiles,
       summary,
+      strategy: selectedStrategy ?? undefined,
       testResult: mapRunResult(runResult),
       failureAnalysis: failureAnalysis ?? undefined,
       durationMs,
@@ -410,7 +420,8 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
       status: attemptStatus,
       summary,
       failureAnalysis,
-      durationMs
+      durationMs,
+      strategy: selectedStrategy
     });
 
     if (attemptStatus === "pass") {

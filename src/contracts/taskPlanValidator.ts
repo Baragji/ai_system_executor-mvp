@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 
-import Ajv2020, { type ErrorObject } from "ajv/dist/2020";
+import Ajv2020, { type ErrorObject } from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
 import type { Subtask, TaskPlan, DecompositionIssue } from "../planning/types.js";

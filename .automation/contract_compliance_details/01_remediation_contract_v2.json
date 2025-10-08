@@ -1,0 +1,741 @@
+[
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-V01",
+    "title": "Verify Phase 0: Project structure exists",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -f package.json && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -d src && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -d public && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f tsconfig.json && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-V02",
+    "title": "Verify Phase 0: Dependencies installable",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "npm ci --dry-run 2>&1 || npm install --dry-run 2>&1",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-V03",
+    "title": "Verify Phase 0: Core server module exists",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/server.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-V04",
+    "title": "Verify Phase 0: UI files exist",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -f public/index.html && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f public/script.js && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-V05",
+    "title": "Verify Phase 0: LLM integration exists",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "find src -name '*executor*' -o -name '*generate*' | head -1",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-V06",
+    "title": "Verify Phase 0: Output directory exists",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -d output && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-EVAL",
+    "title": "Evaluate Phase 0 verification results",
+    "type": "evaluation",
+    "validation_steps": [],
+    "evidence": [],
+    "notes": [
+      "No executable validation steps; manual verification required."
+    ],
+    "result": "skipped"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-R01",
+    "title": "Remediate: Create missing project structure",
+    "type": "remediation",
+    "validation_steps": [
+      {
+        "cmd": "test -d src && test -d public && test -f package.json",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-R02",
+    "title": "Remediate: Fix package.json dependencies",
+    "type": "remediation",
+    "validation_steps": [
+      {
+        "cmd": "npm ls express typescript ajv",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-R03",
+    "title": "Remediate: Create minimal server",
+    "type": "remediation",
+    "validation_steps": [
+      {
+        "cmd": "grep -q 'express' src/server.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q '/api/execute' src/server.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-R04",
+    "title": "Remediate: Create minimal UI",
+    "type": "remediation",
+    "validation_steps": [
+      {
+        "cmd": "grep -q '<textarea' public/index.html",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'fetch.*api/execute' public/script.js",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-R05",
+    "title": "Remediate: Create executor module",
+    "type": "remediation",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/executor/generate.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-R06",
+    "title": "Remediate: Create output directory",
+    "type": "remediation",
+    "validation_steps": [
+      {
+        "cmd": "test -d output",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "P0-GATE",
+    "title": "Phase 0 validation gate",
+    "type": "validation",
+    "validation_steps": [
+      {
+        "cmd": "npm ci || npm install",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck || npx tsc --noEmit",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -d output && test -f src/server.ts && test -f public/index.html",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T01",
+    "title": "Install dependencies",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "node -v",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm ls ajv",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T02",
+    "title": "Fix run-result schema JSON correctness",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "node -e \"const s=require('./contracts/run-result.schema.json');console.log('ok')\"",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T03",
+    "title": "Create/align TypeScript RunResult interface",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "grep -n \"passCount\" src/contracts/validators.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T04",
+    "title": "Remove duplicate runner and export single canonical module",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "grep -n \"runInSandbox\" src/server.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T05",
+    "title": "Enhance runInSandbox to compute pass/fail counts from log",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "grep -n \"passCount\" src/runner/runInSandbox.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T06",
+    "title": "Align /api/run-tests response to unified schema",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "node -e \"fetch('http://localhost:3000/healthz').catch(()=>0)\" || true",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T07",
+    "title": "Repair failing integration test expectations",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "grep -n \"passCount\" tests/run-tests-route.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T08",
+    "title": "Add 'Run Tests' button and handler",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "grep -n \"runTestsBtn\" public/script.js",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T09",
+    "title": "Introduce repairOnce logic",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "grep -n \"repairOnce\" src/repair/repairOnce.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T10",
+    "title": "Integrate repair into /api/execute flow",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "grep -n \"repairOnce\" src/server.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T11",
+    "title": "Display automatic test + repair timeline",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "grep -n \"repair\" public/script.js",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T12",
+    "title": "Augment metadata with testRuns + file checksums",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "grep -n \"sha256\" src/server.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T13",
+    "title": "Add lightweight event telemetry",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "grep -n \"logEvent\" src/server.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T14",
+    "title": "Implement deterministic E2E test with mock LLM",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "grep -n \"phase1\" tests/e2e/phase1.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T15",
+    "title": "Finalize lint, type, test pass & remove legacy runner",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "test ! -f src/runner/LEGACY_runInSandbox.ts && echo gone",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "01_remediation_contract_v2.json",
+    "task_id": "T16",
+    "title": "Production readiness gate",
+    "type": "phase1_task",
+    "validation_steps": [
+      {
+        "cmd": "grep -R \"TODO\" -n src || true",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -R \"FIXME\" -n src || true",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "task_id": "ARTIFACT:Phase 0 Verification Report",
+    "title": "Verify artifact Phase 0 Verification Report",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/phase0_verification_report.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true},{\"check\":\"must_include_field\",\"field\":\"gate_passed\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/phase0_verification_report.json"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "01_remediation_contract_v2.json"
+  },
+  {
+    "task_id": "ARTIFACT:RunResult schema",
+    "title": "Verify artifact RunResult schema",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:contracts/run-result.schema.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"\\\"status\\\"\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "01_remediation_contract_v2.json"
+  },
+  {
+    "task_id": "ARTIFACT:Repair module",
+    "title": "Verify artifact Repair module",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/repair/repairOnce.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export async function repairOnce\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "01_remediation_contract_v2.json"
+  },
+  {
+    "task_id": "ARTIFACT:E2E test",
+    "title": "Verify artifact E2E test",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:tests/e2e/phase1.test.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"phase1\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "01_remediation_contract_v2.json"
+  },
+  {
+    "task_id": "ARTIFACT:UI run tests button",
+    "title": "Verify artifact UI run tests button",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:public/index.html",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"runTestsBtn\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "01_remediation_contract_v2.json"
+  },
+  {
+    "task_id": "ARTIFACT:Execution trace",
+    "title": "Verify artifact Execution trace",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/execution_trace.jsonl",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/execution_trace.jsonl"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "01_remediation_contract_v2.json"
+  }
+]

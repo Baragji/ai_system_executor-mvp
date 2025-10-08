@@ -1,4 +1,9 @@
 import type { FailureAnalysis } from "../contracts/repairHistoryValidator.js";
+import {
+  selectStrategy,
+  strategyGuidance,
+  type RepairStrategy
+} from "./strategySelector.js";
 
 export interface PreviousAttemptSummary {
   attemptNumber: number;
@@ -6,6 +11,7 @@ export interface PreviousAttemptSummary {
   summary: string;
   failureAnalysis?: FailureAnalysis | null;
   durationMs?: number;
+  strategy?: RepairStrategy | null;
 }
 
 export interface RepairContext {
@@ -14,9 +20,21 @@ export interface RepairContext {
   previousAttempts: PreviousAttemptSummary[];
   originalPrompt: string;
   maxAttempts?: number;
+  strategyOverride?: RepairStrategy | null;
 }
 
 const MAX_PROMPT_LENGTH = 4000;
+
+function determineStrategy(
+  analysis: FailureAnalysis | null,
+  attemptNumber: 1 | 2 | 3 | 4
+): RepairStrategy | null {
+  if (!analysis) {
+    return null;
+  }
+
+  return selectStrategy(analysis.category, attemptNumber);
+}
 
 function summarizeFailedTests(analysis: FailureAnalysis | null): string {
   if (!analysis || analysis.failedTests.length === 0) {
@@ -45,7 +63,8 @@ function summarizePreviousAttempts(attempts: PreviousAttemptSummary[]): string {
     const durationPart = attempt.durationMs != null ? ` • Duration: ${attempt.durationMs}ms` : "";
     const firstFailedTest = attempt.failureAnalysis?.failedTests[0];
     const failureSummary = firstFailedTest ? ` • Key failure: ${firstFailedTest.name}` : "";
-    return `- ${header}${durationPart}: ${attempt.summary}${failureSummary}`;
+    const strategyPart = attempt.strategy ? ` • Strategy: ${attempt.strategy}` : "";
+    return `- ${header}${durationPart}: ${attempt.summary}${failureSummary}${strategyPart}`;
   });
 
   return ["Previous attempts tried:", ...lines].join("\n");
@@ -66,16 +85,33 @@ function attemptSpecificGuidance(attemptNumber: number): string {
   }
 }
 
-function buildInstructionSection(attemptNumber: number): string {
+function buildInstructionSection(
+  attemptNumber: 1 | 2 | 3 | 4,
+  strategy: RepairStrategy | null
+): string {
   const lines = [
     "ONLY fix the failing parts. Return JSON diff format.",
-    "Constraints: no full rewrites. Preserve working code."
+    "Constraints: no full rewrites. Preserve working code.",
+    "For each artifact with action=add or action=modify, you MUST include that file in the 'files' array with its full final contents; otherwise the repair will be rejected."
   ];
+
+  if (strategy) {
+    lines.push(
+      `Adaptive focus (${strategy}): ${strategyGuidance(strategy)}`
+    );
+  } else {
+    lines.push(
+      "Adaptive focus: Failure category unknown. Investigate the test output to pinpoint the primary defect before editing."
+    );
+  }
 
   lines.push(attemptSpecificGuidance(attemptNumber));
 
   if (attemptNumber >= 3) {
     lines.push("Explicitly verify that the proposed diff resolves the listed failures without introducing regressions.");
+    lines.push(
+      "Keep the scope tight on later attempts—stabilize prior fixes before introducing any new surface area."
+    );
   }
 
   return lines.join("\n");
@@ -94,6 +130,8 @@ export function buildRepairPrompt(context: RepairContext): string {
   const header = `Attempt ${context.attemptNumber} of ${maxAttempts}`;
   const previousSummary = summarizePreviousAttempts(context.previousAttempts);
   const failureSummary = summarizeFailedTests(context.failureAnalysis);
+  const strategy =
+    context.strategyOverride ?? determineStrategy(context.failureAnalysis, context.attemptNumber);
 
   const sections = [
     header,
@@ -101,7 +139,7 @@ export function buildRepairPrompt(context: RepairContext): string {
     failureSummary,
     "Original request:",
     context.originalPrompt.trim(),
-    buildInstructionSection(context.attemptNumber)
+    buildInstructionSection(context.attemptNumber, strategy)
   ];
 
   const prompt = sections.join("\n\n");

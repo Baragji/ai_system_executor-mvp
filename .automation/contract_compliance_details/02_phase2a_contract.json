@@ -1,0 +1,329 @@
+[
+  {
+    "contract": "02_phase2a_contract.json",
+    "task_id": "P1-V01",
+    "title": "Verify Phase 1 completion",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -f contracts/run-result.schema.json && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/repair/repairOnce.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f tests/e2e/phase1.test.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test 2>&1 | tail -5",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "02_phase2a_contract.json",
+    "task_id": "W10",
+    "title": "Win #10: Define Clarification Contracts",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f contracts/clarification-request.schema.json",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f contracts/clarification-response.schema.json",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'validateClarificationRequest' src/contracts/clarificationValidators.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- clarification-schemas.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "02_phase2a_contract.json",
+    "task_id": "W11",
+    "title": "Win #11: Critical Info Detector",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/clarification/detectMissing.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'export function detectMissing' src/clarification/detectMissing.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- detectMissing.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "02_phase2a_contract.json",
+    "task_id": "W12",
+    "title": "Win #12: Question Generator",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/clarification/generateQuestions.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'export function generateQuestions' src/clarification/generateQuestions.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- generateQuestions.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "02_phase2a_contract.json",
+    "task_id": "W13",
+    "title": "Win #13: API Endpoint for Clarification",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "grep -q '/api/clarify' src/server.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- clarify-route.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "02_phase2a_contract.json",
+    "task_id": "P2A-GATE",
+    "title": "Phase 2A validation gate",
+    "type": "validation",
+    "validation_steps": [
+      {
+        "cmd": "npm run lint",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f contracts/clarification-request.schema.json && test -f contracts/clarification-response.schema.json",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/clarification/detectMissing.ts && test -f src/clarification/generateQuestions.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "task_id": "ARTIFACT:Clarification Request Schema",
+    "title": "Verify artifact Clarification Request Schema",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:contracts/clarification-request.schema.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"questions\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "02_phase2a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Clarification Response Schema",
+    "title": "Verify artifact Clarification Response Schema",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:contracts/clarification-response.schema.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"answers\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "02_phase2a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Detection Module",
+    "title": "Verify artifact Detection Module",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/clarification/detectMissing.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export function detectMissing\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "02_phase2a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Question Generator",
+    "title": "Verify artifact Question Generator",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/clarification/generateQuestions.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export function generateQuestions\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "02_phase2a_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Phase 2A Report",
+    "title": "Verify artifact Phase 2A Report",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/phase2a_completion_report.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true},{\"check\":\"must_include_field\",\"field\":\"gate_passed\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/phase2a_completion_report.json"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "02_phase2a_contract.json"
+  }
+]

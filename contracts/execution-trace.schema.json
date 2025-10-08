@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExecutionTraceEntry",
+  "type": "object",
+  "required": ["timestamp", "task_id", "action", "status"],
+  "properties": {
+    "timestamp": { "type": "string" },
+    "task_id": { "type": "string" },
+    "action": { "type": "string" },
+    "status": { "type": "string" },
+    "cmd": { "type": "string" },
+    "exit_code": { "type": "number" },
+    "stdout_excerpt": { "type": "string" },
+    "stderr_excerpt": { "type": "string" },
+    "subtask_id": { "type": "string" },
+    "progress_pct": { "type": "number" }
+  },
+  "additionalProperties": true
+}

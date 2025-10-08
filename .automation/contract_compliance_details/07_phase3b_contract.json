@@ -1,0 +1,362 @@
+[
+  {
+    "contract": "07_phase3b_contract.json",
+    "task_id": "P3A-V01",
+    "title": "Verify Phase 3A completion",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -f contracts/repair-history.schema.json && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/repair/analyzeFailure.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/repair/generateDiff.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/repair/buildRepairPrompt.ts && echo 'exists' || echo 'missing'",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test 2>&1 | tail -5",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "07_phase3b_contract.json",
+    "task_id": "W24",
+    "title": "Win #24: Multi-Turn Repair Loop",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/repair/multiTurnRepair.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'export async function multiTurnRepair' src/repair/multiTurnRepair.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- multiTurnRepair.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "07_phase3b_contract.json",
+    "task_id": "W25",
+    "title": "Win #25: Integrate Multi-Turn into Execute",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "grep -q 'multiTurnRepair' src/server.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- execute-multi-turn.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "07_phase3b_contract.json",
+    "task_id": "W26",
+    "title": "Win #26: Update UI to Show Repair History",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "grep -q 'repairHistorySection' public/index.html",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'repairHistory' public/script.js",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run lint",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "07_phase3b_contract.json",
+    "task_id": "W27",
+    "title": "Win #27: Add Repair Metrics to Telemetry",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "grep -q 'repairMetrics' contracts/executor-output.schema.json",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- repair-metrics.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "07_phase3b_contract.json",
+    "task_id": "P3-GATE",
+    "title": "Phase 3 Complete - Final Validation Gate",
+    "type": "validation",
+    "validation_steps": [
+      {
+        "cmd": "npm run lint",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/repair/multiTurnRepair.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'multiTurnRepair' src/server.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "grep -q 'repairHistorySection' public/index.html",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "task_id": "ARTIFACT:Multi-Turn Loop",
+    "title": "Verify artifact Multi-Turn Loop",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/repair/multiTurnRepair.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"export async function multiTurnRepair\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "07_phase3b_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Execute Integration",
+    "title": "Verify artifact Execute Integration",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/server.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"multiTurnRepair\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "07_phase3b_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:UI Repair History",
+    "title": "Verify artifact UI Repair History",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:public/index.html",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"repairHistorySection\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "07_phase3b_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Repair Metrics Schema",
+    "title": "Verify artifact Repair Metrics Schema",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:contracts/executor-output.schema.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"repairMetrics\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "07_phase3b_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Phase 3B Report",
+    "title": "Verify artifact Phase 3B Report",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/phase3b_completion_report.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true},{\"check\":\"must_include_field\",\"field\":\"gate_passed\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/phase3b_completion_report.json"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "07_phase3b_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Phase 3 Final Report",
+    "title": "Verify artifact Phase 3 Final Report",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/phase3_completion_report.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true},{\"check\":\"must_include_field\",\"field\":\"celebration_earned\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/phase3_completion_report.json"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "07_phase3b_contract.json"
+  }
+]

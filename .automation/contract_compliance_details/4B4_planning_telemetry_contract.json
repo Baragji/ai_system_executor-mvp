@@ -1,0 +1,189 @@
+[
+  {
+    "contract": "4B4_planning_telemetry_contract.json",
+    "task_id": "P4B4-V01",
+    "title": "Verify telemetry module present",
+    "type": "verification",
+    "validation_steps": [
+      {
+        "cmd": "test -f src/telemetry/events.ts && echo exists || echo missing",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B4_planning_telemetry_contract.json",
+    "task_id": "W50",
+    "title": "Win #50: Add execution-trace schema + validator",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "test -f contracts/execution-trace.schema.json",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/contracts/executionTraceValidator.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test -- execution-trace.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B4_planning_telemetry_contract.json",
+    "task_id": "W51",
+    "title": "Win #51: Map subtask and progress into trace",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "rg -n \"progress_pct|subtask_id\" src/telemetry/events.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B4_planning_telemetry_contract.json",
+    "task_id": "W52",
+    "title": "Win #52: Plan progress trace tests",
+    "type": "win",
+    "validation_steps": [
+      {
+        "cmd": "npm test -- plan-trace.test.ts",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "contract": "4B4_planning_telemetry_contract.json",
+    "task_id": "4B4-GATE",
+    "title": "Phase 4B4 validation gate",
+    "type": "validation",
+    "validation_steps": [
+      {
+        "cmd": "npm run lint",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "npm test",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "cmd": "test -f src/contracts/executionTraceValidator.ts && test -f contracts/execution-trace.schema.json",
+        "exit_code": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required.",
+      "Command not executed during audit; manual evidence required."
+    ],
+    "result": "fail"
+  },
+  {
+    "task_id": "ARTIFACT:Trace validator",
+    "title": "Verify artifact Trace validator",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:src/contracts/executionTraceValidator.ts",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_include_regex\",\"pattern\":\"validateExecutionTrace\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [],
+    "notes": [],
+    "result": "pass",
+    "contract": "4B4_planning_telemetry_contract.json"
+  },
+  {
+    "task_id": "ARTIFACT:Phase 4B4 Report",
+    "title": "Verify artifact Phase 4B4 Report",
+    "type": "artifact_verification",
+    "validation_steps": [
+      {
+        "cmd": "artifact-check:.automation/phase4b4_completion_report.json",
+        "exit_code": 0,
+        "stdout": "[{\"check\":\"must_exist\",\"passed\":true},{\"check\":\"must_include_field\",\"field\":\"gate_passed\"}]",
+        "stderr": ""
+      }
+    ],
+    "evidence": [
+      ".automation/phase4b4_completion_report.json"
+    ],
+    "notes": [],
+    "result": "pass",
+    "contract": "4B4_planning_telemetry_contract.json"
+  }
+]

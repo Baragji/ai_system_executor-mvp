@@ -89,17 +89,18 @@ vi.mock("../../src/planning/decomposeTask.js", () => ({
 import { app } from "../../src/server.js";
 
 const OUTPUT_DIR = path.resolve("output");
+const PHASE1_PROJECT_DIR = path.join(OUTPUT_DIR, "phase1-demo");
 const TELEMETRY_FILE = path.resolve(".telemetry/events.log");
 
 describe("phase1 e2e flow", () => {
   beforeEach(async () => {
-    await fs.rm(OUTPUT_DIR, { recursive: true, force: true });
+    await fs.rm(PHASE1_PROJECT_DIR, { recursive: true, force: true });
     await fs.mkdir(path.dirname(TELEMETRY_FILE), { recursive: true });
     await fs.rm(TELEMETRY_FILE, { force: true });
   });
 
   afterEach(async () => {
-    await fs.rm(OUTPUT_DIR, { recursive: true, force: true });
+    await fs.rm(PHASE1_PROJECT_DIR, { recursive: true, force: true });
   });
 
   it("runs execute endpoint with repair timeline", async () => {

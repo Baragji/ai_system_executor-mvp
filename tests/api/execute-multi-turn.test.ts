@@ -78,11 +78,10 @@ function buildHistory(attempts: RepairHistory["attempts"], finalStatus: RepairHi
 }
 
 beforeEach(async () => {
-  // Targeted cleanup: only remove this test's project and truncate telemetry log
+  // Targeted cleanup: only remove this test's project; avoid resetting global telemetry file
   await fs.rm(path.join(OUTPUT_DIR, "multi-turn-demo"), { recursive: true, force: true });
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
   await fs.mkdir(path.dirname(TELEMETRY_FILE), { recursive: true });
-  await fs.rm(TELEMETRY_FILE, { force: true });
   generateJSONMock.mockClear();
   runInSandboxMock.mockReset();
   multiTurnRepairMock.mockReset();
