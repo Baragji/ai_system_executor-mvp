@@ -16,7 +16,7 @@
     "test:ui:headed": "playwright test --headed",
     "test:ui:debug": "playwright test --debug",
     "test:lighthouse": "node scripts/run-lhci.mjs",
-    "validate:ui": "npm run test:ui && npm run test:lighthouse"
+    "validate:ui": "npm run test:ui && npm run test:lighthouse",
     "ui:test": "playwright test -c playwright.config.ts"
   },
   "dependencies": {
@@ -45,7 +45,6 @@
     "@typescript-eslint/eslint-plugin": "^8.8.0",
     "@typescript-eslint/parser": "^8.8.0",
     "@vitest/coverage-v8": "^2.1.3",
-    "@playwright/test": "^1.48.2",
     "eslint": "^9.11.0",
     "globals": "^15.9.0",
     "wait-on": "^7.2.0",

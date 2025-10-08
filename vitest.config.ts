@@ -25,8 +25,13 @@ export default defineConfig({
     sequence: {
       concurrent: false
     },
-    exclude: ["tests/fixtures/**", "tests/ui/**", "node_modules/**", "output/**"],
-    exclude: ["tests/fixtures/**", "node_modules/**", "output/**", "ui-tests/**"],
+    exclude: [
+      "tests/fixtures/**",
+      "tests/ui/**",
+      "ui-tests/**",
+      "node_modules/**",
+      "output/**"
+    ],
     coverage: {
       provider: "v8",
       reportsDirectory: "coverage",
