@@ -1,0 +1,41 @@
+{
+  "discovery_note": ".automation/phaseA_discovery_note.md",
+  "integration_points": {
+    "win_a1": {
+      "file": "public/script.js",
+      "line": 922,
+      "snippet": "const renderedSuccess = renderSuccessCard(data);\nif (!renderedSuccess) {\n  resultEl.textContent = JSON.stringify(data, null, 2);\n}"
+    },
+    "win_a2": {
+      "file": "public/script.js",
+      "line": 888,
+      "snippet": "loadingPhase = 0;\nupdateLoadingPhase();\nloadingPhaseTimer = setInterval(() => {\n  loadingPhase += 1;\n  updateLoadingPhase();\n}, 10000);"
+    },
+    "win_a3": {
+      "file": "public/script.js",
+      "lines": [940, 991],
+      "snippet": "resultEl.innerHTML = formatError(err);"
+    }
+  },
+  "test_results": {
+    "cmd": "npm test",
+    "exit_code": 0,
+    "timestamp": "2025-10-08T20:07:42+00:00"
+  },
+  "contract_validation": {
+    "cmd": "npm run contract:check",
+    "exit_code": 0,
+    "timestamp": "2025-10-08T20:08:40+00:00"
+  },
+  "sbom": {
+    "file": "sbom.spdx.json",
+    "format": "SPDX",
+    "exists": true
+  },
+  "stack_compliance": {
+    "verified": true,
+    "language": "TypeScript/JavaScript",
+    "no_python": true,
+    "frontend_only": true
+  }
+}

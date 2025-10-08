@@ -27,6 +27,8 @@ let pendingQuestions = [];
 let storedPrompt = "";
 let storedProjectName = "";
 let repairHistoryExpanded = false;
+let loadingPhaseTimer = null;
+let loadingPhase = 0;
 
 const DEFAULT_APP_PORT = "3000";
 const currentPort = typeof window !== "undefined" && window.location ? window.location.port : "";
@@ -34,6 +36,15 @@ const isDemoMode = Boolean(currentPort && currentPort !== DEFAULT_APP_PORT);
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function createDemoTestResult() {
@@ -56,10 +67,16 @@ function createDemoExecutionResponse() {
     { id: "plan", title: "Plan solution", status: "completed" },
     { id: "generate", title: "Generate files", status: "completed" },
   ];
+  const generatedFileMap = {
+    plan: ["README.md", "package.json"],
+    generate: ["src/index.ts", "src/index.test.ts", "public/index.html"],
+  };
   return {
+    ok: true,
     status: "success",
     browse_url: "#",
     project: "demo-project",
+    files_written: generatedFileMap.plan.length + generatedFileMap.generate.length,
     taskPlan: { subtasks },
     planExecutionResult: {
       status: "completed",
@@ -71,9 +88,11 @@ function createDemoExecutionResponse() {
       subtaskResults: subtasks.map((subtask, index) => ({
         subtaskId: subtask.id,
         status: "completed",
+        generatedFiles: generatedFileMap[subtask.id] || [],
         startedAt: new Date(now.getTime() - (index + 2) * 1000).toISOString(),
         completedAt: new Date(now.getTime() - (index + 1) * 1000).toISOString(),
       })),
+      totalDurationMs: 4200,
     },
     timeEstimate: {
       estimatedCompletionTimestamp: now.toISOString(),
@@ -475,6 +494,129 @@ function renderRepairHistory(history) {
   repairHistoryTimeline.appendChild(footer);
 }
 
+function renderSuccessCard(data) {
+  if (!data || !data.ok || !data.files_written) {
+    return false;
+  }
+
+  resultEl.innerHTML = "";
+
+  const card = document.createElement("div");
+  card.className = "success-card";
+
+  const header = document.createElement("div");
+  header.className = "success-header";
+  const icon = document.createElement("span");
+  icon.className = "success-icon";
+  icon.textContent = "✅";
+  const heading = document.createElement("h2");
+  heading.textContent = "Project Generated Successfully!";
+  header.append(icon, heading);
+  card.appendChild(header);
+
+  const metrics = document.createElement("div");
+  metrics.className = "success-metrics";
+
+  const metricItems = [
+    { value: data.files_written, label: "Files Generated" },
+    {
+      value: data.testResults?.initial
+        ? `${data.testResults.initial.status?.toUpperCase() || "UNKNOWN"}`
+        : "NOT RUN",
+      label: "Initial Tests",
+    },
+    {
+      value: formatDuration(
+        data.planExecutionResult?.totalDurationMs ?? data.timeEstimate?.estimatedRemainingMs
+      ),
+      label: "Build Duration",
+    },
+  ];
+
+  metricItems.forEach(metricData => {
+    const metric = document.createElement("div");
+    metric.className = "metric";
+    const metricValue = document.createElement("span");
+    metricValue.className = "metric-value";
+    metricValue.textContent = String(metricData.value ?? "--");
+    const metricLabel = document.createElement("span");
+    metricLabel.className = "metric-label";
+    metricLabel.textContent = metricData.label;
+    metric.append(metricValue, metricLabel);
+    metrics.appendChild(metric);
+  });
+
+  card.appendChild(metrics);
+
+  const files = Array.from(
+    new Set(
+      (data.planExecutionResult?.subtaskResults || [])
+        .flatMap(result => (Array.isArray(result.generatedFiles) ? result.generatedFiles : []))
+        .filter(Boolean)
+    )
+  );
+
+  const fileList = document.createElement("div");
+  fileList.className = "file-list";
+  const fileHeading = document.createElement("h3");
+  fileHeading.textContent = "Generated Files";
+  fileList.appendChild(fileHeading);
+
+  const fileUl = document.createElement("ul");
+  if (files.length > 0) {
+    files.forEach(fileName => {
+      const item = document.createElement("li");
+      item.textContent = `📄 ${fileName}`;
+      fileUl.appendChild(item);
+    });
+  } else {
+    const item = document.createElement("li");
+    item.textContent = "Files will be available after generation completes.";
+    fileUl.appendChild(item);
+  }
+  fileList.appendChild(fileUl);
+  card.appendChild(fileList);
+
+  const actions = document.createElement("div");
+  actions.className = "action-buttons";
+
+  if (data.browse_url) {
+    const openLink = document.createElement("a");
+    openLink.className = "btn btn-primary";
+    openLink.href = data.browse_url;
+    openLink.target = "_blank";
+    openLink.rel = "noopener";
+    openLink.textContent = "Open Project";
+    actions.appendChild(openLink);
+  }
+
+  const runTestsButton = document.createElement("button");
+  runTestsButton.type = "button";
+  runTestsButton.className = "btn btn-secondary";
+  runTestsButton.textContent = "Run Tests";
+  runTestsButton.addEventListener("click", () => {
+    if (runTestsBtn) {
+      runTestsBtn.click();
+      runTestsBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  });
+  actions.appendChild(runTestsButton);
+
+  card.appendChild(actions);
+
+  const rawJson = document.createElement("details");
+  rawJson.className = "raw-json";
+  const summary = document.createElement("summary");
+  summary.textContent = "View Raw Response";
+  const pre = document.createElement("pre");
+  pre.textContent = JSON.stringify(data, null, 2);
+  rawJson.append(summary, pre);
+  card.appendChild(rawJson);
+
+  resultEl.appendChild(card);
+  return true;
+}
+
 function renderTestLifecycle(testResults, repair) {
   if (!testResults) return;
   testStatusEl.innerHTML = "";
@@ -643,9 +785,112 @@ function collectClarificationAnswers() {
   return { answers };
 }
 
+function formatError(error) {
+  const errorMap = {
+    "Failed to fetch": {
+      title: "Connection Error",
+      message: "Unable to connect to server",
+      action: "Check server is running: npm run dev",
+    },
+    ERR_CONNECTION_REFUSED: {
+      title: "Server Not Running",
+      message: "Backend service not responding",
+      action: "Start server: npm run dev",
+    },
+    timeout: {
+      title: "Request Timeout",
+      message: "Operation took too long",
+      action: "Try simpler request or check logs",
+    },
+    NetworkError: {
+      title: "Network Error",
+      message: "Network connection lost",
+      action: "Check internet connection",
+    },
+  };
+
+  const errorText = error instanceof Error ? error.message : String(error ?? "");
+  const normalized = errorText.toLowerCase();
+  const match = Object.entries(errorMap).find(([key]) =>
+    normalized.includes(key.toLowerCase())
+  );
+
+  const { title, message, action } = match ? match[1] : {
+    title: "Unexpected Error",
+    message: "Something went wrong while generating your project.",
+    action: "Please retry or review the details below.",
+  };
+
+  const technicalDetails = error instanceof Error && error.stack ? error.stack : errorText || String(error);
+
+  return `
+    <div class="error-card">
+      <div class="error-header">
+        <span class="error-icon">⚠️</span>
+        <h3 class="error-title">${escapeHtml(title)}</h3>
+      </div>
+      <p class="error-message">${escapeHtml(message)}</p>
+      <div class="error-action">${escapeHtml(action)}</div>
+      <details>
+        <summary>Technical details</summary>
+        <pre>${escapeHtml(technicalDetails)}</pre>
+      </details>
+    </div>
+  `;
+}
+
+function updateLoadingPhase() {
+  if (!resultEl) {
+    return null;
+  }
+
+  const phases = [
+    {
+      title: "Analyzing your request...",
+      hint: "Reading requirements and preparing plan. (typically 10-20 seconds)",
+    },
+    {
+      title: "Creating execution plan...",
+      hint: "Breaking down into manageable steps. (typically 10-30 seconds)",
+    },
+    {
+      title: "Building your project...",
+      hint: "Generating files and running tests. This may take several minutes.",
+    },
+  ];
+
+  const phaseIndex = Math.min(loadingPhase, phases.length - 1);
+  const phase = phases[phaseIndex];
+
+  resultEl.innerHTML = "";
+  const container = document.createElement("div");
+  container.className = "loading-state";
+
+  const spinner = document.createElement("div");
+  spinner.className = "spinner";
+  container.appendChild(spinner);
+
+  const title = document.createElement("h3");
+  title.textContent = phase.title;
+  container.appendChild(title);
+
+  const hint = document.createElement("p");
+  hint.className = "loading-hint";
+  hint.textContent = phase.hint;
+  container.appendChild(hint);
+
+  resultEl.appendChild(container);
+  return container;
+}
+
 async function executeRequest({ prompt, projectName, clarifications }) {
   resetClarificationUI();
-  resultEl.textContent = "Planning and executing your project... This may take several minutes for complex requests.";
+  loadingPhase = 0;
+  updateLoadingPhase();
+  loadingPhaseTimer = setInterval(() => {
+    loadingPhase += 1;
+    updateLoadingPhase();
+  }, 10000);
   testControlsEl.classList.add("hidden");
   currentProjectSlug = null;
   renderRepairHistory(null);
@@ -674,11 +919,16 @@ async function executeRequest({ prompt, projectName, clarifications }) {
       return;
     }
 
-    resultEl.textContent = JSON.stringify(data, null, 2);
+    const renderedSuccess = renderSuccessCard(data);
+    if (!renderedSuccess) {
+      resultEl.textContent = JSON.stringify(data, null, 2);
+    }
     renderTaskPlan(data.taskPlan, data.planExecutionResult, data.timeEstimate);
     if (data?.browse_url) {
-      resultEl.appendChild(document.createElement("br"));
-      resultEl.appendChild(renderLink(data.browse_url));
+      if (!renderedSuccess) {
+        resultEl.appendChild(document.createElement("br"));
+        resultEl.appendChild(renderLink(data.browse_url));
+      }
       currentProjectSlug = data.project;
       testControlsEl.classList.remove("hidden");
       renderTestLifecycle(data.testResults, data.repair);
@@ -687,7 +937,12 @@ async function executeRequest({ prompt, projectName, clarifications }) {
       currentProjectSlug = null;
     }
   } catch (err) {
-    resultEl.textContent = String(err);
+    resultEl.innerHTML = formatError(err);
+  } finally {
+    if (loadingPhaseTimer) {
+      clearInterval(loadingPhaseTimer);
+      loadingPhaseTimer = null;
+    }
   }
 }
 
@@ -733,7 +988,7 @@ async function startClarificationFlow() {
     renderClarificationQuestions(questions);
     resultEl.textContent = "Clarifications required before generation.";
   } catch (err) {
-    resultEl.textContent = String(err);
+    resultEl.innerHTML = formatError(err);
   }
 }
 
