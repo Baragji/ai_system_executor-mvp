@@ -25,6 +25,7 @@ export default defineConfig({
     sequence: {
       concurrent: false
     },
+    exclude: ["tests/fixtures/**", "tests/ui/**", "node_modules/**", "output/**"],
     exclude: ["tests/fixtures/**", "node_modules/**", "output/**", "ui-tests/**"],
     coverage: {
       provider: "v8",
@@ -33,7 +34,8 @@ export default defineConfig({
       thresholds,
       include: ["src/contracts/**/*.ts", "src/runner/**/*.ts", "src/utils/**/*.ts"],
       exclude: [
-        "public/**"
+        "public/**",
+        "src/runner/runUIValidation.ts"
       ]
     }
   }

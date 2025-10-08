@@ -9,8 +9,10 @@ const executorOutputSchema = requireJson("../../contracts/executor-output.schema
 const repairArtifactSchema = requireJson("../../contracts/repair-artifact.schema.json");
 const clarificationRequestSchema = requireJson("../../contracts/clarification-request.schema.json");
 const clarificationResponseSchema = requireJson("../../contracts/clarification-response.schema.json");
+const uiValidationResultSchema = requireJson("../../contracts/ui-validation-result.schema.json");
 import type { ExecutorOutput } from "../executor/types.js";
 import type { ClarificationRequest, ClarificationResponse } from "../clarification/types.js";
+import type { UIValidationResult } from "../runner/runUIValidation.js";
 
 export interface RunResult {
   status: "pass" | "fail" | "error";
@@ -71,6 +73,9 @@ const clarificationRequestValidator = ajv.compile<ClarificationRequest>(
 const clarificationResponseValidator = ajv.compile<ClarificationResponse>(
   clarificationResponseSchema as unknown as JSONSchemaType<ClarificationResponse>
 );
+const uiValidationResultValidator = ajv.compile<UIValidationResult>(
+  uiValidationResultSchema as unknown as JSONSchemaType<UIValidationResult>
+);
 
 export function validateRunResult(data: unknown): ValidationResult<RunResult> {
   const ok = runResultValidator(data);
@@ -100,4 +105,10 @@ export function validateClarificationResponse(data: unknown): ValidationResult<C
   const ok = clarificationResponseValidator(data);
   if (ok) return { ok: true, value: data as ClarificationResponse };
   return { ok: false, errors: formatErrors(clarificationResponseValidator.errors) };
+}
+
+export function validateUIValidationResult(data: unknown): ValidationResult<UIValidationResult> {
+  const ok = uiValidationResultValidator(data);
+  if (ok) return { ok: true, value: data as UIValidationResult };
+  return { ok: false, errors: formatErrors(uiValidationResultValidator.errors) };
 }

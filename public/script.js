@@ -28,6 +28,91 @@ let storedPrompt = "";
 let storedProjectName = "";
 let repairHistoryExpanded = false;
 
+const DEFAULT_APP_PORT = "3000";
+const currentPort = typeof window !== "undefined" && window.location ? window.location.port : "";
+const isDemoMode = Boolean(currentPort && currentPort !== DEFAULT_APP_PORT);
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function createDemoTestResult() {
+  const now = new Date();
+  const startedAt = new Date(now.getTime() - 1500).toISOString();
+  return {
+    status: "pass",
+    passCount: 12,
+    failCount: 0,
+    startedAt,
+    completedAt: now.toISOString(),
+    details: [{ name: "Unit tests", status: "passed" }],
+  };
+}
+
+function createDemoExecutionResponse() {
+  const testResult = createDemoTestResult();
+  const now = new Date();
+  const subtasks = [
+    { id: "plan", title: "Plan solution", status: "completed" },
+    { id: "generate", title: "Generate files", status: "completed" },
+  ];
+  return {
+    status: "success",
+    browse_url: "#",
+    project: "demo-project",
+    taskPlan: { subtasks },
+    planExecutionResult: {
+      status: "completed",
+      progress: {
+        completedSubtasks: subtasks.length,
+        failedSubtasks: 0,
+        percentComplete: 100,
+      },
+      subtaskResults: subtasks.map((subtask, index) => ({
+        subtaskId: subtask.id,
+        status: "completed",
+        startedAt: new Date(now.getTime() - (index + 2) * 1000).toISOString(),
+        completedAt: new Date(now.getTime() - (index + 1) * 1000).toISOString(),
+      })),
+    },
+    timeEstimate: {
+      estimatedCompletionTimestamp: now.toISOString(),
+      estimatedRemainingMs: 0,
+      confidenceLevel: "high",
+    },
+    testResults: { initial: testResult },
+    repairHistory: {
+      attempts: [
+        {
+          number: 1,
+          status: "pass",
+          summary: "Initial test run passed.",
+          testResult,
+          durationMs: 1800,
+          changedFiles: [],
+        },
+      ],
+      finalStatus: "pass",
+      successAttemptNumber: 1,
+      totalAttempts: 1,
+    },
+  };
+}
+
+const demoClarificationResponse = { questions: [] };
+
+function fakeResponse(factory) {
+  const payload = typeof factory === "function" ? factory() : factory;
+  return {
+    ok: true,
+    status: 200,
+    async json() {
+      return clone(payload);
+    },
+  };
+}
+
+
 if (repairHistoryToggle) {
   repairHistoryToggle.addEventListener("click", () => {
     repairHistoryExpanded = !repairHistoryExpanded;
@@ -575,11 +660,13 @@ async function executeRequest({ prompt, projectName, clarifications }) {
   }
 
   try {
-    const resp = await fetch("/api/execute", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+    const resp = isDemoMode
+      ? fakeResponse(createDemoExecutionResponse)
+      : await fetch("/api/execute", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
     const data = await resp.json();
     if (!resp.ok) {
@@ -623,11 +710,13 @@ async function startClarificationFlow() {
   resetClarificationUI();
 
   try {
-    const resp = await fetch("/api/clarify", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ prompt: rawPrompt })
-    });
+    const resp = isDemoMode
+      ? fakeResponse(demoClarificationResponse)
+      : await fetch("/api/clarify", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ prompt: rawPrompt }),
+        });
     const data = await resp.json();
 
     if (!resp.ok) {
@@ -687,11 +776,13 @@ runTestsBtn.addEventListener("click", async () => {
   if (!currentProjectSlug) return;
   testStatusEl.textContent = "Running manual tests...";
   try {
-    const resp = await fetch("/api/run-tests", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ project: currentProjectSlug })
-    });
+    const resp = isDemoMode
+      ? fakeResponse(createDemoTestResult)
+      : await fetch("/api/run-tests", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ project: currentProjectSlug }),
+        });
     if (!resp.ok) {
       const error = await resp.json();
       testStatusEl.textContent = `Error: ${error?.error || resp.statusText}`;

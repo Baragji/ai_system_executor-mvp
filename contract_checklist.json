@@ -216,6 +216,56 @@
           ]
         }
       ]
+    },
+    {
+      "feature": "UI Validation & Automation",
+      "criteria": [
+        {
+          "id": "UI-001",
+          "description": "Playwright infrastructure configured for visual regression testing with screenshot comparison and cross-browser support.",
+          "evidence": ["playwright.config.ts:1", "tests/ui/home.spec.ts:1", "tests/ui/execution-flow.spec.ts:1"],
+          "commands": [
+            { "cmd": "test -f playwright.config.ts", "expect_exit_code": 0 },
+            { "cmd": "test -d tests/ui", "expect_exit_code": 0 }
+          ]
+        },
+        {
+          "id": "UI-002",
+          "description": "Accessibility testing integrated with axe-core for WCAG 2.1 AA compliance verification.",
+          "evidence": ["tests/ui/home.spec.ts:35", "tests/ui/execution-flow.spec.ts:44", "package.json:1"],
+          "commands": [
+            { "cmd": "grep -q '@axe-core/playwright' package.json", "expect_exit_code": 0 }
+          ]
+        },
+        {
+          "id": "UI-003",
+          "description": "Lighthouse CI configured for performance budgets, SEO, and best practices validation.",
+          "evidence": ["lighthouserc.js:1", "package.json:1"],
+          "commands": [
+            { "cmd": "test -f lighthouserc.js", "expect_exit_code": 0 },
+            { "cmd": "grep -q '@lhci/cli' package.json", "expect_exit_code": 0 }
+          ]
+        },
+        {
+          "id": "UI-004",
+          "description": "UI validation contract schema and validator for compliance reporting.",
+          "evidence": ["contracts/ui-validation-result.schema.json:1", "src/contracts/validators.ts:110", "src/runner/runUIValidation.ts:1"],
+          "commands": [
+            { "cmd": "test -f contracts/ui-validation-result.schema.json", "expect_exit_code": 0 },
+            { "cmd": "npm test --silent -- tests/contracts/ui-validation-result.test.ts", "expect_exit_code": 0 }
+          ]
+        },
+        {
+          "id": "UI-005",
+          "description": "GitHub Actions workflow for automated UI validation on every PR with artifact reporting.",
+          "evidence": [".github/workflows/ui-validation.yml:1"],
+          "commands": [
+            { "cmd": "test -f .github/workflows/ui-validation.yml", "expect_exit_code": 0 },
+            { "cmd": "grep -q 'playwright test' .github/workflows/ui-validation.yml", "expect_exit_code": 0 },
+            { "cmd": "grep -q 'lhci autorun' .github/workflows/ui-validation.yml", "expect_exit_code": 0 }
+          ]
+        }
+      ]
     }
   ],
   "gap_analysis": {
