@@ -1,0 +1,815 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "executor-mvp@0.1.0",
+  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-5bb92dc3-8cf1-4812-a3df-5103e4d9d810",
+  "creationInfo": {
+    "created": "2025-10-08T19:18:32.906Z",
+    "creators": [
+      "Tool: npm/cli-10.8.2"
+    ]
+  },
+  "documentDescribes": [
+    "SPDXRef-Package-executor-mvp-0.1.0"
+  ],
+  "packages": [
+    {
+      "name": "executor-mvp",
+      "SPDXID": "SPDXRef-Package-executor-mvp-0.1.0",
+      "versionInfo": "0.1.0",
+      "packageFileName": "",
+      "primaryPackagePurpose": "LIBRARY",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/executor-mvp@0.1.0"
+        }
+      ]
+    },
+    {
+      "name": "@anthropic-ai/sdk",
+      "SPDXID": "SPDXRef-Package-anthropic-ai.sdk-0.21.1",
+      "versionInfo": "0.21.1",
+      "packageFileName": "node_modules/@anthropic-ai/sdk",
+      "description": "The official TypeScript library for the Anthropic API",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/anthropics/anthropic-sdk-typescript#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40anthropic-ai/sdk@0.21.1"
+        }
+      ]
+    },
+    {
+      "name": "@types/node",
+      "SPDXID": "SPDXRef-Package-types.node-18.19.129",
+      "versionInfo": "18.19.129",
+      "packageFileName": "node_modules/@anthropic-ai/sdk/node_modules/@types/node",
+      "description": "TypeScript definitions for node",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40types/node@18.19.129"
+        }
+      ]
+    },
+    {
+      "name": "undici-types",
+      "SPDXID": "SPDXRef-Package-undici-types-5.26.5",
+      "versionInfo": "5.26.5",
+      "packageFileName": "node_modules/@anthropic-ai/sdk/node_modules/undici-types",
+      "description": "A stand-alone types package for Undici",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://undici.nodejs.org",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/undici-types@5.26.5"
+        }
+      ]
+    },
+    {
+      "name": "@types/node-fetch",
+      "SPDXID": "SPDXRef-Package-types.node-fetch-2.6.13",
+      "versionInfo": "2.6.13",
+      "packageFileName": "node_modules/@types/node-fetch",
+      "description": "TypeScript definitions for node-fetch",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node-fetch",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40types/node-fetch@2.6.13"
+        }
+      ]
+    },
+    {
+      "name": "abort-controller",
+      "SPDXID": "SPDXRef-Package-abort-controller-3.0.0",
+      "versionInfo": "3.0.0",
+      "packageFileName": "node_modules/abort-controller",
+      "description": "An implementation of WHATWG AbortController interface.",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/mysticatea/abort-controller#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/abort-controller@3.0.0"
+        }
+      ]
+    },
+    {
+      "name": "agentkeepalive",
+      "SPDXID": "SPDXRef-Package-agentkeepalive-4.6.0",
+      "versionInfo": "4.6.0",
+      "packageFileName": "node_modules/agentkeepalive",
+      "description": "Missing keepalive http.Agent",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/node-modules/agentkeepalive#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/agentkeepalive@4.6.0"
+        }
+      ]
+    },
+    {
+      "name": "ajv",
+      "SPDXID": "SPDXRef-Package-ajv-8.17.1",
+      "versionInfo": "8.17.1",
+      "packageFileName": "node_modules/ajv",
+      "description": "Another JSON Schema Validator",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://ajv.js.org",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/ajv@8.17.1"
+        }
+      ]
+    },
+    {
+      "name": "ajv-formats",
+      "SPDXID": "SPDXRef-Package-ajv-formats-3.0.1",
+      "versionInfo": "3.0.1",
+      "packageFileName": "node_modules/ajv-formats",
+      "description": "Format validation for Ajv v7+",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/ajv-validator/ajv-formats#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/ajv-formats@3.0.1"
+        }
+      ]
+    },
+    {
+      "name": "basic-auth",
+      "SPDXID": "SPDXRef-Package-basic-auth-2.0.1",
+      "versionInfo": "2.0.1",
+      "packageFileName": "node_modules/basic-auth",
+      "description": "node.js basic auth parser",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/jshttp/basic-auth#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/basic-auth@2.0.1"
+        }
+      ]
+    },
+    {
+      "name": "safe-buffer",
+      "SPDXID": "SPDXRef-Package-safe-buffer-5.1.2",
+      "versionInfo": "5.1.2",
+      "packageFileName": "node_modules/basic-auth/node_modules/safe-buffer",
+      "description": "Safer Node.js Buffer API",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/feross/safe-buffer",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/safe-buffer@5.1.2"
+        }
+      ]
+    },
+    {
+      "name": "cors",
+      "SPDXID": "SPDXRef-Package-cors-2.8.5",
+      "versionInfo": "2.8.5",
+      "packageFileName": "node_modules/cors",
+      "description": "Node.js CORS middleware",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/expressjs/cors#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/cors@2.8.5"
+        }
+      ]
+    },
+    {
+      "name": "diff",
+      "SPDXID": "SPDXRef-Package-diff-5.2.0",
+      "versionInfo": "5.2.0",
+      "packageFileName": "node_modules/diff",
+      "description": "A JavaScript text diff implementation.",
+      "downloadLocation": "https://registry.npmjs.org/diff/-/diff-5.2.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/kpdecker/jsdiff#readme",
+      "licenseDeclared": "BSD-3-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/diff@5.2.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "b88143c6aa5164667a4e13a4f388447ea5a81f1d9d7af445be94d97131eeafce6f2267dac546d35bd4728780a90ae0e74e838fd4212d5ca220cad1c13d57dfe4"
+        }
+      ]
+    },
+    {
+      "name": "dotenv",
+      "SPDXID": "SPDXRef-Package-dotenv-16.6.1",
+      "versionInfo": "16.6.1",
+      "packageFileName": "node_modules/dotenv",
+      "description": "Loads environment variables from .env file",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/motdotla/dotenv#readme",
+      "licenseDeclared": "BSD-2-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/dotenv@16.6.1"
+        }
+      ]
+    },
+    {
+      "name": "event-target-shim",
+      "SPDXID": "SPDXRef-Package-event-target-shim-5.0.1",
+      "versionInfo": "5.0.1",
+      "packageFileName": "node_modules/event-target-shim",
+      "description": "An implementation of WHATWG EventTarget interface.",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/mysticatea/event-target-shim",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/event-target-shim@5.0.1"
+        }
+      ]
+    },
+    {
+      "name": "fast-uri",
+      "SPDXID": "SPDXRef-Package-fast-uri-3.1.0",
+      "versionInfo": "3.1.0",
+      "packageFileName": "node_modules/fast-uri",
+      "description": "Dependency-free RFC 3986 URI toolbox",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/fastify/fast-uri",
+      "licenseDeclared": "BSD-3-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/fast-uri@3.1.0"
+        }
+      ]
+    },
+    {
+      "name": "form-data-encoder",
+      "SPDXID": "SPDXRef-Package-form-data-encoder-1.7.2",
+      "versionInfo": "1.7.2",
+      "packageFileName": "node_modules/form-data-encoder",
+      "description": "Encode FormData content into the multipart/form-data format",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/octet-stream/form-data-encoder#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/form-data-encoder@1.7.2"
+        }
+      ]
+    },
+    {
+      "name": "formdata-node",
+      "SPDXID": "SPDXRef-Package-formdata-node-4.4.1",
+      "versionInfo": "4.4.1",
+      "packageFileName": "node_modules/formdata-node",
+      "description": "Spec-compliant FormData implementation for Node.js",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/octet-stream/form-data#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/formdata-node@4.4.1"
+        }
+      ]
+    },
+    {
+      "name": "web-streams-polyfill",
+      "SPDXID": "SPDXRef-Package-web-streams-polyfill-4.0.0-beta.3",
+      "versionInfo": "4.0.0-beta.3",
+      "packageFileName": "node_modules/formdata-node/node_modules/web-streams-polyfill",
+      "description": "Web Streams, based on the WHATWG spec reference implementation",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/web-streams-polyfill@4.0.0-beta.3"
+        }
+      ]
+    },
+    {
+      "name": "humanize-ms",
+      "SPDXID": "SPDXRef-Package-humanize-ms-1.2.1",
+      "versionInfo": "1.2.1",
+      "packageFileName": "node_modules/humanize-ms",
+      "description": "transform humanize time to ms",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/node-modules/humanize-ms#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/humanize-ms@1.2.1"
+        }
+      ]
+    },
+    {
+      "name": "json-schema-traverse",
+      "SPDXID": "SPDXRef-Package-json-schema-traverse-1.0.0",
+      "versionInfo": "1.0.0",
+      "packageFileName": "node_modules/json-schema-traverse",
+      "description": "Traverse JSON Schema passing each schema object to callback",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/epoberezkin/json-schema-traverse#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/json-schema-traverse@1.0.0"
+        }
+      ]
+    },
+    {
+      "name": "morgan",
+      "SPDXID": "SPDXRef-Package-morgan-1.10.1",
+      "versionInfo": "1.10.1",
+      "packageFileName": "node_modules/morgan",
+      "description": "HTTP request logger middleware for node.js",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/expressjs/morgan#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/morgan@1.10.1"
+        }
+      ]
+    },
+    {
+      "name": "debug",
+      "SPDXID": "SPDXRef-Package-debug-2.6.9",
+      "versionInfo": "2.6.9",
+      "packageFileName": "node_modules/morgan/node_modules/debug",
+      "description": "small debugging utility",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/visionmedia/debug#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/debug@2.6.9"
+        }
+      ]
+    },
+    {
+      "name": "ms",
+      "SPDXID": "SPDXRef-Package-ms-2.0.0",
+      "versionInfo": "2.0.0",
+      "packageFileName": "node_modules/morgan/node_modules/ms",
+      "description": "Tiny milisecond conversion utility",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/zeit/ms#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/ms@2.0.0"
+        }
+      ]
+    },
+    {
+      "name": "on-finished",
+      "SPDXID": "SPDXRef-Package-on-finished-2.3.0",
+      "versionInfo": "2.3.0",
+      "packageFileName": "node_modules/morgan/node_modules/on-finished",
+      "description": "Execute a callback when a request closes, finishes, or errors",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/jshttp/on-finished#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/on-finished@2.3.0"
+        }
+      ]
+    },
+    {
+      "name": "node-domexception",
+      "SPDXID": "SPDXRef-Package-node-domexception-1.0.0",
+      "versionInfo": "1.0.0",
+      "packageFileName": "node_modules/node-domexception",
+      "description": "An implementation of the DOMException class from NodeJS",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/jimmywarting/node-domexception#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/node-domexception@1.0.0"
+        }
+      ]
+    },
+    {
+      "name": "object-assign",
+      "SPDXID": "SPDXRef-Package-object-assign-4.1.1",
+      "versionInfo": "4.1.1",
+      "packageFileName": "node_modules/object-assign",
+      "description": "ES2015 `Object.assign()` ponyfill",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/sindresorhus/object-assign#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/object-assign@4.1.1"
+        }
+      ]
+    },
+    {
+      "name": "openai",
+      "SPDXID": "SPDXRef-Package-openai-4.104.0",
+      "versionInfo": "4.104.0",
+      "packageFileName": "node_modules/openai",
+      "description": "The official TypeScript library for the OpenAI API",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/openai/openai-node#readme",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/openai@4.104.0"
+        }
+      ]
+    },
+    {
+      "name": "@types/node",
+      "SPDXID": "SPDXRef-Package-types.node-18.19.129",
+      "versionInfo": "18.19.129",
+      "packageFileName": "node_modules/openai/node_modules/@types/node",
+      "description": "TypeScript definitions for node",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40types/node@18.19.129"
+        }
+      ]
+    },
+    {
+      "name": "undici-types",
+      "SPDXID": "SPDXRef-Package-undici-types-5.26.5",
+      "versionInfo": "5.26.5",
+      "packageFileName": "node_modules/openai/node_modules/undici-types",
+      "description": "A stand-alone types package for Undici",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://undici.nodejs.org",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/undici-types@5.26.5"
+        }
+      ]
+    },
+    {
+      "name": "require-from-string",
+      "SPDXID": "SPDXRef-Package-require-from-string-2.0.2",
+      "versionInfo": "2.0.2",
+      "packageFileName": "node_modules/require-from-string",
+      "description": "Require module from string",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/floatdrop/require-from-string#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/require-from-string@2.0.2"
+        }
+      ]
+    },
+    {
+      "name": "slugify",
+      "SPDXID": "SPDXRef-Package-slugify-1.6.6",
+      "versionInfo": "1.6.6",
+      "packageFileName": "node_modules/slugify",
+      "description": "Slugifies a String",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/simov/slugify",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/slugify@1.6.6"
+        }
+      ]
+    },
+    {
+      "name": "web-streams-polyfill",
+      "SPDXID": "SPDXRef-Package-web-streams-polyfill-3.3.3",
+      "versionInfo": "3.3.3",
+      "packageFileName": "node_modules/web-streams-polyfill",
+      "description": "Web Streams, based on the WHATWG spec reference implementation",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/web-streams-polyfill@3.3.3"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DESCRIBES"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-anthropic-ai.sdk-0.21.1",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ajv-8.17.1",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ajv-formats-3.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cors-2.8.5",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-diff-5.2.0",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-dotenv-16.6.1",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-morgan-1.10.1",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-openai-4.104.0",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-slugify-1.6.6",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-types.node-18.19.129",
+      "relatedSpdxElement": "SPDXRef-Package-anthropic-ai.sdk-0.21.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-types.node-fetch-2.6.13",
+      "relatedSpdxElement": "SPDXRef-Package-anthropic-ai.sdk-0.21.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-abort-controller-3.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-anthropic-ai.sdk-0.21.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-agentkeepalive-4.6.0",
+      "relatedSpdxElement": "SPDXRef-Package-anthropic-ai.sdk-0.21.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-form-data-encoder-1.7.2",
+      "relatedSpdxElement": "SPDXRef-Package-anthropic-ai.sdk-0.21.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-formdata-node-4.4.1",
+      "relatedSpdxElement": "SPDXRef-Package-anthropic-ai.sdk-0.21.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-web-streams-polyfill-3.3.3",
+      "relatedSpdxElement": "SPDXRef-Package-anthropic-ai.sdk-0.21.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-undici-types-5.26.5",
+      "relatedSpdxElement": "SPDXRef-Package-types.node-18.19.129",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-event-target-shim-5.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-abort-controller-3.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-humanize-ms-1.2.1",
+      "relatedSpdxElement": "SPDXRef-Package-agentkeepalive-4.6.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-fast-uri-3.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-ajv-8.17.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-json-schema-traverse-1.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-ajv-8.17.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-require-from-string-2.0.2",
+      "relatedSpdxElement": "SPDXRef-Package-ajv-8.17.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ajv-8.17.1",
+      "relatedSpdxElement": "SPDXRef-Package-ajv-formats-3.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-safe-buffer-5.1.2",
+      "relatedSpdxElement": "SPDXRef-Package-basic-auth-2.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-object-assign-4.1.1",
+      "relatedSpdxElement": "SPDXRef-Package-cors-2.8.5",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-node-domexception-1.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-formdata-node-4.4.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-web-streams-polyfill-4.0.0-beta.3",
+      "relatedSpdxElement": "SPDXRef-Package-formdata-node-4.4.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-basic-auth-2.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-morgan-1.10.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-debug-2.6.9",
+      "relatedSpdxElement": "SPDXRef-Package-morgan-1.10.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-on-finished-2.3.0",
+      "relatedSpdxElement": "SPDXRef-Package-morgan-1.10.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ms-2.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-debug-2.6.9",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-types.node-18.19.129",
+      "relatedSpdxElement": "SPDXRef-Package-openai-4.104.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-types.node-fetch-2.6.13",
+      "relatedSpdxElement": "SPDXRef-Package-openai-4.104.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-abort-controller-3.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-openai-4.104.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-agentkeepalive-4.6.0",
+      "relatedSpdxElement": "SPDXRef-Package-openai-4.104.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-form-data-encoder-1.7.2",
+      "relatedSpdxElement": "SPDXRef-Package-openai-4.104.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-formdata-node-4.4.1",
+      "relatedSpdxElement": "SPDXRef-Package-openai-4.104.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-undici-types-5.26.5",
+      "relatedSpdxElement": "SPDXRef-Package-types.node-18.19.129",
+      "relationshipType": "DEPENDENCY_OF"
+    }
+  ]
+}

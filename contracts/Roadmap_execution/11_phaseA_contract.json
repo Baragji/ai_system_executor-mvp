@@ -39,6 +39,18 @@
         "visual_improvements": true
       }
     },
+    "stack_compliance": {
+      "enforced_by": "manual review",
+      "language": "JavaScript",
+      "frameworks": [],
+      "test_command": "npm test",
+      "constraints": [
+        "frontend under /public only",
+        "no backend changes",
+        "no schema changes"
+      ],
+      "validation": "Manual verification of frontend-only changes"
+    },
     "environments": {
       "dev": {
         "node_version": ">=20.10.0 <21",

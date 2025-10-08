@@ -11,10 +11,10 @@
  *   1 - Validation failed or error occurred
  */
 
-const Ajv = require('ajv');
-const addFormats = require('ajv-formats');
-const fs = require('fs');
-const path = require('path');
+import Ajv from 'ajv/dist/2020.js';
+import addFormats from 'ajv-formats';
+import fs from 'fs';
+import path from 'path';
 
 // Configuration
 const SCHEMA_PATH = 'contracts/schemas/roadmap_phase.schema.json';
@@ -71,6 +71,23 @@ function validateContract(ajv, schema, contractPath) {
   }
 }
 
+function isCDIContract(filePath) {
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const contract = JSON.parse(content);
+    
+    // CDI contracts have contract_version starting with a letter (A.x.x, B.x.x)
+    // Legacy contracts have numeric versions (2.0.0, 4B1.0.0)
+    const version = contract.contract_version;
+    if (!version) return false;
+    
+    // Check if version starts with a letter A-Z
+    return /^[A-Z]\./.test(version);
+  } catch (e) {
+    return false; // If can't parse, skip
+  }
+}
+
 function findContracts(dir) {
   if (!fs.existsSync(dir)) {
     log(`⚠️  Contracts directory not found: ${dir}`, 'yellow');
@@ -78,7 +95,12 @@ function findContracts(dir) {
   }
   
   return fs.readdirSync(dir)
-    .filter(file => file.endsWith('.json'))
+    .filter(file => {
+      if (!file.endsWith('.json')) return false;
+      
+      const filePath = path.join(dir, file);
+      return isCDIContract(filePath);
+    })
     .map(file => path.join(dir, file));
 }
 
@@ -111,12 +133,14 @@ async function main() {
   const contracts = findContracts(CONTRACTS_DIR);
   
   if (contracts.length === 0) {
-    log(`\n⚠️  No contracts found in ${CONTRACTS_DIR}`, 'yellow');
-    log(`This is expected if you haven't created any contracts yet.`, 'yellow');
+    log(`\n⚠️  No CDI contracts found in ${CONTRACTS_DIR}`, 'yellow');
+    log(`This is expected if you haven't created any CDI-pattern contracts yet.`, 'yellow');
+    log(`\nNote: Legacy contracts (version 2.x.x, 4B1.x.x) are skipped - they use a different format.`, 'blue');
     process.exit(0);
   }
   
-  log(`\n📚 Found ${contracts.length} contract(s) to validate\n`, 'blue');
+  log(`\n📚 Found ${contracts.length} CDI contract(s) to validate`, 'blue');
+  log(`(Skipping legacy contracts with numeric versions)\n`, 'blue');
   
   // Validate all contracts
   let allValid = true;
@@ -145,7 +169,7 @@ async function main() {
   log(`Invalid: ${results.invalid}`, results.invalid > 0 ? 'red' : 'reset');
   
   if (allValid) {
-    log('\n✅ All contracts are valid!\n', 'green');
+    log('\n✅ All CDI contracts are valid!\n', 'green');
     process.exit(0);
   } else {
     log('\n❌ Some contracts failed validation. Please fix errors above.\n', 'red');

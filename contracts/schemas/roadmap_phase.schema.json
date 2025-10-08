@@ -88,6 +88,31 @@
         "validation": {"type": "string"}
       }
     },
+    "environments": {
+      "type": "object",
+      "description": "Environment configurations (optional for backward compatibility)",
+      "patternProperties": {
+        ".*": {
+          "type": "object",
+          "properties": {
+            "node_version": {"type": "string"},
+            "package_manager": {"type": "string"},
+            "os": {"type": "string"},
+            "env_vars_required": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "optional_env_vars": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "verify_commands": {
+              "type": "array"
+            }
+          }
+        }
+      }
+    },
     "observability": {
       "type": "object",
       "required": ["trace_file", "monitoring", "logging"],

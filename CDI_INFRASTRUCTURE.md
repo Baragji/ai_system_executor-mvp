@@ -148,13 +148,18 @@ npm install
 
 # 3. Test contract validation
 npm run contract:check
+# Expected: ✅ All contracts are valid!
 
 # 4. Test SBOM generation
 npm run sbom
+# Expected: Creates sbom.spdx.json
 
-# 5. Run all checks
+# 5. Run all validation
 npm run validate:all
+# Expected: All checks pass
 ```
+
+**Note:** If you see "10 vulnerabilities (4 low, 6 moderate)" after `npm install`, this is from dev dependencies (Playwright, etc.) and doesn't affect Phase A execution. Can be addressed later with `npm audit fix`.
 
 **To start Phase A execution:**
 
