@@ -83,7 +83,7 @@ function isCDIContract(filePath) {
     
     // Check if version starts with a letter A-Z
     return /^[A-Z]\./.test(version);
-  } catch (e) {
+  } catch {
     return false; // If can't parse, skip
   }
 }
