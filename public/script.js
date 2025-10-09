@@ -675,11 +675,12 @@ function computeOutcome(data) {
   const files = Number(data.files_written || 0);
   if (!files) return 'error';
   const initial = data.testResults?.initial;
-  if (initial && initial.status) {
-    const status = String(initial.status).toUpperCase();
-    if (status === 'PASS' || status === 'PASSED') return 'success';
-    return 'partial';
-  }
+  const passCount = Number(initial?.passCount ?? 0);
+  const failCount = Number(initial?.failCount ?? 0);
+  const executed = passCount + failCount > 0;
+  const status = String(initial?.status ?? '').toUpperCase();
+  if (executed && (status === 'PASS' || status === 'PASSED')) return 'success';
+  if (executed && status === 'FAIL') return 'partial';
   return 'error';
 }
 
