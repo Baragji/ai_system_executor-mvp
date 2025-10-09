@@ -1,3 +1,6 @@
+/* global Prism */
+import { successIcon, partialIcon, errorIcon } from "./icons.js";
+
 const runBtn = document.getElementById("runBtn");
 const promptEl = document.getElementById("prompt");
 const projEl = document.getElementById("projectName");
@@ -21,14 +24,15 @@ const taskPlanSummary = document.getElementById("taskPlanSummary");
 const subtaskListEl = document.getElementById("subtaskList");
 const currentSubtaskLabel = document.getElementById("currentSubtaskLabel");
 const estimatedCompletionLabel = document.getElementById("estimatedCompletionLabel");
+const debugDisclosure = document.getElementById("debugDisclosure");
+const filePreviewPanel = document.getElementById("filePreviewPanel");
 
 let currentProjectSlug = null;
 let pendingQuestions = [];
 let storedPrompt = "";
 let storedProjectName = "";
 let repairHistoryExpanded = false;
-let loadingPhaseTimer = null;
-let loadingPhase = 0;
+// legacy loading state removed
 
 const DEFAULT_APP_PORT = "3000";
 const currentPort = typeof window !== "undefined" && window.location ? window.location.port : "";
@@ -46,6 +50,21 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+function hideDebugDisclosure() {
+  if (debugDisclosure) {
+    debugDisclosure.classList.add("hidden");
+    debugDisclosure.removeAttribute("open");
+  }
+}
+
+function revealDebugDisclosure() {
+  if (debugDisclosure) {
+    debugDisclosure.classList.remove("hidden");
+  }
+}
+
+hideDebugDisclosure();
 
 function createDemoTestResult() {
   const now = new Date();
@@ -308,6 +327,16 @@ function renderTaskPlan(taskPlan, executionResult, timeEstimate) {
   taskPlanSection.classList.remove("hidden");
 }
 
+function getGeneratedFiles(data) {
+  return Array.from(
+    new Set(
+      (data?.planExecutionResult?.subtaskResults || [])
+        .flatMap(result => (Array.isArray(result.generatedFiles) ? result.generatedFiles : []))
+        .filter(Boolean)
+    )
+  );
+}
+
 function renderTimelineEntry(label, runResult) {
   const entry = document.createElement("div");
   entry.className = "timeline-entry";
@@ -496,157 +525,7 @@ function renderRepairHistory(history) {
   repairHistoryTimeline.appendChild(footer);
 }
 
-/**
- * Outcome State Machine - Authoritative determination of generation result
- * Returns exactly ONE of three states based on actual test results
- * @param {Object} data - Execution response from backend
- * @returns {'success' | 'partial' | 'error'} - Outcome state
- */
-function computeOutcome(data) {
-  // 1. Generation failed or no files produced → ERROR
-  if (!data || data.error || !data.files_written || data.files_written === 0) {
-    return 'error';
-  }
-
-  // 2. Files generated + tests executed
-  if (data.testResults?.initial?.executed) {
-    const testStatus = data.testResults.initial.status?.toUpperCase();
-    
-    // Tests passed → SUCCESS
-    if (testStatus === 'PASS' || testStatus === 'PASSED') {
-      return 'success';
-    }
-    
-    // Tests failed → PARTIAL (files exist but quality issue)
-    return 'partial';
-  }
-
-  // 3. Files generated but tests not executed → ERROR (incomplete build)
-  return 'error';
-}
-
-function renderSuccessCard(data) {
-  if (!data || !data.ok || !data.files_written) {
-    return false;
-  }
-
-  resultEl.innerHTML = "";
-
-  const card = document.createElement("div");
-  card.className = "success-card";
-
-  const header = document.createElement("div");
-  header.className = "success-header";
-  const icon = document.createElement("span");
-  icon.className = "success-icon";
-  icon.textContent = "✅";
-  const heading = document.createElement("h2");
-  heading.textContent = "Project Generated Successfully!";
-  header.append(icon, heading);
-  card.appendChild(header);
-
-  const metrics = document.createElement("div");
-  metrics.className = "success-metrics";
-
-  const metricItems = [
-    { value: data.files_written, label: "Files Generated" },
-    {
-      value: data.testResults?.initial
-        ? `${data.testResults.initial.status?.toUpperCase() || "UNKNOWN"}`
-        : "NOT RUN",
-      label: "Initial Tests",
-    },
-    {
-      value: formatDuration(
-        data.planExecutionResult?.totalDurationMs ?? data.timeEstimate?.estimatedRemainingMs
-      ),
-      label: "Build Duration",
-    },
-  ];
-
-  metricItems.forEach(metricData => {
-    const metric = document.createElement("div");
-    metric.className = "metric";
-    const metricValue = document.createElement("span");
-    metricValue.className = "metric-value";
-    metricValue.textContent = String(metricData.value ?? "--");
-    const metricLabel = document.createElement("span");
-    metricLabel.className = "metric-label";
-    metricLabel.textContent = metricData.label;
-    metric.append(metricValue, metricLabel);
-    metrics.appendChild(metric);
-  });
-
-  card.appendChild(metrics);
-
-  const files = Array.from(
-    new Set(
-      (data.planExecutionResult?.subtaskResults || [])
-        .flatMap(result => (Array.isArray(result.generatedFiles) ? result.generatedFiles : []))
-        .filter(Boolean)
-    )
-  );
-
-  const fileList = document.createElement("div");
-  fileList.className = "file-list";
-  const fileHeading = document.createElement("h3");
-  fileHeading.textContent = "Generated Files";
-  fileList.appendChild(fileHeading);
-
-  const fileUl = document.createElement("ul");
-  if (files.length > 0) {
-    files.forEach(fileName => {
-      const item = document.createElement("li");
-      item.textContent = `📄 ${fileName}`;
-      fileUl.appendChild(item);
-    });
-  } else {
-    const item = document.createElement("li");
-    item.textContent = "Files will be available after generation completes.";
-    fileUl.appendChild(item);
-  }
-  fileList.appendChild(fileUl);
-  card.appendChild(fileList);
-
-  const actions = document.createElement("div");
-  actions.className = "action-buttons";
-
-  if (data.browse_url) {
-    const openLink = document.createElement("a");
-    openLink.className = "btn btn-primary";
-    openLink.href = data.browse_url;
-    openLink.target = "_blank";
-    openLink.rel = "noopener";
-    openLink.textContent = "Open Project";
-    actions.appendChild(openLink);
-  }
-
-  const runTestsButton = document.createElement("button");
-  runTestsButton.type = "button";
-  runTestsButton.className = "btn btn-secondary";
-  runTestsButton.textContent = "Run Tests";
-  runTestsButton.addEventListener("click", () => {
-    if (runTestsBtn) {
-      runTestsBtn.click();
-      runTestsBtn.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  });
-  actions.appendChild(runTestsButton);
-
-  card.appendChild(actions);
-
-  const rawJson = document.createElement("details");
-  rawJson.className = "raw-json";
-  const summary = document.createElement("summary");
-  summary.textContent = "View Raw Response";
-  const pre = document.createElement("pre");
-  pre.textContent = JSON.stringify(data, null, 2);
-  rawJson.append(summary, pre);
-  card.appendChild(rawJson);
-
-  resultEl.appendChild(card);
-  return true;
-}
+// old success card removed in favor of modern outcome-card implementation
 
 /**
  * Render Partial Success Card - Files generated but tests failed
@@ -656,117 +535,87 @@ function renderPartialCard(data) {
   if (!data || !data.files_written) {
     return false;
   }
-
   resultEl.innerHTML = "";
-
-  const card = document.createElement("div");
-  card.className = "partial-card";
-
+  const card = document.createElement("article");
+  card.className = "outcome-card outcome-card--partial";
   const header = document.createElement("div");
-  header.className = "partial-header";
-  const icon = document.createElement("span");
-  icon.className = "partial-icon";
-  icon.textContent = "⚠️";
-  const heading = document.createElement("h2");
-  heading.textContent = "Project Created - Tests Need Attention";
-  header.append(icon, heading);
+  header.className = "outcome-card__header";
+  const iconWrap = document.createElement("span");
+  iconWrap.className = "outcome-card__icon";
+  iconWrap.innerHTML = partialIcon;
+  header.appendChild(iconWrap);
+  const heading = document.createElement("div");
+  heading.className = "outcome-card__heading";
+  const title = document.createElement("h2");
+  title.className = "outcome-card__title";
+  title.textContent = "Project created – tests need attention";
+  const failCount = data.testResults?.initial?.failCount ?? 0;
+  const passCount = data.testResults?.initial?.passCount ?? 0;
+  const subtitle = document.createElement("p");
+  subtitle.className = "outcome-card__subtitle";
+  subtitle.textContent = `${failCount} failing, ${passCount} passing`;
+  heading.append(title, subtitle);
+  header.appendChild(heading);
   card.appendChild(header);
 
   const message = document.createElement("p");
-  message.className = "partial-message";
-  const failCount = data.testResults?.initial?.failCount || 0;
-  const passCount = data.testResults?.initial?.passCount || 0;
-  message.textContent = `Files generated successfully, but ${failCount} test${failCount !== 1 ? 's' : ''} failed (${passCount} passed). Review failures below and fix manually or re-run.`;
+  message.className = "outcome-card__message";
+  message.textContent = "Files are ready, but automated checks highlighted issues. Review the failing tests and apply fixes before re-running.";
   card.appendChild(message);
 
   const metrics = document.createElement("div");
-  metrics.className = "partial-metrics";
-
-  const metricItems = [
-    { value: data.files_written, label: "Files Generated" },
-    { value: failCount, label: "Tests Failed" },
-    { value: passCount, label: "Tests Passed" },
-  ];
-
-  metricItems.forEach(metricData => {
+  metrics.className = "outcome-card__metrics";
+  [
+    { label: "Files generated", value: data.files_written },
+    { label: "Tests failed", value: failCount },
+    { label: "Tests passed", value: passCount }
+  ].forEach(m => {
     const metric = document.createElement("div");
-    metric.className = "metric";
-    const metricValue = document.createElement("span");
-    metricValue.className = "metric-value";
-    metricValue.textContent = String(metricData.value ?? "0");
-    const metricLabel = document.createElement("span");
-    metricLabel.className = "metric-label";
-    metricLabel.textContent = metricData.label;
-    metric.append(metricValue, metricLabel);
+    metric.className = "outcome-card__metric";
+    const mv = document.createElement("span");
+    mv.className = "outcome-card__metric-value";
+    mv.textContent = String(m.value ?? 0);
+    const ml = document.createElement("span");
+    ml.className = "outcome-card__metric-label";
+    ml.textContent = m.label;
+    metric.append(mv, ml);
     metrics.appendChild(metric);
   });
-
   card.appendChild(metrics);
 
-  const files = Array.from(
-    new Set(
-      (data.planExecutionResult?.subtaskResults || [])
-        .flatMap(result => (Array.isArray(result.generatedFiles) ? result.generatedFiles : []))
-        .filter(Boolean)
-    )
-  );
-
-  const fileList = document.createElement("div");
-  fileList.className = "file-list";
-  const fileHeading = document.createElement("h3");
-  fileHeading.textContent = "Generated Files";
-  fileList.appendChild(fileHeading);
-
-  const fileUl = document.createElement("ul");
-  if (files.length > 0) {
-    files.forEach(fileName => {
-      const item = document.createElement("li");
-      item.textContent = `📄 ${fileName}`;
-      fileUl.appendChild(item);
-    });
-  } else {
-    const item = document.createElement("li");
-    item.textContent = "Files list not available.";
-    fileUl.appendChild(item);
-  }
-  fileList.appendChild(fileUl);
-  card.appendChild(fileList);
-
   const actions = document.createElement("div");
-  actions.className = "action-buttons";
-
+  actions.className = "outcome-card__actions button-group";
   if (data.browse_url) {
     const openLink = document.createElement("a");
-    openLink.className = "btn btn-primary";
     openLink.href = data.browse_url;
     openLink.target = "_blank";
     openLink.rel = "noopener";
+    openLink.className = "btn btn-primary";
     openLink.textContent = "Open Project";
     actions.appendChild(openLink);
   }
-
-  const rerunButton = document.createElement("button");
-  rerunButton.type = "button";
-  rerunButton.className = "btn btn-secondary";
-  rerunButton.textContent = "Fix & Re-run";
-  rerunButton.addEventListener("click", () => {
-    if (runBtn) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      promptEl.focus();
-    }
+  const viewResultsButton = document.createElement("button");
+  viewResultsButton.type = "button";
+  viewResultsButton.className = "btn btn-secondary";
+  viewResultsButton.textContent = "View test results";
+  viewResultsButton.addEventListener("click", () => {
+    revealDebugDisclosure();
+    debugDisclosure?.setAttribute("open", "");
+    testControlsEl?.classList.remove("hidden");
+    testControlsEl?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
-  actions.appendChild(rerunButton);
-
+  actions.appendChild(viewResultsButton);
+  const openDebugButton = document.createElement("button");
+  openDebugButton.type = "button";
+  openDebugButton.className = "btn btn-ghost";
+  openDebugButton.textContent = "Open debug panel";
+  openDebugButton.addEventListener("click", () => {
+    revealDebugDisclosure();
+    debugDisclosure?.setAttribute("open", "");
+    debugDisclosure?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  actions.appendChild(openDebugButton);
   card.appendChild(actions);
-
-  const rawJson = document.createElement("details");
-  rawJson.className = "raw-json";
-  const summary = document.createElement("summary");
-  summary.textContent = "View Raw Response";
-  const pre = document.createElement("pre");
-  pre.textContent = JSON.stringify(data, null, 2);
-  rawJson.append(summary, pre);
-  card.appendChild(rawJson);
 
   resultEl.appendChild(card);
   return true;
@@ -819,6 +668,249 @@ function renderTestLifecycle(testResults, repair) {
   } else {
     testStatusEl.textContent = "No tests executed for this generation.";
   }
+}
+
+function computeOutcome(data) {
+  if (!data || data.error) return 'error';
+  const files = Number(data.files_written || 0);
+  if (!files) return 'error';
+  const initial = data.testResults?.initial;
+  if (initial && initial.status) {
+    const status = String(initial.status).toUpperCase();
+    if (status === 'PASS' || status === 'PASSED') return 'success';
+    return 'partial';
+  }
+  return 'error';
+}
+
+function renderSuccessCard(data) {
+  if (!data || !data.ok || !data.files_written) return false;
+  resultEl.innerHTML = "";
+  const card = document.createElement("article");
+  card.className = "outcome-card outcome-card--success";
+  const header = document.createElement("div");
+  header.className = "outcome-card__header";
+  const iconWrap = document.createElement("span");
+  iconWrap.className = "outcome-card__icon";
+  iconWrap.innerHTML = successIcon;
+  header.appendChild(iconWrap);
+  const heading = document.createElement("div");
+  heading.className = "outcome-card__heading";
+  const title = document.createElement("h2");
+  title.className = "outcome-card__title";
+  title.textContent = "Project generated successfully";
+  const testsStatus = data.testResults?.initial?.status?.toUpperCase() ?? "NOT RUN";
+  const subtitle = document.createElement("p");
+  subtitle.className = "outcome-card__subtitle";
+  subtitle.textContent = `${data.files_written} files created · Initial tests ${testsStatus}`;
+  heading.append(title, subtitle);
+  header.appendChild(heading);
+  card.appendChild(header);
+
+  const metrics = document.createElement("div");
+  metrics.className = "outcome-card__metrics";
+  [
+    { label: "Files generated", value: data.files_written },
+    { label: "Tests passed", value: data.testResults?.initial?.passCount ?? 0 }
+  ].forEach(m => {
+    const metric = document.createElement("div");
+    metric.className = "outcome-card__metric";
+    const mv = document.createElement("span");
+    mv.className = "outcome-card__metric-value";
+    mv.textContent = String(m.value ?? 0);
+    const ml = document.createElement("span");
+    ml.className = "outcome-card__metric-label";
+    ml.textContent = m.label;
+    metric.append(mv, ml);
+    metrics.appendChild(metric);
+  });
+  card.appendChild(metrics);
+
+  const actions = document.createElement("div");
+  actions.className = "outcome-card__actions button-group";
+  if (data.browse_url) {
+    const openLink = document.createElement("a");
+    openLink.href = data.browse_url;
+    openLink.target = "_blank";
+    openLink.rel = "noopener";
+    openLink.className = "btn btn-primary";
+    openLink.textContent = "Open Project";
+    actions.appendChild(openLink);
+  }
+  const viewFilesBtn = document.createElement("button");
+  viewFilesBtn.type = "button";
+  viewFilesBtn.className = "btn btn-secondary";
+  viewFilesBtn.textContent = "View files";
+  const files = getGeneratedFiles(data);
+  viewFilesBtn.addEventListener("click", () => renderFilePreview(files));
+  actions.appendChild(viewFilesBtn);
+
+  const openDebugButton = document.createElement("button");
+  openDebugButton.type = "button";
+  openDebugButton.className = "btn btn-ghost";
+  openDebugButton.textContent = "Open debug panel";
+  openDebugButton.addEventListener("click", () => {
+    revealDebugDisclosure();
+    debugDisclosure?.setAttribute("open", "");
+    debugDisclosure?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  actions.appendChild(openDebugButton);
+
+  card.appendChild(actions);
+  resultEl.appendChild(card);
+  return true;
+}
+
+function formatError(data) {
+  try {
+    const message = typeof data === 'string' ? data : (data?.error ?? 'Unknown error');
+    const details = typeof data === 'string' ? '' : (data?.details ?? '');
+    return `<div><strong>${escapeHtml(String(message))}</strong>${details ? `<pre>${escapeHtml(String(details))}</pre>` : ''}</div>`;
+  } catch {
+    return `<div><strong>${escapeHtml(String(data))}</strong></div>`;
+  }
+}
+
+function renderErrorCard(data) {
+  resultEl.innerHTML = "";
+  const card = document.createElement("article");
+  card.className = "outcome-card outcome-card--error";
+  const header = document.createElement("div");
+  header.className = "outcome-card__header";
+  const iconWrap = document.createElement("span");
+  iconWrap.className = "outcome-card__icon";
+  iconWrap.innerHTML = errorIcon;
+  header.appendChild(iconWrap);
+  const heading = document.createElement("div");
+  heading.className = "outcome-card__heading";
+  const title = document.createElement("h2");
+  title.className = "outcome-card__title";
+  title.textContent = "We couldn't complete your request";
+  const subtitle = document.createElement("p");
+  subtitle.className = "outcome-card__subtitle";
+  subtitle.textContent = "Something went wrong during generation or testing.";
+  heading.append(title, subtitle);
+  header.appendChild(heading);
+  card.appendChild(header);
+  const message = document.createElement("p");
+  message.className = "outcome-card__message";
+  message.innerHTML = formatError(data);
+  card.appendChild(message);
+  const actions = document.createElement("div");
+  actions.className = "outcome-card__actions button-group";
+  const retry = document.createElement("button");
+  retry.className = "btn btn-primary";
+  retry.textContent = "Try again";
+  retry.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    promptEl.focus();
+  });
+  actions.appendChild(retry);
+  const openDebugButton = document.createElement("button");
+  openDebugButton.type = "button";
+  openDebugButton.className = "btn btn-ghost";
+  openDebugButton.textContent = "Open debug panel";
+  openDebugButton.addEventListener("click", () => {
+    revealDebugDisclosure();
+    debugDisclosure?.setAttribute("open", "");
+    debugDisclosure?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  actions.appendChild(openDebugButton);
+  card.appendChild(actions);
+  resultEl.appendChild(card);
+  return true;
+}
+
+function renderFilePreview(files) {
+  if (!filePreviewPanel) return;
+  filePreviewPanel.innerHTML = "";
+  filePreviewPanel.classList.add("active");
+  filePreviewPanel.removeAttribute("hidden");
+  const tree = document.createElement("div");
+  tree.className = "file-tree";
+  const preview = document.createElement("div");
+  preview.className = "file-preview";
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  const codePre = document.createElement("pre");
+  const code = document.createElement("code");
+  code.className = "language-js";
+  codePre.appendChild(code);
+  const copy = document.createElement("button");
+  copy.className = "btn btn-secondary copy-btn";
+  copy.textContent = "Copy";
+  copy.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(code.textContent || "");
+      copy.textContent = "Copied!";
+      setTimeout(() => (copy.textContent = "Copy"), 1200);
+    } catch {
+      copy.textContent = "Copy failed";
+      setTimeout(() => (copy.textContent = "Copy"), 1200);
+    }
+  });
+  preview.append(meta, copy, codePre);
+
+  files.forEach(filePath => {
+    const item = document.createElement("div");
+    item.className = "item";
+    item.textContent = filePath;
+    item.addEventListener("click", async () => {
+      document.querySelectorAll('.file-tree .item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+      meta.textContent = "Loading...";
+      const project = currentProjectSlug || "";
+      const encodedPath = encodeURIComponent(filePath);
+      try {
+        const resp = await fetch(`/api/files/${project}/${encodedPath}`);
+        if (!resp.ok) {
+          meta.textContent = `Error ${resp.status}`;
+          return;
+        }
+        const data = await resp.json();
+        meta.textContent = `${filePath} • ${data.size} bytes • ${new Date(data.modified).toLocaleString()}${data.binary ? ' • binary' : ''}`;
+        if (data.binary) {
+          code.textContent = "Binary file preview not supported.";
+        } else {
+          const ext = filePath.split('.').pop() || 'txt';
+          code.className = `language-${ext}`;
+          code.textContent = data.content;
+          if (window.Prism && Prism.highlightAllUnder) {
+            Prism.highlightAllUnder(preview);
+          }
+        }
+      } catch (e) {
+        meta.textContent = `Failed to load file: ${e}`;
+      }
+    });
+    tree.appendChild(item);
+  });
+
+  filePreviewPanel.append(tree, preview);
+}
+
+function renderProgressStages() {
+  const container = document.createElement('div');
+  container.className = 'progress-stages';
+  const stages = ['analyzing','planning','generating','testing','finalizing'];
+  stages.forEach(stage => {
+    const row = document.createElement('div');
+    row.className = `stage stage-${stage}`;
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    const label = document.createElement('div');
+    label.textContent = stage.charAt(0).toUpperCase()+stage.slice(1);
+    row.append(dot,label);
+    container.appendChild(row);
+  });
+  const bar = document.createElement('div');
+  bar.className = 'progress-bar';
+  const fill = document.createElement('span');
+  bar.appendChild(fill);
+  container.appendChild(bar);
+  resultEl.innerHTML = '';
+  resultEl.appendChild(container);
+  return { container, fill };
 }
 
 function resetClarificationUI() {
@@ -940,188 +1032,59 @@ function collectClarificationAnswers() {
   return { answers };
 }
 
-function formatError(error) {
-  const errorMap = {
-    "Failed to fetch": {
-      title: "Connection Error",
-      message: "Unable to connect to server",
-      action: "Check server is running: npm run dev",
-    },
-    ERR_CONNECTION_REFUSED: {
-      title: "Server Not Running",
-      message: "Backend service not responding",
-      action: "Start server: npm run dev",
-    },
-    timeout: {
-      title: "Request Timeout",
-      message: "Operation took too long",
-      action: "Try simpler request or check logs",
-    },
-    NetworkError: {
-      title: "Network Error",
-      message: "Network connection lost",
-      action: "Check internet connection",
-    },
-  };
-
-  const errorText = error instanceof Error ? error.message : String(error ?? "");
-  const normalized = errorText.toLowerCase();
-  const match = Object.entries(errorMap).find(([key]) =>
-    normalized.includes(key.toLowerCase())
-  );
-
-  const { title, message, action } = match ? match[1] : {
-    title: "Unexpected Error",
-    message: "Something went wrong while generating your project.",
-    action: "Please retry or review the details below.",
-  };
-
-  const technicalDetails = error instanceof Error && error.stack ? error.stack : errorText || String(error);
-
-  return `
-    <div class="error-card">
-      <div class="error-header">
-        <span class="error-icon">⚠️</span>
-        <h3 class="error-title">${escapeHtml(title)}</h3>
-      </div>
-      <p class="error-message">${escapeHtml(message)}</p>
-      <div class="error-action">${escapeHtml(action)}</div>
-      <details>
-        <summary>Technical details</summary>
-        <pre>${escapeHtml(technicalDetails)}</pre>
-      </details>
-    </div>
-  `;
-}
+// legacy formatError removed (modern formatError used above)
 
 /**
  * Render Error Card - Generation failed completely
  * Used when no files produced or system error occurred
  */
-function renderErrorCard(data) {
-  resultEl.innerHTML = "";
-  
-  const errorMessage = data?.error || data?.message || "Generation failed";
-  const card = document.createElement("div");
-  card.className = "error-card";
+// old error card removed in favor of modern outcome-card implementation
 
-  const header = document.createElement("div");
-  header.className = "error-header";
-  const icon = document.createElement("span");
-  icon.className = "error-icon";
-  icon.textContent = "❌";
-  const heading = document.createElement("h3");
-  heading.className = "error-title";
-  heading.textContent = "Generation Failed";
-  header.append(icon, heading);
-  card.appendChild(header);
-
-  const message = document.createElement("p");
-  message.className = "error-message";
-  message.textContent = typeof errorMessage === 'string' ? errorMessage : "Unable to generate project files.";
-  card.appendChild(message);
-
-  const actionList = document.createElement("div");
-  actionList.className = "error-action-list";
-  const actionHeading = document.createElement("p");
-  actionHeading.textContent = "Suggested actions:";
-  actionList.appendChild(actionHeading);
-  
-  const suggestions = document.createElement("ul");
-  suggestions.innerHTML = `
-    <li>→ Simplify your prompt and try again</li>
-    <li>→ Check that the server is running</li>
-    <li>→ Review technical details below for specific errors</li>
-  `;
-  actionList.appendChild(suggestions);
-  card.appendChild(actionList);
-
-  const actions = document.createElement("div");
-  actions.className = "action-buttons";
-
-  const retryButton = document.createElement("button");
-  retryButton.type = "button";
-  retryButton.className = "btn btn-primary";
-  retryButton.textContent = "Try Again";
-  retryButton.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    promptEl.focus();
-  });
-  actions.appendChild(retryButton);
-
-  card.appendChild(actions);
-
-  const technicalDetails = document.createElement("details");
-  technicalDetails.className = "raw-json";
-  const summary = document.createElement("summary");
-  summary.textContent = "Technical details";
-  const pre = document.createElement("pre");
-  pre.textContent = JSON.stringify(data, null, 2);
-  technicalDetails.append(summary, pre);
-  card.appendChild(technicalDetails);
-
-  resultEl.appendChild(card);
-  return true;
-}
-
-function updateLoadingPhase() {
-  if (!resultEl) {
-    return null;
-  }
-
-  const phases = [
-    {
-      title: "Analyzing your request...",
-      hint: "Reading requirements and preparing plan. (typically 10-20 seconds)",
-    },
-    {
-      title: "Creating execution plan...",
-      hint: "Breaking down into manageable steps. (typically 10-30 seconds)",
-    },
-    {
-      title: "Building your project...",
-      hint: "Generating files and running tests. This may take several minutes.",
-    },
-  ];
-
-  const phaseIndex = Math.min(loadingPhase, phases.length - 1);
-  const phase = phases[phaseIndex];
-
-  resultEl.innerHTML = "";
-  const container = document.createElement("div");
-  container.className = "loading-state";
-
-  const spinner = document.createElement("div");
-  spinner.className = "spinner";
-  container.appendChild(spinner);
-
-  const title = document.createElement("h3");
-  title.textContent = phase.title;
-  container.appendChild(title);
-
-  const hint = document.createElement("p");
-  hint.className = "loading-hint";
-  hint.textContent = phase.hint;
-  container.appendChild(hint);
-
-  resultEl.appendChild(container);
-  return container;
-}
+// removed legacy updateLoadingPhase (replaced by renderProgressStages)
 
 async function executeRequest({ prompt, projectName, clarifications }) {
   resetClarificationUI();
-  loadingPhase = 0;
-  updateLoadingPhase();
-  loadingPhaseTimer = setInterval(() => {
-    loadingPhase += 1;
-    updateLoadingPhase();
-  }, 10000);
   testControlsEl.classList.add("hidden");
   currentProjectSlug = null;
   renderRepairHistory(null);
   resetTaskPlanUI();
 
-  const payload = { prompt };
+  // Start progress UI and polling
+  const { fill } = renderProgressStages();
+  const sessionId = (() => {
+    const arr = new Uint8Array(8);
+    (window.crypto || self.crypto).getRandomValues(arr);
+    return Array.from(arr).map(n => n.toString(16).padStart(2,'0')).join('');
+  })();
+  let stopPolling = false;
+  (async () => {
+    while (!stopPolling) {
+      try {
+        const r = await fetch(`/api/progress/${sessionId}`);
+        if (r.ok) {
+          const p = await r.json();
+          const percent = Math.max(0, Math.min(100, Number(p.progress || 0)));
+          fill.style.width = `${percent}%`;
+          const current = p.stage || 'analyzing';
+          document.querySelectorAll('.progress-stages .stage').forEach(node => node.classList.remove('current','completed'));
+          const order = ['analyzing','planning','generating','testing','finalizing'];
+          const idx = order.indexOf(current);
+          order.forEach((name,i) => {
+            const el = document.querySelector(`.stage-${name}`);
+            if (!el) return;
+            if (i < idx) el.classList.add('completed');
+            if (i === idx) el.classList.add('current');
+          });
+          if (p.done) break;
+        }
+  } catch {
+    /* ignore */ void 0;
+  }
+      await new Promise(r => setTimeout(r, 900));
+    }
+  })();
+
+  const payload = { prompt, sessionId };
   if (projectName) {
     payload.projectName = projectName;
   }
@@ -1168,7 +1131,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
       resultEl.textContent = JSON.stringify(data, null, 2);
     }
 
-    // Always render task plan and test lifecycle (will be hidden in W26)
+    // Always render task plan and test lifecycle (in debug disclosure)
     renderTaskPlan(data.taskPlan, data.planExecutionResult, data.timeEstimate);
     
     if (data?.browse_url) {
@@ -1180,12 +1143,9 @@ async function executeRequest({ prompt, projectName, clarifications }) {
       currentProjectSlug = null;
     }
   } catch (err) {
-    resultEl.innerHTML = formatError(err);
+    renderErrorCard({ error: err });
   } finally {
-    if (loadingPhaseTimer) {
-      clearInterval(loadingPhaseTimer);
-      loadingPhaseTimer = null;
-    }
+    stopPolling = true;
   }
 }
 

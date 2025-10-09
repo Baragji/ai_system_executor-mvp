@@ -3,11 +3,11 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "executor-mvp@0.1.0",
-  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-3ac53b42-fb79-43ba-8ed1-6a050f1a26e5",
+  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-994d5cbd-79f9-45dc-b204-e343bb441942",
   "creationInfo": {
-    "created": "2025-10-08T19:58:03.355Z",
+    "created": "2025-10-09T08:21:56.261Z",
     "creators": [
-      "Tool: npm/cli-11.4.2"
+      "Tool: npm/cli-10.9.3"
     ]
   },
   "documentDescribes": [
@@ -38,7 +38,7 @@
       "versionInfo": "0.21.1",
       "packageFileName": "node_modules/@anthropic-ai/sdk",
       "description": "The official TypeScript library for the Anthropic API",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/@anthropic-ai/sdk/-/sdk-0.21.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/anthropics/anthropic-sdk-typescript#readme",
       "licenseDeclared": "MIT",
@@ -48,6 +48,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/%40anthropic-ai/sdk@0.21.1"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "7ea76def84537699676853988703638cafc4734f43aaff5e918afb3ee0ba19d855d515a4ce2a9ba4905ec27e3609862a0abf7625e5fa83e2175605e6abd97b5d"
+        }
       ]
     },
     {
@@ -56,7 +62,7 @@
       "versionInfo": "18.19.129",
       "packageFileName": "node_modules/@anthropic-ai/sdk/node_modules/@types/node",
       "description": "TypeScript definitions for node",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/@types/node/-/node-18.19.129.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node",
       "licenseDeclared": "MIT",
@@ -66,6 +72,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/%40types/node@18.19.129"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "86b9a2e635addb0eb46b2a31de2217c293049df52f38b24246dace3db1ed1f5e674e3bceeee8677a5beb740b3474ed3fce5e4367765b6a189a5c455be7871afc"
+        }
       ]
     },
     {
@@ -74,7 +86,7 @@
       "versionInfo": "5.26.5",
       "packageFileName": "node_modules/@anthropic-ai/sdk/node_modules/undici-types",
       "description": "A stand-alone types package for Undici",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/undici-types/-/undici-types-5.26.5.tgz",
       "filesAnalyzed": false,
       "homepage": "https://undici.nodejs.org",
       "licenseDeclared": "MIT",
@@ -84,6 +96,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/undici-types@5.26.5"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "26508c3be7a174420aaa517193a21f568014566833edc53bcc3fe1f57674ab37a8b121e650954ecd242fbd84985979055c2f887cb29221f7e1bf4b1566ea7aa4"
+        }
       ]
     },
     {
@@ -92,7 +110,7 @@
       "versionInfo": "2.6.13",
       "packageFileName": "node_modules/@types/node-fetch",
       "description": "TypeScript definitions for node-fetch",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/@types/node-fetch/-/node-fetch-2.6.13.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node-fetch",
       "licenseDeclared": "MIT",
@@ -102,6 +120,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/%40types/node-fetch@2.6.13"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "406a51569cd2694b37d0905218f8ce83852f7aedfce1eadb1c1a13d7378e36fc827f043122452c84b00ea8dfe4f448c6be23d19964d37ba687daac9258a4d54b"
+        }
       ]
     },
     {
@@ -110,7 +134,7 @@
       "versionInfo": "3.0.0",
       "packageFileName": "node_modules/abort-controller",
       "description": "An implementation of WHATWG AbortController interface.",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/abort-controller/-/abort-controller-3.0.0.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/mysticatea/abort-controller#readme",
       "licenseDeclared": "MIT",
@@ -120,6 +144,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/abort-controller@3.0.0"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "87c950f2d69c6589d1def3504e089b8feb4e0c7239ffe974e80bb63dcae2bff1a67add1e6a3e13c161f8d6c3bdc271c3890b048f5f6ad1daf375675e007b707a"
+        }
       ]
     },
     {
@@ -128,7 +158,7 @@
       "versionInfo": "4.6.0",
       "packageFileName": "node_modules/agentkeepalive",
       "description": "Missing keepalive http.Agent",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/agentkeepalive/-/agentkeepalive-4.6.0.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/node-modules/agentkeepalive#readme",
       "licenseDeclared": "MIT",
@@ -138,6 +168,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/agentkeepalive@4.6.0"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "9236bc8fb3e39a770e36a693b01f1f43ec04da6494d8327d0f85caa09e4f15621d44c6ba48b48dd5f7f898eaf88c26df452b3147891e222c92254d0df53e6121"
+        }
       ]
     },
     {
@@ -146,7 +182,7 @@
       "versionInfo": "8.17.1",
       "packageFileName": "node_modules/ajv",
       "description": "Another JSON Schema Validator",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/ajv/-/ajv-8.17.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://ajv.js.org",
       "licenseDeclared": "MIT",
@@ -156,6 +192,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/ajv@8.17.1"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "07f801b8d8394a2313acf902f80dbe716d11b33c316269fa558c41fe29e5052b52e67c7ac4722dfde84a46120c86abac97b6bc2e34286678c2b39be1c31390d6"
+        }
       ]
     },
     {
@@ -164,7 +206,7 @@
       "versionInfo": "3.0.1",
       "packageFileName": "node_modules/ajv-formats",
       "description": "Format validation for Ajv v7+",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/ajv-formats/-/ajv-formats-3.0.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/ajv-validator/ajv-formats#readme",
       "licenseDeclared": "MIT",
@@ -174,6 +216,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/ajv-formats@3.0.1"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "f2252a979d04511fae51c7514371c3a9ae84572a3776870bf20e5627714d7169aeeb621b90652e7bfa44c8b056f1518a2ae7133e0a9e92ce1f214d43038ca8c1"
+        }
       ]
     },
     {
@@ -182,7 +230,7 @@
       "versionInfo": "2.0.1",
       "packageFileName": "node_modules/basic-auth",
       "description": "node.js basic auth parser",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/basic-auth/-/basic-auth-2.0.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/jshttp/basic-auth#readme",
       "licenseDeclared": "MIT",
@@ -192,6 +240,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/basic-auth@2.0.1"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "345f9ea6e11d9d4615946ba16b16dbabe76f26db702e7198f988b195794c1392a94395b70a75c0e5c5539de63748f6cf0d191c8cc6e27ebc261587029603997a"
+        }
       ]
     },
     {
@@ -200,7 +254,7 @@
       "versionInfo": "5.1.2",
       "packageFileName": "node_modules/basic-auth/node_modules/safe-buffer",
       "description": "Safer Node.js Buffer API",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/feross/safe-buffer",
       "licenseDeclared": "MIT",
@@ -210,6 +264,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/safe-buffer@5.1.2"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "19dd94641243917958ec66c9c5fb04f3f9ef2a45045351b7f1cd6c88de903fa6bd3d3f4c98707c1a7a6c71298c252a05f0b388aedf2e77fc0fb688f2b381bafa"
+        }
       ]
     },
     {
@@ -218,7 +278,7 @@
       "versionInfo": "2.8.5",
       "packageFileName": "node_modules/cors",
       "description": "Node.js CORS middleware",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/cors/-/cors-2.8.5.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/expressjs/cors#readme",
       "licenseDeclared": "MIT",
@@ -227,6 +287,12 @@
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/cors@2.8.5"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "2881db2c9aaeef7446aff8676eb3bdb817a2c4d1aebd2423ba5fe3745bd2fca152207d615957759e0ef3387c7e62b11f2272c6eeae27e861d0f5c0edc6ffcfea"
         }
       ]
     },
@@ -260,7 +326,7 @@
       "versionInfo": "16.6.1",
       "packageFileName": "node_modules/dotenv",
       "description": "Loads environment variables from .env file",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/dotenv/-/dotenv-16.6.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/motdotla/dotenv#readme",
       "licenseDeclared": "BSD-2-Clause",
@@ -270,6 +336,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/dotenv@16.6.1"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "b81ab87a05874dc4eddf76bbdafa521b4cf71e73ee225e8da98713aca120d9ace81329768695b4cea971cacab6a4af47943207c87c9a91e61a627480c1df1ba3"
+        }
       ]
     },
     {
@@ -278,7 +350,7 @@
       "versionInfo": "5.0.1",
       "packageFileName": "node_modules/event-target-shim",
       "description": "An implementation of WHATWG EventTarget interface.",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/event-target-shim/-/event-target-shim-5.0.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/mysticatea/event-target-shim",
       "licenseDeclared": "MIT",
@@ -288,6 +360,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/event-target-shim@5.0.1"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "8bfd976e74b3feec51094ebe35d54980a5834cce36efe32a61b910cc3df6d43b8240952a3ae24a200d08336f96db1b581dd28e999e1d47a7c4c6c7784972fe59"
+        }
       ]
     },
     {
@@ -296,7 +374,7 @@
       "versionInfo": "3.1.0",
       "packageFileName": "node_modules/fast-uri",
       "description": "Dependency-free RFC 3986 URI toolbox",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.0.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/fastify/fast-uri",
       "licenseDeclared": "BSD-3-Clause",
@@ -306,6 +384,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/fast-uri@3.1.0"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "88f79e0ca25259fe0810e6ac555ae49d7a5a055d08029cff829ed2d9b6fb6782e58db976306251a889d9894ad0c15d7a729cf0fc3dd2e63e49ba58ff813e7600"
+        }
       ]
     },
     {
@@ -314,7 +398,7 @@
       "versionInfo": "1.7.2",
       "packageFileName": "node_modules/form-data-encoder",
       "description": "Encode FormData content into the multipart/form-data format",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/form-data-encoder/-/form-data-encoder-1.7.2.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/octet-stream/form-data-encoder#readme",
       "licenseDeclared": "MIT",
@@ -324,6 +408,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/form-data-encoder@1.7.2"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "a9faad61a9f7af1ae70a4d5561a0381fe32cf717693eabcb65aeb198c805be13b7db1effdc9fc4c5c4ddeaaa71334bc7d8674c23ea687a1c8166fa9f313b68f0"
+        }
       ]
     },
     {
@@ -332,7 +422,7 @@
       "versionInfo": "4.4.1",
       "packageFileName": "node_modules/formdata-node",
       "description": "Spec-compliant FormData implementation for Node.js",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/formdata-node/-/formdata-node-4.4.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/octet-stream/form-data#readme",
       "licenseDeclared": "MIT",
@@ -342,6 +432,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/formdata-node@4.4.1"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "d228ab669dee5438d51adf69e3d6936aa8e4f384eb82510d103baa7dd959435ae80bd09694f93a02f7fc1049d935c02a3e89f0906df9c789f7c30ff54c760079"
+        }
       ]
     },
     {
@@ -350,7 +446,7 @@
       "versionInfo": "4.0.0-beta.3",
       "packageFileName": "node_modules/formdata-node/node_modules/web-streams-polyfill",
       "description": "Web Streams, based on the WHATWG spec reference implementation",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/web-streams-polyfill/-/web-streams-polyfill-4.0.0-beta.3.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
       "licenseDeclared": "MIT",
@@ -360,6 +456,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/web-streams-polyfill@4.0.0-beta.3"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "416f794c24da1e6b187c70f26c63303b920920cf7723feaf4d193e75a1d35853e1c21f82f0283b8fb5f22abc2b8fc21beaf6177b4a1c60dae6cd8e3100037aba"
+        }
       ]
     },
     {
@@ -368,7 +470,7 @@
       "versionInfo": "1.2.1",
       "packageFileName": "node_modules/humanize-ms",
       "description": "transform humanize time to ms",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/humanize-ms/-/humanize-ms-1.2.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/node-modules/humanize-ms#readme",
       "licenseDeclared": "MIT",
@@ -378,6 +480,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/humanize-ms@1.2.1"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "165ef4bd8b6c0056ff0b4e8f4d2f5d641a3b8a16aef93bbf0cd0a4fcec8785e6b4ed2f9a78c5a914591469745af1f23e49c65b108f1d7d2c7063b83167d48055"
+        }
       ]
     },
     {
@@ -386,7 +494,7 @@
       "versionInfo": "1.0.0",
       "packageFileName": "node_modules/json-schema-traverse",
       "description": "Traverse JSON Schema passing each schema object to callback",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/json-schema-traverse/-/json-schema-traverse-1.0.0.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/epoberezkin/json-schema-traverse#readme",
       "licenseDeclared": "MIT",
@@ -396,6 +504,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/json-schema-traverse@1.0.0"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "34cf3f3fd9f75e35e12199f594b86415a0024ce5114178d6855e0103f4673aff31be0aadaa9017f483b89914314b1d51968e2dab37aa6f4b0e96bb9a3b2dddba"
+        }
       ]
     },
     {
@@ -404,7 +518,7 @@
       "versionInfo": "1.10.1",
       "packageFileName": "node_modules/morgan",
       "description": "HTTP request logger middleware for node.js",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/morgan/-/morgan-1.10.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/expressjs/morgan#readme",
       "licenseDeclared": "MIT",
@@ -414,6 +528,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/morgan@1.10.1"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "db6ddd31126d23f976e5d24a5a98228f670cb72c2e1bf5a250a5ddbf07db846281872d69b804aa5f017399667bf8aef7bd43e847b492d90cf6708fe0f4c2b0d0"
+        }
       ]
     },
     {
@@ -422,7 +542,7 @@
       "versionInfo": "2.6.9",
       "packageFileName": "node_modules/morgan/node_modules/debug",
       "description": "small debugging utility",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/visionmedia/debug#readme",
       "licenseDeclared": "MIT",
@@ -432,6 +552,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/debug@2.6.9"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "6c2ec496b7496899cf6c03fed44a2d62fa99b1bdde725e708ba05f8ba0494d470da30a7a72fb298348d7ce74532838e6fc4ec076014155e00f54c35c286b0730"
+        }
       ]
     },
     {
@@ -440,7 +566,7 @@
       "versionInfo": "2.0.0",
       "packageFileName": "node_modules/morgan/node_modules/ms",
       "description": "Tiny milisecond conversion utility",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/ms/-/ms-2.0.0.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/zeit/ms#readme",
       "licenseDeclared": "MIT",
@@ -450,6 +576,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/ms@2.0.0"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "4e9a7ad0fe885090d3b8eabfe59f1c76c93326e8dfc2a7ce4e4af02308fb211212a679099d3e92c89e0f08f9c63281630bd75d85a979295218b40b7dee2c74e4"
+        }
       ]
     },
     {
@@ -458,7 +590,7 @@
       "versionInfo": "2.3.0",
       "packageFileName": "node_modules/morgan/node_modules/on-finished",
       "description": "Execute a callback when a request closes, finishes, or errors",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/on-finished/-/on-finished-2.3.0.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/jshttp/on-finished#readme",
       "licenseDeclared": "MIT",
@@ -468,6 +600,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/on-finished@2.3.0"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "8a4a9d906000c9ffd7fe03e15c6bdf800cad0d9b436ebf9b90d509d0df61e4c23f7667600acde5ea1a07adc52fe35b1129ec378c8c2ba78a900d788af7d52dc3"
+        }
       ]
     },
     {
@@ -476,7 +614,7 @@
       "versionInfo": "1.0.0",
       "packageFileName": "node_modules/node-domexception",
       "description": "An implementation of the DOMException class from NodeJS",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/node-domexception/-/node-domexception-1.0.0.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/jimmywarting/node-domexception#readme",
       "licenseDeclared": "MIT",
@@ -486,6 +624,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/node-domexception@1.0.0"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "fe3299a0ca70d05f06470978fde2d138f03771f717b4b0293f44332e6513fc7b8f0995b207b218f59acc78ac363bf9c522a3d00773d533d6989b4177d760170d"
+        }
       ]
     },
     {
@@ -494,7 +638,7 @@
       "versionInfo": "4.1.1",
       "packageFileName": "node_modules/object-assign",
       "description": "ES2015 `Object.assign()` ponyfill",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/object-assign/-/object-assign-4.1.1.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/sindresorhus/object-assign#readme",
       "licenseDeclared": "MIT",
@@ -504,6 +648,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/object-assign@4.1.1"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "ac98134279149c7d6c170f324fa552537cc3dec5a6bbab19848b1e63c557f8646edcfe85ec5bbe24d0e85df9251256cb2529dcdc55101d57b8714e618fe05c52"
+        }
       ]
     },
     {
@@ -512,7 +662,7 @@
       "versionInfo": "4.104.0",
       "packageFileName": "node_modules/openai",
       "description": "The official TypeScript library for the OpenAI API",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/openai/-/openai-4.104.0.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/openai/openai-node#readme",
       "licenseDeclared": "Apache-2.0",
@@ -522,6 +672,60 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/openai@4.104.0"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "a7df4414db00ff25fa52154ef777f9909b0344b020f824c0d9106a7472b846d2bcbb9209c37d87c9bd9d4c629b9e71669eea01bf9afb676094448f6c199a52b8"
+        }
+      ]
+    },
+    {
+      "name": "@types/node",
+      "SPDXID": "SPDXRef-Package-types.node-18.19.129",
+      "versionInfo": "18.19.129",
+      "packageFileName": "node_modules/openai/node_modules/@types/node",
+      "description": "TypeScript definitions for node",
+      "downloadLocation": "https://registry.npmjs.org/@types/node/-/node-18.19.129.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40types/node@18.19.129"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "86b9a2e635addb0eb46b2a31de2217c293049df52f38b24246dace3db1ed1f5e674e3bceeee8677a5beb740b3474ed3fce5e4367765b6a189a5c455be7871afc"
+        }
+      ]
+    },
+    {
+      "name": "undici-types",
+      "SPDXID": "SPDXRef-Package-undici-types-5.26.5",
+      "versionInfo": "5.26.5",
+      "packageFileName": "node_modules/openai/node_modules/undici-types",
+      "description": "A stand-alone types package for Undici",
+      "downloadLocation": "https://registry.npmjs.org/undici-types/-/undici-types-5.26.5.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://undici.nodejs.org",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/undici-types@5.26.5"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "26508c3be7a174420aaa517193a21f568014566833edc53bcc3fe1f57674ab37a8b121e650954ecd242fbd84985979055c2f887cb29221f7e1bf4b1566ea7aa4"
+        }
       ]
     },
     {
@@ -530,7 +734,7 @@
       "versionInfo": "2.0.2",
       "packageFileName": "node_modules/require-from-string",
       "description": "Require module from string",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/require-from-string/-/require-from-string-2.0.2.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/floatdrop/require-from-string#readme",
       "licenseDeclared": "MIT",
@@ -540,6 +744,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/require-from-string@2.0.2"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "5dfd2759ee91b1ece214cbbe029f5b8a251b9a996ae92f7fa7eef0ed85cffc904786b5030d48706bebc0372b9bbaa7d9593bde53ffc36151ac0c6ed128bfef13"
+        }
       ]
     },
     {
@@ -548,7 +758,7 @@
       "versionInfo": "1.6.6",
       "packageFileName": "node_modules/slugify",
       "description": "Slugifies a String",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/slugify/-/slugify-1.6.6.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/simov/slugify",
       "licenseDeclared": "MIT",
@@ -558,6 +768,12 @@
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/slugify@1.6.6"
         }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "87ecfb1ca1d85e3eb0254f809d2ffe207f1487d7dd717d4bae1835fd531d7fd3f0a0141715c5e201db32dad48ad0fea02b024b5e9d36afdd1a8540aa1e4f6baf"
+        }
       ]
     },
     {
@@ -566,7 +782,7 @@
       "versionInfo": "3.3.3",
       "packageFileName": "node_modules/web-streams-polyfill",
       "description": "Web Streams, based on the WHATWG spec reference implementation",
-      "downloadLocation": "NOASSERTION",
+      "downloadLocation": "https://registry.npmjs.org/web-streams-polyfill/-/web-streams-polyfill-3.3.3.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
       "licenseDeclared": "MIT",
@@ -575,6 +791,12 @@
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
           "referenceLocator": "pkg:npm/web-streams-polyfill@3.3.3"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "7762562c28af999613488a207bd32c805099aede7bd418a47161989230b59219656d3783946a99d83f2f0fc13f9496bc58659b6fb3e59bcfd725857b2091d967"
         }
       ]
     }

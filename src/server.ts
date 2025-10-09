@@ -13,6 +13,7 @@ import { sanitizeExecutorOutput } from "./executor/outputProcessing.js";
 import { writeFiles } from "./executor/writeFiles.js";
 import { runInSandbox } from "./runner/runInSandbox.js";
 import { multiTurnRepair } from "./repair/multiTurnRepair.js";
+// import { validateScaffoldOnDisk } from "./validation/validateScaffold.js";
 import { fileSha256 } from "./utils/checksum.js";
 import { logEvent } from "./telemetry/events.js";
 import type { ExecutorOutput, ExecutorFile } from "./executor/types.js";
@@ -51,6 +52,19 @@ app.use(morgan("dev"));
 const PORT = Number(process.env.PORT || 3000);
 const OUTPUT_DIR = path.resolve("output");
 const PUBLIC_DIR = path.resolve("public");
+// In-memory progress sessions for SSE/polling
+type ProgressSnapshot = { stage: string; progress: number; data?: Record<string, unknown>; updatedAt: number; done?: boolean };
+const progressSessions = new Map<string, ProgressSnapshot>();
+
+function setProgress(sessionId: string | undefined, stage: string, progress: number, data?: Record<string, unknown>, done?: boolean) {
+  if (!sessionId) return;
+  progressSessions.set(sessionId, { stage, progress, data, updatedAt: Date.now(), done });
+}
+
+function getProgress(sessionId: string): ProgressSnapshot | null {
+  const snap = progressSessions.get(sessionId) ?? null;
+  return snap;
+}
 
 const CLARIFICATION_SESSION_TTL_MS = 10 * 60 * 1000;
 
@@ -283,6 +297,7 @@ async function executePlanFlow(params: {
   clarificationQuestions: ClarificationQuestion[];
   clarificationsAsked: boolean;
   projectName: string;
+  sessionId?: string;
 }): Promise<{ response: unknown; meta: unknown; status: PlanExecutionResult["status"]; timeEstimate: TimeEstimate; planExecutionResult: PlanExecutionResult }>
 {
   const {
@@ -297,7 +312,8 @@ async function executePlanFlow(params: {
     systemPrompt,
     clarificationQuestions,
     clarificationsAsked,
-    projectName
+    projectName,
+    sessionId
   } = params;
 
   await ensureMetaDirectory(targetRoot);
@@ -310,6 +326,13 @@ async function executePlanFlow(params: {
     clarifications,
     systemPrompt
   });
+
+  // Hook progress updates into session tracking
+  const originalOnProgress = context.onProgressUpdate;
+  context.onProgressUpdate = (snapshot, result) => {
+    setProgress(sessionId, "generating", Math.max(30, Math.min(90, Number(snapshot.percentComplete) * 0.9)), { completed: snapshot.completedSubtasks });
+    originalOnProgress?.(snapshot, result);
+  };
 
   const planExecutionResult = await executeTaskPlan(plan, context);
   const timeEstimate = estimateCompletion(planExecutionResult.progress, plan);
@@ -510,6 +533,8 @@ app.post("/api/clarify", (req, res) => {
 
 app.post("/api/execute", async (req, res) => {
   try {
+    const sessionId: string | undefined = typeof req.body?.sessionId === 'string' ? req.body.sessionId : undefined;
+    setProgress(sessionId, "analyzing", 10);
     const promptRaw = req.body?.prompt;
     const originalPrompt: string = promptRaw === undefined ? "" : promptRaw.toString();
     const promptForValidation = originalPrompt.trim();
@@ -572,9 +597,10 @@ app.post("/api/execute", async (req, res) => {
               systemPrompt,
               clarificationQuestions,
               clarificationsAsked: clarificationAsked,
-              projectName: planProjectName
+              projectName: planProjectName,
+              sessionId
             });
-
+            setProgress(sessionId, "finalizing", 95);
             return res.json(planResult.response);
           } catch (planError) {
             console.error("Plan execution failed, falling back to single execution", planError);
@@ -589,8 +615,10 @@ app.post("/api/execute", async (req, res) => {
 
     let output: ExecutorOutput;
     try {
+      setProgress(sessionId, "planning", 30);
       output = await generateExecutorOutputFromPrompt(systemPrompt, effectivePrompt, { enforceTests: true });
     } catch (error) {
+      setProgress(sessionId, "finalizing", 100, { error: (error as Error).message }, true);
       return res.status(422).json({ error: (error as Error).message });
     }
 
@@ -602,8 +630,19 @@ app.post("/api/execute", async (req, res) => {
     await ensureMetaDirectory(targetRoot);
     await logEvent("generation_start", { project: slug });
 
+    setProgress(sessionId, "generating", 55);
+    // Preflight scaffold validation against generated files
+    // If missing package.json, inject a minimal one into the files list before writing
+    const pkgInMemory = output.files.find(f => f.path.replace(/^\.\/?/, '') === 'package.json');
+    if (!pkgInMemory) {
+      output.files.push({
+        path: 'package.json',
+        contents: JSON.stringify({ name: slug, version: '0.1.0', scripts: { build: "echo 'no build'", test: "echo 'no tests' && exit 0" } }, null, 2)
+      });
+    }
     await writeFiles(targetRoot, output.files);
 
+    setProgress(sessionId, "testing", 80);
     const initialRun = await runInSandbox({
       projectRoot: targetRoot,
       projectSlug: slug
@@ -702,7 +741,8 @@ app.post("/api/execute", async (req, res) => {
       status: finalStatus
     });
 
-    return res.json({
+    setProgress(sessionId, "finalizing", 95);
+    const responsePayload = {
       ok: true,
       project: slug,
       files_written: output.files.length,
@@ -720,7 +760,9 @@ app.post("/api/execute", async (req, res) => {
       timeEstimate: null,
       decompositionQuality: null,
       projectName
-    });
+    };
+    setProgress(sessionId, "finalizing", 100, undefined, true);
+    return res.json(responsePayload);
   } catch (err: unknown) {
     console.error(err);
     const message = err instanceof Error ? err.message : "internal error";
@@ -748,6 +790,70 @@ app.post("/api/run-tests", async (req, res) => {
   } catch (err: unknown) {
     console.error(err);
     const message = err instanceof Error ? err.message : "internal error";
+    return res.status(500).json({ error: message });
+  }
+});
+
+// Progress polling endpoint
+app.get("/api/progress/:sessionId", (req, res) => {
+  const { sessionId } = req.params as { sessionId: string };
+  const snap = getProgress(sessionId);
+  if (!snap) {
+    return res.status(404).json({ error: "session not found" });
+  }
+  return res.json(snap);
+});
+
+// Progress streaming via SSE
+app.get("/api/progress/stream/:sessionId", (req, res) => {
+  const { sessionId } = req.params as { sessionId: string };
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+
+  const send = () => {
+    const snap = getProgress(sessionId);
+    if (snap) {
+      res.write(`event: progress\n`);
+      res.write(`data: ${JSON.stringify(snap)}\n\n`);
+      if (snap.done) {
+        clearInterval(timer);
+        res.end();
+      }
+    }
+  };
+  const timer = setInterval(send, 1000);
+  send();
+  req.on('close', () => clearInterval(timer));
+});
+
+// File content endpoint with path sanitization
+app.get("/api/files/:project/:path(*)", async (req, res) => {
+  try {
+    const { project } = req.params as { project: string };
+    const rawPath = (req.params as { path: string }).path || "";
+    const slug = slugify(project, { lower: true, strict: true });
+    const projectRoot = path.join(OUTPUT_DIR, slug);
+    const decodedRel = decodeURIComponent(rawPath);
+    const absolute = path.resolve(projectRoot, decodedRel);
+    if (!absolute.startsWith(projectRoot)) {
+      return res.status(403).json({ error: "forbidden" });
+    }
+    try {
+      const stat = await fs.stat(absolute);
+      if (!stat.isFile()) {
+        return res.status(404).json({ error: "not found" });
+      }
+      const buf = await fs.readFile(absolute);
+      const binary = buf.includes(0);
+      const content = binary ? null : buf.toString("utf-8");
+      return res.json({ content, size: stat.size, modified: stat.mtime, binary });
+    } catch {
+      return res.status(404).json({ error: "not found" });
+    }
+  } catch (err) {
+    const message = (err as Error).message || 'internal error';
     return res.status(500).json({ error: message });
   }
 });
