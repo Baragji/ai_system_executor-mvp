@@ -296,7 +296,7 @@
         "All test cases pass",
         "Circular dependency detection works",
         "Dependency ID validation works"
-      },
+      ],
       "trace_context": {
         "decision_point": "task_plan_contracts_created",
         "win_number": 28

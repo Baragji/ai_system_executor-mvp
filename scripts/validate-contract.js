@@ -19,6 +19,7 @@ import path from 'path';
 // Configuration
 const SCHEMA_PATH = 'contracts/schemas/roadmap_phase.schema.json';
 const CONTRACTS_DIR = 'contracts/Roadmap_execution';
+const INCLUDE_LEGACY = process.env.CONTRACT_INCLUDE_LEGACY === '1';
 
 // ANSI color codes
 const colors = {
@@ -71,18 +72,16 @@ function validateContract(ajv, schema, contractPath) {
   }
 }
 
-function isCDIContract(filePath) {
+function isContract(filePath) {
   try {
     const content = fs.readFileSync(filePath, 'utf8');
     const contract = JSON.parse(content);
     
-    // CDI contracts have contract_version starting with a letter (A.x.x, B.x.x)
-    // Legacy contracts have numeric versions (2.0.0, 4B1.0.0)
     const version = contract.contract_version;
-    if (!version) return false;
-    
-    // Check if version starts with a letter A-Z
-    return /^[A-Z]\./.test(version);
+    if (typeof version !== 'string' || version.length === 0) return false;
+    if (INCLUDE_LEGACY) return true;
+    // Default: validate only CDI-style (letters prefix, e.g., A.0.0)
+    return /^[A-Z]\.\d+\.\d+$/.test(version);
   } catch {
     return false; // If can't parse, skip
   }
@@ -95,13 +94,9 @@ function findContracts(dir) {
   }
   
   return fs.readdirSync(dir)
-    .filter(file => {
-      if (!file.endsWith('.json')) return false;
-      
-      const filePath = path.join(dir, file);
-      return isCDIContract(filePath);
-    })
-    .map(file => path.join(dir, file));
+    .filter(file => file.endsWith('.json'))
+    .map(file => path.join(dir, file))
+    .filter(isContract);
 }
 
 async function main() {
@@ -134,13 +129,12 @@ async function main() {
   
   if (contracts.length === 0) {
     log(`\n⚠️  No CDI contracts found in ${CONTRACTS_DIR}`, 'yellow');
-    log(`This is expected if you haven't created any CDI-pattern contracts yet.`, 'yellow');
-    log(`\nNote: Legacy contracts (version 2.x.x, 4B1.x.x) are skipped - they use a different format.`, 'blue');
+    log(`Set CONTRACT_INCLUDE_LEGACY=1 to include legacy-numbered contracts.`, 'yellow');
     process.exit(0);
   }
   
-  log(`\n📚 Found ${contracts.length} CDI contract(s) to validate`, 'blue');
-  log(`(Skipping legacy contracts with numeric versions)\n`, 'blue');
+  log(`\n📚 Found ${contracts.length} contract(s) to validate`, 'blue');
+  log(INCLUDE_LEGACY ? `(Including legacy-numbered contracts)\n` : `(Skipping legacy-numbered contracts)\n`, 'blue');
   
   // Validate all contracts
   let allValid = true;
