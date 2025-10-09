@@ -295,3 +295,88 @@ code { background: #0f172a; padding: 2px 6px; border-radius: 6px; border:1px sol
   max-height: 200px;
   overflow-y: auto;
 }
+
+/* Partial Card - Files created but tests failed */
+.partial-card {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  padding: 24px;
+  margin-top: 16px;
+}
+
+.partial-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.partial-header .partial-icon {
+  font-size: 32px;
+}
+
+.partial-header h2 {
+  margin: 0;
+  color: #fcd34d;
+  font-size: 22px;
+}
+
+.partial-message {
+  color: #fde68a;
+  margin-bottom: 20px;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.partial-metrics {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.partial-metrics .metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.partial-metrics .metric-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.partial-metrics .metric-label {
+  font-size: 12px;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.error-action-list {
+  margin: 16px 0;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.error-action-list p {
+  margin: 0 0 8px;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.error-action-list ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #e2e8f0;
+}
+
+.error-action-list li {
+  margin: 4px 0;
+}

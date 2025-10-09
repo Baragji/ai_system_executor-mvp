@@ -139,6 +139,8 @@ if (repairHistoryToggle) {
   });
 }
 
+// Legacy helper - kept for potential future use
+// eslint-disable-next-line no-unused-vars
 function renderLink(url) {
   const a = document.createElement("a");
   a.href = url;
@@ -494,6 +496,35 @@ function renderRepairHistory(history) {
   repairHistoryTimeline.appendChild(footer);
 }
 
+/**
+ * Outcome State Machine - Authoritative determination of generation result
+ * Returns exactly ONE of three states based on actual test results
+ * @param {Object} data - Execution response from backend
+ * @returns {'success' | 'partial' | 'error'} - Outcome state
+ */
+function computeOutcome(data) {
+  // 1. Generation failed or no files produced → ERROR
+  if (!data || data.error || !data.files_written || data.files_written === 0) {
+    return 'error';
+  }
+
+  // 2. Files generated + tests executed
+  if (data.testResults?.initial?.executed) {
+    const testStatus = data.testResults.initial.status?.toUpperCase();
+    
+    // Tests passed → SUCCESS
+    if (testStatus === 'PASS' || testStatus === 'PASSED') {
+      return 'success';
+    }
+    
+    // Tests failed → PARTIAL (files exist but quality issue)
+    return 'partial';
+  }
+
+  // 3. Files generated but tests not executed → ERROR (incomplete build)
+  return 'error';
+}
+
 function renderSuccessCard(data) {
   if (!data || !data.ok || !data.files_written) {
     return false;
@@ -601,6 +632,130 @@ function renderSuccessCard(data) {
     }
   });
   actions.appendChild(runTestsButton);
+
+  card.appendChild(actions);
+
+  const rawJson = document.createElement("details");
+  rawJson.className = "raw-json";
+  const summary = document.createElement("summary");
+  summary.textContent = "View Raw Response";
+  const pre = document.createElement("pre");
+  pre.textContent = JSON.stringify(data, null, 2);
+  rawJson.append(summary, pre);
+  card.appendChild(rawJson);
+
+  resultEl.appendChild(card);
+  return true;
+}
+
+/**
+ * Render Partial Success Card - Files generated but tests failed
+ * Yellow/amber theme to indicate caution without panic
+ */
+function renderPartialCard(data) {
+  if (!data || !data.files_written) {
+    return false;
+  }
+
+  resultEl.innerHTML = "";
+
+  const card = document.createElement("div");
+  card.className = "partial-card";
+
+  const header = document.createElement("div");
+  header.className = "partial-header";
+  const icon = document.createElement("span");
+  icon.className = "partial-icon";
+  icon.textContent = "⚠️";
+  const heading = document.createElement("h2");
+  heading.textContent = "Project Created - Tests Need Attention";
+  header.append(icon, heading);
+  card.appendChild(header);
+
+  const message = document.createElement("p");
+  message.className = "partial-message";
+  const failCount = data.testResults?.initial?.failCount || 0;
+  const passCount = data.testResults?.initial?.passCount || 0;
+  message.textContent = `Files generated successfully, but ${failCount} test${failCount !== 1 ? 's' : ''} failed (${passCount} passed). Review failures below and fix manually or re-run.`;
+  card.appendChild(message);
+
+  const metrics = document.createElement("div");
+  metrics.className = "partial-metrics";
+
+  const metricItems = [
+    { value: data.files_written, label: "Files Generated" },
+    { value: failCount, label: "Tests Failed" },
+    { value: passCount, label: "Tests Passed" },
+  ];
+
+  metricItems.forEach(metricData => {
+    const metric = document.createElement("div");
+    metric.className = "metric";
+    const metricValue = document.createElement("span");
+    metricValue.className = "metric-value";
+    metricValue.textContent = String(metricData.value ?? "0");
+    const metricLabel = document.createElement("span");
+    metricLabel.className = "metric-label";
+    metricLabel.textContent = metricData.label;
+    metric.append(metricValue, metricLabel);
+    metrics.appendChild(metric);
+  });
+
+  card.appendChild(metrics);
+
+  const files = Array.from(
+    new Set(
+      (data.planExecutionResult?.subtaskResults || [])
+        .flatMap(result => (Array.isArray(result.generatedFiles) ? result.generatedFiles : []))
+        .filter(Boolean)
+    )
+  );
+
+  const fileList = document.createElement("div");
+  fileList.className = "file-list";
+  const fileHeading = document.createElement("h3");
+  fileHeading.textContent = "Generated Files";
+  fileList.appendChild(fileHeading);
+
+  const fileUl = document.createElement("ul");
+  if (files.length > 0) {
+    files.forEach(fileName => {
+      const item = document.createElement("li");
+      item.textContent = `📄 ${fileName}`;
+      fileUl.appendChild(item);
+    });
+  } else {
+    const item = document.createElement("li");
+    item.textContent = "Files list not available.";
+    fileUl.appendChild(item);
+  }
+  fileList.appendChild(fileUl);
+  card.appendChild(fileList);
+
+  const actions = document.createElement("div");
+  actions.className = "action-buttons";
+
+  if (data.browse_url) {
+    const openLink = document.createElement("a");
+    openLink.className = "btn btn-primary";
+    openLink.href = data.browse_url;
+    openLink.target = "_blank";
+    openLink.rel = "noopener";
+    openLink.textContent = "Open Project";
+    actions.appendChild(openLink);
+  }
+
+  const rerunButton = document.createElement("button");
+  rerunButton.type = "button";
+  rerunButton.className = "btn btn-secondary";
+  rerunButton.textContent = "Fix & Re-run";
+  rerunButton.addEventListener("click", () => {
+    if (runBtn) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      promptEl.focus();
+    }
+  });
+  actions.appendChild(rerunButton);
 
   card.appendChild(actions);
 
@@ -839,6 +994,76 @@ function formatError(error) {
   `;
 }
 
+/**
+ * Render Error Card - Generation failed completely
+ * Used when no files produced or system error occurred
+ */
+function renderErrorCard(data) {
+  resultEl.innerHTML = "";
+  
+  const errorMessage = data?.error || data?.message || "Generation failed";
+  const card = document.createElement("div");
+  card.className = "error-card";
+
+  const header = document.createElement("div");
+  header.className = "error-header";
+  const icon = document.createElement("span");
+  icon.className = "error-icon";
+  icon.textContent = "❌";
+  const heading = document.createElement("h3");
+  heading.className = "error-title";
+  heading.textContent = "Generation Failed";
+  header.append(icon, heading);
+  card.appendChild(header);
+
+  const message = document.createElement("p");
+  message.className = "error-message";
+  message.textContent = typeof errorMessage === 'string' ? errorMessage : "Unable to generate project files.";
+  card.appendChild(message);
+
+  const actionList = document.createElement("div");
+  actionList.className = "error-action-list";
+  const actionHeading = document.createElement("p");
+  actionHeading.textContent = "Suggested actions:";
+  actionList.appendChild(actionHeading);
+  
+  const suggestions = document.createElement("ul");
+  suggestions.innerHTML = `
+    <li>→ Simplify your prompt and try again</li>
+    <li>→ Check that the server is running</li>
+    <li>→ Review technical details below for specific errors</li>
+  `;
+  actionList.appendChild(suggestions);
+  card.appendChild(actionList);
+
+  const actions = document.createElement("div");
+  actions.className = "action-buttons";
+
+  const retryButton = document.createElement("button");
+  retryButton.type = "button";
+  retryButton.className = "btn btn-primary";
+  retryButton.textContent = "Try Again";
+  retryButton.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    promptEl.focus();
+  });
+  actions.appendChild(retryButton);
+
+  card.appendChild(actions);
+
+  const technicalDetails = document.createElement("details");
+  technicalDetails.className = "raw-json";
+  const summary = document.createElement("summary");
+  summary.textContent = "Technical details";
+  const pre = document.createElement("pre");
+  pre.textContent = JSON.stringify(data, null, 2);
+  technicalDetails.append(summary, pre);
+  card.appendChild(technicalDetails);
+
+  resultEl.appendChild(card);
+  return true;
+}
+
 function updateLoadingPhase() {
   if (!resultEl) {
     return null;
@@ -915,20 +1140,38 @@ async function executeRequest({ prompt, projectName, clarifications }) {
 
     const data = await resp.json();
     if (!resp.ok) {
-      resultEl.textContent = `Error: ${data?.error || resp.statusText}`;
+      renderErrorCard({ error: data?.error || resp.statusText });
       return;
     }
 
-    const renderedSuccess = renderSuccessCard(data);
-    if (!renderedSuccess) {
+    // Use outcome state machine to determine which card to render
+    const outcome = computeOutcome(data);
+    let rendered = false;
+    
+    switch (outcome) {
+      case 'success':
+        rendered = renderSuccessCard(data);
+        break;
+      case 'partial':
+        rendered = renderPartialCard(data);
+        break;
+      case 'error':
+        rendered = renderErrorCard(data);
+        break;
+      default:
+        console.error('Unknown outcome:', outcome);
+        rendered = renderErrorCard({ error: 'Unknown outcome state' });
+    }
+
+    // Fallback to JSON if render failed (shouldn't happen with state machine)
+    if (!rendered) {
       resultEl.textContent = JSON.stringify(data, null, 2);
     }
+
+    // Always render task plan and test lifecycle (will be hidden in W26)
     renderTaskPlan(data.taskPlan, data.planExecutionResult, data.timeEstimate);
+    
     if (data?.browse_url) {
-      if (!renderedSuccess) {
-        resultEl.appendChild(document.createElement("br"));
-        resultEl.appendChild(renderLink(data.browse_url));
-      }
       currentProjectSlug = data.project;
       testControlsEl.classList.remove("hidden");
       renderTestLifecycle(data.testResults, data.repair);
