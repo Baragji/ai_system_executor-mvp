@@ -427,3 +427,59 @@
 {"timestamp":"2025-10-09T18:37:54.917Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:failing","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
 {"timestamp":"2025-10-09T18:37:55.179Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:hang","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":false},"notes":"Process timed out after 200ms"}
 {"timestamp":"2025-10-09T18:37:55.229Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T19:43:24.457Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T19:43:24.490Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T19:43:26.618Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T19:43:27.210Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:failing","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T19:43:27.472Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:hang","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":false},"notes":"Process timed out after 200ms"}
+{"timestamp":"2025-10-09T19:43:27.631Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T19:49:11.933Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T19:49:11.951Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T19:49:13.541Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T19:49:13.908Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:failing","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T19:49:14.168Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:hang","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":false},"notes":"Process timed out after 200ms"}
+{"timestamp":"2025-10-09T19:49:14.371Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T19:53:05.707Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:01harden","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T19:54:28.186Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:01harden","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T20:11:26.147Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T20:11:26.243Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T20:11:28.859Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T20:11:29.267Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T20:11:29.321Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:failing","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T20:12:45.031Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T20:12:45.079Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T20:12:46.764Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T20:12:47.189Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:failing","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T20:12:47.454Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:hang","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":false},"notes":"Process timed out after 200ms"}
+{"timestamp":"2025-10-09T20:12:47.485Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T20:13:12.263Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T20:13:12.277Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T20:13:13.767Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T20:13:14.178Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:failing","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T20:13:14.439Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:hang","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":false},"notes":"Process timed out after 200ms"}
+{"timestamp":"2025-10-09T20:13:14.570Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T20:51:16.910Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:02hardenpostfix","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T21:04:53.074Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T21:04:53.102Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T21:04:54.865Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T21:04:55.229Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:failing","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T21:04:55.498Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:hang","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":false},"notes":"Process timed out after 200ms"}
+{"timestamp":"2025-10-09T21:04:55.548Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T21:08:15.819Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:03harden","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T21:09:26.465Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:03harden","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T21:11:04.578Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:03harden","status":"fail","quality_dimensions":{"correctness":false,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T21:29:14.741Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T21:29:14.757Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T21:29:16.879Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T21:29:17.356Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:failing","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T21:29:17.619Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:hang","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":false},"notes":"Process timed out after 200ms"}
+{"timestamp":"2025-10-09T21:29:17.788Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T21:42:00.691Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T21:42:00.720Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T21:42:03.113Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T21:42:03.543Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:failing","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-09T21:42:03.772Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T21:42:03.806Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:hang","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":false},"notes":"Process timed out after 200ms"}
+{"timestamp":"2025-10-09T21:46:37.317Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:04flashcardnew","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T21:47:29.862Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:04flashcardnew","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-09T21:48:28.570Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:04flashcardnew","status":"fail","quality_dimensions":{"correctness":false,"completeness":true,"safety":true}}

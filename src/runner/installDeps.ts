@@ -2,7 +2,8 @@ import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const INSTALL_ARGS = ["ci", "--ignore-scripts"];
+const CI_INSTALL_ARGS = ["ci", "--ignore-scripts"];
+const NPM_INSTALL_ARGS = ["install", "--ignore-scripts", "--no-audit", "--fund=false"];
 const DEFAULT_TIMEOUT_MS = 120_000;
 
 async function pathExists(candidate: string): Promise<boolean> {
@@ -14,8 +15,8 @@ async function pathExists(candidate: string): Promise<boolean> {
   }
 }
 
-function buildCommandString(): string {
-  return `npm ${INSTALL_ARGS.join(" ")}`;
+function buildCommandString(args: string[]): string {
+  return `npm ${args.join(" ")}`;
 }
 
 export interface EnsureDependenciesResult {
@@ -38,19 +39,48 @@ export async function ensureDependencies(
   }
 
   const hasNodeModules = await pathExists(nodeModulesPath);
-  if (hasNodeModules) {
-    return { installed: false, command: null };
+
+  // Determine if declared deps are missing from node_modules (e.g., subtasks added new deps)
+  let missingDeps: string[] = [];
+  let allDepsCount = 0;
+  try {
+    const pkgRaw = await fs.readFile(packageJsonPath, "utf-8");
+    const pkg = JSON.parse(pkgRaw) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    const allDeps = [
+      ...Object.keys(pkg.dependencies ?? {}),
+      ...Object.keys(pkg.devDependencies ?? {})
+    ];
+    allDepsCount = allDeps.length;
+    if (allDeps.length > 0) {
+      const checks = await Promise.all(
+        allDeps.map(async (name) => {
+          const depPath = path.join(nodeModulesPath, name);
+          return (await pathExists(depPath)) ? null : name;
+        })
+      );
+      missingDeps = checks.filter((n): n is string => Boolean(n));
+    }
+  } catch {
+    // ignore parse errors; fall back to node_modules heuristic
   }
 
+  // If there are no declared dependencies at all, skip installation even if node_modules is missing
+  const needsInstall = (allDepsCount > 0) && (!hasNodeModules || missingDeps.length > 0);
+
+  // Determine strategy: prefer reproducible CI when a lockfile exists
   const hasLockfile =
     (await pathExists(path.join(projectRoot, "package-lock.json"))) ||
     (await pathExists(path.join(projectRoot, "npm-shrinkwrap.json")));
-  if (!hasLockfile) {
+  if (!needsInstall) {
     return { installed: false, command: null };
   }
 
   await fs.mkdir(projectRoot, { recursive: true });
-  const child = spawn("npm", INSTALL_ARGS, {
+  let args = hasLockfile ? CI_INSTALL_ARGS : NPM_INSTALL_ARGS;
+  let child = spawn("npm", args, {
     cwd: projectRoot,
     env: { ...process.env, CI: process.env.CI ?? "1" },
     stdio: ["ignore", "pipe", "pipe"]
@@ -72,7 +102,7 @@ export async function ensureDependencies(
     child.kill("SIGKILL");
   }, timeoutMs).unref();
 
-  const { code } = await new Promise<{ code: number | null }>((resolve, reject) => {
+  let { code } = await new Promise<{ code: number | null }>((resolve, reject) => {
     child.once("error", err => {
       clearTimeout(timer);
       reject(err);
@@ -90,15 +120,51 @@ export async function ensureDependencies(
   }
 
   if (code !== 0) {
-    const output = stderr.trim() || stdout.trim();
-    throw new Error(
-      `Dependency installation failed with code ${code ?? "null"}. ${output || "No output"}`
-    );
+    const output = (stdout + "\n" + stderr).trim();
+    const lockfileMismatch = /npm ci can only install packages|EUSAGE|Invalid: lock file|Missing: .* from lock file/i.test(output);
+    if (hasLockfile && lockfileMismatch) {
+      // Fallback to a standard install to update lockfile and proceed
+      args = NPM_INSTALL_ARGS;
+      stdout = "";
+      stderr = "";
+      timedOut = false;
+      const fallback = spawn("npm", args, {
+        cwd: projectRoot,
+        env: { ...process.env, CI: process.env.CI ?? "1" },
+        stdio: ["ignore", "pipe", "pipe"]
+      });
+      const timer2 = setTimeout(() => {
+        timedOut = true;
+        fallback.kill("SIGKILL");
+      }, timeoutMs).unref();
+      fallback.stdout?.on("data", chunk => { stdout += chunk.toString(); });
+      fallback.stderr?.on("data", chunk => { stderr += chunk.toString(); });
+      ({ code } = await new Promise<{ code: number | null }>((resolve, reject) => {
+        fallback.once("error", err => { clearTimeout(timer2); reject(err); });
+        fallback.once("exit", (exitCode: number | null) => { clearTimeout(timer2); resolve({ code: exitCode }); });
+      }));
+      if (timedOut) {
+        throw new Error(
+          `Dependency installation (fallback) exceeded ${timeoutMs}ms. stderr: ${stderr.trim() || "<empty>"}`
+        );
+      }
+      if (code !== 0) {
+        const out2 = stderr.trim() || stdout.trim();
+        throw new Error(
+          `Dependency installation failed after fallback with code ${code ?? "null"}. ${out2 || "No output"}`
+        );
+      }
+    } else {
+      const out = stderr.trim() || stdout.trim();
+      throw new Error(
+        `Dependency installation failed with code ${code ?? "null"}. ${out || "No output"}`
+      );
+    }
   }
 
   return {
     installed: true,
-    command: buildCommandString(),
+    command: buildCommandString(args),
     stdout,
     stderr
   };

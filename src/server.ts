@@ -10,7 +10,9 @@ import slugify from "slugify";
 import { generateJSON } from "./llm/index.js";
 import { validateExecutorOutput } from "./executor/schema.js";
 import { sanitizeExecutorOutput } from "./executor/outputProcessing.js";
+import { seedTestsInFiles, seedTestsOnDisk } from "./utils/seedTests.js";
 import { writeFiles } from "./executor/writeFiles.js";
+import { ensureDefaultExportForApp } from "./utils/normalizeExports.js";
 import { runInSandbox } from "./runner/runInSandbox.js";
 import { multiTurnRepair } from "./repair/multiTurnRepair.js";
 // import { validateScaffoldOnDisk } from "./validation/validateScaffold.js";
@@ -263,7 +265,10 @@ function createPlanExecutionContext(
           reason
         })
       ),
-    writeFiles: (rootDir, files) => writeFiles(rootDir, files),
+    writeFiles: async (rootDir, files) => {
+      await writeFiles(rootDir, files);
+      await ensureDefaultExportForApp(rootDir);
+    },
     runTests: options => runInSandbox(options),
     multiTurnRepair: context => multiTurnRepair(context),
     logTelemetry: event =>
@@ -337,6 +342,12 @@ async function executePlanFlow(params: {
   const planExecutionResult = await executeTaskPlan(plan, context);
   const timeEstimate = estimateCompletion(planExecutionResult.progress, plan);
   const generatedFiles = collectPlanGeneratedFiles(planExecutionResult.subtaskResults);
+  // Persist the task plan to disk for focused re-runs/debugging
+  try {
+    await fs.writeFile(path.join(targetRoot, "_task_plan.json"), JSON.stringify(plan, null, 2), "utf-8");
+  } catch (err) {
+    console.warn("Failed to persist _task_plan.json", err);
+  }
 
   // S3: Critical file reconciliation before computing metadata/tests
   const fileValidation = await validateFilesNonEmpty(targetRoot, generatedFiles);
@@ -347,6 +358,8 @@ async function executePlanFlow(params: {
       empty: fileValidation.empty
     });
   }
+  // Ensure seed tests exist on disk for plan-based generations
+  await seedTestsOnDisk(targetRoot);
 
   const fileMetadata = await computeFileChecksums(
     await collectFilePaths(
@@ -650,16 +663,10 @@ app.post("/api/execute", async (req, res) => {
     await logEvent("generation_start", { project: slug });
 
     setProgress(sessionId, "generating", 55);
-    // Preflight scaffold validation against generated files
-    // If missing package.json, inject a minimal one into the files list before writing
-    const pkgInMemory = output.files.find(f => f.path.replace(/^\.\/?/, '') === 'package.json');
-    if (!pkgInMemory) {
-      output.files.push({
-        path: 'package.json',
-        contents: JSON.stringify({ name: slug, version: '0.1.0', scripts: { build: "echo 'no build'", test: "echo 'no tests' && exit 0" } }, null, 2)
-      });
-    }
+    // Seed a minimal test and ensure test script before write
+    output.files = seedTestsInFiles(output.files);
     await writeFiles(targetRoot, output.files);
+    await ensureDefaultExportForApp(targetRoot);
 
     setProgress(sessionId, "testing", 80);
     const initialRun = await runInSandbox({
@@ -809,6 +816,43 @@ app.post("/api/run-tests", async (req, res) => {
   } catch (err: unknown) {
     console.error(err);
     const message = err instanceof Error ? err.message : "internal error";
+    return res.status(500).json({ error: message });
+  }
+});
+
+// List failed subtasks for a generated project (no regeneration)
+app.get("/api/plan/:project/failed-subtasks", async (req, res) => {
+  try {
+    const { project } = req.params as { project: string };
+    const slug = slugify(project, { lower: true, strict: true });
+    const projectRoot = path.join(OUTPUT_DIR, slug);
+    const metaPath = path.join(projectRoot, "_executor_meta.json");
+    const buf = await fs.readFile(metaPath, "utf-8");
+    const meta = JSON.parse(buf) as { subtaskResults?: Array<{ subtaskId: string; status: string; notes?: string; testResult?: { status: string; errorMessage?: string } | null }> };
+    const failed = (meta.subtaskResults ?? []).filter(r => r.status !== "completed").map(r => ({
+      subtaskId: r.subtaskId,
+      status: r.status,
+      reason: r.testResult?.errorMessage || r.notes || "unknown"
+    }));
+    return res.json({ project: slug, failed });
+  } catch (err) {
+    const message = (err as Error).message || 'internal error';
+    return res.status(500).json({ error: message });
+  }
+});
+
+// Retest a specific subtask by re-running the project's tests (no regeneration)
+app.post("/api/plan/:project/retest-subtask", async (req, res) => {
+  try {
+    const { project } = req.params as { project: string };
+    const slug = slugify(project, { lower: true, strict: true });
+    const projectRoot = path.join(OUTPUT_DIR, slug);
+    try { await fs.access(projectRoot); } catch { return res.status(404).json({ error: "project not found" }); }
+    const run = await runInSandbox({ projectRoot, projectSlug: slug });
+    await logEvent("test_run", { project: slug, stage: "retest-subtask", status: run.status });
+    return res.json({ project: slug, result: run });
+  } catch (err) {
+    const message = (err as Error).message || 'internal error';
     return res.status(500).json({ error: message });
   }
 });
