@@ -72,6 +72,8 @@ export default defineConfig({
       maxDiffPixels: 100,
       // Threshold for comparison (0 = identical, 1 = completely different)
       threshold: 0.2,
+      // Make snapshots OS-agnostic so CI (Linux) and local (macOS) share baselines
+      pathTemplate: '{testDir}/{testFileDir}/{testFileName}-snapshots/{arg}-{projectName}{ext}'
     },
   },
 });

@@ -1077,12 +1077,45 @@ async function executeRequest({ prompt, projectName, clarifications }) {
           });
           if (p.done) break;
         }
-  } catch {
-    /* ignore */ void 0;
-  }
+      } catch {
+        /* ignore */ void 0;
+      }
       await new Promise(r => setTimeout(r, 900));
     }
   })();
+
+  // Try EventSource (SSE) for real-time progress; fallback polling remains
+  try {
+    const es = new EventSource(`/api/progress/stream/${sessionId}`);
+    es.onmessage = ev => {
+      try {
+        const p = JSON.parse(ev.data);
+        const percent = Math.max(0, Math.min(100, Number(p.progress || 0)));
+        fill.style.width = `${percent}%`;
+        const current = p.stage || 'analyzing';
+        document.querySelectorAll('.progress-stages .stage').forEach(node => node.classList.remove('current','completed'));
+        const order = ['analyzing','planning','generating','testing','finalizing'];
+        const idx = order.indexOf(current);
+        order.forEach((name,i) => {
+          const el = document.querySelector(`.stage-${name}`);
+          if (!el) return;
+          if (i < idx) el.classList.add('completed');
+          if (i === idx) el.classList.add('current');
+        });
+        if (p.done) {
+          stopPolling = true;
+          es.close();
+        }
+      } catch {
+        /* ignore */ void 0;
+      }
+    };
+    es.onerror = () => {
+      es.close();
+    };
+  } catch {
+    // silently fall back to polling only
+  }
 
   const payload = { prompt, sessionId };
   if (projectName) {

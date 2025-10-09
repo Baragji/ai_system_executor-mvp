@@ -18,6 +18,7 @@
     "test:lighthouse": "node scripts/run-lhci.mjs",
     "validate:ui": "npm run test:ui && npm run test:lighthouse",
     "ui:test": "playwright test -c playwright.config.ts",
+    "evidence": "playwright test tests/ui/evidence.spec.ts --project=chromium",
     "contract:check": "node scripts/validate-contract.js",
     "sbom": "npm sbom --sbom-format=spdx --omit=dev > sbom.spdx.json",
     "validate:all": "npm run lint && npm run typecheck && npm test && npm run contract:check"

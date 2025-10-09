@@ -4,7 +4,7 @@ import { describe, it, expect } from "vitest";
 type D = { files_written?: number; error?: unknown; testResults?: { initial?: { status?: string } } };
 function computeOutcome(data: unknown): 'success' | 'partial' | 'error' {
   const d = data as D;
-  if (!data || data.error) return 'error';
+  if (!data || d.error) return 'error';
   const files = Number(d.files_written || 0);
   if (!files) return 'error';
   const initial = d.testResults?.initial;
