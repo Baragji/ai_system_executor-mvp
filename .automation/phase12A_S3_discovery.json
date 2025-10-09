@@ -1,0 +1,10 @@
+{
+  "win": "S3",
+  "title": "Critical file reconciliation",
+  "integration_points": [
+    { "file": "src/server.ts", "function": "executePlanFlow", "note": "validate files before metadata" },
+    { "file": "src/utils/validateFiles.ts", "note": "new utility with unit tests" }
+  ],
+  "justification": "Screenshots and logs show missing/empty files causing downstream failures. Early reconcile reduces confusion and surfaces precise diagnostics.",
+  "compliance": { "language": "TS/JS", "no_new_deps": true, "no_api_break": true }
+}

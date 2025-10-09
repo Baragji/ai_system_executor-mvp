@@ -328,17 +328,45 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
 
     let lastErrorMessage: string | undefined;
     try {
-      const raw = await generateJSON(messages);
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(raw);
-      } catch (err) {
-        throw new Error(`Repair LLM returned invalid JSON: ${(err as Error).message}`);
+      async function requestPayload(withRetryHint: boolean): Promise<ParsedRepairPayload> {
+        const raw = await generateJSON(
+          withRetryHint
+            ? ([
+                messages[0]!,
+                {
+                  role: "user" as const,
+                  content:
+                    String(messages[1]?.content ?? "") +
+                    "\n\nIMPORTANT: For every artifact with action add/modify, include the full final file contents in files[]. If you cannot provide contents, omit that artifact."
+                }
+              ] satisfies LLMMessage[])
+            : (messages as LLMMessage[])
+        );
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(raw);
+        } catch (err) {
+          throw new Error(`Repair LLM returned invalid JSON: ${(err as Error).message}`);
+        }
+        return parseRepairPayload(parsed);
       }
 
-      const payload = parseRepairPayload(parsed);
+      // First attempt to parse/apply
+      let payload = await requestPayload(false);
       const previousContents = await capturePreviousContents(context.projectPath, payload.artifacts);
-      const applyResult = await applyArtifacts(context.projectPath, payload.artifacts, payload.files);
+      let applyResult: { changed: string[] };
+      try {
+        applyResult = await applyArtifacts(context.projectPath, payload.artifacts, payload.files);
+      } catch (applyErr) {
+        const msg = (applyErr as Error).message || "";
+        if (msg.includes("Missing contents for ")) {
+          // One-time retry with stricter instruction
+          payload = await requestPayload(true);
+          applyResult = await applyArtifacts(context.projectPath, payload.artifacts, payload.files);
+        } else {
+          throw applyErr;
+        }
+      }
       changedFiles = applyResult.changed;
 
       for (const file of payload.files) {

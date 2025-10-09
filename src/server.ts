@@ -338,6 +338,16 @@ async function executePlanFlow(params: {
   const timeEstimate = estimateCompletion(planExecutionResult.progress, plan);
   const generatedFiles = collectPlanGeneratedFiles(planExecutionResult.subtaskResults);
 
+  // S3: Critical file reconciliation before computing metadata/tests
+  const fileValidation = await validateFilesNonEmpty(targetRoot, generatedFiles);
+  if (!fileValidation.ok) {
+    await logEvent("missing_critical_file", {
+      project: slug,
+      missing: fileValidation.missing,
+      empty: fileValidation.empty
+    });
+  }
+
   const fileMetadata = await computeFileChecksums(
     await collectFilePaths(
       targetRoot,
@@ -402,7 +412,16 @@ async function executePlanFlow(params: {
       answers: clarificationAnswers,
       asked: clarificationTelemetry.asked
     },
-    notes: [],
+    notes: fileValidation.ok
+      ? []
+      : [
+          fileValidation.missing.length > 0
+            ? `Missing files: ${fileValidation.missing.join(", ")}`
+            : undefined,
+          fileValidation.empty.length > 0
+            ? `Empty files: ${fileValidation.empty.join(", ")}`
+            : undefined
+        ].filter(Boolean),
     testRuns: testRunEntries,
     repair: repairSummary,
     repairMetrics,
@@ -866,3 +885,4 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 export { app };
+import { validateFilesNonEmpty } from "./utils/validateFiles.js";
