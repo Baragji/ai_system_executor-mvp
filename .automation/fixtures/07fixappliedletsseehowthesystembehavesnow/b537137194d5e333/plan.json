@@ -1,0 +1,105 @@
+{
+  "originalPrompt": "Framework: Express, Port: 4566, Styling: Tailwind CSS\n\nOriginal request: Create a simple flash card app, using only red, black, and white colors. Make it minimal, and simple. add the function to add/delete/modify. frontend + backend needed\n\nClarifications:\n- framework: Express\n- port: 4566\n- styling: Tailwind CSS\nPrevious validation issues:\nNone",
+  "subtasks": [
+    {
+      "id": "init-project",
+      "title": "Initialize Node project and repo",
+      "description": "Create project folder, run npm init -y, and add .gitignore. Install deps: express, cors, uuid. Install dev deps: nodemon, tailwindcss, postcss, autoprefixer, concurrently. Create src and public directories.",
+      "status": "pending",
+      "estimatedComplexity": "low",
+      "successCriteria": "package.json and node_modules exist with listed deps; src and public folders created; git repo initialized."
+    },
+    {
+      "id": "setup-express-server",
+      "title": "Setup Express server on port 4566",
+      "description": "Create src/server.js to initialize Express with express.json(), CORS, and static serving of ./public. Add /health route and listen explicitly on port 4566.",
+      "status": "pending",
+      "dependencies": [
+        "init-project"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "Server starts without errors; GET http://localhost:4566/health returns OK; static index.html is served."
+    },
+    {
+      "id": "implement-crud-endpoints",
+      "title": "Implement in-memory flashcard CRUD API",
+      "description": "Add /api/cards routes: GET list, POST create, PUT update by :id, DELETE by :id. Use an in-memory array with uuid ids and fields {id, question, answer}. Return proper status codes and JSON.",
+      "status": "pending",
+      "dependencies": [
+        "setup-express-server"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "All CRUD endpoints respond with expected payloads and codes; basic error responses for missing fields or not found."
+    },
+    {
+      "id": "configure-tailwind",
+      "title": "Configure Tailwind CSS with restricted colors",
+      "description": "Initialize Tailwind via npx tailwindcss init -p. Set content to scan public/**/*.html and public/**/*.js. Configure theme colors to only red, black, and white. Create src/styles.css with Tailwind directives and build to public/styles.css.",
+      "status": "pending",
+      "dependencies": [
+        "init-project"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "public/styles.css is generated; Tailwind classes apply; only red, black, and white are used in styles."
+    },
+    {
+      "id": "build-minimal-frontend",
+      "title": "Build minimal HTML UI for flashcards",
+      "description": "Create public/index.html with a clean layout using Tailwind. Include a form to add or edit a card (question and answer) and a list rendering area with edit and delete controls. Use only red, black, and white colors.",
+      "status": "pending",
+      "dependencies": [
+        "configure-tailwind"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Page loads with minimal UI, required inputs, and buttons; visual style uses only the specified colors."
+    },
+    {
+      "id": "wire-frontend-to-api",
+      "title": "Implement client-side JS to call API",
+      "description": "Create public/main.js to fetch and render cards, handle form submit to POST, support edit flow with PUT, and delete with DELETE. Update the UI on success and show basic loading states.",
+      "status": "pending",
+      "dependencies": [
+        "build-minimal-frontend",
+        "implement-crud-endpoints"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Users can add, modify, and delete cards from the UI with immediate updates and persisted state in memory."
+    },
+    {
+      "id": "validation-and-error-handling",
+      "title": "Add validation and error handling",
+      "description": "Add server-side validation for non-empty question and answer with length limits and consistent error JSON. Add client-side checks and show inline error messages in red, keeping design minimal.",
+      "status": "pending",
+      "dependencies": [
+        "wire-frontend-to-api"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Invalid inputs are blocked with clear messages; API responds with 400 for bad requests; no uncaught errors in console or server."
+    },
+    {
+      "id": "testing-and-qc",
+      "title": "Perform manual and API smoke testing",
+      "description": "Manually test add, edit, delete, and refresh flows. Verify only allowed colors appear. Add a simple Node script or curl commands to smoke test CRUD endpoints and confirm response shapes.",
+      "status": "pending",
+      "dependencies": [
+        "validation-and-error-handling"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "All CRUD flows work reliably; API smoke tests pass; UI remains minimal and color-limited."
+    },
+    {
+      "id": "run-scripts-and-dev-experience",
+      "title": "Add npm scripts for dev, build, and start",
+      "description": "Add scripts: tailwind:build, tailwind:watch, dev (concurrently run nodemon and tailwind watch), build (tailwind build), and start (node server). Document PORT 4566 in scripts and README.",
+      "status": "pending",
+      "dependencies": [
+        "setup-express-server",
+        "configure-tailwind"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "npm run dev serves on http://localhost:4566 with live CSS; npm run build generates CSS; npm start runs server successfully."
+    }
+  ],
+  "totalSubtasks": 9,
+  "decompositionStrategy": "Backend-first API with parallel Tailwind setup, then minimal UI implementation and integration, followed by validation and testing."
+}

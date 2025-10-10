@@ -89,6 +89,22 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
 
   const logStream = createWriteStream(logFilePath, { encoding: "utf-8" });
   let combinedOutput = "";
+  let streamFailed = false;
+
+  logStream.on("error", err => {
+    streamFailed = true;
+    console.error(`Log stream error for ${logFilePath}:`, (err as Error).message);
+  });
+
+  function safeWrite(data: string) {
+    if (streamFailed) return;
+    try {
+      logStream.write(data);
+    } catch (e) {
+      streamFailed = true;
+      console.warn("Log write failed:", (e as Error).message);
+    }
+  }
 
   let installSummary = "[install] skipped (node_modules present or package.json missing)";
   let installPerformed = false;
@@ -98,14 +114,14 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
       installPerformed = true;
       installSummary = `[install] ran ${installResult.command}`;
       combinedOutput += `${installSummary}\n`;
-      logStream.write(`${installSummary}\n`);
+      safeWrite(`${installSummary}\n`);
       if (installResult.stdout) {
         combinedOutput += installResult.stdout;
-        logStream.write(installResult.stdout);
+        safeWrite(installResult.stdout);
       }
       if (installResult.stderr) {
         combinedOutput += installResult.stderr;
-        logStream.write(installResult.stderr);
+        safeWrite(installResult.stderr);
       }
     }
   } catch (installError) {
@@ -118,34 +134,50 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
   const command = providedCommand ?? detectTestCommand(projectRoot);
   if (!installPerformed) {
     combinedOutput += `${installSummary}\n`;
-    logStream.write(`${installSummary}\n`);
+    safeWrite(`${installSummary}\n`);
   }
   combinedOutput += `[sandbox] running ${command}\n`;
-  logStream.write(`[sandbox] running ${command}\n`);
+  safeWrite(`[sandbox] running ${command}\n`);
 
   const startedAt = new Date();
+  const isWin = process.platform === "win32";
   const child = spawn(command, {
     cwd: projectRoot,
     env,
     shell: true,
-    stdio: ["ignore", "pipe", "pipe"]
+    stdio: ["ignore", "pipe", "pipe"],
+    detached: !isWin
   });
 
   let timedOut = false;
+  function killTree(): void {
+    try {
+      if (isWin) {
+        try {
+          // Best-effort kill of process tree on Windows
+          spawn("taskkill", ["/PID", String(child.pid), "/T", "/F"], { shell: true });
+        } catch (_e) { void _e; }
+      } else if (child.pid) {
+        try { process.kill(-child.pid, "SIGKILL"); } catch (_e) { void _e; }
+      }
+    } catch (_e) { void _e; }
+    try { child.kill("SIGKILL"); } catch (_e) { void _e; }
+  }
+
   const timeoutHandle = setTimeout(() => {
     timedOut = true;
-    child.kill("SIGKILL");
+    killTree();
   }, timeoutMs).unref();
 
   child.stdout?.on("data", chunk => {
     const text = chunk.toString();
     combinedOutput += text;
-    logStream.write(text);
+    safeWrite(text);
   });
   child.stderr?.on("data", chunk => {
     const text = chunk.toString();
     combinedOutput += text;
-    logStream.write(text);
+    safeWrite(text);
   });
 
   const exitPromise = new Promise<{ code: number | null; signal: string | null }>(resolve => {

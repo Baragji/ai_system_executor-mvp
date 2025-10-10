@@ -1,0 +1,142 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "error",
+      "startedAt": "2025-10-10T10:18:31.609Z",
+      "finishedAt": "2025-10-10T10:22:28.144Z",
+      "changedFiles": [],
+      "summary": "Attempt 1 encountered an error before tests could pass. Error: Missing contents for jest.config.cjs",
+      "strategy": "syntax_focus",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for jest.config.cjs",
+        "errorMessage": "Missing contents for jest.config.cjs"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Test suite failed to run",
+            "message": "Jest encountered an unexpected token\nJest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.\nOut of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.\nBy default \"node_modules\" folder is ignored by transformers.\nHere's what you can do:\n• If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.\n• If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript\n• To have some of your \"node_modules\" files transformed, you can specify a custom \"transformIgnorePatterns\" in your config.\n• If you need a custom transformation specify a \"transform\" option in your config.\n• If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the \"moduleNameMapper\" config option.\nYou'll find more details and examples of these config options in the docs:\nhttps://jestjs.io/docs/configuration\nFor information about custom transformations, see:\nhttps://jestjs.io/docs/code-transformation\nDetails:\n/Users…",
+            "stackSnippet": [
+              "at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1505:14)"
+            ],
+            "type": "syntax"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "syntax"
+      },
+      "durationMs": 236535,
+      "cumulativeTime": 236535
+    },
+    {
+      "number": 2,
+      "status": "error",
+      "startedAt": "2025-10-10T10:22:28.144Z",
+      "finishedAt": "2025-10-10T10:24:07.064Z",
+      "changedFiles": [],
+      "summary": "Attempt 2 encountered an error before tests could pass. Error: Missing contents for jest.config.cjs",
+      "strategy": "syntax_focus",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for jest.config.cjs",
+        "errorMessage": "Missing contents for jest.config.cjs"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Test suite failed to run",
+            "message": "Jest encountered an unexpected token\nJest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.\nOut of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.\nBy default \"node_modules\" folder is ignored by transformers.\nHere's what you can do:\n• If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.\n• If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript\n• To have some of your \"node_modules\" files transformed, you can specify a custom \"transformIgnorePatterns\" in your config.\n• If you need a custom transformation specify a \"transform\" option in your config.\n• If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the \"moduleNameMapper\" config option.\nYou'll find more details and examples of these config options in the docs:\nhttps://jestjs.io/docs/configuration\nFor information about custom transformations, see:\nhttps://jestjs.io/docs/code-transformation\nDetails:\n/Users…",
+            "stackSnippet": [
+              "at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1505:14)"
+            ],
+            "type": "syntax"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "syntax"
+      },
+      "durationMs": 98920,
+      "cumulativeTime": 335455
+    },
+    {
+      "number": 3,
+      "status": "error",
+      "startedAt": "2025-10-10T10:24:07.064Z",
+      "finishedAt": "2025-10-10T10:25:43.216Z",
+      "changedFiles": [],
+      "summary": "Attempt 3 encountered an error before tests could pass. Error: Missing contents for jest.config.cjs",
+      "strategy": "syntax_focus",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for jest.config.cjs",
+        "errorMessage": "Missing contents for jest.config.cjs"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Test suite failed to run",
+            "message": "Jest encountered an unexpected token\nJest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.\nOut of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.\nBy default \"node_modules\" folder is ignored by transformers.\nHere's what you can do:\n• If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.\n• If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript\n• To have some of your \"node_modules\" files transformed, you can specify a custom \"transformIgnorePatterns\" in your config.\n• If you need a custom transformation specify a \"transform\" option in your config.\n• If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the \"moduleNameMapper\" config option.\nYou'll find more details and examples of these config options in the docs:\nhttps://jestjs.io/docs/configuration\nFor information about custom transformations, see:\nhttps://jestjs.io/docs/code-transformation\nDetails:\n/Users…",
+            "stackSnippet": [
+              "at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1505:14)"
+            ],
+            "type": "syntax"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "syntax"
+      },
+      "durationMs": 96152,
+      "cumulativeTime": 431607
+    },
+    {
+      "number": 4,
+      "status": "error",
+      "startedAt": "2025-10-10T10:25:43.216Z",
+      "finishedAt": "2025-10-10T10:26:57.978Z",
+      "changedFiles": [],
+      "summary": "Attempt 4 encountered an error before tests could pass. Error: Missing contents for jest.config.cjs",
+      "strategy": "syntax_focus",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for jest.config.cjs",
+        "errorMessage": "Missing contents for jest.config.cjs"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Test suite failed to run",
+            "message": "Jest encountered an unexpected token\nJest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.\nOut of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.\nBy default \"node_modules\" folder is ignored by transformers.\nHere's what you can do:\n• If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.\n• If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript\n• To have some of your \"node_modules\" files transformed, you can specify a custom \"transformIgnorePatterns\" in your config.\n• If you need a custom transformation specify a \"transform\" option in your config.\n• If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the \"moduleNameMapper\" config option.\nYou'll find more details and examples of these config options in the docs:\nhttps://jestjs.io/docs/configuration\nFor information about custom transformations, see:\nhttps://jestjs.io/docs/code-transformation\nDetails:\n/Users…",
+            "stackSnippet": [
+              "at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1505:14)"
+            ],
+            "type": "syntax"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "syntax"
+      },
+      "durationMs": 74762,
+      "cumulativeTime": 506369
+    }
+  ],
+  "finalStatus": "exhausted",
+  "totalAttempts": 4
+}

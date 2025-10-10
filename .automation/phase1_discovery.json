@@ -1,0 +1,42 @@
+{
+  "phase": "1",
+  "summary": "Repair-intake contract enforcement, planner timeouts+jitter, and E2E workflow gate",
+  "integration_points": [
+    {
+      "file": "src/repair/multiTurnRepair.ts:256",
+      "reason": "Orchestrates repair attempts; add Ajv validation and stop-on-incomplete logic; remove quick patch",
+      "snippets": ["DISABLE_HEALTH_PATCH at 292–357", "missing-contents retry/synthesize at 480–535"]
+    },
+    {
+      "file": "src/contracts/validators.ts:1",
+      "reason": "Ajv 2020 setup; extend with intake schema (inline)"
+    },
+    {
+      "file": "src/planning/decomposeTask.ts:158",
+      "reason": "Add AbortSignal.timeout + backoff with jitter and abort logging"
+    },
+    {
+      "file": "src/server.ts:246-270",
+      "reason": "Wrap subtask generation with AbortSignal.timeout and abort logging"
+    },
+    {
+      "file": ".automation/proposals/workflows/generated-app-e2e.yml:1",
+      "reason": "Move/expand to .github/workflows/generated-app-e2e.yml and add proof bundle uploads (SBOM, OSV, Semgrep, fixtures)"
+    }
+  ],
+  "dependencies": ["ajv@^8", "ajv-formats@^3", "Node 20 AbortSignal"],
+  "impacts": [
+    "Removes deprecated repair-time health/test patching",
+    "Stricter, deterministic repair intake",
+    "Timeout resilience for planning phases",
+    "E2E CI gate provides proof bundle"
+  ],
+  "stack_compliance_check": {
+    "language": "TS/JS only — OK",
+    "backend": "Node 20 + Express — OK",
+    "frontend": "No framework changes — OK",
+    "testing": "Vitest — unchanged",
+    "protected_files": ".github/workflows/* requires CODEOWNERS approval"
+  }
+}
+

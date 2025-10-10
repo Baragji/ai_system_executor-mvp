@@ -1,0 +1,123 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "error",
+      "startedAt": "2025-10-10T10:09:53.009Z",
+      "finishedAt": "2025-10-10T10:10:43.752Z",
+      "changedFiles": [],
+      "summary": "Attempt 1 encountered an error before tests could pass. Error: Missing contents for package.json",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for package.json",
+        "errorMessage": "Missing contents for package.json"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Multiple configurations found:",
+            "message": "* /Users/Yousef_1/Downloads/ai_system_executor-mvp/output/lab-tech-landing-trace/jest.config.cjs\n* `jest` key in /Users/Yousef_1/Downloads/ai_system_executor-mvp/output/lab-tech-landing-trace/package.json\nImplicit config resolution does not allow multiple configuration files.\nEither remove unused config files or select one explicitly with `--config`.\nConfiguration Documentation:\nhttps://jestjs.io/docs/configuration",
+            "stackSnippet": [],
+            "type": "exception"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "exception"
+      },
+      "durationMs": 50743,
+      "cumulativeTime": 50743
+    },
+    {
+      "number": 2,
+      "status": "error",
+      "startedAt": "2025-10-10T10:10:43.753Z",
+      "finishedAt": "2025-10-10T10:12:17.068Z",
+      "changedFiles": [],
+      "summary": "Attempt 2 encountered an error before tests could pass. Error: Missing contents for package.json",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for package.json",
+        "errorMessage": "Missing contents for package.json"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Multiple configurations found:",
+            "message": "* /Users/Yousef_1/Downloads/ai_system_executor-mvp/output/lab-tech-landing-trace/jest.config.cjs\n* `jest` key in /Users/Yousef_1/Downloads/ai_system_executor-mvp/output/lab-tech-landing-trace/package.json\nImplicit config resolution does not allow multiple configuration files.\nEither remove unused config files or select one explicitly with `--config`.\nConfiguration Documentation:\nhttps://jestjs.io/docs/configuration",
+            "stackSnippet": [],
+            "type": "exception"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "exception"
+      },
+      "durationMs": 93315,
+      "cumulativeTime": 144058
+    },
+    {
+      "number": 3,
+      "status": "error",
+      "startedAt": "2025-10-10T10:12:17.068Z",
+      "finishedAt": "2025-10-10T10:14:58.912Z",
+      "changedFiles": [],
+      "summary": "Attempt 3 encountered an error before tests could pass. Error: Missing contents for package.json",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for package.json",
+        "errorMessage": "Missing contents for package.json"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Multiple configurations found:",
+            "message": "* /Users/Yousef_1/Downloads/ai_system_executor-mvp/output/lab-tech-landing-trace/jest.config.cjs\n* `jest` key in /Users/Yousef_1/Downloads/ai_system_executor-mvp/output/lab-tech-landing-trace/package.json\nImplicit config resolution does not allow multiple configuration files.\nEither remove unused config files or select one explicitly with `--config`.\nConfiguration Documentation:\nhttps://jestjs.io/docs/configuration",
+            "stackSnippet": [],
+            "type": "exception"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "exception"
+      },
+      "durationMs": 161844,
+      "cumulativeTime": 305902
+    },
+    {
+      "number": 4,
+      "status": "pass",
+      "startedAt": "2025-10-10T10:14:58.912Z",
+      "finishedAt": "2025-10-10T10:16:53.942Z",
+      "changedFiles": [
+        "jest.config.cjs"
+      ],
+      "summary": "Attempt 4: tests passed after updates to jest.config.cjs (deleted)",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "pass",
+        "passCount": 3,
+        "failCount": 0,
+        "durationMs": 841,
+        "logsPath": "logs/lab-tech-landing-trace_last_test_run_8158fad9-5ffd-4e5e-ac2d-326054c480dc.log"
+      },
+      "durationMs": 115030,
+      "cumulativeTime": 420932
+    }
+  ],
+  "finalStatus": "pass",
+  "totalAttempts": 4,
+  "successAttemptNumber": 4
+}

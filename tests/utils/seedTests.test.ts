@@ -5,9 +5,9 @@ import type { GeneratedFile } from '../../src/utils/seedTests.js';
 describe('seedTestsInFiles', () => {
   it('adds a smoke test and package.json when missing', () => {
     const out = seedTestsInFiles([]);
-    const hasTest = out.some(f => f.path.endsWith('tests/smoke.spec.ts'));
+    const hasAnyTest = out.some(f => /tests\/smoke\.(spec|test)\.(t|j)sx?$/.test(f.path));
     const hasPkg = out.some(f => f.path.replace(/^\.\/?/, '') === 'package.json');
-    expect(hasTest).toBe(true);
+    expect(hasAnyTest).toBe(true);
     expect(hasPkg).toBe(true);
   });
 

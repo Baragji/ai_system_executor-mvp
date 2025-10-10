@@ -1,0 +1,94 @@
+{
+  "originalPrompt": "Create a minimal single-page landing site for a lab technician. Requirements: single HTML page, responsive, hero with title/subtitle, brief services list, contact form (no backend; form just shows an alert). Use only red, black, and white. Include a simple README and one basic Jest test to check index.html contains the hero title.",
+  "subtasks": [
+    {
+      "id": "initialize-project-structure",
+      "title": "Initialize project and tooling",
+      "description": "Create a minimal project folder with index.html, styles.css, script.js, README.md, package.json, and a __tests__ directory. Add Jest as a dev dependency and set the npm test script to run jest.",
+      "status": "pending",
+      "estimatedComplexity": "medium",
+      "successCriteria": "package.json exists with jest in devDependencies and a test script; required files are created in the correct paths."
+    },
+    {
+      "id": "build-single-page-html",
+      "title": "Build the single HTML landing page",
+      "description": "Implement index.html with semantic sections: a responsive meta viewport, a hero containing the title 'Professional Lab Technician' and a subtitle, a brief services list, and a contact form with name, email, and message fields.",
+      "status": "pending",
+      "dependencies": [
+        "initialize-project-structure"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "index.html renders one page with hero title 'Professional Lab Technician', subtitle, services list, and a contact form; includes <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">."
+    },
+    {
+      "id": "implement-responsive-styles",
+      "title": "Implement responsive styles with limited palette",
+      "description": "Create styles.css with mobile-first layout, ensuring typography and spacing scale well. Use only red, black, and white colors across all CSS rules and ensure good contrast and clean layout.",
+      "status": "pending",
+      "dependencies": [
+        "build-single-page-html"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "styles.css applies only red (#ff0000 or red), black (#000), and white (#fff); page remains readable and well laid out on small and large screens."
+    },
+    {
+      "id": "wire-contact-form-alert",
+      "title": "Wire the contact form to show an alert",
+      "description": "In script.js, add a submit event listener to the contact form that prevents default submission and shows a friendly alert message confirming receipt.",
+      "status": "pending",
+      "dependencies": [
+        "build-single-page-html"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "Submitting the form triggers a JavaScript alert without a page reload or network request."
+    },
+    {
+      "id": "responsiveness-and-accessibility-checks",
+      "title": "Verify responsiveness and basic accessibility",
+      "description": "Manually test the page at common breakpoints, ensure headings are structured, form inputs have labels, color contrast is sufficient, and content does not overflow on mobile.",
+      "status": "pending",
+      "dependencies": [
+        "implement-responsive-styles",
+        "wire-contact-form-alert"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "Content is usable at ~320px to desktop widths; labels are associated with inputs; no horizontal scrolling; color contrast remains readable."
+    },
+    {
+      "id": "write-readme",
+      "title": "Write a simple README",
+      "description": "Create README.md describing the project, color restrictions, file structure, how to open index.html locally, and how to install dependencies and run tests.",
+      "status": "pending",
+      "dependencies": [
+        "responsiveness-and-accessibility-checks"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "README.md includes project overview, setup instructions, usage, test instructions, and notes on the red/black/white palette."
+    },
+    {
+      "id": "add-jest-test-for-hero-title",
+      "title": "Add a Jest test to check hero title exists",
+      "description": "Create __tests__/index.test.js that reads index.html via fs and asserts the file contains the exact hero title text 'Professional Lab Technician'. Ensure the test runs with jest.",
+      "status": "pending",
+      "dependencies": [
+        "initialize-project-structure",
+        "build-single-page-html"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "Running `npm test` executes a test that passes only if index.html contains 'Professional Lab Technician'."
+    },
+    {
+      "id": "run-tests-and-verify",
+      "title": "Run tests and verify pass",
+      "description": "Execute the test suite to confirm the Jest test passes and the project is in a working state without errors.",
+      "status": "pending",
+      "dependencies": [
+        "add-jest-test-for-hero-title"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "`npm test` completes successfully with passing results and no runtime errors."
+    }
+  ],
+  "totalSubtasks": 8,
+  "decompositionStrategy": "Tooling-first setup followed by content, styling, behavior, quality checks, documentation, and a minimal automated test."
+}

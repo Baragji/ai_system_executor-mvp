@@ -59,7 +59,13 @@ function mergePreviousResults(
   };
 }
 
-const MAX_PLAN_DURATION_MS = 4 * 60 * 1000; // 4 minutes total to avoid browser timeout
+function readPlanDuration(): number {
+  const raw = process.env.PLAN_MAX_DURATION_MS;
+  if (!raw) return 4 * 60 * 1000;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : 4 * 60 * 1000;
+}
+const MAX_PLAN_DURATION_MS = readPlanDuration(); // default 4 minutes; configurable via env
 const MAX_CONSECUTIVE_FAILURES = 2; // Halt after 2 consecutive failures
 
 export async function executeTaskPlan(

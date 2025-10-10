@@ -1,0 +1,270 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "error",
+      "startedAt": "2025-10-10T08:50:58.530Z",
+      "finishedAt": "2025-10-10T08:52:20.490Z",
+      "changedFiles": [],
+      "summary": "Attempt 1 encountered an error before tests could pass. Error: Missing contents for lib/storage.js",
+      "strategy": "assertion_focus",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for lib/storage.js",
+        "errorMessage": "Missing contents for lib/storage.js"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "storage.js CRUD › getAllCards returns [] when file does not exist",
+            "message": "TypeError: storage.getAllCards is not a function\n30 |     const { storage, dir } = await loadStorageInTempDir();\n31 |     try {\n> 32 |       const all = await storage.getAllCards();\n|                                 ^\n33 |       expect(Array.isArray(all)).toBe(true);\n34 |       expect(all.length).toBe(0);\n35 |     } finally {",
+            "stackSnippet": [
+              "at Object.getAllCards (tests/storage.test.js:32:33)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › addCard creates data dir/file on first write and returns created card with id",
+            "message": "TypeError: storage.addCard is not a function\n41 |     const { storage, dir } = await loadStorageInTempDir();\n42 |     try {\n> 43 |       const created = await storage.addCard({ front: ' Front text ', back: ' Back text ' });\n|                                     ^\n44 |       expect(created).toHaveProperty('id');\n45 |       expect(typeof created.id).toBe('string');\n46 |       expect(created.front).toBe('Front text');",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:43:37)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › updateCard updates fields and persists changes",
+            "message": "TypeError: storage.addCard is not a function\n59 |     const { storage, dir } = await loadStorageInTempDir();\n60 |     try {\n> 61 |       const created = await storage.addCard({ front: 'A', back: 'B' });\n|                                     ^\n62 |       const updated = await storage.updateCard(created.id, { front: 'X', back: 'Y' });\n63 |       expect(updated.front).toBe('X');\n64 |       expect(updated.back).toBe('Y');",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:61:37)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › deleteCard removes the item and persists",
+            "message": "TypeError: storage.addCard is not a function\n75 |     const { storage, dir } = await loadStorageInTempDir();\n76 |     try {\n> 77 |       const a = await storage.addCard({ front: 'A', back: 'A1' });\n|                               ^\n78 |       const b = await storage.addCard({ front: 'B', back: 'B1' });\n79 |       expect((await storage.getAllCards()).length).toBe(2);\n80 |       const ok = await storage.deleteCard(a.id);",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:77:31)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › rejects invalid payloads with clear errors",
+            "message": "TypeError: storage.addCard is not a function\n91 |     const { storage, dir } = await loadStorageInTempDir();\n92 |     try {\n> 93 |       await expect(storage.addCard({ front: '', back: 'B' })).rejects.toThrow(/front/i);\n|                            ^\n94 |       await expect(storage.addCard({ front: 'A', back: '' })).rejects.toThrow(/back/i);\n95 |       const created = await storage.addCard({ front: 'ok', back: 'ok' });\n96 |       await expect(storage.updateCard(created.id, { front: '', back: 'x' })).rejects.toThrow(/front/i);\nTest Suites: 1 failed, 2 passed, 3 total\nTests:       5 failed, 10 passed, 15 total\nSnapshots:   0 total\nTime:        0.396 s, estimated 1 s\nRan all test suites.",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:93:28)"
+            ],
+            "type": "assertion"
+          }
+        ],
+        "totalFailed": 5,
+        "category": "assertion"
+      },
+      "durationMs": 81960,
+      "cumulativeTime": 81960
+    },
+    {
+      "number": 2,
+      "status": "error",
+      "startedAt": "2025-10-10T08:52:20.491Z",
+      "finishedAt": "2025-10-10T08:54:30.937Z",
+      "changedFiles": [],
+      "summary": "Attempt 2 encountered an error before tests could pass. Error: Missing contents for lib/storage.js",
+      "strategy": "assertion_focus",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for lib/storage.js",
+        "errorMessage": "Missing contents for lib/storage.js"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "storage.js CRUD › getAllCards returns [] when file does not exist",
+            "message": "TypeError: storage.getAllCards is not a function\n30 |     const { storage, dir } = await loadStorageInTempDir();\n31 |     try {\n> 32 |       const all = await storage.getAllCards();\n|                                 ^\n33 |       expect(Array.isArray(all)).toBe(true);\n34 |       expect(all.length).toBe(0);\n35 |     } finally {",
+            "stackSnippet": [
+              "at Object.getAllCards (tests/storage.test.js:32:33)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › addCard creates data dir/file on first write and returns created card with id",
+            "message": "TypeError: storage.addCard is not a function\n41 |     const { storage, dir } = await loadStorageInTempDir();\n42 |     try {\n> 43 |       const created = await storage.addCard({ front: ' Front text ', back: ' Back text ' });\n|                                     ^\n44 |       expect(created).toHaveProperty('id');\n45 |       expect(typeof created.id).toBe('string');\n46 |       expect(created.front).toBe('Front text');",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:43:37)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › updateCard updates fields and persists changes",
+            "message": "TypeError: storage.addCard is not a function\n59 |     const { storage, dir } = await loadStorageInTempDir();\n60 |     try {\n> 61 |       const created = await storage.addCard({ front: 'A', back: 'B' });\n|                                     ^\n62 |       const updated = await storage.updateCard(created.id, { front: 'X', back: 'Y' });\n63 |       expect(updated.front).toBe('X');\n64 |       expect(updated.back).toBe('Y');",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:61:37)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › deleteCard removes the item and persists",
+            "message": "TypeError: storage.addCard is not a function\n75 |     const { storage, dir } = await loadStorageInTempDir();\n76 |     try {\n> 77 |       const a = await storage.addCard({ front: 'A', back: 'A1' });\n|                               ^\n78 |       const b = await storage.addCard({ front: 'B', back: 'B1' });\n79 |       expect((await storage.getAllCards()).length).toBe(2);\n80 |       const ok = await storage.deleteCard(a.id);",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:77:31)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › rejects invalid payloads with clear errors",
+            "message": "TypeError: storage.addCard is not a function\n91 |     const { storage, dir } = await loadStorageInTempDir();\n92 |     try {\n> 93 |       await expect(storage.addCard({ front: '', back: 'B' })).rejects.toThrow(/front/i);\n|                            ^\n94 |       await expect(storage.addCard({ front: 'A', back: '' })).rejects.toThrow(/back/i);\n95 |       const created = await storage.addCard({ front: 'ok', back: 'ok' });\n96 |       await expect(storage.updateCard(created.id, { front: '', back: 'x' })).rejects.toThrow(/front/i);\nTest Suites: 1 failed, 2 passed, 3 total\nTests:       5 failed, 10 passed, 15 total\nSnapshots:   0 total\nTime:        0.396 s, estimated 1 s\nRan all test suites.",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:93:28)"
+            ],
+            "type": "assertion"
+          }
+        ],
+        "totalFailed": 5,
+        "category": "assertion"
+      },
+      "durationMs": 130446,
+      "cumulativeTime": 212406
+    },
+    {
+      "number": 3,
+      "status": "error",
+      "startedAt": "2025-10-10T08:54:30.937Z",
+      "finishedAt": "2025-10-10T08:56:15.366Z",
+      "changedFiles": [],
+      "summary": "Attempt 3 encountered an error before tests could pass. Error: Missing contents for lib/storage.js",
+      "strategy": "multiple_prioritize",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for lib/storage.js",
+        "errorMessage": "Missing contents for lib/storage.js"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "storage.js CRUD › getAllCards returns [] when file does not exist",
+            "message": "TypeError: storage.getAllCards is not a function\n30 |     const { storage, dir } = await loadStorageInTempDir();\n31 |     try {\n> 32 |       const all = await storage.getAllCards();\n|                                 ^\n33 |       expect(Array.isArray(all)).toBe(true);\n34 |       expect(all.length).toBe(0);\n35 |     } finally {",
+            "stackSnippet": [
+              "at Object.getAllCards (tests/storage.test.js:32:33)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › addCard creates data dir/file on first write and returns created card with id",
+            "message": "TypeError: storage.addCard is not a function\n41 |     const { storage, dir } = await loadStorageInTempDir();\n42 |     try {\n> 43 |       const created = await storage.addCard({ front: ' Front text ', back: ' Back text ' });\n|                                     ^\n44 |       expect(created).toHaveProperty('id');\n45 |       expect(typeof created.id).toBe('string');\n46 |       expect(created.front).toBe('Front text');",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:43:37)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › updateCard updates fields and persists changes",
+            "message": "TypeError: storage.addCard is not a function\n59 |     const { storage, dir } = await loadStorageInTempDir();\n60 |     try {\n> 61 |       const created = await storage.addCard({ front: 'A', back: 'B' });\n|                                     ^\n62 |       const updated = await storage.updateCard(created.id, { front: 'X', back: 'Y' });\n63 |       expect(updated.front).toBe('X');\n64 |       expect(updated.back).toBe('Y');",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:61:37)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › deleteCard removes the item and persists",
+            "message": "TypeError: storage.addCard is not a function\n75 |     const { storage, dir } = await loadStorageInTempDir();\n76 |     try {\n> 77 |       const a = await storage.addCard({ front: 'A', back: 'A1' });\n|                               ^\n78 |       const b = await storage.addCard({ front: 'B', back: 'B1' });\n79 |       expect((await storage.getAllCards()).length).toBe(2);\n80 |       const ok = await storage.deleteCard(a.id);",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:77:31)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › rejects invalid payloads with clear errors",
+            "message": "TypeError: storage.addCard is not a function\n91 |     const { storage, dir } = await loadStorageInTempDir();\n92 |     try {\n> 93 |       await expect(storage.addCard({ front: '', back: 'B' })).rejects.toThrow(/front/i);\n|                            ^\n94 |       await expect(storage.addCard({ front: 'A', back: '' })).rejects.toThrow(/back/i);\n95 |       const created = await storage.addCard({ front: 'ok', back: 'ok' });\n96 |       await expect(storage.updateCard(created.id, { front: '', back: 'x' })).rejects.toThrow(/front/i);\nTest Suites: 1 failed, 2 passed, 3 total\nTests:       5 failed, 10 passed, 15 total\nSnapshots:   0 total\nTime:        0.396 s, estimated 1 s\nRan all test suites.",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:93:28)"
+            ],
+            "type": "assertion"
+          }
+        ],
+        "totalFailed": 5,
+        "category": "assertion"
+      },
+      "durationMs": 104429,
+      "cumulativeTime": 316835
+    },
+    {
+      "number": 4,
+      "status": "error",
+      "startedAt": "2025-10-10T08:56:15.366Z",
+      "finishedAt": "2025-10-10T08:57:56.017Z",
+      "changedFiles": [],
+      "summary": "Attempt 4 encountered an error before tests could pass. Error: Missing contents for lib/storage.js",
+      "strategy": "multiple_prioritize",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for lib/storage.js",
+        "errorMessage": "Missing contents for lib/storage.js"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "storage.js CRUD › getAllCards returns [] when file does not exist",
+            "message": "TypeError: storage.getAllCards is not a function\n30 |     const { storage, dir } = await loadStorageInTempDir();\n31 |     try {\n> 32 |       const all = await storage.getAllCards();\n|                                 ^\n33 |       expect(Array.isArray(all)).toBe(true);\n34 |       expect(all.length).toBe(0);\n35 |     } finally {",
+            "stackSnippet": [
+              "at Object.getAllCards (tests/storage.test.js:32:33)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › addCard creates data dir/file on first write and returns created card with id",
+            "message": "TypeError: storage.addCard is not a function\n41 |     const { storage, dir } = await loadStorageInTempDir();\n42 |     try {\n> 43 |       const created = await storage.addCard({ front: ' Front text ', back: ' Back text ' });\n|                                     ^\n44 |       expect(created).toHaveProperty('id');\n45 |       expect(typeof created.id).toBe('string');\n46 |       expect(created.front).toBe('Front text');",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:43:37)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › updateCard updates fields and persists changes",
+            "message": "TypeError: storage.addCard is not a function\n59 |     const { storage, dir } = await loadStorageInTempDir();\n60 |     try {\n> 61 |       const created = await storage.addCard({ front: 'A', back: 'B' });\n|                                     ^\n62 |       const updated = await storage.updateCard(created.id, { front: 'X', back: 'Y' });\n63 |       expect(updated.front).toBe('X');\n64 |       expect(updated.back).toBe('Y');",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:61:37)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › deleteCard removes the item and persists",
+            "message": "TypeError: storage.addCard is not a function\n75 |     const { storage, dir } = await loadStorageInTempDir();\n76 |     try {\n> 77 |       const a = await storage.addCard({ front: 'A', back: 'A1' });\n|                               ^\n78 |       const b = await storage.addCard({ front: 'B', back: 'B1' });\n79 |       expect((await storage.getAllCards()).length).toBe(2);\n80 |       const ok = await storage.deleteCard(a.id);",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:77:31)"
+            ],
+            "type": "assertion"
+          },
+          {
+            "name": "storage.js CRUD › rejects invalid payloads with clear errors",
+            "message": "TypeError: storage.addCard is not a function\n91 |     const { storage, dir } = await loadStorageInTempDir();\n92 |     try {\n> 93 |       await expect(storage.addCard({ front: '', back: 'B' })).rejects.toThrow(/front/i);\n|                            ^\n94 |       await expect(storage.addCard({ front: 'A', back: '' })).rejects.toThrow(/back/i);\n95 |       const created = await storage.addCard({ front: 'ok', back: 'ok' });\n96 |       await expect(storage.updateCard(created.id, { front: '', back: 'x' })).rejects.toThrow(/front/i);\nTest Suites: 1 failed, 2 passed, 3 total\nTests:       5 failed, 10 passed, 15 total\nSnapshots:   0 total\nTime:        0.396 s, estimated 1 s\nRan all test suites.",
+            "stackSnippet": [
+              "at Object.addCard (tests/storage.test.js:93:28)"
+            ],
+            "type": "assertion"
+          }
+        ],
+        "totalFailed": 5,
+        "category": "assertion"
+      },
+      "durationMs": 100651,
+      "cumulativeTime": 417486
+    }
+  ],
+  "finalStatus": "exhausted",
+  "totalAttempts": 4
+}

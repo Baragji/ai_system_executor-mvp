@@ -30,14 +30,14 @@ Top-Level Tracking Checklist
 - [x] C1 – Fixture capture + replay (test/repair/subtask) with UI helper
 - [x] C2 – Export normalization for app default export
 - [x] C3 – Dependency installer hardening (ci→install fallback; missing deps)
-- [ ] P1 – ISSUE-009: Clean output directory or use unique run dir (determinism)
-- [ ] P2 – ISSUE-010: Kill entire process tree on timeout (no orphans)
-- [ ] P3 – ISSUE-004: Log stream error handling (prevent crash on I/O)
-- [ ] P4 – ISSUE-001: TTL purge for progressSessions (memory leak)
-- [ ] P5 – ISSUE-003: LLM retry/backoff with telemetry + env config
+- [x] P1 – ISSUE-009: Clean output directory or use unique run dir (determinism)
+- [x] P2 – ISSUE-010: Kill entire process tree on timeout (no orphans)
+- [x] P3 – ISSUE-004: Log stream error handling (prevent crash on I/O)
+- [x] P4 – ISSUE-001: TTL purge for progressSessions (memory leak)
+- [x] P5 – ISSUE-003: LLM retry/backoff with telemetry + env config
 - [ ] P6 – ISSUE-002: Harden writeFiles against path traversal
-- [ ] P7 – Error surfacing: prefer test runner error in meta over artifact error
-- [ ] P8 – Configurable plan max duration (ENV), keep default conservative
+- [x] P7 – Error surfacing: prefer test runner error in meta over artifact error
+- [x] P8 – Configurable plan max duration (ENV), keep default conservative
 
 Detailed Steps
 
@@ -64,35 +64,35 @@ P1 – Clean output (ISSUE-009)
 - Plan: Clean targetRoot before writes (single path). For plan path, optionally write to output/<slug>/<runId> and set browse_url accordingly.
 - Files: src/server.ts (write paths), tests/e2e/phase1.test.ts (update expectations if needed)
 - Validate: Full gate + replay retest on an existing slug twice (no stale bleed)
-- Status: [ ]
+- Status: [x] (2025-10-09) — server.ts cleans targetRoot before both plan and single-path runs; full suite green.
 
 P2 – Process tree kill on timeout (ISSUE-010)
 - Goal: Ensure timeouts terminate all descendants.
 - Plan: spawn with detached on POSIX and kill -PID; Windows taskkill fallback; safe fallback to child.kill.
 - Files: src/runner/runInSandbox.ts (+ helper), tests/runner/runInSandbox.integration.test.ts (long child)
 - Validate: Integration test asserts no lingering processes/log appends post-timeout
-- Status: [ ]
+- Status: [x] (2025-10-09) — runInSandbox uses detached groups on POSIX and taskkill on Windows; timeout kills the tree; tests green.
 
 P3 – Log stream error handling (ISSUE-004)
 - Goal: Prevent process crash on log stream errors; still return results.
 - Plan: add error listener; wrap writes with safeWrite.
 - Files: src/runner/runInSandbox.ts, tests to inject stream error
 - Validate: Unit/integration — process doesn’t crash; result returned
-- Status: [ ]
+- Status: [x] (2025-10-09) — runInSandbox uses error listener + safeWrite; tests/runner/logStream-error.test.ts passes; full gate green.
 
 P4 – TTL purge for progressSessions (ISSUE-001)
 - Goal: Avoid memory leak from long-lived session map.
 - Plan: Add PROGRESS_SESSION_TTL_MS + purge on set; purge done sessions after TTL.
 - Files: src/server.ts, add unit test
 - Validate: Unit — completed sessions removed after TTL; no behavior regression
-- Status: [ ]
+- Status: [x] (2025-10-09) — Added PROGRESS_SESSION_TTL_MS + purge; tests/meta/progress-ttl.test.ts passes; full gate green.
 
 P5 – LLM retry/backoff (ISSUE-003)
 - Goal: Resilience to transient failures.
 - Plan: Retry wrapper with exponential backoff; env-configurable; telemetry on retries.
 - Files: src/llm/providers/*, optional src/utils/retry.ts; unit tests mocking failures
 - Validate: Unit tests for 429/5xx/ECONNRESET; no retry on 4xx auth/invalid
-- Status: [ ]
+- Status: [x] (2025-10-09) — src/llm/index.ts adds retry/backoff + telemetry; tests/llm/retry.test.ts covers 429 retry and 400 no-retry; full gate green.
 
 P6 – writeFiles traversal hardening (ISSUE-002)
 - Goal: Prevent writes outside project root.
@@ -106,14 +106,14 @@ P7 – Error surfacing improvement
 - Plan: When runInSandbox returns, prefer its errorMessage in subtaskResult.testResult; keep repair error separately.
 - Files: src/planning/executeSubtask.ts, src/server.ts (single path)
 - Validate: Unit test asserting meta.testRuns includes runner error; UI shows actionable message
-- Status: [ ]
+- Status: [x] (2025-10-09) — meta.testRuns entries now include errorMessage from RunResult; UI/consumers can surface runner error alongside repair details.
 
 P8 – Configurable plan duration
 - Goal: Avoid premature halts; keep UI responsive.
 - Plan: Make MAX_PLAN_DURATION_MS configurable (ENV), default 4–6 minutes.
 - Files: src/planning/executeTaskPlan.ts; unit test for limit
 - Validate: ENV override respected; default unchanged
-- Status: [ ]
+- Status: [x] (2025-10-09) — PLAN_MAX_DURATION_MS env respected by executeTaskPlan; test added (tests/planning/executeTaskPlan.duration.test.ts); full gate green.
 
 How to Update This File
 - After completing a step, toggle its status to [x], paste a one-liner of evidence (file refs / test output), and record date.
@@ -125,4 +125,3 @@ Appendix – Fast Replay Protocol
 3) Retest: POST /api/plan/<project>/retest-subtask { project }
 4) Replay repair: POST /api/replay/repair { project, sessionId }
 5) Replay subtask: POST /api/replay/subtask { project, sessionId, subtaskId }
-

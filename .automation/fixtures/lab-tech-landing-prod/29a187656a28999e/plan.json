@@ -1,0 +1,96 @@
+{
+  "originalPrompt": "Create a full, minimal, production-ready landing page for a lab technician. Requirements: single HTML page served by Express; responsive layout; hero with title/subtitle; services list; contact form with client-side validation (no backend, just alert); palette strictly red/black/white; README with run/build/test steps; npm scripts: start, dev, test; tests using Jest to verify hero title and /health endpoint returns ok; no frontend frameworks; use plain CSS and JS.",
+  "subtasks": [
+    {
+      "id": "project-setup-deps",
+      "title": "Initialize project and install dependencies",
+      "description": "Initialize npm and create the basic structure. Steps: run npm init -y; add directories public/ and tests/; add placeholder files server.js, public/index.html, public/styles.css, public/app.js; create .gitignore for node_modules and logs; install express as a dependency; install jest, supertest, jsdom, and nodemon as devDependencies.",
+      "status": "pending",
+      "estimatedComplexity": "medium",
+      "successCriteria": "package.json exists with express as dependency and jest, supertest, jsdom, nodemon as devDependencies; public/ and tests/ directories present with placeholder files; npm install completes without errors; .gitignore excludes node_modules."
+    },
+    {
+      "id": "server-implementation",
+      "title": "Implement Express server with static hosting and health endpoint",
+      "description": "Create server.js to serve the single-page app. Steps: configure Express to serve static files from public/; implement GET /health returning JSON { status: 'ok' }; export the Express app for tests and start the server only when run directly; read PORT from env with fallback to 3000; add basic error logging.",
+      "status": "pending",
+      "dependencies": [
+        "project-setup-deps"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "Running `node server.js` starts the server on PORT or 3000; GET /health responds 200 with JSON {\"status\":\"ok\"}; navigating to / serves index.html from public/."
+    },
+    {
+      "id": "frontend-html",
+      "title": "Build responsive single-page HTML skeleton",
+      "description": "Create semantic index.html. Steps: add meta charset and viewport for responsiveness; add hero section with clear title and subtitle; add services list (semantic list or cards) describing lab technician offerings; add contact form with name, email, and message fields plus submit button; link styles.css and app.js; provide IDs/classes for testing (e.g., #hero-title) and scripting.",
+      "status": "pending",
+      "dependencies": [
+        "project-setup-deps"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "index.html loads with visible hero title and subtitle; services list and contact form are present with required fields and labels; document links to styles.css and app.js correctly; elements include stable selectors (e.g., id=\"hero-title\")."
+    },
+    {
+      "id": "frontend-styles",
+      "title": "Implement red/black/white responsive CSS",
+      "description": "Author styles in public/styles.css. Steps: define CSS variables for red, black, white; ensure all colors in the site use only these variables; implement mobile-first layout with responsive breakpoints; style hero, services section, and contact form with accessible contrast and focus states; verify no other colors, shadows, or gradients introduce non-palette hues.",
+      "status": "pending",
+      "dependencies": [
+        "frontend-html"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Visual inspection confirms only red, black, and white are used; layout adapts from small to large screens without overflow; text is legible with sufficient contrast; no external frameworks are referenced."
+    },
+    {
+      "id": "client-validation",
+      "title": "Add client-side form validation and submission alert",
+      "description": "Implement validation in public/app.js. Steps: attach submit handler to the contact form; validate required fields and email format with regex; display inline, accessible error messages and prevent default on invalid input; on valid submission, show an alert confirming receipt and reset the form; do not perform any network requests.",
+      "status": "pending",
+      "dependencies": [
+        "frontend-html"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Submitting with invalid input prevents submission and shows clear error messages near fields; submitting valid input triggers a single alert and resets the form; no fetch/XHR calls are made."
+    },
+    {
+      "id": "testing-setup",
+      "title": "Configure Jest and write tests for hero and health endpoint",
+      "description": "Set up Jest and author tests. Steps: configure Jest in package.json to use jsdom environment for DOM tests; write tests/ui.test.js to load public/index.html and assert presence and non-empty text of the hero title element (e.g., #hero-title); write tests/server.test.js using supertest to verify GET /health returns 200 and { status: 'ok' }; ensure server.js exports app without listening when required.",
+      "status": "pending",
+      "dependencies": [
+        "server-implementation",
+        "frontend-html"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "`npm test` runs Jest and both tests pass locally; ui.test.js successfully reads index.html and finds the hero title; server.test.js successfully imports the app and asserts the /health response."
+    },
+    {
+      "id": "npm-scripts",
+      "title": "Define npm scripts for start, dev, and test",
+      "description": "Add package.json scripts. Steps: set start to `node server.js`; set dev to `nodemon server.js`; set test to `jest`; optionally add a jest watch config if desired; verify each script works as intended on the local machine.",
+      "status": "pending",
+      "dependencies": [
+        "project-setup-deps",
+        "server-implementation",
+        "testing-setup"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "`npm start` serves the app; `npm run dev` reloads on file changes; `npm test` executes Jest and returns exit code 0 when tests pass."
+    },
+    {
+      "id": "readme-docs",
+      "title": "Write README with run, build, and test steps",
+      "description": "Create README.md. Steps: include project overview and feature list; list prerequisites (Node.js version); provide installation instructions; document how to run in production (npm start) and in development (npm run dev); clarify build steps are not required for this project; document how to run tests and expected outcomes; note the red/black/white palette and no-frontend-framework constraint.",
+      "status": "pending",
+      "dependencies": [
+        "npm-scripts",
+        "testing-setup"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "README.md clearly explains install, run, build (not applicable), and test steps; a new developer can follow the instructions to run and test the app successfully."
+    }
+  ],
+  "totalSubtasks": 8,
+  "decompositionStrategy": "Iterative, test-oriented build: bootstrap project and dependencies, implement minimal Express server, create semantic HTML, layer in strict-palette CSS and client-side JS validation, then configure Jest and author endpoint/DOM tests. Wire npm scripts, and finalize with a clear README. Each step depends only on the prerequisites to avoid circular references."
+}

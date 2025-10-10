@@ -1,4 +1,5 @@
 import { generateJSON } from "../llm/index.js";
+import { withTraceContext } from "../llm/trace.js";
 import { sanitizeExecutorOutput } from "../executor/outputProcessing.js";
 import { validateExecutorOutput } from "../contracts/validators.js";
 import type { ExecutorOutput } from "../executor/types.js";
@@ -34,7 +35,7 @@ export async function generateSubtaskOutputWithRetry(
       messages.splice(1, 0, { role: "system" as const, content: buildRetryMessage(lastError) });
     }
 
-    const raw = await generateJSON(messages);
+  const raw = await withTraceContext({ phase: 'subtask', projectSlug: request?.subtask ? undefined : undefined }, async () => generateJSON(messages));
 
     let parsed: unknown;
     try {

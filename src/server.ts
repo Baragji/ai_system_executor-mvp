@@ -8,9 +8,11 @@ import { createHash } from "node:crypto";
 import slugify from "slugify";
 
 import { generateJSON } from "./llm/index.js";
+import { withTraceContext } from "./llm/trace.js";
 import { validateExecutorOutput } from "./executor/schema.js";
 import { sanitizeExecutorOutput } from "./executor/outputProcessing.js";
-import { seedTestsInFiles, seedTestsOnDisk } from "./utils/seedTests.js";
+import { seedTestsInFiles, seedTestsOnDisk, normalizeSeededTestsOnDisk } from "./utils/seedTests.js";
+import { ensureJsonHealthOnDisk } from "./utils/normalizeHealth.js";
 import { writeFiles } from "./executor/writeFiles.js";
 import { ensureDefaultExportForApp } from "./utils/normalizeExports.js";
 import { runInSandbox } from "./runner/runInSandbox.js";
@@ -59,9 +61,19 @@ const PUBLIC_DIR = path.resolve("public");
 // In-memory progress sessions for SSE/polling
 type ProgressSnapshot = { stage: string; progress: number; data?: Record<string, unknown>; updatedAt: number; done?: boolean };
 const progressSessions = new Map<string, ProgressSnapshot>();
+const PROGRESS_SESSION_TTL_MS = Number(process.env.PROGRESS_SESSION_TTL_MS ?? 15 * 60 * 1000);
+
+function purgeExpiredProgressSessions(now: number) {
+  for (const [key, entry] of progressSessions.entries()) {
+    if (entry.done && now - entry.updatedAt > PROGRESS_SESSION_TTL_MS) {
+      progressSessions.delete(key);
+    }
+  }
+}
 
 function setProgress(sessionId: string | undefined, stage: string, progress: number, data?: Record<string, unknown>, done?: boolean) {
   if (!sessionId) return;
+  purgeExpiredProgressSessions(Date.now());
   progressSessions.set(sessionId, { stage, progress, data, updatedAt: Date.now(), done });
 }
 
@@ -117,9 +129,7 @@ app.get("/healthz", (_req, res) => res.json({ status: "ok" }));
 app.use("/", express.static(PUBLIC_DIR, { extensions: ["html"] }));
 app.use("/output", express.static(OUTPUT_DIR, { extensions: ["html"] }));
 
-async function ensureMetaDirectory(root: string) {
-  await fs.mkdir(root, { recursive: true });
-}
+// removed ensureMetaDirectory (cleaning done inline before runs)
 
 async function computeFileChecksums(pathsToHash: string[], projectRoot: string) {
   const entries = [] as { path: string; sha256: string }[];
@@ -168,7 +178,8 @@ function buildTestRunEntry(attempt: string, run: RunResult | TestResultSummary) 
     failCount: run.failCount,
     durationMs: run.durationMs ?? 0,
     logsPath: run.logsPath,
-    timestamp: "timestamp" in run && run.timestamp ? run.timestamp : new Date().toISOString()
+    timestamp: "timestamp" in run && run.timestamp ? run.timestamp : new Date().toISOString(),
+    errorMessage: "errorMessage" in run ? (run as RunResult).errorMessage : undefined
   };
 }
 
@@ -209,7 +220,7 @@ async function generateExecutorOutputFromPrompt(
     { role: "user" as const, content: userPrompt }
   ];
 
-  const raw = await generateJSON(messages);
+  const raw = await withTraceContext({ phase: 'single' }, async () => generateJSON(messages));
   let data: unknown;
   try {
     data = JSON.parse(raw);
@@ -268,15 +279,43 @@ function createPlanExecutionContext(
     clarifications,
     previousSubtaskResults: [],
     generateSubtaskOutput: async request => {
-      const out = await generateSubtaskOutputWithRetry(systemPrompt, request, false, undefined, (attempt, reason) =>
-        logEvent("plan_progress", {
-          project: slug,
-          subtask: request.subtask.id,
-          status: "retry",
-          percent: 0,
-          attempt,
-          reason
-        })
+      const SUBTASK_TIMEOUT_MS = Number(process.env.SUBTASK_TIMEOUT_MS ?? 120000);
+      const label = `subtask:${request.subtask.id}`;
+      function raceWithAbort<T>(work: () => Promise<T>): Promise<T> {
+        const signal = AbortSignal.timeout(SUBTASK_TIMEOUT_MS);
+        return new Promise<T>((resolve, reject) => {
+          const onAbort = async () => {
+            const message = `${label} aborted after ${SUBTASK_TIMEOUT_MS}ms`;
+            await logEvent("plan_abort", { phase: "subtask", subtask: request.subtask.id, reason: message });
+            const err: Error & { code?: string } = new Error(message);
+            err.code = "ABORT_ERR";
+            reject(err);
+          };
+          signal.addEventListener("abort", onAbort, { once: true });
+          work().then(
+            v => { signal.removeEventListener("abort", onAbort); resolve(v); },
+            e => { signal.removeEventListener("abort", onAbort); reject(e); }
+          );
+        });
+      }
+      const out = await withTraceContext({ projectSlug: slug, sessionId, phase: 'subtask', subtaskId: request.subtask.id }, async () =>
+        raceWithAbort(() =>
+          generateSubtaskOutputWithRetry(
+            systemPrompt,
+            request,
+            false,
+            undefined,
+            (attempt, reason) =>
+              logEvent("plan_progress", {
+                project: slug,
+                subtask: request.subtask.id,
+                status: "retry",
+                percent: 0,
+                attempt,
+                reason
+              })
+          )
+        )
       );
       await captureFixture(sessionId, slug, path.join("subtasks", request.subtask.id, "output.json"), out);
       return out;
@@ -284,6 +323,7 @@ function createPlanExecutionContext(
     writeFiles: async (rootDir, files) => {
       await writeFiles(rootDir, files);
       await ensureDefaultExportForApp(rootDir);
+      await ensureJsonHealthOnDisk(rootDir);
     },
     runTests: options => runInSandbox(options),
     multiTurnRepair: context => multiTurnRepair(context),
@@ -344,7 +384,9 @@ async function executePlanFlow(params: {
     sessionId
   } = params;
 
-  await ensureMetaDirectory(targetRoot);
+  // Clean project directory to avoid stale files influencing plan runs
+  try { await fs.rm(targetRoot, { recursive: true, force: true }); } catch (_e) { void _e; }
+  await fs.mkdir(targetRoot, { recursive: true });
   await logEvent("generation_start", { project: slug, mode: "plan" });
 
   const context = createPlanExecutionContext({
@@ -392,8 +434,10 @@ async function executePlanFlow(params: {
       empty: fileValidation.empty
     });
   }
-  // Ensure seed tests exist on disk for plan-based generations
+  // Ensure seed tests exist on disk for plan-based generations and normalize runner-specific seeds
   await seedTestsOnDisk(targetRoot);
+  await ensureJsonHealthOnDisk(targetRoot);
+  await normalizeSeededTestsOnDisk(targetRoot);
 
   const fileMetadata = await computeFileChecksums(
     await collectFilePaths(
@@ -649,7 +693,10 @@ app.post("/api/execute", async (req, res) => {
 
     if (isComplexPrompt(effectivePrompt, clarifications)) {
       try {
-        const plan = await decomposeTask(effectivePrompt, clarifications);
+        const baseSlugPre = slugify(projectNameInput || "session", { lower: true, strict: true }) || "session";
+        const plan = await withTraceContext({ projectSlug: baseSlugPre, sessionId, phase: 'decompose' }, async () =>
+          decomposeTask(effectivePrompt, clarifications)
+        );
         const quality = validateDecomposition(plan, effectivePrompt);
         if (quality.score >= 70) {
           const planProjectName = projectNameInput || plan.originalPrompt || "planned-project";
@@ -688,7 +735,9 @@ app.post("/api/execute", async (req, res) => {
     let output: ExecutorOutput;
     try {
       setProgress(sessionId, "planning", 30);
-      output = await generateExecutorOutputFromPrompt(systemPrompt, effectivePrompt, { enforceTests: true });
+      output = await withTraceContext({ projectSlug: slugify(projectNameInput || "generated-project", { lower: true, strict: true }) || "generated-project", sessionId, phase: 'single' }, async () =>
+        generateExecutorOutputFromPrompt(systemPrompt, effectivePrompt, { enforceTests: true })
+      );
     } catch (error) {
       setProgress(sessionId, "finalizing", 100, { error: (error as Error).message }, true);
       return res.status(422).json({ error: (error as Error).message });
@@ -698,8 +747,9 @@ app.post("/api/execute", async (req, res) => {
     const slug = slugify(projectName, { lower: true, strict: true });
     const targetRoot = path.join(OUTPUT_DIR, slug);
 
+    // Clean project directory to avoid stale files when reusing slug
+    try { await fs.rm(targetRoot, { recursive: true, force: true }); } catch (_e) { void _e; }
     await fs.mkdir(targetRoot, { recursive: true });
-    await ensureMetaDirectory(targetRoot);
     await logEvent("generation_start", { project: slug });
 
     setProgress(sessionId, "generating", 55);
@@ -707,6 +757,8 @@ app.post("/api/execute", async (req, res) => {
     output.files = seedTestsInFiles(output.files);
     await writeFiles(targetRoot, output.files);
     await ensureDefaultExportForApp(targetRoot);
+    await ensureJsonHealthOnDisk(targetRoot);
+    await normalizeSeededTestsOnDisk(targetRoot);
 
     setProgress(sessionId, "testing", 80);
     const initialRun = await runInSandbox({
@@ -721,7 +773,8 @@ app.post("/api/execute", async (req, res) => {
       projectSlug: slug,
       originalPrompt: effectivePrompt,
       generatedFiles: output.files.map(file => file.path),
-      initialTestResult: initialRun
+      initialTestResult: initialRun,
+      sessionId
     });
     await captureFixture(sessionId, slug, path.join("repair", "history.json"), repairHistory);
 
@@ -1036,4 +1089,11 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 export { app };
+// Test helpers for progress TTL logic
+export const __progressTest = {
+  set(sessionId: string, entry: ProgressSnapshot) { progressSessions.set(sessionId, entry); },
+  get(sessionId: string) { return progressSessions.get(sessionId) ?? null; },
+  purge(now: number) { purgeExpiredProgressSessions(now); },
+  ttl() { return PROGRESS_SESSION_TTL_MS; }
+};
 import { validateFilesNonEmpty } from "./utils/validateFiles.js";

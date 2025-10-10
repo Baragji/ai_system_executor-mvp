@@ -1,0 +1,6 @@
+{
+  "originalPrompt": "Create a full, minimal, production-ready landing page for a lab technician. Requirements: single HTML page served by Express; responsive layout; hero with title/subtitle; services list; contact form with client-side validation (no backend, just alert); palette strictly red/black/white; README with run/build/test steps; npm scripts: start, dev, test; tests using Jest to verify hero title and /health endpoint returns ok; no frontend frameworks; use plain CSS and JS.",
+  "effectivePrompt": "Create a full, minimal, production-ready landing page for a lab technician. Requirements: single HTML page served by Express; responsive layout; hero with title/subtitle; services list; contact form with client-side validation (no backend, just alert); palette strictly red/black/white; README with run/build/test steps; npm scripts: start, dev, test; tests using Jest to verify hero title and /health endpoint returns ok; no frontend frameworks; use plain CSS and JS.",
+  "clarificationQuestions": [],
+  "clarificationsAsked": false
+}

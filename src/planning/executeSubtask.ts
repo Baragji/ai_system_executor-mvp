@@ -149,7 +149,8 @@ async function runTests(
       projectSlug: context.projectSlug,
       originalPrompt: context.originalPrompt,
       generatedFiles,
-      initialTestResult: initialRun
+      initialTestResult: initialRun,
+      sessionId: context.sessionId
     };
     if (context.sessionId) {
       try {

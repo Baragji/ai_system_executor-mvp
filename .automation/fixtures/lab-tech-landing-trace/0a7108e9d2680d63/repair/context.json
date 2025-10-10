@@ -1,0 +1,26 @@
+{
+  "projectPath": "/Users/Yousef_1/Downloads/ai_system_executor-mvp/output/lab-tech-landing-trace",
+  "projectSlug": "lab-tech-landing-trace",
+  "originalPrompt": "Create a minimal single-page landing site for a lab technician. Requirements: single HTML page, responsive, hero with title/subtitle, brief services list, contact form (no backend; form just shows an alert). Use only red, black, and white. Include a simple README and one basic Jest test to check index.html contains the hero title.",
+  "generatedFiles": [
+    "index.html",
+    "styles.css",
+    "script.js",
+    "README.md",
+    "package.json",
+    "tests/hero-title.test.js"
+  ],
+  "initialTestResult": {
+    "status": "fail",
+    "passCount": 4,
+    "failCount": 1,
+    "durationMs": 1101,
+    "logsPath": "logs/lab-tech-landing-trace_last_test_run_7a67f8ce-582b-4216-b28b-b4c0769cdf9b.log",
+    "timestamp": "2025-10-10T10:18:31.606Z",
+    "command": "npm test",
+    "exitCode": 1,
+    "startedAt": "2025-10-10T10:18:30.505Z",
+    "finishedAt": "2025-10-10T10:18:31.606Z"
+  },
+  "sessionId": "0a7108e9d2680d63"
+}
