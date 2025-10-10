@@ -2,6 +2,7 @@ import { generateJSON } from "../llm/index.js";
 import { withTraceContext } from "../llm/trace.js";
 import { sanitizeExecutorOutput } from "../executor/outputProcessing.js";
 import { validateExecutorOutput } from "../contracts/validators.js";
+import { throwIfAborted } from "../orchestrator/abortSignal.js";
 import type { ExecutorOutput } from "../executor/types.js";
 import type { SubtaskPromptRequest } from "./types.js";
 
@@ -20,7 +21,8 @@ export async function generateSubtaskOutputWithRetry(
   request: SubtaskPromptRequest,
   enforceTests: boolean,
   maxAttempts: number = DEFAULT_MAX_ATTEMPTS,
-  onRetry?: (attempt: number, reason: string) => void | Promise<void>
+  onRetry?: (attempt: number, reason: string) => void | Promise<void>,
+  options?: { sessionId?: string }
 ): Promise<ExecutorOutput> {
   const baseMessages = [
     { role: "system" as const, content: systemPrompt },
@@ -31,11 +33,17 @@ export async function generateSubtaskOutputWithRetry(
 
   for (let attempt = 1; attempt <= Math.max(1, maxAttempts); attempt += 1) {
     const messages = [...baseMessages];
+    if (options?.sessionId) {
+      throwIfAborted(options.sessionId, `Paused before generating subtask ${request.subtask.id} (attempt ${attempt})`);
+    }
     if (attempt > 1 && lastError) {
       messages.splice(1, 0, { role: "system" as const, content: buildRetryMessage(lastError) });
     }
 
-  const raw = await withTraceContext({ phase: 'subtask', projectSlug: request?.subtask ? undefined : undefined }, async () => generateJSON(messages));
+    const raw = await withTraceContext(
+      { phase: "subtask", sessionId: options?.sessionId },
+      async () => generateJSON(messages)
+    );
 
     let parsed: unknown;
     try {

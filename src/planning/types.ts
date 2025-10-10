@@ -78,7 +78,7 @@ export interface ExecutionContext {
   previousSubtaskResults: SubtaskResult[];
   generateSubtaskOutput: (request: SubtaskPromptRequest) => Promise<ExecutorOutput>;
   writeFiles: (rootDir: string, files: ExecutorFile[]) => Promise<void>;
-  runTests: (options: { projectRoot: string; projectSlug: string }) => Promise<RunResult>;
+  runTests: (options: { projectRoot: string; projectSlug: string; abortSignal?: AbortSignal; sessionId?: string }) => Promise<RunResult>;
   multiTurnRepair: (context: MultiTurnContext) => Promise<RepairHistory>;
   now?: () => number;
   onPromptBuilt?: (request: SubtaskPromptRequest) => void | Promise<void>;

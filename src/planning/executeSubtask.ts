@@ -2,6 +2,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { RunResult } from "../contracts/validators.js";
 import type { TestResultSummary } from "../contracts/repairHistoryValidator.js";
+import { throwIfAborted } from "../orchestrator/abortSignal.js";
+import { PausedError } from "../orchestrator/errors.js";
 import type { Subtask } from "./types.js";
 import type { ExecutionContext, SubtaskPromptRequest, SubtaskResult } from "./types.js";
 // path already imported above
@@ -178,6 +180,9 @@ async function runTests(
       notes
     };
   } catch (error) {
+    if (error instanceof PausedError) {
+      throw error;
+    }
     const message = error instanceof Error ? error.message : String(error);
     return {
       testResult: initialRun,
@@ -197,15 +202,24 @@ export async function executeSubtask(
   const duration = () => (context.now ? context.now() : Date.now()) - start;
 
   try {
+    if (context.sessionId) {
+      throwIfAborted(context.sessionId, `Paused before building prompt for ${subtask.id}`);
+    }
     const prompt = await buildPrompt(subtask, context);
     const request: SubtaskPromptRequest = { subtask, prompt };
     await context.onPromptBuilt?.(request);
 
+    if (context.sessionId) {
+      throwIfAborted(context.sessionId, `Paused before generating output for ${subtask.id}`);
+    }
     const output = await context.generateSubtaskOutput(request);
     if (!output || !Array.isArray(output.files)) {
       throw new Error("Subtask execution did not return any files");
     }
 
+    if (context.sessionId) {
+      throwIfAborted(context.sessionId, `Paused before writing files for ${subtask.id}`);
+    }
     await context.writeFiles(context.projectPath, output.files);
     const generatedFiles = output.files.map(file => file.path);
 
@@ -215,9 +229,13 @@ export async function executeSubtask(
     let notes: string | undefined;
 
     if (output.hasTests) {
+      if (context.sessionId) {
+        throwIfAborted(context.sessionId, `Paused before running tests for ${subtask.id}`);
+      }
       const run = await context.runTests({
         projectRoot: context.projectPath,
-        projectSlug: context.projectSlug
+        projectSlug: context.projectSlug,
+        sessionId: context.sessionId
       });
       const outcome = await runTests(context, generatedFiles, run);
       testResult = outcome.testResult;
@@ -238,6 +256,9 @@ export async function executeSubtask(
       notes
     };
   } catch (error) {
+    if (error instanceof PausedError) {
+      throw error;
+    }
     const message = error instanceof Error ? error.message : String(error);
     return {
       status: "failed",

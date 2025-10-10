@@ -27,6 +27,17 @@ const estimatedCompletionLabel = document.getElementById("estimatedCompletionLab
 const debugDisclosure = document.getElementById("debugDisclosure");
 const filePreviewPanel = document.getElementById("filePreviewPanel");
 
+const mainContainer = document.querySelector("main");
+let orchestrationSection = null;
+let pauseSessionButton = null;
+let resumeDrawer = null;
+let resumeFormEl = null;
+let resumeQuestionsEl = null;
+let resumeMessageEl = null;
+
+let activeSessionId = null;
+let orchestrationQuestions = [];
+
 let currentProjectSlug = null;
 let pendingQuestions = [];
 let storedPrompt = "";
@@ -65,6 +76,221 @@ function revealDebugDisclosure() {
 }
 
 hideDebugDisclosure();
+
+function resetOrchestrationControls() {
+  orchestrationQuestions = [];
+  activeSessionId = null;
+  if (pauseSessionButton) {
+    pauseSessionButton.disabled = true;
+  }
+  hideResumeDrawer();
+  orchestrationSection?.classList.add("hidden");
+}
+
+function hideResumeDrawer() {
+  if (resumeDrawer) {
+    resumeDrawer.classList.add("hidden");
+  }
+  if (resumeQuestionsEl) {
+    resumeQuestionsEl.innerHTML = "";
+  }
+  if (resumeMessageEl) {
+    resumeMessageEl.textContent = "Session paused. Provide answers to resume.";
+    resumeMessageEl.classList.remove("error");
+  }
+  orchestrationQuestions = [];
+}
+
+function renderResumeQuestions(questions) {
+  if (!resumeQuestionsEl) return;
+  resumeQuestionsEl.innerHTML = "";
+  orchestrationQuestions = Array.isArray(questions) ? questions : [];
+
+  for (const question of orchestrationQuestions) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "resume-question";
+
+    const label = document.createElement("label");
+    const inputId = `resume-${question.id}`;
+    label.setAttribute("for", inputId);
+    label.textContent = question.question;
+    wrapper.appendChild(label);
+
+    if (question.type) {
+      const hint = document.createElement("div");
+      hint.className = "resume-question__hint";
+      hint.textContent = `Type: ${question.type}`;
+      wrapper.appendChild(hint);
+    }
+
+    const input = document.createElement("textarea");
+    input.id = inputId;
+    input.name = inputId;
+    input.required = true;
+    input.rows = 3;
+    wrapper.appendChild(input);
+
+    resumeQuestionsEl.appendChild(wrapper);
+  }
+}
+
+function showResumeDrawer(questions) {
+  if (!resumeDrawer) return;
+  renderResumeQuestions(questions);
+  resumeDrawer.classList.remove("hidden");
+}
+
+function collectResumeAnswers() {
+  if (!resumeFormEl) return [];
+  const answers = [];
+  for (const question of orchestrationQuestions) {
+    const input = resumeFormEl.querySelector(`#resume-${question.id}`);
+    if (!(input instanceof HTMLTextAreaElement)) {
+      continue;
+    }
+    const value = input.value.trim();
+    if (!value) {
+      input.reportValidity();
+      throw new Error("Please answer all questions to resume.");
+    }
+    answers.push({ questionId: question.id, value });
+  }
+  return answers;
+}
+
+async function handlePauseClick() {
+  if (!activeSessionId || !pauseSessionButton) return;
+  pauseSessionButton.disabled = true;
+  try {
+    const resp = await fetch(`/api/sessions/${activeSessionId}/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ reason: "Manual pause requested" })
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      throw data;
+    }
+    const questions = data?.checkpoint?.payload?.pendingQuestions ?? [];
+    showResumeDrawer(questions);
+  } catch (err) {
+    resultEl.innerHTML = formatError(err);
+    pauseSessionButton.disabled = false;
+  }
+}
+
+async function handleResumeSubmit(event) {
+  event.preventDefault();
+  if (!activeSessionId || !resumeFormEl) return;
+  try {
+    const answers = collectResumeAnswers();
+    const resp = await fetch(`/api/sessions/${activeSessionId}/resume`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ answers })
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      throw data;
+    }
+    hideResumeDrawer();
+    if (pauseSessionButton) {
+      pauseSessionButton.disabled = false;
+    }
+  } catch (err) {
+    if (resumeMessageEl) {
+      resumeMessageEl.textContent = `Resume failed: ${err?.error || err?.message || err}`;
+      resumeMessageEl.classList.add("error");
+    }
+  }
+}
+
+function updateOrchestrationState(snapshot) {
+  if (!snapshot || !orchestrationSection) return;
+  orchestrationSection.classList.remove("hidden");
+
+  if (snapshot.paused) {
+    pauseSessionButton && (pauseSessionButton.disabled = true);
+    showResumeDrawer(snapshot.questions || []);
+    return;
+  }
+
+  if (snapshot.questions && snapshot.questions.length > 0) {
+    showResumeDrawer(snapshot.questions);
+  } else {
+    hideResumeDrawer();
+  }
+
+  if (pauseSessionButton) {
+    pauseSessionButton.disabled = !activeSessionId || Boolean(snapshot.done);
+  }
+  if (snapshot.done) {
+    activeSessionId = null;
+    orchestrationSection?.classList.add("hidden");
+  }
+}
+
+function createOrchestrationControls() {
+  if (!mainContainer || orchestrationSection) return;
+  orchestrationSection = document.createElement("section");
+  orchestrationSection.className = "orchestration hidden";
+
+  const header = document.createElement("div");
+  header.className = "orchestration__header";
+  const heading = document.createElement("h2");
+  heading.textContent = "Execution Control";
+  header.appendChild(heading);
+
+  pauseSessionButton = document.createElement("button");
+  pauseSessionButton.type = "button";
+  pauseSessionButton.className = "btn btn-secondary";
+  pauseSessionButton.textContent = "Pause";
+  pauseSessionButton.disabled = true;
+  pauseSessionButton.addEventListener("click", handlePauseClick);
+  header.appendChild(pauseSessionButton);
+
+  orchestrationSection.appendChild(header);
+
+  resumeDrawer = document.createElement("div");
+  resumeDrawer.className = "resume-drawer hidden";
+
+  resumeMessageEl = document.createElement("p");
+  resumeMessageEl.className = "resume-message";
+  resumeMessageEl.textContent = "Session paused. Provide answers to resume.";
+  resumeDrawer.appendChild(resumeMessageEl);
+
+  resumeFormEl = document.createElement("form");
+  resumeFormEl.id = "resumeForm";
+  resumeFormEl.addEventListener("submit", handleResumeSubmit);
+
+  resumeQuestionsEl = document.createElement("div");
+  resumeQuestionsEl.className = "resume-questions";
+  resumeFormEl.appendChild(resumeQuestionsEl);
+
+  const resumeActions = document.createElement("div");
+  resumeActions.className = "resume-actions";
+
+  const resumeButton = document.createElement("button");
+  resumeButton.type = "submit";
+  resumeButton.className = "btn btn-primary";
+  resumeButton.textContent = "Resume";
+  resumeActions.appendChild(resumeButton);
+
+  const cancelButton = document.createElement("button");
+  cancelButton.type = "button";
+  cancelButton.className = "btn btn-ghost";
+  cancelButton.textContent = "Cancel";
+  cancelButton.addEventListener("click", hideResumeDrawer);
+  resumeActions.appendChild(cancelButton);
+
+  resumeFormEl.appendChild(resumeActions);
+  resumeDrawer.appendChild(resumeFormEl);
+  orchestrationSection.appendChild(resumeDrawer);
+
+  mainContainer.insertBefore(orchestrationSection, resultEl);
+}
+
+createOrchestrationControls();
 
 function createDemoTestResult() {
   const now = new Date();
@@ -1049,6 +1275,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
   currentProjectSlug = null;
   renderRepairHistory(null);
   resetTaskPlanUI();
+  resetOrchestrationControls();
 
   // Start progress UI and polling
   const { fill } = renderProgressStages();
@@ -1057,11 +1284,16 @@ async function executeRequest({ prompt, projectName, clarifications }) {
     (window.crypto || self.crypto).getRandomValues(arr);
     return Array.from(arr).map(n => n.toString(16).padStart(2,'0')).join('');
   })();
+  activeSessionId = sessionId;
+  orchestrationSection?.classList.remove("hidden");
+  if (pauseSessionButton) {
+    pauseSessionButton.disabled = false;
+  }
   let stopPolling = false;
   (async () => {
     while (!stopPolling) {
       try {
-        const r = await fetch(`/api/progress/${sessionId}`);
+        const r = await fetch(`/api/progress/snapshot/${sessionId}`);
         if (r.ok) {
           const p = await r.json();
           const percent = Math.max(0, Math.min(100, Number(p.progress || 0)));
@@ -1076,6 +1308,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
             if (i < idx) el.classList.add('completed');
             if (i === idx) el.classList.add('current');
           });
+          updateOrchestrationState(p);
           if (p.done) break;
         }
       } catch {
@@ -1087,7 +1320,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
 
   // Try EventSource (SSE) for real-time progress; fallback polling remains
   try {
-    const es = new EventSource(`/api/progress/stream/${sessionId}`);
+    const es = new EventSource(`/api/progress/${sessionId}`);
     es.onmessage = ev => {
       try {
         const p = JSON.parse(ev.data);
@@ -1103,6 +1336,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
           if (i < idx) el.classList.add('completed');
           if (i === idx) el.classList.add('current');
         });
+        updateOrchestrationState(p);
         if (p.done) {
           stopPolling = true;
           es.close();
@@ -1138,6 +1372,12 @@ async function executeRequest({ prompt, projectName, clarifications }) {
     const data = await resp.json();
     if (!resp.ok) {
       renderErrorCard({ error: data?.error || resp.statusText });
+      return;
+    }
+
+    if (resp.status === 202 || data?.paused) {
+      resumeMessageEl.textContent = data?.message || "Session paused. Provide answers to resume.";
+      resultEl.textContent = "";
       return;
     }
 
@@ -1180,6 +1420,9 @@ async function executeRequest({ prompt, projectName, clarifications }) {
     renderErrorCard({ error: err });
   } finally {
     stopPolling = true;
+    if (pauseSessionButton) {
+      pauseSessionButton.disabled = true;
+    }
   }
 }
 
@@ -1200,6 +1443,7 @@ async function startClarificationFlow() {
   testControlsEl.classList.add("hidden");
   currentProjectSlug = null;
   resetClarificationUI();
+  resetOrchestrationControls();
 
   try {
     const resp = isDemoMode

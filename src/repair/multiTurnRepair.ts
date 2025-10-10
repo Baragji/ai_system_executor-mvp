@@ -25,6 +25,8 @@ import {
 import Ajv2020, { type JSONSchemaType } from "ajv/dist/2020.js";
 import { logEvent } from "../telemetry/events.js";
 import type { ExecutorFile } from "../executor/types.js";
+import { throwIfAborted } from "../orchestrator/abortSignal.js";
+import { PausedError } from "../orchestrator/errors.js";
 
 export interface MultiTurnContext {
   projectPath: string;
@@ -270,6 +272,9 @@ function toAttemptNumber(index: number): 1 | 2 | 3 | 4 {
 }
 
 export async function multiTurnRepair(context: MultiTurnContext): Promise<RepairHistory> {
+  if (context.sessionId) {
+    throwIfAborted(context.sessionId, "Repair aborted before starting");
+  }
   if (context.initialTestResult.status === "pass") {
     const startedAt = context.initialTestResult.startedAt ?? new Date().toISOString();
     const finishedAt = context.initialTestResult.finishedAt ?? startedAt;
@@ -311,6 +316,9 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
     const attemptStart = Date.now();
     const startedAtIso = new Date(attemptStart).toISOString();
     const fileContextPaths = Array.from(knownFiles).sort();
+    if (context.sessionId) {
+      throwIfAborted(context.sessionId, `Repair paused before attempt ${attemptNumber}`);
+    }
     const fileContext = await gatherFileContext(context.projectPath, fileContextPaths);
     const selectedStrategy = currentFailureAnalysis
       ? selectStrategy(currentFailureAnalysis.category, attemptNumber)
@@ -348,6 +356,9 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
     let lastErrorMessage: string | undefined;
     try {
       async function requestPayload(withRetryHint: boolean): Promise<ParsedRepairPayload> {
+        if (context.sessionId) {
+          throwIfAborted(context.sessionId, `Repair paused before LLM request for attempt ${attemptNumber}`);
+        }
         const raw = await withTraceContext({ projectSlug: context.projectSlug, sessionId: context.sessionId, phase: 'repair' }, async () => generateJSON(
           withRetryHint
             ? ([
@@ -377,6 +388,9 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
       try {
         applyResult = await applyArtifacts(context.projectPath, payload.artifacts, payload.files);
       } catch (applyErr) {
+        if (applyErr instanceof PausedError) {
+          throw applyErr;
+        }
         const msg = (applyErr as Error).message || "";
         if (msg.includes("Missing contents for ")) {
           // One-time retry with stricter instruction
@@ -384,6 +398,9 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
           try {
             applyResult = await applyArtifacts(context.projectPath, payload.artifacts, payload.files);
           } catch (retryErr) {
+            if (retryErr instanceof PausedError) {
+              throw retryErr;
+            }
             const retryMsg = (retryErr as Error).message || "";
             if (retryMsg.includes("Missing contents for ")) {
               // Contract path: Ajv-validate full payload, then synthesize or fail explicitly
@@ -475,9 +492,13 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
         previousContents
       );
 
+      if (context.sessionId) {
+        throwIfAborted(context.sessionId, `Repair paused before sandbox run for attempt ${attemptNumber}`);
+      }
       runResult = await runInSandbox({
         projectRoot: context.projectPath,
-        projectSlug: context.projectSlug ?? "project"
+        projectSlug: context.projectSlug ?? "project",
+        sessionId: context.sessionId
       });
 
       attemptStatus = runResult.status === "pass" ? "pass" : runResult.status;
@@ -493,6 +514,9 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
         finalStatus = "pass";
       }
     } catch (err) {
+      if (err instanceof PausedError) {
+        throw err;
+      }
       const message = err instanceof Error ? err.message : String(err);
       lastErrorMessage = message;
       runResult = {

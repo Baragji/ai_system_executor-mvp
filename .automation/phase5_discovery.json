@@ -1,13 +1,18 @@
 {
   "phase": 5,
   "date": "2025-10-10",
-  "wins": ["WA1", "WA2", "WA3", "WA4"],
-  "objective": "Lay groundwork for orchestration pause/resume by adding state machine, checkpoint primitives, and interrupt taxonomy.",
+  "wins": ["WA1", "WA2", "WA3", "WA4", "WA5", "WA6", "WA7"],
+  "objective": "Lay groundwork for orchestration pause/resume by adding state machine, checkpoint primitives, interrupt taxonomy, deterministic resume logic, API endpoints, and minimal UI controls.",
   "integration_points": [
     {
       "file": "src/server.ts",
       "line_hint": 640,
       "summary": "POST /api/execute sequentially executes clarify, planning, generate, repair with sessionId context."
+    },
+    {
+      "file": "src/orchestrator/abortSignal.ts",
+      "line_hint": 1,
+      "summary": "New cooperative cancellation registry exposing abort controllers and checkpoint metadata per session."
     },
     {
       "file": "src/repair/multiTurnRepair.ts",
@@ -23,6 +28,16 @@
       "file": "public/script.js",
       "line_hint": 920,
       "summary": "Client renders pendingQuestions from checkpoints; interrupt payloads must preserve this contract."
+    },
+    {
+      "file": "src/orchestrator/checkpoints.ts",
+      "line_hint": 200,
+      "summary": "`loadCheckpoint` + schema enforcement are the entry-point for resume validation."
+    },
+    {
+      "file": "src/server.ts",
+      "line_hint": 70,
+      "summary": "Progress registry is the natural hook for orchestrator state + SSE streaming."
     }
   ],
   "checkpoint_schema": {
@@ -35,12 +50,17 @@
   "risks": [
     "Need consistent resume behavior when loading checkpoints with mismatched versions.",
     "Session ID sanitization must prevent path traversal when writing checkpoint files.",
-    "Interrupt bundles must reject invalid metadata or duplicate identifiers to avoid corrupting checkpoints."
+    "Interrupt bundles must reject invalid metadata or duplicate identifiers to avoid corrupting checkpoints.",
+    "Resume answers must be validated to avoid continuing with missing human input.",
+    "SSE endpoint replacement must not break existing polling clients; provide backwards-compatible fallback."
   ],
   "validation_plan": [
     "Unit tests for valid/invalid state transitions.",
     "Checkpoint read/write round trips with schema validation.",
     "Negative tests for malformed checkpoint payloads.",
-    "Interrupt tests covering taxonomy validation, pause transition, and persisted payloads."
+    "Interrupt tests covering taxonomy validation, pause transition, and persisted payloads.",
+    "Resume unit tests covering happy path, missing answers, and checkpoint rehydration.",
+    "API route tests for pause/resume contract and SSE snapshot output.",
+    "UI manual validation documenting pause/resume control behavior."
   ]
 }

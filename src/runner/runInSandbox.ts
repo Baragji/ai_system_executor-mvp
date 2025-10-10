@@ -9,6 +9,7 @@ import { validateRunResult, type RunResult } from "../contracts/validators.js";
 import { ensureDependencies } from "./installDeps.js";
 import { detectTestCommand } from "./detectTestCommand.js";
 import { logEvaluationResult, type EvaluationResult } from "../evaluation/logResults.js";
+import { getAbortSignal, throwIfAborted } from "../orchestrator/abortSignal.js";
 
 export interface RunInSandboxOptions {
   projectRoot: string;
@@ -16,6 +17,8 @@ export interface RunInSandboxOptions {
   command?: string;
   timeoutMs?: number;
   env?: Record<string, string | undefined>;
+  sessionId?: string;
+  abortSignal?: AbortSignal;
 }
 
 const DEFAULT_TIMEOUT_MS = 60_000;
@@ -73,7 +76,11 @@ function deriveStatus(exitCode: number | null, timedOut: boolean): RunResult["st
 }
 
 export async function runInSandbox(options: RunInSandboxOptions): Promise<RunResult> {
-  const { projectRoot, projectSlug, command: providedCommand, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
+  const { projectRoot, projectSlug, command: providedCommand, timeoutMs = DEFAULT_TIMEOUT_MS, sessionId } = options;
+  const abortSignal = options.abortSignal ?? (sessionId ? getAbortSignal(sessionId) : undefined);
+  if (sessionId) {
+    throwIfAborted(sessionId, "Test run aborted before start");
+  }
   const env: Record<string, string | undefined> = {
     ...process.env,
     ...options.env,
@@ -180,14 +187,37 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
     safeWrite(text);
   });
 
-  const exitPromise = new Promise<{ code: number | null; signal: string | null }>(resolve => {
+  let abortHandler: (() => void) | undefined;
+  const exitPromise = new Promise<{ code: number | null; signal: string | null }>((resolve, reject) => {
     child.on("exit", (code, signal) => resolve({ code, signal }));
+    abortHandler = () => {
+      killTree();
+      if (sessionId) {
+        try {
+          throwIfAborted(sessionId, "Test run aborted");
+        } catch (error) {
+          reject(error);
+          return;
+        }
+      }
+      reject(new Error("Test run aborted"));
+    };
+    if (abortSignal?.aborted) {
+      abortHandler();
+    } else {
+      abortSignal?.addEventListener("abort", abortHandler, { once: true });
+    }
   });
 
-  const { code, signal } = await exitPromise.finally(() => {
+  const finalize = () => {
     clearTimeout(timeoutHandle);
+    if (abortHandler) {
+      abortSignal?.removeEventListener("abort", abortHandler);
+    }
     logStream.end();
-  });
+  };
+
+  const { code, signal } = await exitPromise.finally(finalize);
 
   if (timedOut) {
     await waitTimeout(50);
