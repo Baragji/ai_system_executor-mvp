@@ -1,0 +1,56 @@
+{
+  "project_name": "hello-world-express-tailwind",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"hello-world-express-tailwind\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"description\": \"Minimal Express + TypeScript + Tailwind CSS starter for a Hello World app with a color-editable UI (initialization and deps).\",\n  \"main\": \"dist/index.js\",\n  \"scripts\": {\n    \"dev\": \"ts-node-dev --respawn --transpile-only src/index.ts\",\n    \"build\": \"tsc\",\n    \"start\": \"node dist/index.js\",\n    \"build:css\": \"tailwindcss -i ./src/styles/input.css -o ./public/styles.css --minify\",\n    \"dev:css\": \"tailwindcss -i ./src/styles/input.css -o ./public/styles.css --watch\",\n    \"test\": \"jest --passWithNoTests\"\n  },\n  \"keywords\": [],\n  \"author\": \"\",\n  \"license\": \"MIT\",\n  \"dependencies\": {\n    \"autoprefixer\": \"^10.4.14\",\n    \"express\": \"^4.18.2\",\n    \"postcss\": \"^8.4.24\",\n    \"tailwindcss\": \"^3.4.7\"\n  },\n  \"devDependencies\": {\n    \"@types/express\": \"^4.17.17\",\n    \"@types/jest\": \"^29.5.3\",\n    \"@types/supertest\": \"^2.0.12\",\n    \"jest\": \"^29.6.1\",\n    \"supertest\": \"^6.3.3\",\n    \"ts-jest\": \"^29.1.0\",\n    \"ts-node-dev\": \"^2.0.0\",\n    \"typescript\": \"^5.2.2\"\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2020\",\n    \"module\": \"CommonJS\",\n    \"outDir\": \"dist\",\n    \"rootDir\": \"src\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"skipLibCheck\": true\n  },\n  \"include\": [\"src/**/*\", \"tests/**/*\"]\n}\n"
+    },
+    {
+      "path": "postcss.config.cjs",
+      "contents": "module.exports = {\n  plugins: {\n    tailwindcss: {},\n    autoprefixer: {},\n  },\n};\n"
+    },
+    {
+      "path": "tailwind.config.cjs",
+      "contents": "module.exports = {\n  content: [\"./public/**/*.html\", \"./src/**/*.{ts,tsx,js,jsx}\"],\n  theme: {\n    extend: {},\n  },\n  plugins: [],\n};\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# Hello World Express + Tailwind (Init)\n\nThis project initializes an Express + TypeScript server and Tailwind CSS build tooling. It's the starting point for a small app where the frontend UI will later allow changing the \"Hello World\" text color.\n\nSetup\n\n1. Install dependencies:\n\n   npm install\n\n2. Build Tailwind CSS once (creates public/styles.css):\n\n   npm run build:css\n\n3. For development, run the CSS watcher and server in two terminals:\n\n   npm run dev:css\n   npm run dev\n\n4. Build TypeScript for production:\n\n   npm run build\n   npm start\n\nTests\n\nRun automated tests with:\n\n   npm test\n\nNotes\n\n- Tailwind CLI (installed as a dependency) is used to process src/styles/input.css into public/styles.css.\n- The Express app serves static files from public/ and exposes a simple GET / endpoint for verification.\n"
+    },
+    {
+      "path": "src/app.ts",
+      "contents": "import express from 'express';\nimport path from 'path';\n\nconst app = express();\n\nconst publicPath = path.join(__dirname, '../public');\napp.use(express.static(publicPath));\n\napp.get('/api/hello', (_req, res) => {\n  res.json({ message: 'Hello World' });\n});\n\napp.get('/', (_req, res) => {\n  res.sendFile(path.join(publicPath, 'index.html'));\n});\n\nexport default app;\n"
+    },
+    {
+      "path": "src/index.ts",
+      "contents": "import app from './app';\n\nconst port = process.env.PORT || 3000;\n\napp.listen(port, () => {\n  console.log(`Server listening on http://localhost:${port}`);\n});\n"
+    },
+    {
+      "path": "public/index.html",
+      "contents": "<!doctype html>\n<html>\n<head>\n  <meta charset=\"utf-8\" />\n  <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />\n  <title>Hello World App</title>\n  <link rel=\"stylesheet\" href=\"/styles.css\" />\n</head>\n<body class=\"bg-gray-100 min-h-screen flex items-center justify-center\">\n  <div class=\"text-center\">\n    <h1 id=\"greeting\" class=\"text-4xl font-bold text-blue-600\">Hello World</h1>\n    <p class=\"mt-4 text-sm text-gray-600\">Use the UI to change the color (UI will be added in later subtasks).</p>\n  </div>\n</body>\n</html>\n"
+    },
+    {
+      "path": "src/styles/input.css",
+      "contents": "@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n/* Custom styles for the greeting can be added or overridden later */\n\n#greeting {\n}\n"
+    },
+    {
+      "path": "tests/server.test.ts",
+      "contents": "import request from 'supertest';\nimport app from '../src/app';\n\ndescribe('GET /', () => {\n  it('responds with HTML containing Hello World', async () => {\n    const res = await request(app).get('/');\n    expect(res.status).toBe(200);\n    expect(res.text).toContain('Hello World');\n  });\n});\n"
+    },
+    {
+      "path": "jest.config.ts",
+      "contents": "import type { Config } from '@jest/types';\n\nconst config: Config.InitialOptions = {\n  preset: 'ts-jest',\n  testEnvironment: 'node',\n  roots: ['<rootDir>/tests']\n};\n\nexport default config;\n"
+    }
+  ],
+  "notes": [
+    "Run `npm install` to install dependencies.",
+    "Build Tailwind CSS once with `npm run build:css` to create public/styles.css, or run `npm run dev:css` to watch for changes during development.",
+    "Start the TypeScript dev server with `npm run dev`.",
+    "Automated tests are provided and can be run with `npm test`."
+  ],
+  "hasTests": true
+}
