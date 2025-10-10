@@ -1,0 +1,241 @@
+import https from "node:https";
+import { satisfies, validRange } from "semver";
+
+const NPM_REGISTRY_URL = "https://registry.npmjs.org";
+const DEFAULT_TIMEOUT_MS = 10_000;
+
+export interface DependencyValidationError {
+  package: string;
+  version: string;
+  reason: "NOT_FOUND" | "DEPRECATED" | "INVALID_SEMVER" | "TAILWIND_V4_MISCONFIGURED" | "NO_MATCHING_VERSION";
+  suggestion?: string;
+  registryUrl?: string;
+}
+
+export class DependencyPreflightError extends Error {
+  constructor(
+    message: string,
+    public errors: DependencyValidationError[]
+  ) {
+    super(message);
+    this.name = "DependencyPreflightError";
+  }
+}
+
+export interface ValidateDependenciesOptions {
+  /** Timeout for npm registry API calls (ms) */
+  timeoutMs?: number;
+  /** Allow deprecated packages with warning */
+  allowDeprecated?: boolean;
+}
+
+interface PackageMetadata {
+  name: string;
+  versions: Record<string, { deprecated?: string }>;
+  "dist-tags"?: Record<string, string>;
+}
+
+/**
+ * Fetch package metadata from npm registry
+ */
+async function fetchPackageMetadata(
+  packageName: string,
+  timeoutMs: number = DEFAULT_TIMEOUT_MS
+): Promise<PackageMetadata | null> {
+  const url = `${NPM_REGISTRY_URL}/${packageName}`;
+
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, { timeout: timeoutMs }, (res) => {
+      if (res.statusCode === 404) {
+        resolve(null);
+        return;
+      }
+
+      if (res.statusCode !== 200) {
+        reject(new Error(`Registry returned status ${res.statusCode} for ${packageName}`));
+        return;
+      }
+
+      let data = "";
+      res.on("data", (chunk) => {
+        data += chunk.toString();
+      });
+
+      res.on("end", () => {
+        try {
+          const metadata = JSON.parse(data) as PackageMetadata;
+          resolve(metadata);
+        } catch (err) {
+          reject(new Error(`Failed to parse registry response for ${packageName}: ${(err as Error).message}`));
+        }
+      });
+    });
+
+    req.on("error", (err) => {
+      reject(new Error(`Registry request failed for ${packageName}: ${err.message}`));
+    });
+
+    req.on("timeout", () => {
+      req.destroy();
+      reject(new Error(`Registry request timeout for ${packageName} (${timeoutMs}ms)`));
+    });
+  });
+}
+
+/**
+ * Check if a version range matches any available version
+ */
+function findMatchingVersion(
+  versionRange: string,
+  availableVersions: string[]
+): string | null {
+  for (const version of availableVersions) {
+    if (satisfies(version, versionRange)) {
+      return version;
+    }
+  }
+  return null;
+}
+
+/**
+ * Validate a single dependency
+ */
+async function validateDependency(
+  packageName: string,
+  versionRange: string,
+  options: ValidateDependenciesOptions
+): Promise<DependencyValidationError | null> {
+  // Validate semver range
+  if (!validRange(versionRange)) {
+    return {
+      package: packageName,
+      version: versionRange,
+      reason: "INVALID_SEMVER",
+      suggestion: "Use valid semver range (e.g., ^1.0.0, ~2.0.0, 1.2.3)"
+    };
+  }
+
+  // Fetch package metadata
+  let metadata: PackageMetadata | null;
+  try {
+    metadata = await fetchPackageMetadata(packageName, options.timeoutMs);
+  } catch (err) {
+    // Treat registry errors as validation failures (fail-safe)
+    return {
+      package: packageName,
+      version: versionRange,
+      reason: "NOT_FOUND",
+      suggestion: `Registry check failed: ${(err as Error).message}`,
+      registryUrl: `${NPM_REGISTRY_URL}/${packageName}`
+    };
+  }
+
+  if (!metadata) {
+    return {
+      package: packageName,
+      version: versionRange,
+      reason: "NOT_FOUND",
+      suggestion: "Package does not exist in npm registry",
+      registryUrl: `${NPM_REGISTRY_URL}/${packageName}`
+    };
+  }
+
+  // Check if version range matches any available version
+  const availableVersions = Object.keys(metadata.versions);
+  const matchedVersion = findMatchingVersion(versionRange, availableVersions);
+
+  if (!matchedVersion) {
+    return {
+      package: packageName,
+      version: versionRange,
+      reason: "NO_MATCHING_VERSION",
+      suggestion: `No version matching ${versionRange}. Available versions: ${availableVersions.slice(0, 5).join(", ")}${availableVersions.length > 5 ? "..." : ""}`,
+      registryUrl: `${NPM_REGISTRY_URL}/${packageName}`
+    };
+  }
+
+  // Check for deprecation
+  const versionMeta = metadata.versions[matchedVersion];
+  if (versionMeta?.deprecated && !options.allowDeprecated) {
+    return {
+      package: packageName,
+      version: versionRange,
+      reason: "DEPRECATED",
+      suggestion: `Version ${matchedVersion} is deprecated: ${versionMeta.deprecated}`
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Check for Tailwind v4 misconfiguration
+ */
+function checkTailwindV4(
+  dependencies?: Record<string, string>,
+  devDependencies?: Record<string, string>
+): DependencyValidationError | null {
+  const allDeps = { ...dependencies, ...devDependencies };
+  const tailwindVersion = allDeps["tailwindcss"];
+
+  if (!tailwindVersion) {
+    return null;
+  }
+
+  // Check if v4 (starts with 4. or includes 4.0.0-alpha/beta)
+  const isV4 = /^[\^~]?4\./.test(tailwindVersion) || /4\.0\.0-(alpha|beta)/.test(tailwindVersion);
+
+  if (isV4 && !allDeps["@tailwindcss/cli"]) {
+    return {
+      package: "tailwindcss",
+      version: tailwindVersion,
+      reason: "TAILWIND_V4_MISCONFIGURED",
+      suggestion: "Tailwind v4 requires @tailwindcss/cli. Add it to dependencies or use Tailwind v3."
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Validates that all dependencies exist in npm registry with correct versions.
+ * Throws DependencyPreflightError if any validation fails.
+ */
+export async function validateDependencies(
+  dependencies?: Record<string, string>,
+  devDependencies?: Record<string, string>,
+  options: ValidateDependenciesOptions = {}
+): Promise<void> {
+  const opts: Required<ValidateDependenciesOptions> = {
+    timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+    allowDeprecated: options.allowDeprecated ?? false
+  };
+
+  const errors: DependencyValidationError[] = [];
+
+  // Check Tailwind v4 first
+  const tailwindError = checkTailwindV4(dependencies, devDependencies);
+  if (tailwindError) {
+    errors.push(tailwindError);
+  }
+
+  // Validate all dependencies in parallel
+  const allDeps = { ...dependencies, ...devDependencies };
+  const validationPromises = Object.entries(allDeps).map(([name, version]) =>
+    validateDependency(name, version, opts)
+  );
+
+  const results = await Promise.all(validationPromises);
+  errors.push(...results.filter((err): err is DependencyValidationError => err !== null));
+
+  if (errors.length > 0) {
+    const errorSummary = errors
+      .map((err) => `  - ${err.package}@${err.version}: ${err.reason}${err.suggestion ? ` (${err.suggestion})` : ""}`)
+      .join("\n");
+
+    throw new DependencyPreflightError(
+      `Dependency validation failed for ${errors.length} package(s):\n${errorSummary}`,
+      errors
+    );
+  }
+}

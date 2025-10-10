@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { validateDependencies } from "../validation/dependencyPreflight.js";
 
 const CI_INSTALL_ARGS = ["ci", "--ignore-scripts"];
 const NPM_INSTALL_ARGS = ["install", "--ignore-scripts", "--no-audit", "--fund=false"];
@@ -54,6 +55,12 @@ export async function ensureDependencies(
       ...Object.keys(pkg.devDependencies ?? {})
     ];
     allDepsCount = allDeps.length;
+    
+    // Validate dependencies before attempting install (fail-fast on invalid versions)
+    if (allDeps.length > 0) {
+      await validateDependencies(pkg.dependencies, pkg.devDependencies);
+    }
+    
     if (allDeps.length > 0) {
       const checks = await Promise.all(
         allDeps.map(async (name) => {
@@ -63,8 +70,12 @@ export async function ensureDependencies(
       );
       missingDeps = checks.filter((n): n is string => Boolean(n));
     }
-  } catch {
-    // ignore parse errors; fall back to node_modules heuristic
+  } catch (err) {
+    // Re-throw validation errors (DependencyPreflightError)
+    if (err && typeof err === "object" && "name" in err && err.name === "DependencyPreflightError") {
+      throw err;
+    }
+    // ignore other parse errors; fall back to node_modules heuristic
   }
 
   // If there are no declared dependencies at all, skip installation even if node_modules is missing
