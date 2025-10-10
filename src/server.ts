@@ -45,6 +45,8 @@ import type {
   TaskPlan,
   TimeEstimate
 } from "./planning/types.js";
+import { writeFixture, listFixtures, readFixture } from "./fixtures/index.js";
+import type { MultiTurnContext } from "./repair/multiTurnRepair.js";
 
 const app = express();
 app.use(cors());
@@ -237,6 +239,15 @@ function collectPlanGeneratedFiles(results: SubtaskResult[]): string[] {
   return Array.from(files);
 }
 
+async function captureFixture(sessionId: string | undefined, slug: string, relPath: string, data: unknown) {
+  if (!sessionId) return;
+  try {
+    await writeFixture(slug, sessionId, relPath, data);
+  } catch (err) {
+    console.warn("Failed to write fixture", relPath, err);
+  }
+}
+
 function createPlanExecutionContext(
   params: {
     targetRoot: string;
@@ -244,18 +255,20 @@ function createPlanExecutionContext(
     effectivePrompt: string;
     clarifications?: ClarificationResponse;
     systemPrompt: string;
+    sessionId?: string;
   }
 ): PlanExecutionContext {
-  const { targetRoot, slug, effectivePrompt, clarifications, systemPrompt } = params;
+  const { targetRoot, slug, effectivePrompt, clarifications, systemPrompt, sessionId } = params;
 
   return {
     projectPath: targetRoot,
     projectSlug: slug,
+    sessionId,
     originalPrompt: effectivePrompt,
     clarifications,
     previousSubtaskResults: [],
-    generateSubtaskOutput: request =>
-      generateSubtaskOutputWithRetry(systemPrompt, request, false, undefined, (attempt, reason) =>
+    generateSubtaskOutput: async request => {
+      const out = await generateSubtaskOutputWithRetry(systemPrompt, request, false, undefined, (attempt, reason) =>
         logEvent("plan_progress", {
           project: slug,
           subtask: request.subtask.id,
@@ -264,7 +277,10 @@ function createPlanExecutionContext(
           attempt,
           reason
         })
-      ),
+      );
+      await captureFixture(sessionId, slug, path.join("subtasks", request.subtask.id, "output.json"), out);
+      return out;
+    },
     writeFiles: async (rootDir, files) => {
       await writeFiles(rootDir, files);
       await ensureDefaultExportForApp(rootDir);
@@ -285,6 +301,13 @@ function createPlanExecutionContext(
         failed: snapshot.failedSubtasks,
         percent: Number(snapshot.percentComplete.toFixed(2))
       }),
+    onPromptBuilt: async request => {
+      await captureFixture(sessionId, slug, path.join("subtasks", request.subtask.id, "prompt.json"), {
+        subtaskId: request.subtask.id,
+        title: request.subtask.title,
+        prompt: request.prompt
+      });
+    },
     now: () => Date.now()
   };
 }
@@ -329,7 +352,8 @@ async function executePlanFlow(params: {
     slug,
     effectivePrompt,
     clarifications,
-    systemPrompt
+    systemPrompt,
+    sessionId
   });
 
   // Hook progress updates into session tracking
@@ -340,6 +364,16 @@ async function executePlanFlow(params: {
   };
 
   const planExecutionResult = await executeTaskPlan(plan, context);
+  // Save plan fixture for replay
+  await captureFixture(sessionId, slug, "plan.json", plan);
+  // Capture clarify/effective prompt and questions
+  await captureFixture(sessionId, slug, "clarify.json", {
+    originalPrompt,
+    effectivePrompt,
+    clarifications,
+    clarificationQuestions,
+    clarificationsAsked
+  });
   const timeEstimate = estimateCompletion(planExecutionResult.progress, plan);
   const generatedFiles = collectPlanGeneratedFiles(planExecutionResult.subtaskResults);
   // Persist the task plan to disk for focused re-runs/debugging
@@ -594,6 +628,12 @@ app.post("/api/execute", async (req, res) => {
         effectivePrompt = augmented;
       }
     }
+    // Capture clarify/effective prompt fixtures for replay
+    await captureFixture(sessionId, slugify(projectNameRaw || "session", { lower: true, strict: true }) || "session", "clarify.json", {
+      originalPrompt,
+      effectivePrompt,
+      clarifications
+    });
 
     const systemPrompt = await fs.readFile("src/executor/systemPrompt.md", "utf-8");
     const projectNameInput = typeof projectNameRaw === "string" ? projectNameRaw.trim() : "";
@@ -674,6 +714,7 @@ app.post("/api/execute", async (req, res) => {
       projectSlug: slug
     });
     await logEvent("test_run", { project: slug, stage: "initial", status: initialRun.status });
+    await captureFixture(sessionId, slug, path.join("tests", "initial.json"), initialRun);
 
     const repairHistory = await multiTurnRepair({
       projectPath: targetRoot,
@@ -682,6 +723,7 @@ app.post("/api/execute", async (req, res) => {
       generatedFiles: output.files.map(file => file.path),
       initialTestResult: initialRun
     });
+    await captureFixture(sessionId, slug, path.join("repair", "history.json"), repairHistory);
 
     await logEvent("repair_attempt", {
       project: slug,
@@ -816,6 +858,71 @@ app.post("/api/run-tests", async (req, res) => {
   } catch (err: unknown) {
     console.error(err);
     const message = err instanceof Error ? err.message : "internal error";
+    return res.status(500).json({ error: message });
+  }
+});
+
+// List available fixtures for a project
+app.get("/api/fixtures/:project", async (req, res) => {
+  try {
+    const { project } = req.params as { project: string };
+    const slug = slugify(project, { lower: true, strict: true });
+    const sessions = await listFixtures(slug);
+    return res.json({ project: slug, sessions });
+  } catch (err) {
+    const message = (err as Error).message || 'internal error';
+    return res.status(500).json({ error: message });
+  }
+});
+
+// Replay repair from captured context without regeneration
+app.post("/api/replay/repair", async (req, res) => {
+  try {
+    const projectRaw: string = (req.body?.project || "").toString();
+    const sessionId: string = (req.body?.sessionId || "").toString();
+    if (!projectRaw || !sessionId) {
+      return res.status(400).json({ error: "project and sessionId required" });
+    }
+    const slug = slugify(projectRaw, { lower: true, strict: true });
+    const ctx = await readFixture<MultiTurnContext>(slug, sessionId, path.join("repair", "context.json")).catch(() => null);
+    if (!ctx) {
+      return res.status(404).json({ error: "repair context fixture not found" });
+    }
+    // Re-run repair with current logic
+    const history = await multiTurnRepair(ctx);
+    return res.json({ project: slug, sessionId, history });
+  } catch (err) {
+    const message = (err as Error).message || 'internal error';
+    return res.status(500).json({ error: message });
+  }
+});
+
+// Replay a single subtask by applying saved files and running tests
+app.post("/api/replay/subtask", async (req, res) => {
+  try {
+    const projectRaw: string = (req.body?.project || "").toString();
+    const sessionId: string = (req.body?.sessionId || "").toString();
+    const subtaskId: string = (req.body?.subtaskId || "").toString();
+    if (!projectRaw || !sessionId || !subtaskId) {
+      return res.status(400).json({ error: "project, sessionId, and subtaskId required" });
+    }
+    const slug = slugify(projectRaw, { lower: true, strict: true });
+    const projectRoot = path.join(OUTPUT_DIR, slug);
+    try { await fs.access(projectRoot); } catch { return res.status(404).json({ error: "project not found" }); }
+
+    type FixtureOutput = { files?: { path: string; contents: string }[] };
+    const output = await readFixture<FixtureOutput>(slug, sessionId, path.join("subtasks", subtaskId, "output.json")).catch(() => null);
+    if (!output || !Array.isArray(output.files)) {
+      return res.status(404).json({ error: "subtask output fixture not found or invalid" });
+    }
+    await writeFiles(projectRoot, output.files);
+    await ensureDefaultExportForApp(projectRoot);
+
+    const run = await runInSandbox({ projectRoot, projectSlug: slug });
+    await logEvent("test_run", { project: slug, stage: `replay-subtask:${subtaskId}` , status: run.status });
+    return res.json({ ok: true, project: slug, subtaskId, result: run });
+  } catch (err) {
+    const message = (err as Error).message || 'internal error';
     return res.status(500).json({ error: message });
   }
 });

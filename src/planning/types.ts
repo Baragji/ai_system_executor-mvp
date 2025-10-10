@@ -72,6 +72,7 @@ export interface SubtaskPromptRequest {
 export interface ExecutionContext {
   projectPath: string;
   projectSlug: string;
+  sessionId?: string;
   originalPrompt: string;
   clarifications?: ClarificationResponse;
   previousSubtaskResults: SubtaskResult[];

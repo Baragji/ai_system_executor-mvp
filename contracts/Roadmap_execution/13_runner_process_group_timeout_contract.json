@@ -1,0 +1,188 @@
+{
+  "contract_version": "B.1.0",
+  "contract_meta": {
+    "created": "2025-10-10",
+    "phase": "B",
+    "phase_name": "Trust Engine Foundation",
+    "prerequisite_phase": "A",
+    "enhancement": "Runner stability hardening",
+    "rationale": "Sandbox timeouts can leave orphaned subprocesses due to shell wrapping and single-process signaling. This leads to resource leaks (CPU, file handles, ports) and undermines deterministic, safe execution. We must ensure process-group termination on timeout with bounded cleanup and verification.",
+    "references": [
+      "src/runner/runInSandbox.ts:126-139",
+      "src/runner/runInSandbox.ts:140-156",
+      "CDI_INFRASTRUCTURE.md"
+    ]
+  },
+  "project": {
+    "name": "ai_system_executor-mvp",
+    "current_phase": "A",
+    "goal": "Ensure sandboxed test execution terminates entire subprocess groups on timeout to prevent orphaned processes and guarantee stable, deterministic runs.",
+    "scope": "Backend runner (process management)",
+    "estimated_time": "1-2h",
+    "work_profile": "Discovery → Implementation → Validation → Evidence",
+    "out_of_scope": [
+      "Frontend UI changes",
+      "Provider logic",
+      "Planning subsystem"
+    ]
+  },
+  "execution_model": {
+    "type": "discovery_then_autonomous",
+    "verification_strategy": "unit + integration tests with timeout simulation",
+    "description": "Map exact spawn/kill behavior, implement process-group termination, validate no orphaned processes post-timeout.",
+    "failure_mode": "Orphaned subprocess continues running after timeout",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "ai-stack.json",
+    "language": "TypeScript",
+    "frameworks": ["Vitest", "Express"],
+    "test_command": "npm test",
+    "constraints": [
+      "Node 20.x",
+      "No new dependencies without approval",
+      "Vanilla JS frontend only"
+    ],
+    "validation": "npm run validate:all"
+  },
+  "observability": {
+    "description": "Trace and evidence for runner change",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "discovery_file": ".automation/phaseB_discovery.json",
+    "evidence_file": ".automation/validation_report_phaseB.md",
+    "evaluation_file": ".automation/evaluation_results.json",
+    "monitoring": {},
+    "logging": {},
+    "evaluation": {}
+  },
+  "global_quality_standards": {
+    "lint": { "command": "npm run lint", "must_pass": true, "max_warnings": 0 },
+    "typecheck": { "command": "npm run typecheck", "must_pass": true },
+    "tests": { "command": "npm test" },
+    "contract_schema": { "command": "npm run contract:check", "must_pass": true },
+    "sbom": { "command": "npm run sbom", "must_generate": "sbom.spdx.json" }
+  },
+  "high_level_stages": [
+    "Discovery",
+    "Implementation",
+    "Validation",
+    "Evidence"
+  ],
+  "tasks": [
+    {
+      "id": "P1-V1",
+      "stage": "Discovery",
+      "title": "Map spawn/kill behavior and timeout paths",
+      "type": "discovery",
+      "description": "Identify exact lines and behavior for spawn options (shell, detached) and kill on timeout.",
+      "time_estimate_minutes": 20,
+      "actions": [
+        "Document current spawn options and signal handling",
+        "Verify whether child process group is created and how kill is invoked",
+        "Produce discovery note with file/line references"
+      ],
+      "validation": [
+        "Discovery note exists: .automation/phaseB_discovery.json and .md",
+        "References include runInSandbox.ts exact line ranges"
+      ],
+      "success_criteria": ["Evidence file produced with code excerpts and risks"],
+      "evidence_requirements": {"include_code_context": true}
+    },
+    {
+      "id": "P1-V2",
+      "stage": "Implementation",
+      "title": "Implement process-group termination on timeout",
+      "type": "win",
+      "description": "Spawn with process group where supported and kill the entire group on timeout. Fallback to child kill if group kill not available.",
+      "time_estimate_minutes": 30,
+      "actions": [
+        "Enable detached process group on POSIX where safe",
+        "On timeout, use negative PID kill (process.kill(-pid)) with fallback",
+        "Unref when detached to avoid holding event loop",
+        "Keep shell usage only if required by command form"
+      ],
+      "validation": [
+        "Typecheck and lint pass",
+        "No new dependencies added"
+      ],
+      "success_criteria": [
+        "Timeout reliably terminates all child processes",
+        "No orphaned processes observed after run"
+      ]
+    },
+    {
+      "id": "P1-V3",
+      "stage": "Validation",
+      "title": "Add integration test simulating long-running child",
+      "type": "validation",
+      "description": "Create a test that triggers sandbox timeout and verifies no child keeps running post-timeout.",
+      "time_estimate_minutes": 30,
+      "actions": [
+        "Add/extend tests in tests/runner/runInSandbox.integration.test.ts",
+        "Simulate a script that ignores SIGTERM; ensure timeout kill stops it",
+        "Assert run result indicates timeout and logs contain termination info"
+      ],
+      "validation": [
+        "Test fails before implementation and passes after",
+        "CI tests pass with coverage unchanged or improved"
+      ],
+      "success_criteria": [
+        "Test reliably passes in CI across runs",
+        "No intermittent leaks observed"
+      ]
+    },
+    {
+      "id": "P1-V4",
+      "stage": "Evidence",
+      "title": "Produce evidence and validation report",
+      "type": "evidence",
+      "description": "Collect logs and final artifacts; update validation report.",
+      "time_estimate_minutes": 10,
+      "actions": [
+        "Write .automation/validation_report_phaseB.md with results",
+        "Attach relevant log excerpts showing termination"
+      ],
+      "validation": [
+        "Evidence files exist and include run IDs",
+        "Contract schema validation passes"
+      ],
+      "success_criteria": ["All gates in completion_criteria satisfied"]
+    }
+  ],
+  "execution_order": ["P1-V1", "P1-V2", "P1-V3", "P1-V4"],
+  "execution_semantics": {
+    "discovery_first": {"required": true},
+    "win_isolation": {"backend_only": true},
+    "evidence_backed": {"required": true},
+    "gate_enforcement": {"lint": true, "typecheck": true, "tests": true},
+    "frontend_only": {"allowed": false}
+  },
+  "completion_criteria": {
+    "all_tests_pass": true,
+    "lint_passes": true,
+    "typecheck_passes": true,
+    "sbom_generated": true,
+    "contract_schema_valid": true
+  },
+  "fallback_policies": {
+    "group_kill_not_supported": "Fallback to direct child kill and explicit cleanup; document limitations"
+  },
+  "reporting": {
+    "progress_file": ".automation/phaseB_progress.json",
+    "fields": ["task_id", "stage", "status", "timestamp"],
+    "status_values": ["pending", "in_progress", "done"]
+  },
+  "final_artifacts_verification": [
+    {"name": "Evidence report", "path": ".automation/validation_report_phaseB.md", "must_exist": true, "min_lines": 10},
+    {"name": "Integration test file", "path": "tests/runner/runInSandbox.integration.test.ts", "must_exist": true}
+  ],
+  "release_actions": [],
+  "ai_executor_guidelines": {
+    "avoid_new_deps": "Do not add external kill-tree dependencies without explicit approval",
+    "posix_group_kill": "Prefer process group kill on POSIX via negative PID"
+  },
+  "governance_note": {
+    "for_human": "This change is backend-only and must not impact UI Phase A scope. Schedule under Phase B."
+  }
+}

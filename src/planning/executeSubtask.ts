@@ -4,6 +4,8 @@ import type { RunResult } from "../contracts/validators.js";
 import type { TestResultSummary } from "../contracts/repairHistoryValidator.js";
 import type { Subtask } from "./types.js";
 import type { ExecutionContext, SubtaskPromptRequest, SubtaskResult } from "./types.js";
+// path already imported above
+import { writeFixture } from "../fixtures/index.js";
 
 async function formatPreviousResults(previous: SubtaskResult[], projectPath: string): Promise<string> {
   if (previous.length === 0) {
@@ -136,13 +138,30 @@ async function runTests(
   }
 
   try {
-    const history = await context.multiTurnRepair({
+    // Capture initial run for fixtures if session is present
+    if (context.sessionId) {
+      try {
+        await writeFixture(context.projectSlug, context.sessionId, path.join("tests", "initial.json"), initialRun);
+      } catch { void 0; }
+    }
+    const repairCtx = {
       projectPath: context.projectPath,
       projectSlug: context.projectSlug,
       originalPrompt: context.originalPrompt,
       generatedFiles,
       initialTestResult: initialRun
-    });
+    };
+    if (context.sessionId) {
+      try {
+        await writeFixture(context.projectSlug, context.sessionId, path.join("repair", "context.json"), repairCtx);
+      } catch { void 0; }
+    }
+    const history = await context.multiTurnRepair(repairCtx);
+    if (context.sessionId) {
+      try {
+        await writeFixture(context.projectSlug, context.sessionId, path.join("repair", "history.json"), history);
+      } catch { void 0; }
+    }
 
     const finalAttempt = history.attempts.at(-1);
     const finalResult = normalizeTestResult(initialRun, finalAttempt?.testResult);
