@@ -1,4 +1,4 @@
-# Phase 5 Discovery Note — WA1 (Discovery), WA2 (State Machine), WA3 (Checkpoints)
+# Phase 5 Discovery Note — WA1 (Discovery), WA2 (State Machine), WA3 (Checkpoints), WA4 (Interrupts)
 
 ## Scope Recap
 - **Objective:** Establish orchestration spine enabling pause/resume by adding a state machine primitive and checkpoint persistence without altering existing `/api/execute` flow yet.
@@ -109,7 +109,57 @@ export interface MultiTurnContext {
 - ✅ No protected files touched.
 - ✅ Tests to be added under `tests/orchestrator/*` with Vitest.
 
+## Additional Discovery for WA4 (Interrupt System)
+- **Objective:** Introduce a first-class interrupt taxonomy that can pause the orchestrator, persist context, and surface clarifying questions for human-in-the-loop answers.
+- **Key integration points:**
+  - `src/orchestrator/stateMachine.ts` already allows pausing from active states; its guard table shows legal transitions we must honor when triggering interrupts:
+
+    ```ts
+    const TRANSITIONS: Readonly<Record<OrchestratorState, ReadonlySet<OrchestratorState>>> = {
+      CLARIFYING: new Set(["PLANNING", "GENERATING", "PAUSED"]),
+      PLANNING: new Set(["GENERATING", "PAUSED"]),
+      GENERATING: new Set(["PAUSED", "DONE"]),
+      PAUSED: new Set(["CLARIFYING", "PLANNING", "GENERATING"]),
+      DONE: new Set()
+    };
+    ```
+
+  - `src/orchestrator/checkpoints.ts` exposes the persistence boundary we will reuse. `saveCheckpoint` and the `PendingQuestion` type ensure we persist normalized questions alongside machine history:
+
+    ```ts
+    export interface PendingQuestion {
+      id: string;
+      question: string;
+      type: InterruptCategory;
+      metadata?: Record<string, unknown>;
+    }
+
+    export async function saveCheckpoint(input: CheckpointInput): Promise<CheckpointRecord> {
+      const record = normalizeRecord(input);
+      await ensureDirectory();
+      const target = resolveCheckpointPath(record.sessionId);
+      const temp = `${target}.tmp-${process.pid}-${Date.now()}`;
+      const payload = JSON.stringify(record, null, 2);
+      await fs.writeFile(temp, payload, "utf-8");
+      await fs.rename(temp, target);
+      return record;
+    }
+    ```
+
+  - `public/script.js` renders `pendingQuestions` that arrive via checkpoints (lines ~920-1010). Interrupt payloads must maintain this shape so the UI can later display prompts without additional adapters.
+
+- **Approach:**
+  - Define canonical interrupt categories (`AMBIGUITY`, `APPROVAL`, `BUDGET_RISK`) and validate incoming question bundles before persisting.
+  - Provide `raiseInterrupt` helper that (a) verifies the state machine can pause, (b) transitions with a timestamped reason, (c) serializes machine history + optional context, and (d) persists normalized `PendingQuestion` objects through `saveCheckpoint`.
+  - Return the resulting checkpoint record so API callers can stream confirmation and reuse the payload.
+
+- **Risks & Mitigations:**
+  - *Duplicate question identifiers* → enforce uniqueness while normalizing bundle and auto-generate UUIDs when absent.
+  - *Invalid metadata structures* → reject non-object metadata to keep payload JSON-serializable and AJV-valid.
+  - *Illegal pause requests* → guard against pausing from `DONE` or already `PAUSED` states by checking `canTransition("PAUSED")` before writing checkpoints.
+
 ## Next Steps
 1. Implement state machine according to transitions above with exhaustive tests.
 2. Implement checkpoint persistence + schema validation with positive/negative tests.
-3. Document execution trace entries per win in `.automation/execution_trace.jsonl` as progress evidence.
+3. Deliver interrupt taxonomy + `raiseInterrupt` helper with dedicated tests before wiring APIs.
+4. Document execution trace entries per win in `.automation/execution_trace.jsonl` as progress evidence.

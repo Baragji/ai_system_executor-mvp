@@ -1,8 +1,8 @@
 {
   "phase": 5,
   "date": "2025-10-10",
-  "wins": ["WA1", "WA2", "WA3"],
-  "objective": "Lay groundwork for orchestration pause/resume by adding state machine and checkpoint primitives.",
+  "wins": ["WA1", "WA2", "WA3", "WA4"],
+  "objective": "Lay groundwork for orchestration pause/resume by adding state machine, checkpoint primitives, and interrupt taxonomy.",
   "integration_points": [
     {
       "file": "src/server.ts",
@@ -18,6 +18,11 @@
       "file": "src/clarification/detectMissing.ts",
       "line_hint": 1,
       "summary": "Clarification detection will later map to AMBIGUITY interrupts feeding checkpoint payloads."
+    },
+    {
+      "file": "public/script.js",
+      "line_hint": 920,
+      "summary": "Client renders pendingQuestions from checkpoints; interrupt payloads must preserve this contract."
     }
   ],
   "checkpoint_schema": {
@@ -29,11 +34,13 @@
   },
   "risks": [
     "Need consistent resume behavior when loading checkpoints with mismatched versions.",
-    "Session ID sanitization must prevent path traversal when writing checkpoint files."
+    "Session ID sanitization must prevent path traversal when writing checkpoint files.",
+    "Interrupt bundles must reject invalid metadata or duplicate identifiers to avoid corrupting checkpoints."
   ],
   "validation_plan": [
     "Unit tests for valid/invalid state transitions.",
     "Checkpoint read/write round trips with schema validation.",
-    "Negative tests for malformed checkpoint payloads."
+    "Negative tests for malformed checkpoint payloads.",
+    "Interrupt tests covering taxonomy validation, pause transition, and persisted payloads."
   ]
 }
