@@ -43,12 +43,15 @@ export async function generateJSON(messages: LLMMessage[]): Promise<string> {
       const code = e?.code ?? "";
       const message = e?.message ?? String(err);
 
+      // Check if this is a timeout error from our Promise.race
+      const isTimeout = message.includes("LLM call timed out");
+
       // Non-retryable client errors
-      if (status === 400 || status === 401 || status === 403) {
+      if (!isTimeout && (status === 400 || status === 401 || status === 403)) {
         throw err;
       }
 
-      const retryable = status === 429 || status >= 500 || code === "ECONNRESET" || code === "ETIMEDOUT" || code === "ENOTFOUND" || code === "ECONNABORTED";
+      const retryable = isTimeout || status === 429 || status >= 500 || code === "ECONNRESET" || code === "ETIMEDOUT" || code === "ENOTFOUND" || code === "ECONNABORTED";
       if (!retryable || attempt >= maxRetries) {
         throw err;
       }
@@ -56,7 +59,7 @@ export async function generateJSON(messages: LLMMessage[]): Promise<string> {
       const base = Math.min(initialBackoff * Math.pow(2, attempt), maxBackoff);
       const jitter = 0.8 + Math.random() * 0.4; // 20% jitter
       const backoff = Math.floor(base * jitter);
-      await logEvent("llm_retry", { attempt: attempt + 1, maxRetries, backoffMs: backoff, status, code, message });
+      await logEvent("llm_retry", { attempt: attempt + 1, maxRetries, backoffMs: backoff, status, code, message, isTimeout });
       await new Promise(res => setTimeout(res, backoff));
       attempt += 1;
     }

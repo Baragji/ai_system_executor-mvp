@@ -1,36 +1,54 @@
-{"name":"generation_start","timestamp":"2025-10-10T15:02:31.123Z","payload":{"project":"clarify-demo"}}
-{"name":"test_run","timestamp":"2025-10-10T15:02:31.149Z","payload":{"project":"clarify-demo","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-10T15:02:31.150Z","payload":{"project":"clarify-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-10T15:02:31.157Z","payload":{"project":"clarify-demo","status":"pass"}}
-{"name":"generation_start","timestamp":"2025-10-10T15:02:31.170Z","payload":{"project":"phase1-demo"}}
-{"name":"test_run","timestamp":"2025-10-10T15:02:31.208Z","payload":{"project":"phase1-demo","stage":"initial","status":"fail"}}
-{"name":"repair_attempt","timestamp":"2025-10-10T15:02:31.220Z","payload":{"project":"phase1-demo","attempts":2,"finalStatus":"pass","successAttempt":2}}
-{"name":"test_run","timestamp":"2025-10-10T15:02:31.232Z","payload":{"project":"phase1-demo","stage":"repair-1","status":"fail"}}
-{"name":"test_run","timestamp":"2025-10-10T15:02:31.255Z","payload":{"project":"phase1-demo","stage":"repair-2","status":"pass"}}
-{"name":"generation_complete","timestamp":"2025-10-10T15:02:31.277Z","payload":{"project":"phase1-demo","status":"pass"}}
-{"name":"generation_start","timestamp":"2025-10-10T15:02:31.492Z","payload":{"project":"telemetry-demo"}}
-{"name":"test_run","timestamp":"2025-10-10T15:02:31.502Z","payload":{"project":"telemetry-demo","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-10T15:02:31.507Z","payload":{"project":"telemetry-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-10T15:02:31.513Z","payload":{"project":"telemetry-demo","status":"pass"}}
-{"name":"plan_retry","timestamp":"2025-10-10T15:02:31.549Z","payload":{"phase":"decompose","attempt":1,"backoffMs":645}}
-{"name":"generation_start","timestamp":"2025-10-10T15:02:32.203Z","payload":{"project":"telemetry-demo"}}
-{"name":"test_run","timestamp":"2025-10-10T15:02:32.211Z","payload":{"project":"telemetry-demo","stage":"initial","status":"fail"}}
-{"name":"repair_attempt","timestamp":"2025-10-10T15:02:32.232Z","payload":{"project":"telemetry-demo","attempts":4,"finalStatus":"exhausted","successAttempt":null}}
-{"name":"test_run","timestamp":"2025-10-10T15:02:32.237Z","payload":{"project":"telemetry-demo","stage":"repair-1","status":"fail"}}
-{"name":"test_run","timestamp":"2025-10-10T15:02:32.243Z","payload":{"project":"telemetry-demo","stage":"repair-2","status":"fail"}}
-{"name":"test_run","timestamp":"2025-10-10T15:02:32.245Z","payload":{"project":"telemetry-demo","stage":"repair-3","status":"fail"}}
-{"name":"test_run","timestamp":"2025-10-10T15:02:32.246Z","payload":{"project":"telemetry-demo","stage":"repair-4","status":"fail"}}
-{"name":"generation_complete","timestamp":"2025-10-10T15:02:32.253Z","payload":{"project":"telemetry-demo","status":"fail"}}
-{"name":"plan_retry","timestamp":"2025-10-10T15:02:32.273Z","payload":{"phase":"decompose","attempt":1,"backoffMs":669}}
-{"name":"generation_start","timestamp":"2025-10-10T15:02:32.948Z","payload":{"project":"telemetry-demo"}}
-{"name":"test_run","timestamp":"2025-10-10T15:02:32.963Z","payload":{"project":"telemetry-demo","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-10T15:02:32.964Z","payload":{"project":"telemetry-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-10T15:02:32.972Z","payload":{"project":"telemetry-demo","status":"pass"}}
-{"name":"generation_start","timestamp":"2025-10-10T15:02:33.007Z","payload":{"project":"telemetry-demo"}}
-{"name":"test_run","timestamp":"2025-10-10T15:02:33.053Z","payload":{"project":"telemetry-demo","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-10T15:02:33.064Z","payload":{"project":"telemetry-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-10T15:02:33.121Z","payload":{"project":"telemetry-demo","status":"pass"}}
-{"name":"repair_abort","timestamp":"2025-10-10T15:02:34.079Z","payload":{"reason":"invalid_delete","attempt":1,"project":"project"}}
-{"name":"llm_retry","timestamp":"2025-10-10T15:02:34.579Z","payload":{"attempt":1,"maxRetries":3,"backoffMs":0,"status":429,"code":"","message":"rate limited"}}
-{"name":"llm_retry","timestamp":"2025-10-10T15:02:34.614Z","payload":{"attempt":2,"maxRetries":3,"backoffMs":0,"status":429,"code":"","message":"rate limited"}}
-{"name":"test_run","timestamp":"2025-10-10T15:02:38.820Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
+{"name":"generation_start","timestamp":"2025-10-10T18:03:58.222Z","payload":{"project":"phase1-demo"}}
+{"name":"generation_start","timestamp":"2025-10-10T18:03:58.239Z","payload":{"project":"clarify-demo"}}
+{"name":"test_run","timestamp":"2025-10-10T18:03:58.244Z","payload":{"project":"phase1-demo","stage":"initial","status":"fail"}}
+{"name":"repair_attempt","timestamp":"2025-10-10T18:03:58.247Z","payload":{"project":"phase1-demo","attempts":2,"finalStatus":"pass","successAttempt":2}}
+{"name":"test_run","timestamp":"2025-10-10T18:03:58.250Z","payload":{"project":"phase1-demo","stage":"repair-1","status":"fail"}}
+{"name":"test_run","timestamp":"2025-10-10T18:03:58.251Z","payload":{"project":"phase1-demo","stage":"repair-2","status":"pass"}}
+{"name":"test_run","timestamp":"2025-10-10T18:03:58.251Z","payload":{"project":"clarify-demo","stage":"initial","status":"pass"}}
+{"name":"plan_retry","timestamp":"2025-10-10T18:03:58.251Z","payload":{"phase":"decompose","attempt":1,"backoffMs":911}}
+{"name":"repair_attempt","timestamp":"2025-10-10T18:03:58.256Z","payload":{"project":"clarify-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-10T18:03:58.258Z","payload":{"project":"phase1-demo","status":"pass"}}
+{"name":"generation_complete","timestamp":"2025-10-10T18:03:58.263Z","payload":{"project":"clarify-demo","status":"pass"}}
+{"name":"generation_start","timestamp":"2025-10-10T18:03:58.282Z","payload":{"project":"clarify-demo"}}
+{"name":"test_run","timestamp":"2025-10-10T18:03:58.294Z","payload":{"project":"clarify-demo","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-10T18:03:58.295Z","payload":{"project":"clarify-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-10T18:03:58.309Z","payload":{"project":"clarify-demo","status":"pass"}}
+{"name":"llm_retry","timestamp":"2025-10-10T18:03:58.627Z","payload":{"attempt":1,"maxRetries":3,"backoffMs":9,"status":0,"code":"","message":"LLM call timed out after 100ms","isTimeout":true}}
+{"name":"generation_start","timestamp":"2025-10-10T18:03:58.706Z","payload":{"project":"telemetry-demo"}}
+{"name":"test_run","timestamp":"2025-10-10T18:03:58.724Z","payload":{"project":"telemetry-demo","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-10T18:03:58.730Z","payload":{"project":"telemetry-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-10T18:03:58.738Z","payload":{"project":"telemetry-demo","status":"pass"}}
+{"name":"llm_retry","timestamp":"2025-10-10T18:03:58.745Z","payload":{"attempt":2,"maxRetries":3,"backoffMs":21,"status":0,"code":"","message":"LLM call timed out after 100ms","isTimeout":true}}
+{"name":"plan_retry","timestamp":"2025-10-10T18:03:58.758Z","payload":{"phase":"decompose","attempt":1,"backoffMs":939}}
+{"name":"llm_retry","timestamp":"2025-10-10T18:03:58.889Z","payload":{"attempt":1,"maxRetries":2,"backoffMs":9,"status":0,"code":"","message":"LLM call timed out after 100ms","isTimeout":true}}
+{"name":"llm_retry","timestamp":"2025-10-10T18:03:59.003Z","payload":{"attempt":2,"maxRetries":2,"backoffMs":21,"status":0,"code":"","message":"LLM call timed out after 100ms","isTimeout":true}}
+{"name":"repair_abort","timestamp":"2025-10-10T18:03:59.452Z","payload":{"reason":"invalid_delete","attempt":1,"project":"project"}}
+{"name":"generation_start","timestamp":"2025-10-10T18:03:59.702Z","payload":{"project":"telemetry-demo"}}
+{"name":"test_run","timestamp":"2025-10-10T18:03:59.722Z","payload":{"project":"telemetry-demo","stage":"initial","status":"fail"}}
+{"name":"repair_attempt","timestamp":"2025-10-10T18:03:59.748Z","payload":{"project":"telemetry-demo","attempts":4,"finalStatus":"exhausted","successAttempt":null}}
+{"name":"test_run","timestamp":"2025-10-10T18:03:59.753Z","payload":{"project":"telemetry-demo","stage":"repair-1","status":"fail"}}
+{"name":"test_run","timestamp":"2025-10-10T18:03:59.754Z","payload":{"project":"telemetry-demo","stage":"repair-2","status":"fail"}}
+{"name":"test_run","timestamp":"2025-10-10T18:03:59.755Z","payload":{"project":"telemetry-demo","stage":"repair-3","status":"fail"}}
+{"name":"test_run","timestamp":"2025-10-10T18:03:59.756Z","payload":{"project":"telemetry-demo","stage":"repair-4","status":"fail"}}
+{"name":"generation_complete","timestamp":"2025-10-10T18:03:59.760Z","payload":{"project":"telemetry-demo","status":"fail"}}
+{"name":"plan_retry","timestamp":"2025-10-10T18:03:59.772Z","payload":{"phase":"decompose","attempt":1,"backoffMs":700}}
+{"name":"llm_retry","timestamp":"2025-10-10T18:03:59.972Z","payload":{"attempt":1,"maxRetries":3,"backoffMs":1,"status":429,"code":"","message":"rate limited","isTimeout":false}}
+{"name":"llm_retry","timestamp":"2025-10-10T18:03:59.977Z","payload":{"attempt":2,"maxRetries":3,"backoffMs":0,"status":429,"code":"","message":"rate limited","isTimeout":false}}
+{"name":"generation_start","timestamp":"2025-10-10T18:04:00.476Z","payload":{"project":"telemetry-demo"}}
+{"name":"test_run","timestamp":"2025-10-10T18:04:00.482Z","payload":{"project":"telemetry-demo","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-10T18:04:00.488Z","payload":{"project":"telemetry-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-10T18:04:00.490Z","payload":{"project":"telemetry-demo","status":"pass"}}
+{"name":"generation_start","timestamp":"2025-10-10T18:04:00.499Z","payload":{"project":"telemetry-demo"}}
+{"name":"test_run","timestamp":"2025-10-10T18:04:00.509Z","payload":{"project":"telemetry-demo","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-10T18:04:00.522Z","payload":{"project":"telemetry-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-10T18:04:00.540Z","payload":{"project":"telemetry-demo","status":"pass"}}
+{"name":"test_run","timestamp":"2025-10-10T18:04:01.695Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
+{"name":"plan_retry","timestamp":"2025-10-10T18:05:30.063Z","payload":{"phase":"decompose","attempt":1,"backoffMs":916}}
+{"name":"generation_start","timestamp":"2025-10-10T18:06:02.045Z","payload":{"project":"12testartifact","mode":"plan"}}
+{"name":"plan_snapshot","timestamp":"2025-10-10T18:07:20.730Z","payload":{"project":"12testartifact","completed":1,"failed":0,"percent":12.5}}
+{"name":"plan_progress","timestamp":"2025-10-10T18:07:20.730Z","payload":{"project":"12testartifact","subtask":"init-project","status":"completed","percent":12.5}}
+{"name":"plan_progress","timestamp":"2025-10-10T18:08:42.555Z","payload":{"project":"12testartifact","subtask":"install-deps","status":"failed","percent":12.5}}
+{"name":"plan_snapshot","timestamp":"2025-10-10T18:08:42.555Z","payload":{"project":"12testartifact","completed":1,"failed":1,"percent":12.5}}
+{"name":"plan_snapshot","timestamp":"2025-10-10T18:08:42.557Z","payload":{"project":"12testartifact","completed":1,"failed":2,"percent":12.5}}
+{"name":"plan_progress","timestamp":"2025-10-10T18:08:42.557Z","payload":{"project":"12testartifact","subtask":"configure-tailwind","status":"failed","percent":12.5}}
+{"name":"generation_complete","timestamp":"2025-10-10T18:08:42.562Z","payload":{"project":"12testartifact","status":"fail","mode":"plan"}}

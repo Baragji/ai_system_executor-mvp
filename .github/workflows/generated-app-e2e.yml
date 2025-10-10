@@ -59,20 +59,18 @@ jobs:
           npm sbom --sbom-format=spdx --omit=dev > ../../generated-app.sbom.spdx.json
 
       - name: OSV-Scanner (dependency vulnerabilities)
-        uses: google/osv-scanner-action@v1
-        with:
-          scan-args: |-
-            --lockfile=./output/${{ steps.slug.outputs.SLUG }}/package-lock.json
-            --json=./osv-results.json
+        run: |
+          set -e
+          docker run --rm -v "$PWD:/workspace" -w /workspace ghcr.io/google/osv-scanner:1.7.2 \
+            --lockfile=./output/${{ steps.slug.outputs.SLUG }}/package-lock.json \
+            --format json \
+            --output osv-results.json
 
       - name: Semgrep SAST
-        uses: returntocorp/semgrep-action@v1
-        env:
-          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-        with:
-          config: p/default
-          generateSarif: true
-          sarifFile: semgrep.sarif
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install semgrep
+          semgrep ci --config p/default --sarif --output semgrep.sarif
 
       - name: Upload artifacts (proof bundle)
         uses: actions/upload-artifact@v4

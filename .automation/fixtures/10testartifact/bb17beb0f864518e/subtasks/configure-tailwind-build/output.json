@@ -1,0 +1,47 @@
+{
+  "project_name": "express-tailwind-color-app",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\"name\":\"express-tailwind-color-app\",\"version\":\"0.1.0\",\"private\":true,\"description\":\"Express + Tailwind CSS starter for Hello World color app\",\"scripts\":{\"build:css\":\"tailwindcss -i ./src/styles/input.css -o ./public/styles.css\",\"watch:css\":\"tailwindcss -i ./src/styles/input.css -o ./public/styles.css --watch\",\"build\":\"tsc && npm run build:css\",\"dev\":\"npm run build:css && ts-node src/server.ts\",\"start\":\"node dist/server.js\",\"test\":\"mocha -r ts-node/register tests/**/*.test.ts\"},\"dependencies\":{\"express\":\"^4.19.2\"},\"devDependencies\":{\"@types/express\":\"^4.17.21\",\"@types/node\":\"^20.11.30\",\"autoprefixer\":\"^10.4.17\",\"mocha\":\"^10.4.0\",\"postcss\":\"^8.4.31\",\"tailwindcss\":\"^3.4.10\",\"ts-node\":\"^10.9.2\",\"typescript\":\"^5.6.3\"}}"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2019\",\n    \"module\": \"CommonJS\",\n    \"rootDir\": \"src\",\n    \"outDir\": \"dist\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"forceConsistentCasingInFileNames\": true\n  },\n  \"include\": [\"src/**/*.ts\"],\n  \"exclude\": [\"node_modules\", \"dist\"]\n}\n"
+    },
+    {
+      "path": "tailwind.config.cjs",
+      "contents": "module.exports = {\n  content: [\n    \"./public/**/*.html\",\n    \"./src/**/*.{ts,tsx}\"\n  ],\n  theme: {\n    extend: {}\n  },\n  plugins: []\n};\n"
+    },
+    {
+      "path": "postcss.config.cjs",
+      "contents": "module.exports = {\n  plugins: [\n    require('tailwindcss'),\n    require('autoprefixer')\n  ]\n};\n"
+    },
+    {
+      "path": "src/server.ts",
+      "contents": "import express from 'express';\nimport path from 'path';\n\nconst app = express();\n\nconst publicDir = path.join(__dirname, '..', 'public');\n\napp.use(express.static(publicDir));\n\napp.get('/health', (_req, res) => {\n  res.json({ status: 'ok' });\n});\n\napp.get('/', (_req, res) => {\n  res.sendFile(path.join(publicDir, 'index.html'));\n});\n\nconst PORT = Number(process.env.PORT) || 3000;\n\nif (require.main === module) {\n  app.listen(PORT, () => {\n    console.log(`Server listening on http://localhost:${PORT}`);\n  });\n}\n\nexport default app;\n"
+    },
+    {
+      "path": "src/styles/input.css",
+      "contents": "@tailwind base;\n@tailwind components;\n@tailwind utilities;\n"
+    },
+    {
+      "path": "public/index.html",
+      "contents": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Hello Tailwind App</title>\n    <link rel=\"stylesheet\" href=\"/styles.css\" />\n  </head>\n  <body class=\"min-h-screen bg-gray-50 flex items-center justify-center\">\n    <h1 id=\"hello\" class=\"text-3xl font-bold text-blue-500\">Hello World</h1>\n  </body>\n</html>\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# Express + Tailwind CSS Hello World\n\nThis project sets up an Express server and a Tailwind CSS build pipeline that outputs to `public/styles.css`.\n\n- Framework: Express\n- Styling: Tailwind CSS (via PostCSS)\n\n## Setup\n\n1) Install dependencies\n\n- npm install\n\n2) Build CSS once\n\n- npm run build:css\n\n3) Start the server (development, builds CSS once first)\n\n- npm run dev\n\nThen open http://localhost:3000\n\n## Watching CSS during development\n\n- npm run watch:css\n\nThis watches `src/styles/input.css` and content files and outputs to `public/styles.css`.\n\n## Production build\n\n- npm run build\n- npm start\n\n## Tests\n\n- npm test\n\nTests verify the Tailwind CLI can build `public/styles.css` and that expected utilities are present.\n"
+    },
+    {
+      "path": "tests/tailwind-build.test.ts",
+      "contents": "import assert from 'assert';\nimport path from 'path';\nimport { existsSync, readFileSync, rmSync, mkdirSync } from 'fs';\nimport { execFileSync } from 'child_process';\n\ndescribe('Tailwind CSS build pipeline', function () {\n  this.timeout(20000);\n\n  const projectRoot = path.join(__dirname, '..');\n  const input = path.join(projectRoot, 'src', 'styles', 'input.css');\n  const outDir = path.join(projectRoot, 'public');\n  const output = path.join(outDir, 'styles.css');\n\n  it('builds styles.css with expected utilities', () => {\n    if (!existsSync(outDir)) {\n      mkdirSync(outDir, { recursive: true });\n    }\n    if (existsSync(output)) {\n      rmSync(output);\n    }\n\n    const cli = require.resolve('tailwindcss/lib/cli.js');\n    execFileSync('node', [cli, '-i', input, '-o', output], {\n      stdio: 'inherit',\n      cwd: projectRoot,\n    });\n\n    assert.ok(existsSync(output), 'styles.css should exist after build');\n    const css = readFileSync(output, 'utf8');\n    // index.html includes class=\"text-blue-500\", so Tailwind should emit that utility\n    assert.ok(css.includes('.text-blue-500'), 'styles.css should include .text-blue-500 utility');\n  });\n});\n"
+    }
+  ],
+  "notes": [
+    "Run `npm run build:css` to generate public/styles.css.",
+    "Run `npm run watch:css` to watch and rebuild Tailwind CSS during development.",
+    "Run `npm test` to verify the Tailwind build pipeline."
+  ],
+  "hasTests": true
+}

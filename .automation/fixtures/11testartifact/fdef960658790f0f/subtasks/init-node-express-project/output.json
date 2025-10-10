@@ -1,0 +1,38 @@
+{
+  "project_name": "express-tailwind-hello",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"express-tailwind-hello\",\n  \"version\": \"0.1.0\",\n  \"private\": true,\n  \"type\": \"commonjs\",\n  \"scripts\": {\n    \"dev\": \"nodemon\",\n    \"build\": \"tsc\",\n    \"start\": \"node dist/index.js\",\n    \"test\": \"vitest run\"\n  },\n  \"dependencies\": {\n    \"express\": \"^4.19.2\"\n  },\n  \"devDependencies\": {\n    \"@types/express\": \"^4.17.21\",\n    \"@types/node\": \"^20.11.30\",\n    \"@types/supertest\": \"^2.0.16\",\n    \"nodemon\": \"^3.1.0\",\n    \"supertest\": \"^6.3.4\",\n    \"ts-node\": \"^10.9.2\",\n    \"typescript\": \"^5.4.2\",\n    \"vitest\": \"^1.6.0\"\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2020\",\n    \"module\": \"CommonJS\",\n    \"rootDir\": \"src\",\n    \"outDir\": \"dist\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"skipLibCheck\": true\n  },\n  \"include\": [\"src/**/*.ts\"]\n}\n"
+    },
+    {
+      "path": "nodemon.json",
+      "contents": "{\n  \"watch\": [\"src\"],\n  \"ext\": \"ts\",\n  \"exec\": \"ts-node src/index.ts\"\n}\n"
+    },
+    {
+      "path": "src/app.ts",
+      "contents": "import express from 'express';\n\nexport const app = express();\n\napp.get('/', (_req, res) => {\n  res.type('text/plain').send('Hello World');\n});\n"
+    },
+    {
+      "path": "src/index.ts",
+      "contents": "import { app } from './app';\n\nconst PORT = Number(process.env.PORT) || 3000;\n\napp.listen(PORT, () => {\n  console.log(`Server listening on http://localhost:${PORT}`);\n});\n"
+    },
+    {
+      "path": "tests/app.test.ts",
+      "contents": "import { describe, it, expect } from 'vitest';\nimport request from 'supertest';\nimport { app } from '../src/app';\n\ndescribe('GET /', () => {\n  it('responds with Hello World', async () => {\n    const res = await request(app).get('/');\n    expect(res.status).toBe(200);\n    expect(res.text).toBe('Hello World');\n  });\n});\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# Express + TypeScript starter\n\nThis initializes an Express server with TypeScript. Development uses nodemon to reload on changes.\n\nRequirements:\n- Node.js 18+\n\nInstall dependencies:\n- npm install\n\nStart development server (auto-reloads on changes):\n- npm run dev\n\nThe server listens at:\n- http://localhost:3000\n\nBuild and run production build:\n- npm run build\n- npm start\n\nRun tests:\n- npm test\n"
+    }
+  ],
+  "notes": [
+    "Run `npm install` first, then `npm run dev` to start the server at http://localhost:3000.",
+    "Tests use Vitest and Supertest; run with `npm test`."
+  ],
+  "hasTests": true
+}

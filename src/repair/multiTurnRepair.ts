@@ -143,7 +143,15 @@ async function applyArtifacts(
   files: ExecutorFile[]
 ): Promise<{ changed: string[] }> {
   const changes: string[] = [];
-  const fileMap = new Map(files.map(file => [file.path, file.contents] as const));
+  // Normalize: LLM might return 'content' (singular) instead of 'contents' (plural)
+  const normalized = files.map(f => {
+    const fileObj = f as { path: string; contents?: string; content?: string };
+    return {
+      path: f.path,
+      contents: fileObj.contents ?? fileObj.content ?? ""
+    };
+  });
+  const fileMap = new Map(normalized.map(file => [file.path, file.contents] as const));
 
   for (const artifact of artifacts) {
     const targetPath = ensureInsideProject(projectRoot, artifact.path);

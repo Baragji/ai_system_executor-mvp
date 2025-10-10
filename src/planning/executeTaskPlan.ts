@@ -66,7 +66,8 @@ function readPlanDuration(): number {
   return Number.isFinite(n) && n > 0 ? n : 4 * 60 * 1000;
 }
 const MAX_PLAN_DURATION_MS = readPlanDuration(); // default 4 minutes; configurable via env
-const MAX_CONSECUTIVE_FAILURES = 2; // Halt after 2 consecutive failures
+const PLAN_BUDGET_MS = Number(process.env.PLAN_BUDGET_MS ?? 900000); // 15 minutes default
+const MAX_CONSECUTIVE_FAILURES = 3; // Increased from 2 to 3 for better resilience
 
 export async function executeTaskPlan(
   plan: TaskPlan,
@@ -100,8 +101,17 @@ export async function executeTaskPlan(
   let consecutiveFailures = 0;
 
   for (const subtaskId of executionOrder) {
-    // Check if we're approaching browser timeout limit
     const elapsed = (context.now ? context.now() : Date.now()) - start;
+    
+    // Check plan budget first (hard limit)
+    if (elapsed > PLAN_BUDGET_MS) {
+      halted = true;
+      const note = `Plan execution halted after ${Math.round(elapsed / 1000)}s (plan budget exhausted). Completed ${completed.length}/${plan.subtasks.length} subtasks.`;
+      console.warn(note);
+      break;
+    }
+
+    // Check browser timeout limit (for UI responsiveness)
     if (elapsed > MAX_PLAN_DURATION_MS) {
       halted = true;
       const note = `Plan execution halted after ${Math.round(elapsed / 1000)}s to avoid browser timeout. Completed ${completed.length}/${plan.subtasks.length} subtasks.`;
@@ -109,7 +119,7 @@ export async function executeTaskPlan(
       break;
     }
 
-    // Halt if too many consecutive failures
+    // Halt if too many consecutive failures (still useful as a circuit breaker)
     if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
       halted = true;
       const note = `Plan execution halted after ${consecutiveFailures} consecutive failures. Completed ${completed.length}/${plan.subtasks.length} subtasks.`;
