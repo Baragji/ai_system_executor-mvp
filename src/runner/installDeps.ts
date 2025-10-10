@@ -1,7 +1,9 @@
 import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { validateDependencies } from "../validation/dependencyPreflight.js";
+import { validateDependencies, DependencyPreflightError } from "../validation/dependencyPreflight.js";
+
+let warnedOfflineRegistry = false;
 
 const CI_INSTALL_ARGS = ["ci", "--ignore-scripts"];
 const NPM_INSTALL_ARGS = ["install", "--ignore-scripts", "--no-audit", "--fund=false"];
@@ -58,7 +60,29 @@ export async function ensureDependencies(
     
     // Validate dependencies before attempting install (fail-fast on invalid versions)
     if (allDeps.length > 0) {
-      await validateDependencies(pkg.dependencies, pkg.devDependencies);
+      try {
+        await validateDependencies(pkg.dependencies, pkg.devDependencies);
+      } catch (err) {
+        const offlineRegistryFailure =
+          err &&
+          typeof err === "object" &&
+          "errors" in err &&
+          Array.isArray((err as DependencyPreflightError).errors) &&
+          (err as DependencyPreflightError).errors.length > 0 &&
+          (err as DependencyPreflightError).errors.every(
+            e => e.reason === "NOT_FOUND" && (e.suggestion ?? "").startsWith("Registry check failed")
+          );
+
+        if (!offlineRegistryFailure) {
+          throw err;
+        }
+
+        if (!warnedOfflineRegistry) {
+          const errors = (err as DependencyPreflightError).errors.map(e => `${e.package}@${e.version}`);
+          console.warn("[ensureDependencies] registry unavailable, continuing without remote validation", errors);
+          warnedOfflineRegistry = true;
+        }
+      }
     }
     
     if (allDeps.length > 0) {
