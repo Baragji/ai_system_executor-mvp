@@ -1,0 +1,22 @@
+{
+  "project_name": "hello-colors-app",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"hello-colors-app\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Express + Tailwind project skeleton (repository initialization)\",\n  \"main\": \"src/index.js\",\n  \"scripts\": {\n    \"test\": \"node ./tests/test.js\"\n  },\n  \"keywords\": [],\n  \"author\": \"\",\n  \"license\": \"MIT\"\n}\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# Hello Colors App\n\nRepository initialized.\n\nThis project will become an Express + Tailwind app that lets you change the \"hello world\" text colors from a frontend UI.\n\nCurrent status: repository skeleton initialized with a basic test.\n\nRun steps:\n\n- Install dependencies (none required for this initialization step).\n- Run tests: npm test\n\nNext steps: add the Express server and Tailwind setup in following subtasks.\n"
+    },
+    {
+      "path": "tests/test.js",
+      "contents": "const fs = require('fs');\nconst assert = require('assert');\n\n// Check package.json exists and has expected name\nconst pkgRaw = fs.readFileSync('package.json', 'utf8');\nconst pkg = JSON.parse(pkgRaw);\nassert.strictEqual(pkg.name, 'hello-colors-app', 'package.json name should be hello-colors-app');\n\n// Check README exists and mentions project name\nconst readme = fs.readFileSync('README.md', 'utf8');\nassert.ok(readme.includes('Hello Colors App'), 'README should mention project name');\n\n// Check .git/HEAD looks like an initialized git ref\nconst head = fs.readFileSync('.git/HEAD', 'utf8');\nassert.ok(head.startsWith('ref:'), '.git/HEAD should start with ref:');\n\nconsole.log('All tests passed');\n"
+    }
+  ],
+  "notes": [
+    "Run tests with: npm test",
+    "This subtask initializes the repository. Next subtasks will add Express, Tailwind and the UI to change colors."
+  ],
+  "hasTests": true
+}

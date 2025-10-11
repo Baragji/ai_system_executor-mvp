@@ -1,0 +1,41 @@
+{
+  "originalPrompt": "create hello world app, where i can modify the text \"hello world\" colors, through a frontend ui",
+  "effectivePrompt": "Framework: Express, Styling: Tailwind CSS\n\nOriginal request: create hello world app, where i can modify the text \"hello world\" colors, through a frontend ui",
+  "clarifications": {
+    "answers": [
+      {
+        "questionId": "framework",
+        "value": "Express"
+      },
+      {
+        "questionId": "styling",
+        "value": "Tailwind CSS"
+      }
+    ]
+  },
+  "clarificationQuestions": [
+    {
+      "id": "framework",
+      "text": "Which framework should power this project?",
+      "type": "choice",
+      "options": [
+        "FastAPI",
+        "Flask",
+        "Express",
+        "Django"
+      ]
+    },
+    {
+      "id": "styling",
+      "text": "What styling approach should the UI use?",
+      "type": "choice",
+      "options": [
+        "Tailwind CSS",
+        "Bootstrap",
+        "Chakra UI",
+        "No preference"
+      ]
+    }
+  ],
+  "clarificationsAsked": true
+}

@@ -25,6 +25,7 @@ import {
 import Ajv2020, { type JSONSchemaType } from "ajv/dist/2020.js";
 import { logEvent } from "../telemetry/events.js";
 import type { ExecutorFile } from "../executor/types.js";
+import { throwIfAborted } from "../orchestrator/abortSignal.js";
 
 export interface MultiTurnContext {
   projectPath: string;
@@ -307,6 +308,9 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
     currentRun.status === "pass" ? null : analyzeFailure(initialLog);
   // Note: Deprecated health/test quick patch removed — generator is source of truth.
   for (let index = 0; index < 4; index += 1) {
+    // Check if execution was paused before starting repair attempt
+    throwIfAborted(context.sessionId, `repair_attempt_${index + 1}`);
+    
     const attemptNumber = toAttemptNumber(index);
     const attemptStart = Date.now();
     const startedAtIso = new Date(attemptStart).toISOString();

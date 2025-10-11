@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import type { Request, Response } from "express";
 import cors from "cors";
 import morgan from "morgan";
 import path from "node:path";
@@ -47,8 +48,27 @@ import type {
   TaskPlan,
   TimeEstimate
 } from "./planning/types.js";
+import {
+  createAbortSignal,
+  cleanupAbortSignal,
+  throwIfAborted,
+  abortSession,
+  PausedError
+} from "./orchestrator/abortSignal.js";
 import { writeFixture, listFixtures, readFixture } from "./fixtures/index.js";
 import type { MultiTurnContext } from "./repair/multiTurnRepair.js";
+import {
+  type CheckpointPayload,
+  type PendingQuestion
+} from "./orchestrator/checkpoints.js";
+import { raiseInterrupt, type InterruptQuestionInput } from "./orchestrator/interrupts.js";
+import { OrchestratorStateMachine, type OrchestratorState } from "./orchestrator/stateMachine.js";
+import {
+  resumeFromCheckpoint,
+  ResumeValidationError,
+  ResumeStateError,
+  type ResumeAnswer
+} from "./orchestrator/resume.js";
 
 const app = express();
 app.use(cors());
@@ -59,14 +79,87 @@ const PORT = Number(process.env.PORT || 3000);
 const OUTPUT_DIR = path.resolve("output");
 const PUBLIC_DIR = path.resolve("public");
 // In-memory progress sessions for SSE/polling
-type ProgressSnapshot = { stage: string; progress: number; data?: Record<string, unknown>; updatedAt: number; done?: boolean };
+type ProgressSnapshot = {
+  stage: string;
+  progress: number;
+  data?: Record<string, unknown>;
+  updatedAt: number;
+  done?: boolean;
+  state?: OrchestratorState;
+  paused?: boolean;
+  questions?: PendingQuestion[];
+  checkpointUpdatedAt?: string;
+};
+
+interface OrchestrationSession {
+  machine: OrchestratorStateMachine;
+  paused: boolean;
+  questions: PendingQuestion[];
+  checkpointUpdatedAt?: string;
+}
+
 const progressSessions = new Map<string, ProgressSnapshot>();
+const orchestrationSessions = new Map<string, OrchestrationSession>();
 const PROGRESS_SESSION_TTL_MS = Number(process.env.PROGRESS_SESSION_TTL_MS ?? 15 * 60 * 1000);
+
+function ensureOrchestrationSession(sessionId: string): OrchestrationSession {
+  let session = orchestrationSessions.get(sessionId);
+  if (!session) {
+    session = { machine: new OrchestratorStateMachine(), paused: false, questions: [] };
+    orchestrationSessions.set(sessionId, session);
+  }
+  return session;
+}
+
+function getOrchestrationSession(sessionId: string): OrchestrationSession | undefined {
+  return orchestrationSessions.get(sessionId);
+}
+
+function removeOrchestrationSession(sessionId: string): void {
+  orchestrationSessions.delete(sessionId);
+}
+
+function mapStageToState(stage: string, done?: boolean): OrchestratorState | null {
+  if (done) {
+    return "DONE";
+  }
+  switch (stage) {
+    case "analyzing":
+      return "CLARIFYING";
+    case "planning":
+      return "PLANNING";
+    case "generating":
+    case "testing":
+      return "GENERATING";
+    case "finalizing":
+      return "GENERATING";
+    default:
+      return null;
+  }
+}
+
+function stateToStage(state: OrchestratorState): string {
+  switch (state) {
+    case "CLARIFYING":
+      return "analyzing";
+    case "PLANNING":
+      return "planning";
+    case "GENERATING":
+      return "generating";
+    case "PAUSED":
+      return "paused";
+    case "DONE":
+      return "finalizing";
+    default:
+      return "analyzing";
+  }
+}
 
 function purgeExpiredProgressSessions(now: number) {
   for (const [key, entry] of progressSessions.entries()) {
     if (entry.done && now - entry.updatedAt > PROGRESS_SESSION_TTL_MS) {
       progressSessions.delete(key);
+      removeOrchestrationSession(key);
     }
   }
 }
@@ -74,12 +167,150 @@ function purgeExpiredProgressSessions(now: number) {
 function setProgress(sessionId: string | undefined, stage: string, progress: number, data?: Record<string, unknown>, done?: boolean) {
   if (!sessionId) return;
   purgeExpiredProgressSessions(Date.now());
-  progressSessions.set(sessionId, { stage, progress, data, updatedAt: Date.now(), done });
+  const session = ensureOrchestrationSession(sessionId);
+
+  if (!session.paused) {
+    const target = mapStageToState(stage, done);
+    if (target && target !== session.machine.state && target !== "PAUSED") {
+      try {
+        session.machine.transition(target, { reason: `progress:${stage}` });
+      } catch (err) {
+        console.warn(`Failed to transition orchestrator for ${sessionId}:`, err);
+      }
+    }
+    if (done) {
+      session.paused = false;
+      session.questions = [];
+      removeOrchestrationSession(sessionId);
+    }
+  }
+
+  progressSessions.set(sessionId, {
+    stage,
+    progress,
+    data,
+    updatedAt: Date.now(),
+    done,
+    state: session.machine.state,
+    paused: session.paused,
+    questions: session.questions,
+    checkpointUpdatedAt: session.checkpointUpdatedAt
+  });
 }
 
 function getProgress(sessionId: string): ProgressSnapshot | null {
   const snap = progressSessions.get(sessionId) ?? null;
+  if (!snap) {
+    const session = orchestrationSessions.get(sessionId);
+    if (!session) {
+      return null;
+    }
+    return {
+      stage: stateToStage(session.machine.state),
+      progress: 0,
+      updatedAt: Date.now(),
+      done: false,
+      state: session.machine.state,
+      paused: session.paused,
+      questions: session.questions,
+      checkpointUpdatedAt: session.checkpointUpdatedAt
+    };
+  }
   return snap;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function normalizeInterruptQuestions(input: unknown): InterruptQuestionInput[] {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  const supportedTypes = new Set(["AMBIGUITY", "APPROVAL", "BUDGET_RISK"]);
+  const questions: InterruptQuestionInput[] = [];
+
+  for (const entry of input) {
+    if (!isPlainObject(entry)) continue;
+    const questionRaw = typeof entry.question === "string" ? entry.question.trim() : "";
+    if (!questionRaw) continue;
+
+    const typeRaw = typeof entry.type === "string" ? entry.type.trim().toUpperCase() : "";
+    const type = supportedTypes.has(typeRaw) ? (typeRaw as InterruptQuestionInput["type"]) : "AMBIGUITY";
+    const id = typeof entry.id === "string" ? entry.id.trim() || undefined : undefined;
+    const metadata = isPlainObject(entry.metadata) ? (entry.metadata as Record<string, unknown>) : undefined;
+
+    questions.push({
+      ...(id ? { id } : {}),
+      question: questionRaw,
+      type,
+      ...(metadata ? { metadata } : {})
+    });
+  }
+
+  return questions;
+}
+
+function normalizeResumeAnswers(input: unknown): ResumeAnswer[] {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+  const answers: ResumeAnswer[] = [];
+  for (const entry of input) {
+    if (!isPlainObject(entry)) continue;
+    const questionId = typeof entry.questionId === "string" ? entry.questionId.trim() : "";
+    const value = (entry as Record<string, unknown>).value;
+    answers.push({ questionId, value });
+  }
+  return answers;
+}
+
+function snapshotFromSession(sessionId: string, fallback?: ProgressSnapshot | null): ProgressSnapshot {
+  const session = ensureOrchestrationSession(sessionId);
+  const existing = fallback ?? progressSessions.get(sessionId) ?? null;
+  const baseStage = existing?.stage ?? stateToStage(session.machine.state);
+  return {
+    stage: baseStage,
+    progress: existing?.progress ?? 0,
+    data: existing?.data,
+    updatedAt: Date.now(),
+    done: existing?.done ?? false,
+    state: session.machine.state,
+    paused: session.paused,
+    questions: session.questions,
+    checkpointUpdatedAt: session.checkpointUpdatedAt
+  };
+}
+
+function openProgressStream(req: Request, res: Response, sessionId: string): void {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders?.();
+
+  const send = () => {
+    const snap = getProgress(sessionId);
+    if (snap) {
+      res.write(`event: progress\n`);
+      res.write(`data: ${JSON.stringify(snap)}\n\n`);
+      if (snap.done) {
+        clearInterval(timer);
+        res.end();
+      }
+    }
+  };
+
+  const timer = setInterval(send, 1000);
+  send();
+
+  const close = () => {
+    clearInterval(timer);
+    res.end();
+  };
+
+  req.on("close", close);
+  req.on("error", close);
 }
 
 const CLARIFICATION_SESSION_TTL_MS = 10 * 60 * 1000;
@@ -213,8 +444,11 @@ function isComplexPrompt(prompt: string, clarifications?: ClarificationResponse)
 async function generateExecutorOutputFromPrompt(
   systemPrompt: string,
   userPrompt: string,
-  { enforceTests }: { enforceTests: boolean }
+  { enforceTests, sessionId }: { enforceTests: boolean; sessionId?: string }
 ): Promise<ExecutorOutput> {
+  // Check if execution was paused before making LLM call
+  throwIfAborted(sessionId, "code_generation");
+  
   const messages = [
     { role: "system" as const, content: systemPrompt },
     { role: "user" as const, content: userPrompt }
@@ -279,6 +513,9 @@ function createPlanExecutionContext(
     clarifications,
     previousSubtaskResults: [],
     generateSubtaskOutput: async request => {
+      // Check if execution was paused before generating subtask
+      throwIfAborted(sessionId, `subtask_${request.subtask.id}`);
+      
       const SUBTASK_TIMEOUT_MS = Number(process.env.SUBTASK_TIMEOUT_MS ?? 120000);
       const label = `subtask:${request.subtask.id}`;
       function raceWithAbort<T>(work: () => Promise<T>): Promise<T> {
@@ -642,8 +879,14 @@ app.post("/api/clarify", (req, res) => {
 });
 
 app.post("/api/execute", async (req, res) => {
+  const sessionId: string | undefined = typeof req.body?.sessionId === 'string' ? req.body.sessionId : undefined;
+  
   try {
-    const sessionId: string | undefined = typeof req.body?.sessionId === 'string' ? req.body.sessionId : undefined;
+    // Create abort signal for pause functionality
+    if (sessionId) {
+      createAbortSignal(sessionId);
+    }
+    
     setProgress(sessionId, "analyzing", 10);
     const promptRaw = req.body?.prompt;
     const originalPrompt: string = promptRaw === undefined ? "" : promptRaw.toString();
@@ -693,6 +936,9 @@ app.post("/api/execute", async (req, res) => {
 
     if (isComplexPrompt(effectivePrompt, clarifications)) {
       try {
+        // Check if execution was paused before decomposition
+        throwIfAborted(sessionId, "decomposition");
+        
         const baseSlugPre = slugify(projectNameInput || "session", { lower: true, strict: true }) || "session";
         const plan = await withTraceContext({ projectSlug: baseSlugPre, sessionId, phase: 'decompose' }, async () =>
           decomposeTask(effectivePrompt, clarifications)
@@ -736,7 +982,7 @@ app.post("/api/execute", async (req, res) => {
     try {
       setProgress(sessionId, "planning", 30);
       output = await withTraceContext({ projectSlug: slugify(projectNameInput || "generated-project", { lower: true, strict: true }) || "generated-project", sessionId, phase: 'single' }, async () =>
-        generateExecutorOutputFromPrompt(systemPrompt, effectivePrompt, { enforceTests: true })
+        generateExecutorOutputFromPrompt(systemPrompt, effectivePrompt, { enforceTests: true, sessionId })
       );
     } catch (error) {
       setProgress(sessionId, "finalizing", 100, { error: (error as Error).message }, true);
@@ -763,7 +1009,8 @@ app.post("/api/execute", async (req, res) => {
     setProgress(sessionId, "testing", 80);
     const initialRun = await runInSandbox({
       projectRoot: targetRoot,
-      projectSlug: slug
+      projectSlug: slug,
+      sessionId
     });
     await logEvent("test_run", { project: slug, stage: "initial", status: initialRun.status });
     await captureFixture(sessionId, slug, path.join("tests", "initial.json"), initialRun);
@@ -883,11 +1130,41 @@ app.post("/api/execute", async (req, res) => {
       projectName
     };
     setProgress(sessionId, "finalizing", 100, undefined, true);
+    
+    // Clean up abort signal on successful completion
+    if (sessionId) {
+      cleanupAbortSignal(sessionId);
+    }
+    
     return res.json(responsePayload);
   } catch (err: unknown) {
+    // Handle pause interruption gracefully
+    if (err instanceof PausedError) {
+      console.log(`Execution paused for session ${err.sessionId} during ${err.phase}`);
+      if (sessionId) {
+        cleanupAbortSignal(sessionId);
+      }
+      return res.status(202).json({
+        paused: true,
+        sessionId: err.sessionId,
+        phase: err.phase,
+        message: err.message
+      });
+    }
+    
+    // Clean up abort signal on error
+    if (sessionId) {
+      cleanupAbortSignal(sessionId);
+    }
+    
     console.error(err);
     const message = err instanceof Error ? err.message : "internal error";
     return res.status(500).json({ error: message });
+  } finally {
+    // Safety cleanup in case catch doesn't execute
+    if (sessionId) {
+      cleanupAbortSignal(sessionId);
+    }
   }
 });
 
@@ -1017,8 +1294,154 @@ app.post("/api/plan/:project/retest-subtask", async (req, res) => {
   }
 });
 
-// Progress polling endpoint
+// Pause/resume session orchestration
+app.post("/api/sessions/:id/pause", async (req, res) => {
+  try {
+    const { id } = req.params as { id: string };
+    const sessionId = id.trim();
+    if (!sessionId) {
+      return res.status(400).json({ error: "session id required" });
+    }
+
+    const current = getProgress(sessionId);
+    if (!current) {
+      return res.status(404).json({ error: "session not found" });
+    }
+
+    const session = ensureOrchestrationSession(sessionId);
+    if (session.paused) {
+      return res.status(409).json({ error: "session already paused" });
+    }
+
+    const reasonRaw = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+    const reason = reasonRaw || "Manual pause requested";
+
+    const normalizedQuestions = normalizeInterruptQuestions(req.body?.questions);
+    const defaultQuestion: InterruptQuestionInput = {
+      question: "Please provide guidance to continue execution.",
+      type: "AMBIGUITY"
+    };
+    const questions: InterruptQuestionInput[] = normalizedQuestions.length > 0
+      ? normalizedQuestions
+      : [defaultQuestion];
+
+    let machineContext: Record<string, unknown> | undefined;
+    if (req.body?.context !== undefined) {
+      if (req.body.context === null || isPlainObject(req.body.context)) {
+        machineContext = req.body.context ?? undefined;
+      } else {
+        return res.status(400).json({ error: "context must be a plain object" });
+      }
+    }
+
+    let checkpointPayload: Omit<CheckpointPayload, "pendingQuestions"> | undefined;
+    if (req.body?.payload !== undefined) {
+      if (!isPlainObject(req.body.payload)) {
+        return res.status(400).json({ error: "payload must be a plain object" });
+      }
+      checkpointPayload = req.body.payload as Omit<CheckpointPayload, "pendingQuestions">;
+    }
+
+    // Abort the in-flight execution
+    const aborted = abortSession(sessionId);
+    console.log(`[Pause] Session ${sessionId} abort signal sent: ${aborted}`);
+
+    const checkpoint = await raiseInterrupt({
+      sessionId,
+      machine: session.machine,
+      reason,
+      questions,
+      machineContext,
+      checkpointPayload
+    });
+
+    session.paused = true;
+    session.questions = checkpoint.payload?.pendingQuestions ?? [];
+    session.checkpointUpdatedAt = checkpoint.updatedAt;
+
+    const snapshot = snapshotFromSession(sessionId, current);
+    snapshot.stage = stateToStage(session.machine.state);
+    snapshot.paused = true;
+    snapshot.questions = session.questions;
+    snapshot.checkpointUpdatedAt = checkpoint.updatedAt;
+    snapshot.done = false;
+    snapshot.updatedAt = Date.now();
+    progressSessions.set(sessionId, snapshot);
+
+    return res.status(201).json({ checkpoint });
+  } catch (error) {
+    if (error instanceof Error && /Cannot raise interrupt/.test(error.message)) {
+      return res.status(409).json({ error: error.message });
+    }
+    if (error instanceof Error) {
+      return res.status(400).json({ error: error.message });
+    }
+    return res.status(500).json({ error: "unknown error" });
+  }
+});
+
+app.post("/api/sessions/:id/resume", async (req, res) => {
+  try {
+    const { id } = req.params as { id: string };
+    const sessionId = id.trim();
+    if (!sessionId) {
+      return res.status(400).json({ error: "session id required" });
+    }
+
+    const session = getOrchestrationSession(sessionId);
+    if (!session) {
+      return res.status(404).json({ error: "session not found" });
+    }
+    if (!session.paused) {
+      return res.status(409).json({ error: "session is not paused" });
+    }
+
+    const answers = normalizeResumeAnswers(req.body?.answers);
+    const reasonRaw = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+
+    const result = await resumeFromCheckpoint(sessionId, answers, {
+      machine: session.machine,
+      reason: reasonRaw || undefined
+    });
+
+    session.paused = false;
+    session.questions = [];
+    session.checkpointUpdatedAt = result.checkpoint.updatedAt;
+
+    const snapshot = snapshotFromSession(sessionId, progressSessions.get(sessionId) ?? null);
+    snapshot.stage = stateToStage(session.machine.state);
+    snapshot.paused = false;
+    snapshot.questions = [];
+    snapshot.checkpointUpdatedAt = result.checkpoint.updatedAt;
+    snapshot.updatedAt = Date.now();
+    snapshot.done = false;
+    progressSessions.set(sessionId, snapshot);
+
+    return res.json({
+      checkpoint: result.checkpoint,
+      answeredQuestions: result.answeredQuestions
+    });
+  } catch (error) {
+    if (error instanceof ResumeValidationError) {
+      return res.status(400).json({ error: error.message, issues: error.issues });
+    }
+    if (error instanceof ResumeStateError) {
+      return res.status(409).json({ error: error.message });
+    }
+    if (error instanceof Error) {
+      return res.status(500).json({ error: error.message });
+    }
+    return res.status(500).json({ error: "unknown error" });
+  }
+});
+
 app.get("/api/progress/:sessionId", (req, res) => {
+  const { sessionId } = req.params as { sessionId: string };
+  openProgressStream(req, res, sessionId);
+});
+
+// JSON snapshot endpoint retained for polling fallbacks
+app.get("/api/progress/snapshot/:sessionId", (req, res) => {
   const { sessionId } = req.params as { sessionId: string };
   const snap = getProgress(sessionId);
   if (!snap) {
@@ -1027,28 +1450,10 @@ app.get("/api/progress/:sessionId", (req, res) => {
   return res.json(snap);
 });
 
-// Progress streaming via SSE
+// Legacy SSE alias for compatibility
 app.get("/api/progress/stream/:sessionId", (req, res) => {
   const { sessionId } = req.params as { sessionId: string };
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.flushHeaders?.();
-
-  const send = () => {
-    const snap = getProgress(sessionId);
-    if (snap) {
-      res.write(`event: progress\n`);
-      res.write(`data: ${JSON.stringify(snap)}\n\n`);
-      if (snap.done) {
-        clearInterval(timer);
-        res.end();
-      }
-    }
-  };
-  const timer = setInterval(send, 1000);
-  send();
-  req.on('close', () => clearInterval(timer));
+  openProgressStream(req, res, sessionId);
 });
 
 // File content endpoint with path sanitization
@@ -1094,6 +1499,16 @@ export const __progressTest = {
   set(sessionId: string, entry: ProgressSnapshot) { progressSessions.set(sessionId, entry); },
   get(sessionId: string) { return progressSessions.get(sessionId) ?? null; },
   purge(now: number) { purgeExpiredProgressSessions(now); },
-  ttl() { return PROGRESS_SESSION_TTL_MS; }
+  ttl() { return PROGRESS_SESSION_TTL_MS; },
+  clear() { progressSessions.clear(); }
+};
+
+export const __orchestratorTest = {
+  ensure(sessionId: string) {
+    return ensureOrchestrationSession(sessionId).machine;
+  },
+  clear() {
+    orchestrationSessions.clear();
+  }
 };
 import { validateFilesNonEmpty } from "./utils/validateFiles.js";
