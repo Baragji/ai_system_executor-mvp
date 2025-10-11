@@ -67,7 +67,7 @@ describe("dependencyPreflight", () => {
 
       await expect(
         validateDependencies({ express: "^4.18.0" })
-      ).resolves.toBeUndefined();
+      ).resolves.toMatchObject({ warnings: [] });
     });
 
     it("should throw DependencyPreflightError for non-existent package", async () => {
@@ -115,7 +115,7 @@ describe("dependencyPreflight", () => {
 
     it("should throw for version range with no matching version", async () => {
       const httpsGetMock = vi.mocked(https.get);
-      
+
       httpsGetMock.mockImplementation((_url, _options, _callback) => {
         const mockReq = createMockRequest();
         
@@ -140,11 +140,11 @@ describe("dependencyPreflight", () => {
       });
 
       await expect(
-        validateDependencies({ tailwindcss: "^3.5.0" })
+        validateDependencies({ tailwindcss: "^3.5.0" }, undefined, { allowVersionMismatch: false })
       ).rejects.toThrow(DependencyPreflightError);
 
       try {
-        await validateDependencies({ tailwindcss: "^3.5.0" });
+        await validateDependencies({ tailwindcss: "^3.5.0" }, undefined, { allowVersionMismatch: false });
       } catch (err) {
         const error = err as DependencyPreflightError;
         expect(error.errors).toHaveLength(1);
@@ -154,49 +154,78 @@ describe("dependencyPreflight", () => {
       }
     });
 
-    it("should throw for deprecated package (by default)", async () => {
+    it("should emit warning for version mismatch when allowed", async () => {
       const httpsGetMock = vi.mocked(https.get);
-      
+
       httpsGetMock.mockImplementation((_url, _options, _callback) => {
         const mockReq = createMockRequest();
-        
-        if (typeof _url === "string" && _url.includes("/old-pkg")) {
+
+        if (typeof _url === "string" && _url.includes("/tailwindcss")) {
           const mockRes = createMockResponse(200, JSON.stringify({
-            name: "old-pkg",
+            name: "tailwindcss",
             versions: {
-              "1.0.0": { deprecated: "This package is no longer maintained" }
+              "3.0.0": {},
+              "3.4.0": {},
+              "3.4.14": {}
             },
-            "dist-tags": { "latest": "1.0.0" }
+            "dist-tags": { "latest": "3.4.14" }
           }));
-          
+
           if (typeof _callback === "function") {
             _callback(mockRes);
           }
         }
-        
+
         return mockReq as unknown as ReturnType<typeof https.get>;
       });
 
-      await expect(
-        validateDependencies({ "old-pkg": "^1.0.0" })
-      ).rejects.toThrow(DependencyPreflightError);
-
-      try {
-        await validateDependencies({ "old-pkg": "^1.0.0" });
-      } catch (err) {
-        const error = err as DependencyPreflightError;
-        expect(error.errors).toHaveLength(1);
-        expect(error.errors[0].reason).toBe("DEPRECATED");
-        expect(error.errors[0].suggestion).toContain("deprecated");
-      }
+      const summary = await validateDependencies({ tailwindcss: "^3.5.0" });
+      expect(summary.warnings).toEqual([
+        expect.objectContaining({
+          package: "tailwindcss",
+          reason: "VERSION_MISMATCH"
+        })
+      ]);
     });
 
-    it("should allow deprecated package when allowDeprecated=true", async () => {
+    it("should warn for deprecated package by default", async () => {
       const httpsGetMock = vi.mocked(https.get);
-      
+
       httpsGetMock.mockImplementation((_url, _options, _callback) => {
         const mockReq = createMockRequest();
-        
+
+        if (typeof _url === "string" && _url.includes("/old-pkg")) {
+          const mockRes = createMockResponse(200, JSON.stringify({
+            name: "old-pkg",
+            versions: {
+              "1.0.0": { deprecated: "This package is no longer maintained" }
+            },
+            "dist-tags": { "latest": "1.0.0" }
+          }));
+
+          if (typeof _callback === "function") {
+            _callback(mockRes);
+          }
+        }
+
+        return mockReq as unknown as ReturnType<typeof https.get>;
+      });
+
+      const summary = await validateDependencies({ "old-pkg": "^1.0.0" });
+      expect(summary.warnings).toEqual([
+        expect.objectContaining({
+          package: "old-pkg",
+          reason: "DEPRECATED"
+        })
+      ]);
+    });
+
+    it("should throw for deprecated package when allowDeprecated=false", async () => {
+      const httpsGetMock = vi.mocked(https.get);
+
+      httpsGetMock.mockImplementation((_url, _options, _callback) => {
+        const mockReq = createMockRequest();
+
         if (typeof _url === "string" && _url.includes("/old-pkg")) {
           const mockRes = createMockResponse(200, JSON.stringify({
             name: "old-pkg",
@@ -215,8 +244,8 @@ describe("dependencyPreflight", () => {
       });
 
       await expect(
-        validateDependencies({ "old-pkg": "^1.0.0" }, undefined, { allowDeprecated: true })
-      ).resolves.toBeUndefined();
+        validateDependencies({ "old-pkg": "^1.0.0" }, undefined, { allowDeprecated: false })
+      ).rejects.toThrow(DependencyPreflightError);
     });
 
     it("should validate both dependencies and devDependencies", async () => {
@@ -248,7 +277,7 @@ describe("dependencyPreflight", () => {
 
       await expect(
         validateDependencies({ express: "^4.18.0" }, { vitest: "^1.0.0" })
-      ).resolves.toBeUndefined();
+      ).resolves.toMatchObject({ warnings: [] });
     });
 
     it("should detect Tailwind v4 without @tailwindcss/cli", async () => {
@@ -296,7 +325,7 @@ describe("dependencyPreflight", () => {
           tailwindcss: "^4.0.0",
           "@tailwindcss/cli": "^4.0.0"
         })
-      ).resolves.toBeUndefined();
+      ).resolves.toMatchObject({ warnings: [] });
     });
 
     it("should handle registry timeout gracefully", async () => {

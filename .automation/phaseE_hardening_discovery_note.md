@@ -168,6 +168,79 @@ if (!offlineRegistryFailure) {
 4. **Frontend timing**: Polling loops stay active during pause, which can conflict with future plans to rely on SSE step events.
 5. **Validation gating**: Dependency preflight can still abort runs when npm could resolve issues, contradicting the contract’s request to downgrade to warnings.
 
+## WA66 Integration Points (Dependency Preflight & Telemetry)
+
+### `src/validation/dependencyPreflight.ts`
+```ts
+// validateDependencies L250-L308
+const opts: Required<ValidateDependenciesOptions> = {
+  timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+  allowDeprecated: options.allowDeprecated ?? false,
+  allowVersionMismatch: options.allowVersionMismatch ?? false
+};
+
+const results = await Promise.all(validationPromises);
+errors.push(...results.filter((err): err is DependencyValidationError => err !== null));
+
+if (errors.length > 0) {
+  throw new DependencyPreflightError(
+    `Dependency validation failed for ${errors.length} package(s):\n${errorSummary}`,
+    errors
+  );
+}
+```
+- Returns `void` unless an error occurs; there’s no way to inspect warning-level issues.
+- Deprecated or mismatched versions are still treated as failures when callers forget to opt-in.
+
+### `src/runner/installDeps.ts`
+```ts
+// ensureDependencies L60-L107
+await validateDependencies(pkg.dependencies, pkg.devDependencies, {
+  allowDeprecated: true,
+  allowVersionMismatch: true
+});
+...
+const offlineRegistryFailure =
+  err && typeof err === "object" && "errors" in err &&
+  Array.isArray((err as DependencyPreflightError).errors) &&
+  (err as DependencyPreflightError).errors.every(
+    e => e.reason === "NOT_FOUND" && (e.suggestion ?? "").startsWith("Registry check failed")
+  );
+```
+- Always opts into relaxed validation but only logs via `console.warn` for registry outages.
+- No structured telemetry or persistence of warning details for later resume flows.
+
+### `src/runner/runInSandbox.ts`
+```ts
+// runInSandbox L118-L135
+const installResult = await ensureDependencies(projectRoot, timeoutMs);
+if (installResult.installed) {
+  installSummary = `[install] ran ${installResult.command}`;
+  ...
+}
+```
+- Sandbox caller discards any validation metadata and therefore cannot surface dependency warnings to the orchestrator.
+- No telemetry hook to append dependency signals into `.automation/execution_trace.jsonl`.
+
+### `src/server.ts`
+```ts
+type ProgressSnapshot = {
+  stage: string;
+  progress: number;
+  data?: Record<string, unknown>;
+  ...
+};
+
+interface OrchestrationSession {
+  machine: OrchestratorStateMachine;
+  paused: boolean;
+  questions: PendingQuestion[];
+  ...
+}
+```
+- Session state does not retain dependency warnings, so resume payloads have no way to surface “warning-only” results.
+- `setProgress` persists `data` payloads but lacks any merge strategy for dependency warning metadata.
+
 ## Open Questions / Follow-ups
 - What granularity should the new step queue expose to align with checkpoint payloads (e.g., per subtask, per repair attempt)?
 - Should pause responses include the last persisted step identifier so the client can render more context?

@@ -1,7 +1,11 @@
 import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { validateDependencies, DependencyPreflightError } from "../validation/dependencyPreflight.js";
+import {
+  validateDependencies,
+  DependencyPreflightError,
+  type DependencyValidationWarning
+} from "../validation/dependencyPreflight.js";
 
 let warnedOfflineRegistry = false;
 
@@ -27,6 +31,7 @@ export interface EnsureDependenciesResult {
   command: string | null;
   stdout?: string;
   stderr?: string;
+  warnings: DependencyValidationWarning[];
 }
 
 export async function ensureDependencies(
@@ -36,9 +41,11 @@ export async function ensureDependencies(
   const packageJsonPath = path.join(projectRoot, "package.json");
   const nodeModulesPath = path.join(projectRoot, "node_modules");
 
+  let dependencyWarnings: DependencyValidationWarning[] = [];
+
   const hasPackageJson = await pathExists(packageJsonPath);
   if (!hasPackageJson) {
-    return { installed: false, command: null };
+    return { installed: false, command: null, warnings: dependencyWarnings };
   }
 
   const hasNodeModules = await pathExists(nodeModulesPath);
@@ -61,10 +68,11 @@ export async function ensureDependencies(
     // Validate dependencies before attempting install (fail-fast on invalid versions)
     if (allDeps.length > 0) {
       try {
-        await validateDependencies(pkg.dependencies, pkg.devDependencies, {
+        const summary = await validateDependencies(pkg.dependencies, pkg.devDependencies, {
           allowDeprecated: true,  // Allow deprecated packages with warning (LLMs might generate older versions)
           allowVersionMismatch: true  // Allow version mismatches - LLMs may hallucinate versions, let npm resolve
         });
+        dependencyWarnings = summary.warnings;
       } catch (err) {
         const offlineRegistryFailure =
           err &&
@@ -85,6 +93,8 @@ export async function ensureDependencies(
           console.warn("[ensureDependencies] registry unavailable, continuing without remote validation", errors);
           warnedOfflineRegistry = true;
         }
+
+        dependencyWarnings = (err as DependencyPreflightError).warnings ?? [];
       }
     }
     
@@ -113,7 +123,7 @@ export async function ensureDependencies(
     (await pathExists(path.join(projectRoot, "package-lock.json"))) ||
     (await pathExists(path.join(projectRoot, "npm-shrinkwrap.json")));
   if (!needsInstall) {
-    return { installed: false, command: null };
+    return { installed: false, command: null, warnings: dependencyWarnings };
   }
 
   await fs.mkdir(projectRoot, { recursive: true });
@@ -204,6 +214,7 @@ export async function ensureDependencies(
     installed: true,
     command: buildCommandString(args),
     stdout,
-    stderr
+    stderr,
+    warnings: dependencyWarnings
   };
 }

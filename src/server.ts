@@ -74,6 +74,7 @@ import type {
   SingleExecutionOptions,
   SingleExecutionResult
 } from "./orchestrator/executionTypes.js";
+import type { DependencyValidationWarning } from "./validation/dependencyPreflight.js";
 
 const app = express();
 app.use(cors());
@@ -94,6 +95,7 @@ type ProgressSnapshot = {
   paused?: boolean;
   questions?: PendingQuestion[];
   checkpointUpdatedAt?: string;
+  dependencyWarnings?: DependencyValidationWarning[];
 };
 
 interface OrchestrationSession {
@@ -105,6 +107,7 @@ interface OrchestrationSession {
   originalPrompt?: string;
   effectivePrompt?: string;
   projectName?: string;
+  dependencyWarnings: DependencyValidationWarning[];
 }
 
 const progressSessions = new Map<string, ProgressSnapshot>();
@@ -114,7 +117,12 @@ const PROGRESS_SESSION_TTL_MS = Number(process.env.PROGRESS_SESSION_TTL_MS ?? 15
 function ensureOrchestrationSession(sessionId: string): OrchestrationSession {
   let session = orchestrationSessions.get(sessionId);
   if (!session) {
-    session = { machine: new OrchestratorStateMachine(), paused: false, questions: [] };
+    session = {
+      machine: new OrchestratorStateMachine(),
+      paused: false,
+      questions: [],
+      dependencyWarnings: []
+    };
     orchestrationSessions.set(sessionId, session);
   }
   return session;
@@ -126,6 +134,30 @@ function getOrchestrationSession(sessionId: string): OrchestrationSession | unde
 
 function removeOrchestrationSession(sessionId: string): void {
   orchestrationSessions.delete(sessionId);
+}
+
+function updateDependencyWarnings(sessionId: string, warnings: DependencyValidationWarning[]): void {
+  const session = ensureOrchestrationSession(sessionId);
+  session.dependencyWarnings = warnings.slice();
+
+  const existing = progressSessions.get(sessionId);
+  if (existing) {
+    const baseData = existing.data ? { ...existing.data } : {};
+    if (warnings.length > 0) {
+      baseData.dependencyWarnings = warnings;
+    } else {
+      delete baseData.dependencyWarnings;
+    }
+
+    const sanitizedData = Object.keys(baseData).length > 0 ? baseData : undefined;
+    const updated: ProgressSnapshot = {
+      ...existing,
+      data: sanitizedData,
+      dependencyWarnings: warnings.length > 0 ? warnings.slice() : undefined,
+      updatedAt: Date.now()
+    };
+    progressSessions.set(sessionId, updated);
+  }
 }
 
 function mapStageToState(stage: string, done?: boolean): OrchestratorState | null {
@@ -194,16 +226,31 @@ function setProgress(sessionId: string | undefined, stage: string, progress: num
     }
   }
 
+  let dataWithWarnings: Record<string, unknown> | undefined = data ? { ...data } : undefined;
+  const warnings = session.dependencyWarnings;
+  if (warnings.length > 0) {
+    dataWithWarnings = {
+      ...(dataWithWarnings ?? {}),
+      dependencyWarnings: warnings
+    };
+  } else if (dataWithWarnings && "dependencyWarnings" in dataWithWarnings) {
+    delete (dataWithWarnings as { dependencyWarnings?: unknown }).dependencyWarnings;
+    if (Object.keys(dataWithWarnings).length === 0) {
+      dataWithWarnings = undefined;
+    }
+  }
+
   progressSessions.set(sessionId, {
     stage,
     progress,
-    data,
+    data: dataWithWarnings,
     updatedAt: Date.now(),
     done,
     state: session.machine.state,
     paused: session.paused,
     questions: session.questions,
-    checkpointUpdatedAt: session.checkpointUpdatedAt
+    checkpointUpdatedAt: session.checkpointUpdatedAt,
+    dependencyWarnings: warnings.length > 0 ? warnings.slice() : undefined
   });
 }
 
@@ -279,16 +326,32 @@ function snapshotFromSession(sessionId: string, fallback?: ProgressSnapshot | nu
   const session = ensureOrchestrationSession(sessionId);
   const existing = fallback ?? progressSessions.get(sessionId) ?? null;
   const baseStage = existing?.stage ?? stateToStage(session.machine.state);
+  const warnings = session.dependencyWarnings;
+  let dataWithWarnings: Record<string, unknown> | undefined = existing?.data
+    ? { ...existing.data }
+    : undefined;
+  if (warnings.length > 0) {
+    dataWithWarnings = {
+      ...(dataWithWarnings ?? {}),
+      dependencyWarnings: warnings
+    };
+  } else if (dataWithWarnings && "dependencyWarnings" in dataWithWarnings) {
+    delete (dataWithWarnings as { dependencyWarnings?: unknown }).dependencyWarnings;
+    if (Object.keys(dataWithWarnings).length === 0) {
+      dataWithWarnings = undefined;
+    }
+  }
   return {
     stage: baseStage,
     progress: existing?.progress ?? 0,
-    data: existing?.data,
+    data: dataWithWarnings,
     updatedAt: Date.now(),
     done: existing?.done ?? false,
     state: session.machine.state,
     paused: session.paused,
     questions: session.questions,
-    checkpointUpdatedAt: session.checkpointUpdatedAt
+    checkpointUpdatedAt: session.checkpointUpdatedAt,
+    dependencyWarnings: warnings.length > 0 ? warnings.slice() : undefined
   };
 }
 
@@ -576,7 +639,16 @@ function createPlanExecutionContext(
       await ensureDefaultExportForApp(rootDir);
       await ensureJsonHealthOnDisk(rootDir);
     },
-    runTests: options => runInSandbox(options),
+    runTests: options =>
+      runInSandbox({
+        ...options,
+        onDependencyWarnings: warnings => {
+          const maybeSessionId = (options as { sessionId?: string }).sessionId;
+          if (typeof maybeSessionId === "string" && maybeSessionId) {
+            updateDependencyWarnings(maybeSessionId, warnings);
+          }
+        }
+      }),
     multiTurnRepair: context => multiTurnRepair(context),
     logTelemetry: event =>
       logEvent("plan_progress", {
@@ -929,6 +1001,10 @@ async function runSingleExecution(options: SingleExecutionOptions): Promise<Sing
 
     await logEvent("generation_start", { project: slug, mode: tracePhase ?? "single" });
 
+    if (sessionId) {
+      updateDependencyWarnings(sessionId, []);
+    }
+
     setProgress(sessionId, "generating", 55, progressMetadata);
 
     output.files = seedTestsInFiles(output.files);
@@ -941,7 +1017,12 @@ async function runSingleExecution(options: SingleExecutionOptions): Promise<Sing
     const initialRun = await runInSandbox({
       projectRoot: targetRoot,
       projectSlug: slug,
-      sessionId
+      sessionId,
+      onDependencyWarnings: warnings => {
+        if (sessionId) {
+          updateDependencyWarnings(sessionId, warnings);
+        }
+      }
     });
     await logEvent("test_run", { project: slug, stage: "initial", status: initialRun.status });
     await captureFixture(sessionId, slug, path.join("tests", "initial.json"), initialRun);
@@ -1741,11 +1822,19 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     snapshot.checkpointUpdatedAt = result.checkpoint.updatedAt;
     snapshot.updatedAt = Date.now();
     snapshot.done = false;
-    snapshot.data = {
+    const resumeData: Record<string, unknown> = {
       ...(snapshot.data ?? {}),
       resume: true,
       ...(adjustmentRaw ? { adjustment: adjustmentRaw } : {})
     };
+    if (session.dependencyWarnings.length > 0) {
+      resumeData.dependencyWarnings = session.dependencyWarnings;
+      snapshot.dependencyWarnings = session.dependencyWarnings.slice();
+    } else {
+      delete resumeData.dependencyWarnings;
+      snapshot.dependencyWarnings = undefined;
+    }
+    snapshot.data = resumeData;
     progressSessions.set(sessionId, snapshot);
 
     const resumeFixture: ResumeContextFixture = {
@@ -1768,7 +1857,10 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
 
     const progressMetadata = {
       resume: true,
-      ...(adjustmentRaw ? { adjustment: adjustmentRaw } : {})
+      ...(adjustmentRaw ? { adjustment: adjustmentRaw } : {}),
+      ...(session.dependencyWarnings.length > 0
+        ? { dependencyWarnings: session.dependencyWarnings }
+        : {})
     };
 
     const providerConfigured = Boolean(process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY);
@@ -1875,7 +1967,8 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     return res.json({
       checkpoint: result.checkpoint,
       answeredQuestions: result.answeredQuestions,
-      resumed: true
+      resumed: true,
+      dependencyWarnings: session.dependencyWarnings.slice()
     });
   } catch (error) {
     if (error instanceof ResumeValidationError) {
