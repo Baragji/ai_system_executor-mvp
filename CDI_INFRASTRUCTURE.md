@@ -36,6 +36,7 @@
 | File | What It Does | Why It Matters |
 |------|--------------|----------------|
 | `contracts/Roadmap_execution/11_phaseA_contract_enhanced.json` | Phase A contract with CDI discovery phase | Detailed instructions for UI baseline wins (WA1-WA3) |
+| `contracts/Roadmap_execution/16_phaseA_accessibility_pause_contract.json` | Phase A win set for accessibility + pause clarifications | Governs fixes for link contrast, shared clarification helper, multi-cycle pause handling, and snapshot refresh |
 
 ---
 

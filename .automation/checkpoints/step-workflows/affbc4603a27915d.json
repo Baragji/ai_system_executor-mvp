@@ -1,0 +1,92 @@
+{
+  "sessionId": "affbc4603a27915d",
+  "cursor": 0,
+  "steps": [
+    {
+      "stepId": "eb5c7f02-a911-4f53-9920-9940a4c7401c",
+      "stepType": "single",
+      "sequence": 0,
+      "status": "paused",
+      "queuedAt": "2025-10-11T19:56:13.863Z",
+      "payload": {
+        "singleOptions": {
+          "sessionId": "affbc4603a27915d",
+          "systemPrompt": "# Executor Agent — System Prompt (MVP)\n\nYou are **Executor Agent**. Your sole job: convert a user's build request into a **strict JSON object** that lists files to write to disk.\n\n## Absolute Rules\n1) **Only output JSON** (no markdown, no code fences, no prose).\n2) JSON **must validate** against the provided schema.\n3) All file paths must be **POSIX relative** under a project root (no leading slash, no `..`).\n4) **Runnable minimalism:** produce the smallest complete project that runs locally.\n5) Prefer **Node.js + TypeScript** (when unspecified). Provide a `README.md` with run steps.\n\n## JSON Schema (reference)\n- `project_name` (string, optional)\n- `files` (array of `{ path, contents }`) — **required**\n- `notes` (array of strings, optional)\n- `hasTests` (boolean, **required**) — MUST be `true` when you provide test files\n\n## Quality Bar\n- Files must be coherent and self-consistent.\n- No placeholders like “ADD YOUR KEY HERE.” If a key is needed, instruct to use env var via `.env.example`.\n- Avoid binary assets; use text-only examples.\n- **Testing is mandatory**: always generate at least one automated test file in `tests/` or `__tests__/`.\n- Set `hasTests: true` in the JSON output when you include test files.\n\n## Example intents\n- “hello world api” → Produce a minimal Node/TS HTTP server with a `GET /` returning \"Hello World\".\n- “hello world web app” → Produce minimal Node/TS static server + `index.html` with “Hello World”.\n\n### Example Response Outline\n{\n  \"project_name\": \"awesome-tool\",\n  \"files\": [\n    { \"path\": \"src/index.ts\", \"contents\": \"// implementation\" },\n    { \"path\": \"tests/index.test.ts\", \"contents\": \"// tests\" }\n  ],\n  \"notes\": [\"Tests can be run with npm test\"],\n  \"hasTests\": true\n}\n\nReturn only the JSON object that matches the schema.\n",
+          "executorPrompt": "Create a simple Node web server that says Hello",
+          "originalPrompt": "Create a simple Node web server that says Hello",
+          "projectNameHint": "",
+          "clarificationsUsed": false,
+          "clarificationQuestions": [
+            {
+              "id": "framework",
+              "text": "Which framework should power this project?",
+              "type": "choice",
+              "options": [
+                "FastAPI",
+                "Flask",
+                "Express",
+                "Django"
+              ],
+              "default": "Express"
+            },
+            {
+              "id": "port",
+              "text": "Which port should the service listen on? (default 8000)",
+              "type": "number"
+            }
+          ],
+          "clarificationAsked": true,
+          "preserveWorkspace": false,
+          "tracePhase": "single"
+        }
+      },
+      "startedAt": "2025-10-11T19:56:13.866Z",
+      "completedAt": "2025-10-11T19:56:13.896Z",
+      "error": {
+        "message": "Execution paused during single",
+        "stack": "PausedError: Execution paused during single\n    at runProviderCall (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/llm/index.ts:160:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async generateJSON (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/llm/index.ts:174:20)\n    at async generateExecutorOutputFromPrompt (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:466:15)\n    at async runSingleExecution (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:887:16)\n    at async singleStepHandler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1177:18)\n    at async StepQueue.handle (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:252:22)\n    at async InlineExecutionQueue.handler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)\n    at async StepQueue.enqueueStep (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:236:20)\n    at async StepQueue.runWorkflow (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:175:24)"
+      }
+    }
+  ],
+  "updatedAt": "2025-10-11T19:56:13.897Z",
+  "plan": [
+    {
+      "order": 0,
+      "stepType": "single",
+      "optional": false,
+      "stopOnSuccess": true,
+      "payload": {
+        "singleOptions": {
+          "sessionId": "affbc4603a27915d",
+          "systemPrompt": "# Executor Agent — System Prompt (MVP)\n\nYou are **Executor Agent**. Your sole job: convert a user's build request into a **strict JSON object** that lists files to write to disk.\n\n## Absolute Rules\n1) **Only output JSON** (no markdown, no code fences, no prose).\n2) JSON **must validate** against the provided schema.\n3) All file paths must be **POSIX relative** under a project root (no leading slash, no `..`).\n4) **Runnable minimalism:** produce the smallest complete project that runs locally.\n5) Prefer **Node.js + TypeScript** (when unspecified). Provide a `README.md` with run steps.\n\n## JSON Schema (reference)\n- `project_name` (string, optional)\n- `files` (array of `{ path, contents }`) — **required**\n- `notes` (array of strings, optional)\n- `hasTests` (boolean, **required**) — MUST be `true` when you provide test files\n\n## Quality Bar\n- Files must be coherent and self-consistent.\n- No placeholders like “ADD YOUR KEY HERE.” If a key is needed, instruct to use env var via `.env.example`.\n- Avoid binary assets; use text-only examples.\n- **Testing is mandatory**: always generate at least one automated test file in `tests/` or `__tests__/`.\n- Set `hasTests: true` in the JSON output when you include test files.\n\n## Example intents\n- “hello world api” → Produce a minimal Node/TS HTTP server with a `GET /` returning \"Hello World\".\n- “hello world web app” → Produce minimal Node/TS static server + `index.html` with “Hello World”.\n\n### Example Response Outline\n{\n  \"project_name\": \"awesome-tool\",\n  \"files\": [\n    { \"path\": \"src/index.ts\", \"contents\": \"// implementation\" },\n    { \"path\": \"tests/index.test.ts\", \"contents\": \"// tests\" }\n  ],\n  \"notes\": [\"Tests can be run with npm test\"],\n  \"hasTests\": true\n}\n\nReturn only the JSON object that matches the schema.\n",
+          "executorPrompt": "Create a simple Node web server that says Hello",
+          "originalPrompt": "Create a simple Node web server that says Hello",
+          "projectNameHint": "",
+          "clarificationsUsed": false,
+          "clarificationQuestions": [
+            {
+              "id": "framework",
+              "text": "Which framework should power this project?",
+              "type": "choice",
+              "options": [
+                "FastAPI",
+                "Flask",
+                "Express",
+                "Django"
+              ],
+              "default": "Express"
+            },
+            {
+              "id": "port",
+              "text": "Which port should the service listen on? (default 8000)",
+              "type": "number"
+            }
+          ],
+          "clarificationAsked": true,
+          "preserveWorkspace": false,
+          "tracePhase": "single"
+        }
+      }
+    }
+  ]
+}

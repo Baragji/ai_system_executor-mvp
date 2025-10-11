@@ -1,0 +1,34 @@
+{
+  "project_name": "safe-divide-lib",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"safe-divide-lib\",\n  \"version\": \"0.1.0\",\n  \"description\": \"A tiny TypeScript library providing a well-specified safeDivide function with unit tests.\",\n  \"main\": \"dist/index.js\",\n  \"types\": \"dist/index.d.ts\",\n  \"scripts\": {\n    \"build\": \"tsc\",\n    \"test\": \"jest\",\n    \"prepare\": \"npm run build\"\n  },\n  \"keywords\": [],\n  \"author\": \"\",\n  \"license\": \"MIT\",\n  \"devDependencies\": {\n    \"@types/jest\": \"^29.5.2\",\n    \"jest\": \"^29.6.1\",\n    \"ts-jest\": \"^29.1.0\",\n    \"typescript\": \"^5.2.2\"\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2019\",\n    \"module\": \"CommonJS\",\n    \"declaration\": true,\n    \"outDir\": \"dist\",\n    \"rootDir\": \"src\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true\n  },\n  \"include\": [\"src/**/*\", \"tests/**/*\"]\n}\n"
+    },
+    {
+      "path": "jest.config.cjs",
+      "contents": "module.exports = {\n  preset: 'ts-jest',\n  testEnvironment: 'node',\n  testMatch: ['**/tests/**/*.test.ts']\n};\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# safeDivide — specification\n\nOne-paragraph specification:\n\nsafeDivide is a tiny, well-documented function that divides two finite numbers with explicit handling for a zero denominator. The function name is safeDivide(numerator, denominator, options?), where numerator and denominator are required numbers and options is an optional object { onZero?: 'throw' | 'null' | 'infinity' }. The default behavior is 'throw': if denominator is zero, safeDivide throws a RangeError('Division by zero'). If options.onZero is 'null', the function returns null when the denominator is zero. If options.onZero is 'infinity', the function returns Infinity or -Infinity according to the sign of the numerator (and NaN if numerator is 0). For non-zero denominators the function returns the standard numeric quotient. Inputs must be finite numbers; passing NaN or Infinity for either argument causes a TypeError.\n\nEdge cases and error handling (summary):\n- denominator === 0: behavior depends on options.onZero ('throw' | 'null' | 'infinity'). Default is 'throw' (RangeError).\n- numerator === 0 and denominator === 0 with onZero === 'infinity' -> returns NaN (consistent with 0/0 semantics when choosing infinity behavior).\n- Non-finite inputs (NaN, Infinity, -Infinity) cause a TypeError.\n\nExample usage (2-3 example calls):\n\n1) Default (throws on zero):\n\nconst result = safeDivide(6, 3); // returns 2\n\n2) Return null on zero denominator:\n\nconst maybe = safeDivide(1, 0, { onZero: 'null' }); // returns null\n\n3) Return signed infinity on zero denominator:\n\nconst inf = safeDivide(-2, 0, { onZero: 'infinity' }); // returns -Infinity\n\n\nRun tests:\n\n1. npm install\n2. npm test\n\n"
+    },
+    {
+      "path": "src/index.ts",
+      "contents": "/**\n * safeDivide\n *\n * Specification summary (also in README):\n * - Function: safeDivide(numerator, denominator, options?)\n * - Inputs:\n *    - numerator: number (finite)\n *    - denominator: number (finite)\n *    - options?: { onZero?: 'throw' | 'null' | 'infinity' }\n * - Output: number | null (null only possible when options.onZero === 'null')\n * - Default behavior: options.onZero defaults to 'throw' => throws RangeError on division by zero\n * - Edge behaviors:\n *    - onZero === 'null' => return null when denominator === 0\n *    - onZero === 'infinity' => return signed Infinity based on numerator sign; if numerator === 0 => NaN\n * - Invalid inputs (non-finite numbers) => throw TypeError\n */\n\nexport type OnZeroBehavior = 'throw' | 'null' | 'infinity';\n\nexport interface SafeDivideOptions {\n  onZero?: OnZeroBehavior;\n}\n\nexport function safeDivide(numerator: number, denominator: number, options?: SafeDivideOptions): number | null {\n  const onZero: OnZeroBehavior = options?.onZero ?? 'throw';\n\n  // Validate inputs: must be finite numbers\n  if (!Number.isFinite(numerator) || !Number.isFinite(denominator)) {\n    throw new TypeError('Inputs must be finite numbers');\n  }\n\n  if (denominator === 0) {\n    if (onZero === 'throw') {\n      throw new RangeError('Division by zero');\n    }\n\n    if (onZero === 'null') {\n      return null;\n    }\n\n    // onZero === 'infinity'\n    if (numerator === 0) return NaN;\n    return numerator > 0 ? Infinity : -Infinity;\n  }\n\n  return numerator / denominator;\n}\n\nexport default safeDivide;\n"
+    },
+    {
+      "path": "tests/safeDivide.test.ts",
+      "contents": "import { safeDivide } from '../src/index';\n\ndescribe('safeDivide', () => {\n  test('returns normal quotient for non-zero denominator', () => {\n    expect(safeDivide(6, 3)).toBe(2);\n    expect(safeDivide(-9, 3)).toBe(-3);\n  });\n\n  test('throws RangeError by default when denominator is zero', () => {\n    expect(() => safeDivide(1, 0)).toThrow(RangeError);\n  });\n\n  test('returns null when onZero is \"null\"', () => {\n    expect(safeDivide(1, 0, { onZero: 'null' })).toBeNull();\n  });\n\n  test('returns signed infinity when onZero is \"infinity\"', () => {\n    expect(safeDivide(5, 0, { onZero: 'infinity' })).toBe(Infinity);\n    expect(safeDivide(-5, 0, { onZero: 'infinity' })).toBe(-Infinity);\n    // 0/0 with infinity policy -> NaN\n    const res = safeDivide(0, 0, { onZero: 'infinity' });\n    expect(Number.isNaN(res as number)).toBe(true);\n  });\n\n  test('throws TypeError for non-finite inputs', () => {\n    expect(() => safeDivide(NaN, 1)).toThrow(TypeError);\n    expect(() => safeDivide(1, Infinity)).toThrow(TypeError);\n  });\n});\n"
+    }
+  ],
+  "notes": [
+    "Run tests: npm install && npm test",
+    "Specification is documented in README.md (one-paragraph spec + 3 examples)"
+  ],
+  "hasTests": true
+}

@@ -1,0 +1,81 @@
+{
+  "contrast_link_integration": {
+    "file": "public/index.html",
+    "line": 18,
+    "current_snippet": "<p><a href=\"/fixtures.html\" style=\"text-decoration:underline\">🔍 Debug / Fixtures</a></p>",
+    "proposed_change": "Remove inline styling and rely on CSS class with accessible color contrast",
+    "dependencies": [
+      "Anchor rendered inside <main class=\"container\">",
+      "Dark background colour #111827 defined in public/styles.css",
+      "Link text supplied via literal emoji + string"
+    ],
+    "impact": "Improves WCAG 2.1 AA contrast without altering navigation structure"
+  },
+  "contrast_css_integration": {
+    "file": "public/styles.css",
+    "line": 1,
+    "current_snippet": "body { ... background: #0b0f19; color: #e6e9ef; }\n.container { ... background: #111827; }\n/* no dedicated anchor styles declared */",
+    "proposed_change": "Introduce container-level anchor styles (.container a, :hover, :focus-visible) using high-contrast palette and underline visibility",
+    "dependencies": [
+      "Shared colour tokens for container backgrounds",
+      "Existing button/typography styles",
+      "Baseline link hover/focus expectations from tests/ui/home.spec.ts"
+    ],
+    "impact": "Satisfies axe-core colour-contrast rule while keeping visual theme aligned"
+  },
+  "pause_immediacy_clarification_flow": {
+    "file": "tests/ui/pause-immediacy.spec.ts",
+    "line": 18,
+    "current_snippet": "const clarSection = page.locator('#clarificationSection:not(.hidden)');\nif (await clarSection.isVisible({ timeout: 1000 }).catch(() => false)) {\n  const skipBtn = page.locator('#skipClarifications');\n  if (await skipBtn.isVisible().catch(() => false)) {\n    await skipBtn.click();\n  }\n}",
+    "proposed_change": "Replace 1s visibility probe with shared helper that waits up to 5s, prefers answering clarifications when present, and ensures execution starts before Pause expectations",
+    "dependencies": [
+      "Clarification controls defined in public/index.html markup",
+      "Potential shared helper in tests/ui/helpers.ts",
+      "Playwright expect() calls gating pause button visibility"
+    ],
+    "impact": "Prevents flake where clarifications remain unanswered and Pause button stays hidden"
+  },
+  "pause_resume_multicycle_clarification_flow": {
+    "file": "tests/ui/pause-resume-e2e.spec.ts",
+    "line": 144,
+    "current_snippet": "for (let i = 1; i <= 2; i++) {\n  await page.waitForTimeout(2000);\n  const pauseButton = page.locator('button.btn.btn-secondary:has-text(\"Pause\")');\n  await expect(pauseButton).toBeVisible({ timeout: 15000 });\n  await expect(pauseButton).toBeEnabled({ timeout: 15000 });\n  await pauseButton.click();\n  ...\n}",
+    "proposed_change": "Insert clarification handling before loop using shared helper to answer/skip prompts so Pause controls become available consistently",
+    "dependencies": [
+      "Same clarification DOM as pause-immediacy test",
+      "Logging helpers within spec (console outputs)",
+      "Resume drawer selectors used later in loop"
+    ],
+    "impact": "Stabilises multiple pause/resume cycles across browsers where clarifications block execution start"
+  },
+  "clarification_helper_extension": {
+    "file": "tests/ui/helpers.ts",
+    "line": 1,
+    "current_snippet": "export async function getSnapshot(...) { ... }\nexport async function waitForPaused(...) { ... }\n// No UI clarification helper exported",
+    "proposed_change": "Add reusable async function that drives clarification form (radio, text, skip) for UI specs, exposed for import in affected tests",
+    "dependencies": [
+      "Playwright Page type (will require import see usage site)",
+      "Clarification form selectors (#clarificationForm, #answerClarifications, #skipClarifications)",
+      "Existing helper export pattern"
+    ],
+    "impact": "Reduces duplicated logic and keeps future specs consistent"
+  },
+  "visual_regression_snapshot_scope": {
+    "file": "tests/ui/home.spec.ts-snapshots/*, tests/ui/execution-flow.spec.ts-snapshots/*",
+    "current_state": "Snapshots captured before orchestration UI tweaks; Playwright diffs ~2% pixels on latest runs",
+    "proposed_change": "Regenerate baselines after manual verification of new UI to realign visual regression tests",
+    "dependencies": [
+      "Playwright configuration in playwright.config.ts",
+      "CI visual regression gating using stored PNGs",
+      "Updated UI from public/script.js orchestrator features"
+    ],
+    "impact": "Eliminates persistent false positives in visual regression stage"
+  },
+  "stack_compliance_check": {
+    "ai_stack_file": "ai-stack.json",
+    "language": "TypeScript/JavaScript only",
+    "frontend_scope": "/public (vanilla JS/CSS)",
+    "no_python_enforced": true,
+    "new_dependencies_required": false,
+    "notes": "All upcoming edits stay within public/ and tests/ui, fully compliant with stack guardrails"
+  }
+}

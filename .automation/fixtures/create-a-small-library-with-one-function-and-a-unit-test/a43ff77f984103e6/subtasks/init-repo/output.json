@@ -1,0 +1,34 @@
+{
+  "project_name": "smalllib",
+  "files": [
+    {
+      "path": "pyproject.toml",
+      "contents": "[build-system]\nrequires = [\"setuptools>=42\", \"wheel\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"smalllib\"\nversion = \"0.1.0\"\ndescription = \"A small library with one function\"\nreadme = \"README.md\"\nlicense = { text = \"MIT\" }\nrequires-python = \">=3.8\"\nauthors = [{ name = \"Your Name\", email = \"you@example.com\" }]\n\n[project.optional-dependencies]\ndev = [\"pytest\"]\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# smalllib\n\nA tiny Python library with one function and tests.\n\nQuickstart\n\n1. Create a virtual environment and activate it:\n\n   python -m venv .venv\n\n   # macOS / Linux\n   source .venv/bin/activate\n\n   # Windows (PowerShell)\n   .\\.venv\\Scripts\\Activate.ps1\n\n2. Install the package and dev dependencies:\n\n   pip install -e .\n   pip install -r requirements-dev.txt\n\n3. Run tests:\n\n   pytest\n\nNotes\n\n- The project uses a src/ layout. The tests are configured to work locally by adding src/ to PYTHONPATH at test runtime.\n- To run the library interactively after installing in editable mode: python -c \"from smalllib import add; print(add(2,3))\"\n"
+    },
+    {
+      "path": "requirements-dev.txt",
+      "contents": "pytest\n"
+    },
+    {
+      "path": "src/smalllib/__init__.py",
+      "contents": "\"\"\"smalllib: a minimal example library.\"\"\"\n\n__all__ = [\"add\", \"__version__\"]\n__version__ = \"0.1.0\"\n\n\ndef add(a, b):\n    \"\"\"Return the sum of a and b.\n\n    This simple function is the library's functionality used by the tests.\n    \"\"\"\n    return a + b\n"
+    },
+    {
+      "path": "tests/conftest.py",
+      "contents": "import os\nimport sys\n\n# Ensure src/ is on sys.path so tests can import the package without installing.\nROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), \"..\"))\nSRC = os.path.join(ROOT, \"src\")\nif SRC not in sys.path:\n    sys.path.insert(0, SRC)\n"
+    },
+    {
+      "path": "tests/test_add.py",
+      "contents": "from smalllib import add\n\n\ndef test_add_integers():\n    assert add(2, 3) == 5\n\n\ndef test_add_floats():\n    assert add(2.5, 1.5) == 4.0\n"
+    }
+  ],
+  "notes": [
+    "Create and activate a virtual environment (python -m venv .venv), then install the package and dev deps: pip install -e .; pip install -r requirements-dev.txt",
+    "Run tests with pytest"
+  ],
+  "hasTests": true
+}

@@ -1,0 +1,400 @@
+{
+  "contract_version": "A.4.0",
+  "contract_meta": {
+    "created": "2025-10-10",
+    "phase": "A",
+    "phase_name": "UI Baseline Fixes — Accessibility & Pause Hardening",
+    "prerequisite_phase": "Phase A (Discovery complete)",
+    "enhancement": "Adds CDI-governed wins for home link contrast, pause clarification reliability, multi-cycle pause/resume handling, and refreshed Playwright baselines.",
+    "rationale": "Recent UI test runs revealed four gating regressions: axe-core reports a 1.88:1 contrast violation for the fixtures link, pause-immediacy fails when clarifications arrive late, multi-cycle pause/resume never clears required clarifications, and visual regression snapshots drifted after orchestration UI changes. This contract formalizes a discovery-first remediation plan so the executor regains accessibility compliance and deterministic pause behavior without deviating from the locked stack.",
+    "references": [
+      ".automation/phase16_discovery_note.md",
+      "public/index.html",
+      "tests/ui/pause-immediacy.spec.ts",
+      "tests/ui/pause-resume-e2e.spec.ts",
+      "tests/ui/home.spec.ts"
+    ]
+  },
+  "project": {
+    "name": "UMCA Executor MVP",
+    "current_phase": "A - UI Baseline Fixes",
+    "goal": "Restore WCAG-compliant link styling, harden pause clarifications across UI tests, and align Playwright baselines so accessibility and pause UX checks pass consistently.",
+    "scope": "Discovery plus four wins: contrast styling update, shared clarification helper + spec integrations, multi-cycle pause clarifications, and refreshed screenshots.",
+    "estimated_time": "Discovery 45m + 4 wins (≤45m each) ≈ 4 hours",
+    "work_profile": "Frontend HTML/CSS tweaks, Playwright test refactors, contract/evidence updates",
+    "out_of_scope": [
+      "Backend API changes or new endpoints",
+      "Introducing new dependencies or frameworks",
+      "Modifying protected CODEOWNERS files",
+      "Expanding pause orchestration beyond UI-driven fixes"
+    ]
+  },
+  "execution_model": {
+    "type": "discovery_then_autonomous",
+    "verification_strategy": "Capture discovery artifacts, implement focused wins, rerun axe-core and Playwright UI suits, and document evidence.",
+    "description": "Agent completes discovery (phase16) before touching code, executes isolated wins with shared helpers, and validates via lint/typecheck/tests plus targeted UI runs.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "ai-stack.json",
+    "language": "TypeScript/JavaScript",
+    "frameworks": [
+      "Express"
+    ],
+    "test_command": "vitest run --reporter=default",
+    "constraints": [
+      "No Python",
+      "Frontend under /public only (vanilla JS/CSS)",
+      "No new dependencies without justification",
+      "No breaking API changes"
+    ],
+    "validation": "Contract schema validation + CI guardrails"
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "macos|linux",
+      "env_vars_required": [],
+      "optional_env_vars": [
+        "UI_ORIGIN"
+      ],
+      "verify_commands": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test"
+      ]
+    }
+  },
+  "observability": {
+    "description": "Track discovery, implementation gates, and evidence uploads for accessibility and pause clarifications.",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "discovery_file": ".automation/phase16_discovery.json",
+    "evidence_file": ".automation/phase16_evidence.json",
+    "evaluation_file": ".automation/phase16_evaluation.json",
+    "monitoring": {
+      "discovery_phase_tracking": true,
+      "integration_point_validation": true,
+      "win_status": ["pending", "in_progress", "complete"],
+      "evidence_collection_tracking": true
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": [
+        "timestamp",
+        "task_id",
+        "action",
+        "status",
+        "command",
+        "exit_code",
+        "stdout_excerpt",
+        "stderr_excerpt"
+      ]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_discovery": true,
+      "evaluate_after_each_win": true,
+      "quality_dimensions": [
+        "correctness",
+        "completeness",
+        "safety",
+        "evidence_quality"
+      ]
+    }
+  },
+  "high_level_stages": [
+    "Discovery",
+    "Accessibility Fix",
+    "Pause Clarification Hardening",
+    "Visual Baseline Refresh",
+    "Evidence & Validation"
+  ],
+  "tasks": [
+    {
+      "id": "PA-DISCX",
+      "stage": "Discovery",
+      "title": "Document integration points for contrast, clarifications, and snapshots",
+      "type": "discovery",
+      "description": "Inspect home link markup, styling, Playwright specs, and snapshot directories; capture integration points in phase16 discovery note/json with ±10 line snippets.",
+      "time_estimate_minutes": 45,
+      "actions": [
+        "Record existing fixtures link markup and container background (#111827) in public/index.html",
+        "Capture absence of anchor styling in public/styles.css near file head",
+        "Document clarifications handling blocks in pause-immediacy and pause-resume specs",
+        "Note helper exports in tests/ui/helpers.ts for future reuse",
+        "List outdated snapshot directories for home/execution-flow",
+        "Publish .automation/phase16_discovery.json and .automation/phase16_discovery_note.md"
+      ],
+      "validation": [
+        {"cmd": "test -f .automation/phase16_discovery.json", "expect_exit_code": 0},
+        {"cmd": "test -f .automation/phase16_discovery_note.md", "expect_exit_code": 0},
+        {"cmd": "grep -q 'contrast_link_integration' .automation/phase16_discovery.json", "expect_exit_code": 0}
+      ],
+      "success_criteria": [
+        "All integration points mapped with file + line references",
+        "Stack compliance confirmed against ai-stack.json",
+        "Discovery artifacts stored under .automation/"
+      ],
+      "trace_context": {
+        "decision_point": "phase16_discovery_complete",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "WA1",
+      "stage": "Accessibility Fix",
+      "title": "Improve fixtures link contrast for WCAG 2.1 AA",
+      "type": "win",
+      "description": "Remove inline link styling, add high-contrast anchor rules in styles.css, and verify axe-core passes on the home page.",
+      "time_estimate_minutes": 35,
+      "prerequisite": "PA-DISCX",
+      "actions": [
+        "Edit public/index.html to drop inline style and apply semantic class/selector if needed",
+        "Add .container a, :hover, and :focus-visible rules with ≥4.5:1 contrast colours (e.g. #60a5fa on #111827)",
+        "Maintain visible underline plus focus outline for accessibility",
+        "Run npm run lint and npm run typecheck to ensure frontend bundle builds",
+        "Re-run tests/ui/home.spec.ts accessibility cases via Playwright to confirm zero violations"
+      ],
+      "validation": [
+        {"cmd": "npm run lint", "expect_exit_code": 0},
+        {"cmd": "npm run typecheck", "expect_exit_code": 0},
+        {"cmd": "npx playwright test tests/ui/home.spec.ts --project=chromium --grep \"accessibility\"", "expect_exit_code": 0}
+      ],
+      "success_criteria": [
+        "Axe scan reports no colour-contrast violations",
+        "Link styling matches brand palette while remaining accessible",
+        "No regressions introduced to surrounding layout"
+      ]
+    },
+    {
+      "id": "WA2",
+      "stage": "Pause Clarification Hardening",
+      "title": "Harden pause-immediacy clarifications handling",
+      "type": "win",
+      "description": "Create a shared clarification helper in tests/ui/helpers.ts and update pause-immediacy spec to use it with generous waits and answer/skip logic.",
+      "time_estimate_minutes": 45,
+      "prerequisite": "PA-DISCX",
+      "actions": [
+        "Add async handleClarifications helper exporting from tests/ui/helpers.ts using Playwright Page APIs",
+        "Import helper into tests/ui/pause-immediacy.spec.ts and replace ad-hoc 1s wait logic",
+        "Ensure helper supports skip fallback while preferring to answer prompts when options exist",
+        "Adjust test annotations/logging as needed to reference helper outcomes",
+        "Execute targeted Playwright run to confirm pause-immediacy passes across Chromium"
+      ],
+      "validation": [
+        {"cmd": "npx playwright test tests/ui/pause-immediacy.spec.ts --project=chromium", "expect_exit_code": 0}
+      ],
+      "success_criteria": [
+        "Clarification prompts are consistently cleared before Pause expectations",
+        "Test no longer times out waiting for Pause button",
+        "Helper reusable by other specs without duplication"
+      ]
+    },
+    {
+      "id": "WA3",
+      "stage": "Pause Clarification Hardening",
+      "title": "Teach multi-cycle pause/resume test to satisfy clarifications",
+      "type": "win",
+      "description": "Reuse clarification helper in pause-resume E2E scenarios so both single-cycle and multi-cycle flows start execution reliably.",
+      "time_estimate_minutes": 45,
+      "prerequisite": "WA2",
+      "actions": [
+        "Import clarification helper into tests/ui/pause-resume-e2e.spec.ts",
+        "Refactor first scenario to call helper instead of inline form automation",
+        "Invoke helper before multi-cycle loop so Pause button becomes available",
+        "Balance waits/log output to reflect helper status (answered vs skipped)",
+        "Run Playwright tests for pause-resume specs across Chromium (and optionally firefox/webkit when available)"
+      ],
+      "validation": [
+        {"cmd": "npx playwright test tests/ui/pause-resume-e2e.spec.ts --project=chromium", "expect_exit_code": 0}
+      ],
+      "success_criteria": [
+        "Pause button becomes visible/enabled without timing out",
+        "Clarification helper covers radio/text inputs and skip fallback",
+        "Console logs reflect clarification resolution steps"
+      ]
+    },
+    {
+      "id": "WA4",
+      "stage": "Visual Baseline Refresh",
+      "title": "Refresh Playwright home + execution-flow baselines",
+      "type": "win",
+      "description": "Validate updated orchestration UI visually, regenerate snapshots for home and execution flow specs, and ensure diffs disappear.",
+      "time_estimate_minutes": 40,
+      "prerequisite": "WA3",
+      "actions": [
+        "Manually review / (home) and execution flow views to confirm intended layout",
+        "Run npx playwright test --update-snapshots targeting home.spec.ts and execution-flow.spec.ts",
+        "Commit refreshed PNG assets under tests/ui/*-snapshots/",
+        "Re-run Playwright tests (chromium) to verify zero diffs",
+        "Document snapshot refresh in evidence note"
+      ],
+      "validation": [
+        {"cmd": "npx playwright test tests/ui/home.spec.ts tests/ui/execution-flow.spec.ts --project=chromium", "expect_exit_code": 0}
+      ],
+      "success_criteria": [
+        "Updated snapshots exist for all configured browsers",
+        "Visual regression step reports no >0.01 pixel ratio diff",
+        "No unintended UI regressions introduced"
+      ]
+    },
+    {
+      "id": "PA-EVID",
+      "stage": "Evidence & Validation",
+      "title": "Collect evidence and run full validation suite",
+      "type": "evidence",
+      "description": "Aggregate discovery + win evidence, run lint/typecheck/tests/contract/sbom, and store results in phase16 evidence artefacts.",
+      "time_estimate_minutes": 35,
+      "prerequisite": "WA4",
+      "actions": [
+        "Run npm run lint, npm run typecheck, npm test, npm run contract:check, npm run sbom",
+        "Capture targeted Playwright outputs confirming fixes",
+        "Update .automation/phase16_evidence.json with command statuses and artefact paths",
+        "Summarize outcomes in handoff note if required"
+      ],
+      "validation": [
+        {"cmd": "npm run lint", "expect_exit_code": 0},
+        {"cmd": "npm run typecheck", "expect_exit_code": 0},
+        {"cmd": "npm test", "expect_exit_code": 0},
+        {"cmd": "npm run contract:check", "expect_exit_code": 0},
+        {"cmd": "npm run sbom", "expect_exit_code": 0}
+      ],
+      "success_criteria": [
+        "All mandated validation commands exit 0",
+        "Evidence JSON references updated snapshots and Playwright runs",
+        "No outstanding accessibility or pause-related failures"
+      ],
+      "evidence_requirements": {
+        "files": [
+          ".automation/phase16_discovery_note.md",
+          ".automation/phase16_evidence.json",
+          "tests/ui/home.spec.ts-snapshots/home-page-chromium.png"
+        ]
+      }
+    }
+  ],
+  "execution_order": [
+    "PA-DISCX",
+    "WA1",
+    "WA2",
+    "WA3",
+    "WA4",
+    "PA-EVID"
+  ],
+  "execution_semantics": {
+    "discovery_first": {
+      "required": true,
+      "gate_task": "PA-DISCX",
+      "description": "Wins cannot start before phase16 discovery artefacts are published."
+    },
+    "win_isolation": {
+      "parallel": false,
+      "reason": "Each win depends on updated helper logic and should be validated sequentially."
+    },
+    "evidence_backed": {
+      "required": true,
+      "artifacts": [
+        ".automation/phase16_discovery.json",
+        ".automation/phase16_discovery_note.md",
+        ".automation/phase16_evidence.json",
+        "tests/ui/home.spec.ts-snapshots/*",
+        "tests/ui/execution-flow.spec.ts-snapshots/*"
+      ]
+    },
+    "gate_enforcement": {
+      "lint": true,
+      "typecheck": true,
+      "tests": true,
+      "contract_check": true,
+      "sbom": true
+    },
+    "frontend_only": {
+      "scope": [
+        "public/*",
+        "tests/ui/*",
+        "contracts/Roadmap_execution/16_phaseA_accessibility_pause_contract.json"
+      ],
+      "note": "No backend or schema changes permitted under this contract."
+    }
+  },
+  "completion_criteria": {
+    "all_tests_pass": true,
+    "lint_passes": true,
+    "typecheck_passes": true,
+    "contract_check_passes": true,
+    "sbom_generated": true
+  },
+  "fallback_policies": {
+    "playwright_flake": "If a Playwright project flakes after helper refactor, rerun with --retry 1 before escalation.",
+    "snapshot_review": "Do not update snapshots without manual visual verification against expected UI."
+  },
+  "reporting": {
+    "progress_file": ".automation/progress_phase16.json",
+    "fields": [
+      "task_id",
+      "status",
+      "started_at",
+      "completed_at",
+      "notes"
+    ],
+    "status_values": [
+      "pending",
+      "in_progress",
+      "blocked",
+      "done"
+    ]
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Discovery JSON",
+      "path": ".automation/phase16_discovery.json",
+      "must_exist": true,
+      "min_lines": 20
+    },
+    {
+      "name": "Discovery Note",
+      "path": ".automation/phase16_discovery_note.md",
+      "must_exist": true,
+      "min_lines": 30
+    },
+    {
+      "name": "Updated Contract",
+      "path": "contracts/Roadmap_execution/16_phaseA_accessibility_pause_contract.json",
+      "must_exist": true
+    }
+  ],
+  "release_actions": [
+    {
+      "cmd": "npm run lint",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "npm run typecheck",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "npm test",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "npm run contract:check",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "npm run sbom",
+      "expect_exit_code": 0
+    }
+  ],
+  "ai_executor_guidelines": {
+    "clarification_handling": "Always run the shared helper before asserting Pause button visibility; never assume clarifications are absent.",
+    "snapshot_updates": "Review updated UI manually before calling --update-snapshots to avoid encoding regressions.",
+    "contrast_changes": "Use palette values that satisfy WCAG AA against #111827 and preserve focus outlines."
+  },
+  "governance_note": {
+    "for_human": "Contract keeps work constrained to frontend/test layers and maintains CDI discovery-first discipline. Review evidence artefacts before approving snapshot refresh."
+  }
+}
