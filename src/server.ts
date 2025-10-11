@@ -69,6 +69,7 @@ import {
   ResumeStateError,
   type ResumeAnswer
 } from "./orchestrator/resume.js";
+import { captureManifest } from "./orchestrator/workspaceManifest.js";
 
 const app = express();
 app.use(cors());
@@ -96,6 +97,7 @@ interface OrchestrationSession {
   paused: boolean;
   questions: PendingQuestion[];
   checkpointUpdatedAt?: string;
+  projectSlug?: string;
 }
 
 const progressSessions = new Map<string, ProgressSnapshot>();
@@ -621,6 +623,10 @@ async function executePlanFlow(params: {
     sessionId
   } = params;
 
+  if (sessionId) {
+    ensureOrchestrationSession(sessionId).projectSlug = slug;
+  }
+
   // Clean project directory to avoid stale files influencing plan runs
   try { await fs.rm(targetRoot, { recursive: true, force: true }); } catch (_e) { void _e; }
   await fs.mkdir(targetRoot, { recursive: true });
@@ -993,6 +999,10 @@ app.post("/api/execute", async (req, res) => {
     const slug = slugify(projectName, { lower: true, strict: true });
     const targetRoot = path.join(OUTPUT_DIR, slug);
 
+    if (sessionId) {
+      ensureOrchestrationSession(sessionId).projectSlug = slug;
+    }
+
     // Clean project directory to avoid stale files when reusing slug
     try { await fs.rm(targetRoot, { recursive: true, force: true }); } catch (_e) { void _e; }
     await fs.mkdir(targetRoot, { recursive: true });
@@ -1342,6 +1352,16 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
       checkpointPayload = req.body.payload as Omit<CheckpointPayload, "pendingQuestions">;
     }
 
+    if (session.projectSlug) {
+      checkpointPayload = {
+        ...(checkpointPayload ?? {}),
+        executor: {
+          ...(checkpointPayload?.executor ?? {}),
+          projectSlug: session.projectSlug
+        }
+      };
+    }
+
     // Abort the in-flight execution
     const aborted = abortSession(sessionId);
     console.log(`[Pause] Session ${sessionId} abort signal sent: ${aborted}`);
@@ -1358,6 +1378,14 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
     session.paused = true;
     session.questions = checkpoint.payload?.pendingQuestions ?? [];
     session.checkpointUpdatedAt = checkpoint.updatedAt;
+
+    if (session.projectSlug) {
+      try {
+        await captureManifest(sessionId, session.projectSlug);
+      } catch (error) {
+        console.warn(`[Pause] Failed to capture manifest for session ${sessionId}:`, error);
+      }
+    }
 
     const snapshot = snapshotFromSession(sessionId, current);
     snapshot.stage = stateToStage(session.machine.state);
@@ -1407,6 +1435,10 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     session.paused = false;
     session.questions = [];
     session.checkpointUpdatedAt = result.checkpoint.updatedAt;
+    const resumedSlug = result.checkpoint.payload?.executor?.projectSlug;
+    if (typeof resumedSlug === "string" && resumedSlug.trim()) {
+      session.projectSlug = resumedSlug.trim();
+    }
 
     const snapshot = snapshotFromSession(sessionId, progressSessions.get(sessionId) ?? null);
     snapshot.stage = stateToStage(session.machine.state);
