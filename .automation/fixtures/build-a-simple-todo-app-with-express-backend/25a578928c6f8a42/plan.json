@@ -1,0 +1,85 @@
+{
+  "originalPrompt": "Build a simple todo app with express backend",
+  "subtasks": [
+    {
+      "id": "setup-project",
+      "title": "Project scaffolding and dependencies",
+      "description": "Create the project directory, initialize npm, install Express and essential dev dependencies, and scaffold the main application file.",
+      "status": "pending",
+      "estimatedComplexity": "low",
+      "successCriteria": "Project folder exists with package.json, node modules installed, and an app entry file (e.g., app.js or index.js) that can start an Express server."
+    },
+    {
+      "id": "initialize-repo",
+      "title": "Initialize version control",
+      "description": "Initialize a git repository, add a .gitignore that excludes node_modules and environment files, and make the initial commit.",
+      "status": "pending",
+      "dependencies": [
+        "setup-project"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "Git repository initialized with a first commit including project files and a .gitignore that excludes node_modules."
+    },
+    {
+      "id": "design-api",
+      "title": "Design REST API and data model",
+      "description": "Define the REST endpoints (CRUD) for todos, the request/response payload shapes, status codes, and a simple Todo data model (id, title, completed, createdAt).",
+      "status": "pending",
+      "dependencies": [
+        "setup-project"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "A short API specification document exists listing endpoints (e.g., GET /todos, POST /todos, GET /todos/:id, PUT /todos/:id, DELETE /todos/:id) and sample request/response bodies."
+    },
+    {
+      "id": "implement-data-model",
+      "title": "Implement data storage and model",
+      "description": "Create a data module that implements the Todo model and CRUD operations using in-memory storage or simple file-based persistence for simplicity.",
+      "status": "pending",
+      "dependencies": [
+        "setup-project",
+        "design-api"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Data module exposes create/read/update/delete functions that persist todos in memory or to a local file and can be imported by route handlers."
+    },
+    {
+      "id": "implement-backend-routes",
+      "title": "Implement Express routes and controllers",
+      "description": "Implement the Express route handlers per the API spec, wire them to the data module, enable JSON parsing, and ensure correct status codes are returned.",
+      "status": "pending",
+      "dependencies": [
+        "implement-data-model",
+        "design-api"
+      ],
+      "estimatedComplexity": "high",
+      "successCriteria": "All defined endpoints are implemented and return the expected responses when hit (e.g., creating a todo returns 201 with the created item)."
+    },
+    {
+      "id": "add-validation-error-handling",
+      "title": "Input validation and error handling",
+      "description": "Add request validation for incoming payloads, implement centralized error-handling middleware, and provide consistent error response formats.",
+      "status": "pending",
+      "dependencies": [
+        "implement-backend-routes"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Invalid requests return appropriate 4xx errors with clear messages and unexpected failures are handled by error middleware returning 5xx responses without crashing the server."
+    },
+    {
+      "id": "write-tests-and-docs",
+      "title": "Basic tests and documentation",
+      "description": "Write basic automated tests for the main endpoints (unit or integration) and create a README with setup, run instructions, and example API calls.",
+      "status": "pending",
+      "dependencies": [
+        "implement-backend-routes",
+        "add-validation-error-handling",
+        "initialize-repo"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "A test suite covering core endpoints passes locally and the README includes clear instructions to install dependencies, run the server, and example requests."
+    }
+  ],
+  "totalSubtasks": 7,
+  "decompositionStrategy": "Top-down technical decomposition: bootstrap the project, define the API and data model, implement persistence and route handlers, then add validation and tests. Each subtask is a small, testable milestone with clear dependencies to allow incremental progress."
+}

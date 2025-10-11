@@ -869,7 +869,18 @@ async function runSingleExecution(options: SingleExecutionOptions): Promise<Sing
   const traceSlug = slugOverride ?? (slugify(projectNameHint || "generated-project", { lower: true, strict: true }) || "generated-project");
 
   try {
-    setProgress(sessionId, "planning", 30, progressMetadata);
+    // Only set progress to planning if not resuming or if state allows it
+    if (!resumeFixture && sessionId) {
+      const session = ensureOrchestrationSession(sessionId);
+      // Only transition to planning if we're in a valid state (CLARIFYING)
+      if (session.machine.state === "CLARIFYING") {
+        setProgress(sessionId, "planning", 30, progressMetadata);
+      }
+    } else if (!sessionId) {
+      // No session tracking, safe to call setProgress
+      setProgress(sessionId, "planning", 30, progressMetadata);
+    }
+    // If resuming, skip setProgress to avoid invalid transitions
     let output: ExecutorOutput;
     try {
       output = await withTraceContext({ projectSlug: traceSlug, sessionId, phase: tracePhase ?? "single" }, async () =>
@@ -1235,12 +1246,42 @@ app.post("/api/execute", async (req, res) => {
             setProgress(sessionId, "finalizing", 95);
             return res.json(planResult.response);
           } catch (planError) {
+            if (planError instanceof PausedError) {
+              throw planError;
+            }
             console.error("Plan execution failed, falling back to single execution", planError);
+            // Transition state machine when falling back from plan execution to single
+            if (sessionId) {
+              try {
+                const session = ensureOrchestrationSession(sessionId);
+                // If we're in PLANNING and falling back, transition to GENERATING for single execution
+                if (session.machine.state === "PLANNING") {
+                  session.machine.transition("GENERATING", { reason: "fallback_to_single_after_plan_error" });
+                }
+              } catch (transitionErr) {
+                console.warn("Could not transition state during fallback:", transitionErr);
+              }
+            }
             // Fall through to single execution below
           }
         }
       } catch (error) {
+        if (error instanceof PausedError) {
+          throw error;
+        }
         console.warn("Planning decomposition failed, falling back to single execution", error);
+        // Transition state machine when falling back from planning to single
+        if (sessionId) {
+          try {
+            const session = ensureOrchestrationSession(sessionId);
+            // If we're in PLANNING and falling back, transition to GENERATING for single execution
+            if (session.machine.state === "PLANNING") {
+              session.machine.transition("GENERATING", { reason: "fallback_to_single_after_planning_failure" });
+            }
+          } catch (transitionErr) {
+            console.warn("Could not transition state during fallback:", transitionErr);
+          }
+        }
         // Fall through to single execution below
       }
     }

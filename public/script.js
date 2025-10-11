@@ -173,6 +173,18 @@ async function handlePauseClick() {
     }
     const questions = data?.checkpoint?.payload?.pendingQuestions ?? [];
     showResumeDrawer(questions);
+    
+    // Immediately fetch updated progress snapshot to ensure UI reflects paused state
+    // This eliminates the 900ms polling delay that causes UI to appear frozen
+    try {
+      const snapshotResp = await fetch(`/api/progress/snapshot/${activeSessionId}`);
+      if (snapshotResp.ok) {
+        const snapshot = await snapshotResp.json();
+        updateOrchestrationState(snapshot);
+      }
+    } catch (snapshotErr) {
+      console.warn("Failed to fetch snapshot after pause:", snapshotErr);
+    }
   } catch (err) {
     resultEl.innerHTML = formatError(err);
     pauseSessionButton.disabled = false;
