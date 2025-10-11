@@ -9,7 +9,7 @@ import { validateRunResult, type RunResult } from "../contracts/validators.js";
 import { ensureDependencies } from "./installDeps.js";
 import { detectTestCommand } from "./detectTestCommand.js";
 import { logEvaluationResult, type EvaluationResult } from "../evaluation/logResults.js";
-import { throwIfAborted } from "../orchestrator/abortSignal.js";
+import { throwIfAborted, onAbort, PausedError } from "../orchestrator/abortSignal.js";
 
 export interface RunInSandboxOptions {
   projectRoot: string;
@@ -21,6 +21,7 @@ export interface RunInSandboxOptions {
 }
 
 const DEFAULT_TIMEOUT_MS = 60_000;
+const SIGKILL_DELAY_MS = Number(process.env.SANDBOX_SIGKILL_DELAY_MS ?? 5_000);
 
 function parseCounts(log: string): { passCount: number; failCount: number } {
   let passCount = 0;
@@ -156,6 +157,32 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
   });
 
   let timedOut = false;
+  let aborted = false;
+  let abortError: PausedError | undefined;
+  let sigkillTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const scheduleSigkill = () => {
+    if (sigkillTimer) return;
+    sigkillTimer = setTimeout(() => {
+      killTree();
+    }, SIGKILL_DELAY_MS);
+    const maybeTimer = sigkillTimer as { unref?: () => void };
+    maybeTimer.unref?.();
+  };
+
+  if (sessionId) {
+    onAbort(sessionId, () => {
+      aborted = true;
+      abortError = new PausedError(sessionId, "testing");
+      try {
+        child.kill("SIGTERM");
+      } catch (_err) {
+        void _err;
+      }
+      scheduleSigkill();
+    });
+  }
+
   function killTree(): void {
     try {
       if (isWin) {
@@ -192,6 +219,9 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
 
   const { code, signal } = await exitPromise.finally(() => {
     clearTimeout(timeoutHandle);
+    if (sigkillTimer) {
+      clearTimeout(sigkillTimer);
+    }
     logStream.end();
   });
 
@@ -218,6 +248,11 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
     finishedAt: finishedAt.toISOString(),
     errorMessage: timedOut ? `Process timed out after ${timeoutMs}ms` : undefined
   };
+
+  if (aborted) {
+    const pauseError = abortError ?? new PausedError(sessionId ?? "sandbox", "testing");
+    throw pauseError;
+  }
 
   const validation = validateRunResult(runResult);
   if (!validation.ok) {

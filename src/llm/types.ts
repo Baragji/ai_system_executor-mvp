@@ -33,6 +33,7 @@ export type LLMRequestMessage =
 export interface ProviderGenerateOptions {
   tools?: ProviderToolSchema[];
   signal?: AbortSignal;
+  onToken?: (chunk: string) => void;
 }
 
 export interface ProviderGenerateResult {
@@ -46,4 +47,6 @@ export interface GenerateJSONOptions {
   toolContext?: ToolExecutionContext;
   maxToolIterations?: number;
   signal?: AbortSignal;
+  abortSignal?: AbortSignal;
+  onToken?: (chunk: string) => void;
 }

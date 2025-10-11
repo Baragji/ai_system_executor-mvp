@@ -3,6 +3,7 @@ import { logEvent } from "../telemetry/events.js";
 import { getTraceContext } from "./trace.js";
 import { writeFixture } from "../fixtures/index.js";
 import { DEFAULT_FS_TOOLS } from "./tools/fsTools.js";
+import { getAbortSignal, throwIfAborted, PausedError } from "../orchestrator/abortSignal.js";
 import type {
   GenerateJSONOptions,
   LLMMessage,
@@ -43,6 +44,30 @@ function mapToolSchemas(tools: ToolDefinition[]): ToolDefinition[] {
   return tools;
 }
 
+function combineAbortSignals(...signals: (AbortSignal | undefined)[]): AbortSignal | undefined {
+  const active = signals.filter((signal): signal is AbortSignal => Boolean(signal));
+  if (active.length === 0) {
+    return undefined;
+  }
+  if (active.length === 1) {
+    return active[0];
+  }
+  const controller = new AbortController();
+  const abort = (reason?: unknown) => {
+    if (!controller.signal.aborted) {
+      controller.abort(reason);
+    }
+  };
+  for (const signal of active) {
+    if (signal.aborted) {
+      abort(signal.reason);
+    } else {
+      signal.addEventListener("abort", () => abort(signal.reason), { once: true });
+    }
+  }
+  return controller.signal;
+}
+
 async function executeToolCall(
   tool: ToolDefinition,
   call: LLMToolCall,
@@ -71,6 +96,16 @@ export async function generateJSON(messages: LLMMessage[], options: GenerateJSON
   let attempt = 0;
   for (;;) {
     const traceContext = getTraceContext();
+    const sessionId = options.sessionId ?? traceContext?.sessionId;
+    const phase = traceContext?.phase ?? "llm";
+    const sessionAbortSignal = options.abortSignal ?? (sessionId ? getAbortSignal(sessionId) : undefined);
+    const externalSignal = options.signal && options.signal !== sessionAbortSignal ? options.signal : undefined;
+    const combinedAbortSignal = combineAbortSignals(sessionAbortSignal, externalSignal);
+
+    if (sessionId) {
+      throwIfAborted(sessionId, phase);
+    }
+
     const tools = resolveTools(options, traceContext);
     const toolContext = normalizeToolContext(options, traceContext);
     const providerTools = tools.length
@@ -84,18 +119,55 @@ export async function generateJSON(messages: LLMMessage[], options: GenerateJSON
     const executedTools: Array<{ name: string; arguments: unknown; result: unknown; callId: string }> = [];
     const conversation = toProviderMessages(messages);
 
-    const runProviderCall = async (inputMessages: LLMRequestMessage[]): Promise<ProviderGenerateResult> =>
-      Promise.race([
-        provider.generate(inputMessages, { tools: providerTools, signal: options.signal }),
-        new Promise<ProviderGenerateResult>((_, rej) =>
-          setTimeout(() => rej(new Error(`LLM call timed out after ${callTimeout}ms`)), callTimeout)
-        )
-      ]);
+    const runProviderCall = async (inputMessages: LLMRequestMessage[]): Promise<ProviderGenerateResult> => {
+      const timeoutController = new AbortController();
+      const signal = combineAbortSignals(timeoutController.signal, combinedAbortSignal) ?? timeoutController.signal;
+      const timeoutHandle = setTimeout(() => {
+        timeoutController.abort(new Error(`LLM call timed out after ${callTimeout}ms`));
+      }, callTimeout);
+      const maybeTimer = timeoutHandle as unknown as { unref?: () => void };
+      maybeTimer.unref?.();
+
+      try {
+        const response = await provider.generate(inputMessages, {
+          tools: providerTools,
+          signal,
+          onToken: options.onToken
+        });
+        if (sessionId) {
+          throwIfAborted(sessionId, phase);
+        }
+        return response;
+      } catch (error) {
+        if (error instanceof PausedError) {
+          throw error;
+        }
+        if (timeoutController.signal.aborted) {
+          const reason = timeoutController.signal.reason;
+          if (reason instanceof Error) {
+            throw reason;
+          }
+          throw new Error(`LLM call timed out after ${callTimeout}ms`);
+        }
+        if (sessionAbortSignal?.aborted && sessionId) {
+          throw new PausedError(sessionId, phase);
+        }
+        if (combinedAbortSignal?.aborted && sessionId) {
+          throw new PausedError(sessionId, phase);
+        }
+        throw error;
+      } finally {
+        clearTimeout(timeoutHandle);
+      }
+    };
 
     try {
       let response: ProviderGenerateResult | null = null;
       for (let depth = 0; depth <= maxToolIterations; depth += 1) {
         response = await runProviderCall(conversation);
+        if (sessionId) {
+          throwIfAborted(sessionId, phase);
+        }
         if (response.toolCalls && response.toolCalls.length > 0 && tools.length > 0) {
           const toolMessage: LLMRequestMessage = {
             role: "assistant",
@@ -108,7 +180,13 @@ export async function generateJSON(messages: LLMMessage[], options: GenerateJSON
             if (!tool) {
               throw new Error(`Unknown tool requested: ${call.name}`);
             }
+            if (sessionId) {
+              throwIfAborted(sessionId, `${phase}_tool_${call.name}`);
+            }
             const { result, parsedArgs } = await executeToolCall(tool, call, toolContext);
+            if (sessionId) {
+              throwIfAborted(sessionId, `${phase}_tool_${call.name}`);
+            }
             executedTools.push({ name: tool.name, arguments: parsedArgs, result, callId: call.id });
             conversation.push({
               role: "tool",
@@ -132,6 +210,9 @@ export async function generateJSON(messages: LLMMessage[], options: GenerateJSON
       }
 
       try {
+        if (sessionId) {
+          throwIfAborted(sessionId, phase);
+        }
         if (traceContext?.sessionId && traceContext.projectSlug) {
           const ts = new Date().toISOString().replace(/[:.]/g, "-");
           const nameParts = [ts, traceContext.phase || "llm", traceContext.subtaskId || ""].filter(Boolean).join("_");
@@ -144,7 +225,7 @@ export async function generateJSON(messages: LLMMessage[], options: GenerateJSON
             response: content,
             tools: executedTools.length ? executedTools : undefined
           };
-          await writeFixture(traceContext.projectSlug, traceContext.sessionId, relPath, payload);
+          await writeFixture(traceContext.projectSlug, traceContext.sessionId!, relPath, payload);
         }
       } catch {
         // best-effort only
@@ -152,6 +233,9 @@ export async function generateJSON(messages: LLMMessage[], options: GenerateJSON
 
       return content;
     } catch (err: unknown) {
+      if (err instanceof PausedError) {
+        throw err;
+      }
       const e = err as { status?: number; code?: string; message?: string };
       const status = e?.status ?? 0;
       const code = e?.code ?? "";
@@ -184,3 +268,4 @@ export async function generateJSON(messages: LLMMessage[], options: GenerateJSON
     }
   }
 }
+

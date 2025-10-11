@@ -38,10 +38,13 @@ export class AnthropicProvider {
       max_tokens: 4096,
       temperature: 0.2,
       messages: conversation
-    });
+    }, { signal: options.signal });
     const content = resp.content?.[0];
     if (content?.type !== "text") {
       throw new Error("Anthropic response missing text content");
+    }
+    if (options.onToken) {
+      options.onToken(content.text);
     }
     return { content: content.text, toolCalls: undefined };
   }

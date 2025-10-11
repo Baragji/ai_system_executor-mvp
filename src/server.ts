@@ -463,7 +463,12 @@ async function generateExecutorOutputFromPrompt(
     { role: "user" as const, content: userPrompt }
   ];
 
-  const raw = await withTraceContext({ phase: 'single' }, async () => generateJSON(messages));
+  const raw = await withTraceContext({ phase: "single", sessionId }, async () => {
+    return generateJSON(messages, { sessionId });
+  });
+  if (sessionId) {
+    throwIfAborted(sessionId, "post_single_llm");
+  }
   let data: unknown;
   try {
     data = JSON.parse(raw);

@@ -36,7 +36,11 @@ export async function generateSubtaskOutputWithRetry(
       messages.splice(1, 0, { role: "system" as const, content: buildRetryMessage(lastError) });
     }
 
-  const raw = await withTraceContext({ phase: 'subtask', projectSlug: request?.subtask ? undefined : undefined }, async () => generateJSON(messages));
+    const raw = await withTraceContext({ phase: "subtask" }, async () => {
+      const trace = getTraceContext();
+      const sessionId = trace?.sessionId;
+      return generateJSON(messages, { sessionId });
+    });
 
     // Check if execution was paused immediately after LLM call completes
     // This catches pause requests that occurred during the LLM call
