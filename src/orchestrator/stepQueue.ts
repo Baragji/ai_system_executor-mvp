@@ -9,7 +9,9 @@ import {
   type StepJobPayload
 } from "./jobQueue.js";
 import {
+  ensureWorkflowPlan,
   getNextSequence,
+  initializeWorkflow,
   loadWorkflow,
   recordStepCompletion,
   recordStepFailure,
@@ -17,6 +19,7 @@ import {
   recordStepQueued,
   recordStepRunning,
   resetWorkflow,
+  type PlannedStepRecord,
   type StepRecord,
   type StepStatus
 } from "./checkpointStore.js";
@@ -60,11 +63,17 @@ export interface StepExecutionResult {
   status: StepStatus;
   data?: Record<string, unknown>;
   stop?: boolean;
+  sequence: number;
 }
 
 export interface WorkflowRunResult {
   steps: StepExecutionResult[];
   last?: StepExecutionResult;
+}
+
+export interface WorkflowRunOptions {
+  resume?: boolean;
+  onStep?: (result: StepExecutionResult) => void;
 }
 
 export class StepQueue {
@@ -104,19 +113,73 @@ export class StepQueue {
     await resetWorkflow(sessionId);
   }
 
-  async runWorkflow(sessionId: string, steps: StepDescriptor[]): Promise<WorkflowRunResult> {
+  async runWorkflow(sessionId: string, steps: StepDescriptor[], options?: WorkflowRunOptions): Promise<WorkflowRunResult> {
     if (!sessionId) {
       throw new Error("sessionId is required to run workflow");
     }
 
-    await this.resetSession(sessionId);
+    const planned: PlannedStepRecord[] = steps.map((descriptor, index) => ({
+      order: index,
+      stepType: descriptor.type,
+      optional: Boolean(descriptor.optional),
+      stopOnSuccess: descriptor.stopOnSuccess ?? true,
+      payload: descriptor.payload ? JSON.parse(JSON.stringify(descriptor.payload)) : undefined
+    }));
+
+    if (options?.resume) {
+      const workflow = await loadWorkflow(sessionId);
+      if (!workflow) {
+        throw new Error(`Workflow not initialized for session ${sessionId}`);
+      }
+      await ensureWorkflowPlan(sessionId, planned);
+    } else {
+      await this.resetSession(sessionId);
+      await initializeWorkflow(sessionId, planned);
+    }
+
     const results: StepExecutionResult[] = [];
 
-    for (const descriptor of steps) {
+    for (let index = 0; index < steps.length; index += 1) {
+      const descriptor = steps[index];
+      if (!descriptor) {
+        continue;
+      }
       const { type, payload, stopOnSuccess = true, optional = false } = descriptor;
       try {
-        const result = await this.enqueueStep({ sessionId, stepType: type, payload });
+        const existingRecord = await this.selectRecordedStep(sessionId, index);
+
+        if (options?.resume) {
+          if (existingRecord && (existingRecord.status === "completed" || existingRecord.status === "skipped")) {
+            const carried: StepExecutionResult = {
+              stepId: existingRecord.stepId,
+              stepType: existingRecord.stepType as ExecutionStepType,
+              status: existingRecord.status,
+              data: existingRecord.result,
+              stop: existingRecord.stop,
+              sequence: index
+            };
+            results.push(carried);
+            options?.onStep?.(carried);
+            const shouldCarryStop =
+              carried.status === "completed" && (carried.stop ?? stopOnSuccess ?? true);
+            if (shouldCarryStop) {
+              return { steps: results, last: carried };
+            }
+            continue;
+          }
+        }
+
+        const plannedPayload = planned[index]?.payload;
+        const payloadForRun = payload ?? existingRecord?.payload ?? plannedPayload;
+
+        const result = await this.enqueueStep({
+          sessionId,
+          stepType: type,
+          payload: payloadForRun,
+          sequence: index
+        });
         results.push(result);
+        options?.onStep?.(result);
         const shouldStop = (result.status === "completed" && (result.stop ?? stopOnSuccess)) || result.status === "paused";
         if (shouldStop) {
           return { steps: results, last: result };
@@ -207,10 +270,14 @@ export class StepQueue {
         stepType,
         status,
         data: result.data,
-        stop: result.stop
+        stop: result.stop,
+        sequence: job.sequence
       };
     } catch (error) {
       if (error instanceof PausedError) {
+        error.stepId = job.stepId;
+        error.stepType = stepType;
+        error.sequence = job.sequence;
         await recordStepPaused({ sessionId: job.sessionId, stepId: job.stepId, error });
       } else {
         await recordStepFailure({ sessionId: job.sessionId, stepId: job.stepId, error });
@@ -222,5 +289,27 @@ export class StepQueue {
   async getWorkflow(sessionId: string): Promise<StepRecord[] | null> {
     const workflow = await loadWorkflow(sessionId);
     return workflow?.steps ?? null;
+  }
+
+  async getPlannedSteps(sessionId: string): Promise<PlannedStepRecord[] | null> {
+    const workflow = await loadWorkflow(sessionId);
+    return workflow?.plan ?? null;
+  }
+
+  private async selectRecordedStep(sessionId: string, sequence: number | null): Promise<StepRecord | undefined> {
+    if (sequence === null || sequence === undefined) {
+      return undefined;
+    }
+    const workflow = await loadWorkflow(sessionId);
+    if (!workflow) {
+      return undefined;
+    }
+    for (let index = workflow.steps.length - 1; index >= 0; index -= 1) {
+      const entry = workflow.steps[index];
+      if (entry && entry.sequence === sequence) {
+        return entry;
+      }
+    }
+    return undefined;
   }
 }

@@ -5,6 +5,14 @@ import { randomUUID } from "node:crypto";
 
 export type StepStatus = "queued" | "running" | "completed" | "skipped" | "failed" | "paused";
 
+export interface PlannedStepRecord {
+  order: number;
+  stepType: string;
+  optional: boolean;
+  stopOnSuccess: boolean;
+  payload?: Record<string, unknown>;
+}
+
 export interface StepRecord {
   stepId: string;
   stepType: string;
@@ -24,6 +32,7 @@ export interface StepWorkflow {
   cursor: number;
   steps: StepRecord[];
   updatedAt: string;
+  plan?: PlannedStepRecord[];
 }
 
 interface StepQueuedInput {
@@ -72,6 +81,19 @@ function cloneValue<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
+function clonePlan(plan: PlannedStepRecord[] | undefined): PlannedStepRecord[] | undefined {
+  if (!plan || plan.length === 0) {
+    return plan;
+  }
+  return plan.map(entry => ({
+    order: entry.order,
+    stepType: entry.stepType,
+    optional: Boolean(entry.optional),
+    stopOnSuccess: Boolean(entry.stopOnSuccess),
+    payload: cloneValue(entry.payload)
+  }));
+}
+
 async function readWorkflow(sessionId: string): Promise<StepWorkflow | null> {
   const safeId = sanitizeSessionId(sessionId);
   const filePath = path.join(WORKFLOW_ROOT, `${safeId}.json`);
@@ -105,7 +127,54 @@ function upsertStep(workflow: StepWorkflow, record: StepRecord): StepWorkflow {
   }
   const cursor = Math.max(workflow.cursor, record.sequence);
   const updatedAt = new Date().toISOString();
-  return { sessionId: workflow.sessionId, cursor, steps, updatedAt };
+  return {
+    sessionId: workflow.sessionId,
+    cursor,
+    steps,
+    updatedAt,
+    ...(workflow.plan ? { plan: clonePlan(workflow.plan) } : {})
+  };
+}
+
+function normalizePlan(plan: PlannedStepRecord[]): PlannedStepRecord[] {
+  return plan.map(entry => ({
+    order: entry.order,
+    stepType: entry.stepType,
+    optional: Boolean(entry.optional),
+    stopOnSuccess: Boolean(entry.stopOnSuccess),
+    payload: cloneValue(entry.payload)
+  }));
+}
+
+export async function initializeWorkflow(sessionId: string, plan: PlannedStepRecord[]): Promise<void> {
+  await ensureRoot();
+  const safeId = sanitizeSessionId(sessionId);
+  const workflow: StepWorkflow = {
+    sessionId: safeId,
+    cursor: -1,
+    steps: [],
+    updatedAt: new Date().toISOString(),
+    plan: normalizePlan(plan)
+  };
+  await writeWorkflow(workflow);
+}
+
+export async function ensureWorkflowPlan(sessionId: string, plan: PlannedStepRecord[]): Promise<void> {
+  await ensureRoot();
+  const safeId = sanitizeSessionId(sessionId);
+  const workflow = await readWorkflow(safeId);
+  if (!workflow) {
+    throw new Error(`Workflow not initialized for session ${sessionId}`);
+  }
+  if (workflow.plan && workflow.plan.length > 0) {
+    return;
+  }
+  const updated: StepWorkflow = {
+    ...workflow,
+    plan: normalizePlan(plan),
+    updatedAt: new Date().toISOString()
+  };
+  await writeWorkflow(updated);
 }
 
 export async function resetWorkflow(sessionId: string): Promise<void> {
@@ -127,7 +196,8 @@ export async function recordStepQueued(input: StepQueuedInput): Promise<StepReco
     sessionId,
     cursor: -1,
     steps: [],
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    plan: undefined
   };
 
   const stepId = input.stepId ?? randomUUID();

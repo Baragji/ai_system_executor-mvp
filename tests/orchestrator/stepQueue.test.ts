@@ -99,6 +99,32 @@ describe("StepQueue", () => {
     expect(workflow?.steps[1]?.status).toBe("completed");
   });
 
+  it("replays paused steps on resume using stored plan payload", async () => {
+    const queue = await StepQueue.create({ mode: "inline" });
+    let invocation = 0;
+
+    queue.registerHandler("single", async ({ sessionId, payload }) => {
+      invocation += 1;
+      expect(payload).toEqual({ singleOptions: { prompt: "resume" } });
+      if (invocation === 1) {
+        throw new PausedError(sessionId, "single");
+      }
+      return { status: "completed", data: { ok: true }, stop: true };
+    });
+
+    const firstDescriptor = [{ type: "single", payload: { singleOptions: { prompt: "resume" } } }];
+    await expect(queue.runWorkflow("session-resume", firstDescriptor)).rejects.toThrow(PausedError);
+
+    const workflowAfterPause = await loadWorkflow("session-resume");
+    expect(workflowAfterPause?.plan?.[0]?.payload).toEqual({ singleOptions: { prompt: "resume" } });
+    expect(workflowAfterPause?.steps.at(-1)?.status).toBe("paused");
+
+    const resumed = await queue.runWorkflow("session-resume", [{ type: "single" }], { resume: true });
+    expect(resumed.last?.status).toBe("completed");
+    expect(resumed.last?.sequence).toBe(0);
+    expect(invocation).toBe(2);
+  });
+
   it("resetSession clears prior checkpoints", async () => {
     const queue = await StepQueue.create({ mode: "inline" });
     queue.registerHandler("clarify", async () => ({ status: "completed" }));

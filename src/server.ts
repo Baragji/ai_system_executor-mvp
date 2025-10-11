@@ -1237,16 +1237,46 @@ app.post("/api/clarify", (req, res) => {
 });
 
 app.post("/api/execute", async (req, res) => {
-  const sessionId: string | undefined = typeof req.body?.sessionId === 'string' ? req.body.sessionId : undefined;
-  
+  const sessionId: string | undefined = typeof req.body?.sessionId === "string" ? req.body.sessionId : undefined;
+  const wantsSse = typeof req.headers.accept === "string" && req.headers.accept.includes("text/event-stream");
+  let sseStarted = false;
+
+  const ensureSse = () => {
+    if (!wantsSse || sseStarted) {
+      return;
+    }
+    sseStarted = true;
+    res.status(202);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders?.();
+  };
+
+  const sendSse = (event: string, data: unknown) => {
+    if (!wantsSse) {
+      return;
+    }
+    ensureSse();
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  const closeSse = () => {
+    if (!wantsSse) {
+      return;
+    }
+    ensureSse();
+    res.end();
+  };
+
   try {
     if (!sessionId) {
       return res.status(400).json({ error: "session id required" });
     }
 
-    // Create abort signal for pause functionality
     createAbortSignal(sessionId);
-    
+
     setProgress(sessionId, "analyzing", 10);
     const promptRaw = req.body?.prompt;
     const originalPrompt: string = promptRaw === undefined ? "" : promptRaw.toString();
@@ -1275,12 +1305,17 @@ app.post("/api/execute", async (req, res) => {
         effectivePrompt = augmented;
       }
     }
-    // Capture clarify/effective prompt fixtures for replay
-    await captureFixture(sessionId, slugify(projectNameRaw || "session", { lower: true, strict: true }) || "session", "clarify.json", {
-      originalPrompt,
-      effectivePrompt,
-      clarifications
-    });
+
+    await captureFixture(
+      sessionId,
+      slugify(projectNameRaw || "session", { lower: true, strict: true }) || "session",
+      "clarify.json",
+      {
+        originalPrompt,
+        effectivePrompt,
+        clarifications
+      }
+    );
 
     const systemPrompt = await fs.readFile("src/executor/systemPrompt.md", "utf-8");
     const projectNameInput = typeof projectNameRaw === "string" ? projectNameRaw.trim() : "";
@@ -1340,38 +1375,74 @@ app.post("/api/execute", async (req, res) => {
     const singlePayload: SingleStepPayload = { singleOptions };
     steps.push({ type: "single", payload: singlePayload, stopOnSuccess: true });
 
-    const workflow = await stepQueue.runWorkflow(sessionId, steps);
+    const workflow = await stepQueue.runWorkflow(sessionId, steps, {
+      onStep: step => {
+        sendSse("step", {
+          sessionId,
+          stepId: step.stepId,
+          stepType: step.stepType,
+          status: step.status,
+          sequence: step.sequence,
+          stop: Boolean(step.stop),
+          timestamp: new Date().toISOString()
+        });
+      }
+    });
+
     const finalStep = workflow.last;
     const responsePayload = finalStep?.data?.response as ExecutorSuccessResponse | undefined;
     if (!responsePayload) {
       throw new Error("Execution pipeline did not produce a response payload");
     }
+
+    if (wantsSse) {
+      sendSse("completed", { sessionId, response: responsePayload });
+      closeSse();
+      return;
+    }
+
     return res.json(responsePayload);
   } catch (err: unknown) {
-    // Handle pause interruption gracefully
     if (err instanceof PausedError) {
       console.log(`Execution paused for session ${err.sessionId} during ${err.phase}`);
-      if (sessionId) {
-        cleanupAbortSignal(sessionId);
-      }
-      return res.status(202).json({
+      const workflowSteps = sessionId ? await stepQueue.getWorkflow(sessionId) : null;
+      const pausedRecord = workflowSteps?.slice().reverse().find(step => step.status === "paused");
+      const stepMeta = pausedRecord
+        ? { stepId: pausedRecord.stepId, stepType: pausedRecord.stepType, sequence: pausedRecord.sequence }
+        : {
+            stepId: err.stepId,
+            stepType: err.stepType,
+            sequence: err.sequence
+          };
+      const payload = {
         paused: true,
         sessionId: err.sessionId,
         phase: err.phase,
-        message: err.message
-      });
+        message: err.message,
+        ...stepMeta
+      };
+
+      if (wantsSse) {
+        res.status(202);
+        sendSse("paused", payload);
+        closeSse();
+        return;
+      }
+
+      return res.status(202).json(payload);
     }
-    
-    // Clean up abort signal on error
-    if (sessionId) {
-      cleanupAbortSignal(sessionId);
-    }
-    
+
     console.error(err);
     const message = err instanceof Error ? err.message : "internal error";
+
+    if (wantsSse) {
+      sendSse("error", { sessionId, message });
+      closeSse();
+      return;
+    }
+
     return res.status(500).json({ error: message });
   } finally {
-    // Safety cleanup in case catch doesn't execute
     if (sessionId) {
       cleanupAbortSignal(sessionId);
     }
@@ -1728,8 +1799,61 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
         resumeOptions.progressMetadata = { ...progressMetadata, queued: true, mode: "queue" };
       }
 
+      const plannedSteps = await stepQueue.getPlannedSteps(sessionId);
+
+      type PlanEntry = {
+        order: number;
+        stepType: string;
+        optional: boolean;
+        stopOnSuccess: boolean;
+        payload?: Record<string, unknown>;
+      };
+
+      const orderedPlan: PlanEntry[] = plannedSteps && plannedSteps.length > 0
+        ? plannedSteps
+            .slice()
+            .sort((a, b) => a.order - b.order)
+            .map(entry => ({
+              order: entry.order,
+              stepType: entry.stepType,
+              optional: entry.optional,
+              stopOnSuccess: entry.stopOnSuccess,
+              payload: entry.payload
+                ? (JSON.parse(JSON.stringify(entry.payload)) as Record<string, unknown>)
+                : undefined
+            }))
+        : [
+            {
+              order: 0,
+              stepType: "single",
+              optional: false,
+              stopOnSuccess: true,
+              payload: { singleOptions: resumeOptions }
+            }
+          ];
+
+      const descriptors: StepDescriptor[] = orderedPlan.map(entry => {
+        const basePayload = entry.payload ? { ...entry.payload } : undefined;
+        if (entry.stepType === "single") {
+          const payload: Record<string, unknown> = basePayload ? { ...basePayload } : {};
+          payload.singleOptions = resumeOptions;
+          return {
+            type: entry.stepType as StepDescriptor["type"],
+            payload,
+            optional: entry.optional,
+            stopOnSuccess: entry.stopOnSuccess
+          };
+        }
+        return {
+          type: entry.stepType as StepDescriptor["type"],
+          payload: basePayload,
+          optional: entry.optional,
+          stopOnSuccess: entry.stopOnSuccess
+        };
+      });
+
       stepQueue
-        .enqueueStep({ sessionId, stepType: "single", payload: { singleOptions: resumeOptions } })
+        .runWorkflow(sessionId, descriptors, { resume: true })
         .catch(error => {
           if (error instanceof PausedError) {
             return;
@@ -1737,6 +1861,8 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
           const message = error instanceof Error ? error.message : "resume execution failed";
           console.error(`[Resume] Execution failed for session ${sessionId}:`, error);
           setProgress(sessionId, "finalizing", 100, { resume: true, error: message }, true);
+        })
+        .finally(() => {
           cleanupAbortSignal(sessionId);
         });
     }

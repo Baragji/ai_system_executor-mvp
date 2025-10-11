@@ -17,6 +17,10 @@ export class PausedError extends Error {
     super(message || `Execution paused during ${phase}`);
     this.name = "PausedError";
   }
+
+  stepId?: string;
+  stepType?: string;
+  sequence?: number;
 }
 
 interface AbortEntry {
