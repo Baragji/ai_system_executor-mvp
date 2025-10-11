@@ -3,11 +3,11 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "executor-mvp@0.1.0",
-  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-b0d0c1d7-84ab-466a-9d10-72b853daf2d2",
+  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-531a1c06-21cb-4bb2-97b7-b195fbd9f2ab",
   "creationInfo": {
-    "created": "2025-10-11T08:31:02.979Z",
+    "created": "2025-10-11T19:33:06.704Z",
     "creators": [
-      "Tool: npm/cli-10.8.2"
+      "Tool: npm/cli-11.4.2"
     ]
   },
   "documentDescribes": [
@@ -125,30 +125,6 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "6854f6c9e989268f936429a2780eea9d8190a28392ed07cd998af31adb1877783d8f98833fc0229986007ac7fbf688636cb1b5d97c42e271b90f21270bcf00b1"
-        }
-      ]
-    },
-    {
-      "name": "@msgpackr-extract/msgpackr-extract-darwin-arm64",
-      "SPDXID": "SPDXRef-Package-msgpackr-extract.msgpackr-extract-darwin-arm64-3.0.3",
-      "versionInfo": "3.0.3",
-      "packageFileName": "node_modules/@msgpackr-extract/msgpackr-extract-darwin-arm64",
-      "description": "Platform specific binary for msgpackr-extract on darwin OS with arm64 architecture",
-      "downloadLocation": "https://registry.npmjs.org/@msgpackr-extract/msgpackr-extract-darwin-arm64/-/msgpackr-extract-darwin-arm64-3.0.3.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/kriszyp/msgpackr-extract#readme",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40msgpackr-extract/msgpackr-extract-darwin-arm64@3.0.3"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "4191ed95581b01dcb6cc0a8d03d1aed54a48b88f17bec775bfc89ce81da96667859c570c5a23cb7d65e1ed3570e1e18467f0bd4c7dbcd4ac2156879050a6f28f"
         }
       ]
     },
@@ -461,30 +437,6 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "1d5404dc001bfe9c45f1f400a22aa9be0f62ddebeaba0de1a22c1a90ec99030266fbabd97a16e46176749782714be23743133deefe5a6913618fcbf9a0185e93"
-        }
-      ]
-    },
-    {
-      "name": "detect-libc",
-      "SPDXID": "SPDXRef-Package-detect-libc-2.1.2",
-      "versionInfo": "2.1.2",
-      "packageFileName": "node_modules/detect-libc",
-      "description": "Node.js module to detect the C standard library (libc) implementation family and version",
-      "downloadLocation": "https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/lovell/detect-libc#readme",
-      "licenseDeclared": "Apache-2.0",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/detect-libc@2.1.2"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "06d8f604e38ef37a375b21f9f5ef0c817b3111055c6ab9143a9118aee6c1d2eaf09cdd74c90dfae2bb22072535d67665a966199b4e62fe87fb8a8e26ce2841b5"
         }
       ]
     },
@@ -921,30 +873,6 @@
       ]
     },
     {
-      "name": "msgpackr-extract",
-      "SPDXID": "SPDXRef-Package-msgpackr-extract-3.0.3",
-      "versionInfo": "3.0.3",
-      "packageFileName": "node_modules/msgpackr-extract",
-      "description": "Node addon for string extraction for msgpackr",
-      "downloadLocation": "https://registry.npmjs.org/msgpackr-extract/-/msgpackr-extract-3.0.3.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/kriszyp/msgpackr-extract#readme",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/msgpackr-extract@3.0.3"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "3f479f4f50bd8c875545e7ea8f3390f579a5e7bce93979c8b92f9cb1a07831d65b4dd9860cba3c5e1cc11b537b68ed7580a0c3909bc12d42de153a38eb0c2b78"
-        }
-      ]
-    },
-    {
       "name": "node-abort-controller",
       "SPDXID": "SPDXRef-Package-node-abort-controller-3.1.1",
       "versionInfo": "3.1.1",
@@ -993,30 +921,6 @@
       ]
     },
     {
-      "name": "node-gyp-build-optional-packages",
-      "SPDXID": "SPDXRef-Package-node-gyp-build-optional-packages-5.2.2",
-      "versionInfo": "5.2.2",
-      "packageFileName": "node_modules/node-gyp-build-optional-packages",
-      "description": "Build tool and bindings loader for node-gyp that supports prebuilds",
-      "downloadLocation": "https://registry.npmjs.org/node-gyp-build-optional-packages/-/node-gyp-build-optional-packages-5.2.2.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/prebuild/node-gyp-build",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/node-gyp-build-optional-packages@5.2.2"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "b3ec3eac15a7a533304856da134517b11960ee15381637a4294e1ec808a1e53f2726e3594f59cdb2c917a7199ea922bd53390197a5204659ca73c873f0812a3b"
-        }
-      ]
-    },
-    {
       "name": "object-assign",
       "SPDXID": "SPDXRef-Package-object-assign-4.1.1",
       "versionInfo": "4.1.1",
@@ -1061,54 +965,6 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "a7df4414db00ff25fa52154ef777f9909b0344b020f824c0d9106a7472b846d2bcbb9209c37d87c9bd9d4c629b9e71669eea01bf9afb676094448f6c199a52b8"
-        }
-      ]
-    },
-    {
-      "name": "@types/node",
-      "SPDXID": "SPDXRef-Package-types.node-18.19.130",
-      "versionInfo": "18.19.130",
-      "packageFileName": "node_modules/openai/node_modules/@types/node",
-      "description": "TypeScript definitions for node",
-      "downloadLocation": "https://registry.npmjs.org/@types/node/-/node-18.19.130.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40types/node@18.19.130"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "191697431ea319f2fcb0a7da2030fa3aea5b20706bf63bfb2676a697db41ee5e2fd3af0f00e5ea7dcba330ca393e16c8b3a8204755ce0c42ea6a14f647cbf47e"
-        }
-      ]
-    },
-    {
-      "name": "undici-types",
-      "SPDXID": "SPDXRef-Package-undici-types-5.26.5",
-      "versionInfo": "5.26.5",
-      "packageFileName": "node_modules/openai/node_modules/undici-types",
-      "description": "A stand-alone types package for Undici",
-      "downloadLocation": "https://registry.npmjs.org/undici-types/-/undici-types-5.26.5.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://undici.nodejs.org",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/undici-types@5.26.5"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "26508c3be7a174420aaa517193a21f568014566833edc53bcc3fe1f57674ab37a8b121e650954ecd242fbd84985979055c2f887cb29221f7e1bf4b1566ea7aa4"
         }
       ]
     },
@@ -1496,26 +1352,6 @@
     {
       "spdxElementId": "SPDXRef-Package-ms-2.0.0",
       "relatedSpdxElement": "SPDXRef-Package-debug-2.6.9",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-msgpackr-extract-3.0.3",
-      "relatedSpdxElement": "SPDXRef-Package-msgpackr-1.11.5",
-      "relationshipType": "OPTIONAL_DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-node-gyp-build-optional-packages-5.2.2",
-      "relatedSpdxElement": "SPDXRef-Package-msgpackr-extract-3.0.3",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-msgpackr-extract.msgpackr-extract-darwin-arm64-3.0.3",
-      "relatedSpdxElement": "SPDXRef-Package-msgpackr-extract-3.0.3",
-      "relationshipType": "OPTIONAL_DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-detect-libc-2.1.2",
-      "relatedSpdxElement": "SPDXRef-Package-node-gyp-build-optional-packages-5.2.2",
       "relationshipType": "DEPENDENCY_OF"
     },
     {

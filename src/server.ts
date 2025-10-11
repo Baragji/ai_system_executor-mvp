@@ -5,7 +5,7 @@ import cors from "cors";
 import morgan from "morgan";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import slugify from "slugify";
 
 import { generateJSON } from "./llm/index.js";
@@ -1242,9 +1242,12 @@ app.post("/api/clarify", (req, res) => {
 });
 
 app.post("/api/execute", async (req, res) => {
-  const sessionId: string | undefined = typeof req.body?.sessionId === "string" ? req.body.sessionId : undefined;
+  const providedSessionId = typeof req.body?.sessionId === "string" ? req.body.sessionId.trim() : "";
+  const sessionId = providedSessionId || randomUUID();
   const wantsSse = typeof req.headers.accept === "string" && req.headers.accept.includes("text/event-stream");
   let sseStarted = false;
+
+  res.setHeader("x-executor-session", sessionId);
 
   const ensureSse = () => {
     if (!wantsSse || sseStarted) {
@@ -1276,10 +1279,6 @@ app.post("/api/execute", async (req, res) => {
   };
 
   try {
-    if (!sessionId) {
-      return res.status(400).json({ error: "session id required" });
-    }
-
     createAbortSignal(sessionId);
 
     setProgress(sessionId, "analyzing", 10);
