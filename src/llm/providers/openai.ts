@@ -125,6 +125,10 @@ export class OpenAIProvider {
 
     const content = normalizeContent(message.content);
 
+    if (typeof content === "string" && options.onToken) {
+      options.onToken(content);
+    }
+
     return { content, toolCalls };
   }
 }

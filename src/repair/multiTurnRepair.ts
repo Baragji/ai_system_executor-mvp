@@ -352,8 +352,8 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
     let lastErrorMessage: string | undefined;
     try {
       async function requestPayload(withRetryHint: boolean): Promise<ParsedRepairPayload> {
-        const raw = await withTraceContext({ projectSlug: context.projectSlug, sessionId: context.sessionId, phase: 'repair' }, async () => generateJSON(
-          withRetryHint
+        const raw = await withTraceContext({ projectSlug: context.projectSlug, sessionId: context.sessionId, phase: "repair" }, async () => {
+          const payloadMessages = withRetryHint
             ? ([
                 messages[0]!,
                 {
@@ -363,8 +363,12 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
                     "\n\nIMPORTANT: For every artifact with action add/modify, include the full final file contents in files[]. If you cannot provide contents, omit that artifact."
                 }
               ] satisfies LLMMessage[])
-            : (messages as LLMMessage[])
-        ));
+            : (messages as LLMMessage[]);
+          return generateJSON(payloadMessages, { sessionId: context.sessionId });
+        });
+        if (context.sessionId) {
+          throwIfAborted(context.sessionId, "post_repair_llm");
+        }
         let parsed: unknown;
         try {
           parsed = JSON.parse(raw);

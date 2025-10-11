@@ -9,13 +9,23 @@ import type {
   SingleExecutionResult
 } from "./executionTypes.js";
 
+export interface StepJobPayload {
+  sessionId: string;
+  stepId: string;
+  stepType: string;
+  sequence: number;
+  payload?: Record<string, unknown>;
+}
+
 export type ExecutionJob =
   | { type: "plan"; payload: PlanExecutionOptions }
-  | { type: "single"; payload: SingleExecutionOptions };
+  | { type: "single"; payload: SingleExecutionOptions }
+  | { type: "step"; payload: StepJobPayload };
 
 export type ExecutionJobResult =
   | { type: "plan"; result: PlanExecutionJobResult }
-  | { type: "single"; result: SingleExecutionResult };
+  | { type: "single"; result: SingleExecutionResult }
+  | { type: "step"; result: unknown };
 
 export type ExecutionJobHandler = (job: ExecutionJob) => Promise<ExecutionJobResult>;
 
@@ -89,7 +99,7 @@ class BullMQExecutionQueue implements ExecutionQueueController {
     });
     this.worker = new Worker<ExecutionJob, ExecutionJobResult>(
       options.queueName,
-      async job => this.handler(job.data),
+      async (job: { data: ExecutionJob }) => this.handler(job.data),
       {
         connection: this.connection,
         concurrency: options.concurrency
