@@ -10,8 +10,6 @@ import { ensureDependencies } from "./installDeps.js";
 import { detectTestCommand } from "./detectTestCommand.js";
 import { logEvaluationResult, type EvaluationResult } from "../evaluation/logResults.js";
 import { throwIfAborted, onAbort, PausedError } from "../orchestrator/abortSignal.js";
-import { logEvent } from "../telemetry/events.js";
-import type { DependencyValidationWarning } from "../validation/dependencyPreflight.js";
 
 export interface RunInSandboxOptions {
   projectRoot: string;
@@ -20,7 +18,6 @@ export interface RunInSandboxOptions {
   timeoutMs?: number;
   env?: Record<string, string | undefined>;
   sessionId?: string;
-  onDependencyWarnings?: (warnings: DependencyValidationWarning[]) => void | Promise<void>;
 }
 
 const DEFAULT_TIMEOUT_MS = 60_000;
@@ -120,26 +117,6 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
   let installPerformed = false;
   try {
     const installResult = await ensureDependencies(projectRoot, timeoutMs);
-    if (installResult.warnings.length > 0) {
-      try {
-        await logEvent("dependency_preflight_warning", {
-          project: projectSlug,
-          sessionId: sessionId ?? null,
-          warnings: installResult.warnings.map(warning => ({
-            package: warning.package,
-            version: warning.version,
-            reason: warning.reason,
-            suggestion: warning.suggestion ?? null
-          }))
-        });
-      } catch (telemetryError) {
-        console.warn("Failed to log dependency preflight warning", telemetryError);
-      }
-
-      if (options.onDependencyWarnings) {
-        await options.onDependencyWarnings(installResult.warnings);
-      }
-    }
     if (installResult.installed) {
       installPerformed = true;
       installSummary = `[install] ran ${installResult.command}`;

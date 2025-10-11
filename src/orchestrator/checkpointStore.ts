@@ -309,12 +309,3 @@ export async function getNextSequence(sessionId: string): Promise<number> {
   }
   return workflow.cursor + 1;
 }
-
-export async function getStepRecord(sessionId: string, stepId: string): Promise<StepRecord | null> {
-  const workflow = await readWorkflow(sessionId);
-  if (!workflow) {
-    return null;
-  }
-  const record = workflow.steps.find(entry => entry.stepId === stepId);
-  return record ? { ...record } : null;
-}

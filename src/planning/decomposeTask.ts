@@ -1,4 +1,5 @@
 import { generateJSON } from "../llm/index.js";
+import type { LLMMessage } from "../llm/index.js";
 import type { ClarificationResponse } from "../clarification/types.js";
 import { validateTaskPlan } from "../contracts/taskPlanValidator.js";
 import type { TaskPlan, Subtask, DecompositionIssue } from "./types.js";
@@ -154,10 +155,16 @@ async function requestPlan(
   const systemPrompt = buildPrompt(prompt, clarifications, previousIssues);
   const trace = getTraceContext();
   const sessionId = trace?.sessionId;
-  return generateJSON([
+  const messages: LLMMessage[] = [
     { role: "system", content: "You output JSON for task plans." },
     { role: "user", content: systemPrompt }
-  ], { sessionId });
+  ];
+
+  if (sessionId) {
+    return generateJSON(messages, { sessionId });
+  }
+
+  return generateJSON(messages);
 }
 
 function ms(n: number, fallback: number): number {

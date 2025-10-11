@@ -238,22 +238,6 @@ Add explicit pause check before falling back to single execution:
 
 ---
 
-### 5. Dependency Preflight Warnings Logged for Telemetry (2025-10-12)
-
-**Problem:**
-Relaxing dependency validation avoided hard failures, but we still lacked structured visibility when deprecated or mismatched versions were encountered. Resume flows could not surface these warnings, and `.automation/execution_trace.jsonl` contained no dependency context.
-
-**Fix:**
-- `src/validation/dependencyPreflight.ts` now returns a warning summary and defaults to allowing deprecated and mismatched versions while recording actionable suggestions.
-- `src/runner/runInSandbox.ts` forwards warning summaries to `logEvent("dependency_preflight_warning", …)` so traces capture affected packages, and invokes an orchestration callback.
-- `src/server.ts` stores dependency warnings on each session, merges them into progress snapshots, and includes `dependencyWarnings` in `/api/sessions/:id/resume` responses and progress metadata.
-
-**Outcome:**
-- Resume payloads include warning-only dependency issues, enabling the UI (and operators) to highlight remediation guidance without blocking execution.
-- `.automation/execution_trace.jsonl` contains structured `dependency_preflight_warning` entries for observability and audits.
-
----
-
 ## Testing
 
 ### Unit Tests

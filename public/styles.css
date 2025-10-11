@@ -45,96 +45,6 @@ code { background: #0f172a; padding: 2px 6px; border-radius: 6px; border:1px sol
 }
 
 #debugDisclosure .debug-content { padding: 0 1.25rem 1.25rem; display: grid; gap: 1.5rem; }
-.orchestration {
-  margin-top: 24px;
-  padding: 18px;
-  border: 1px solid rgba(51, 65, 85, 0.7);
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.7);
-  display: grid;
-  gap: 16px;
-}
-.orchestration__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.orchestration__status {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  background: rgba(30, 41, 59, 0.7);
-  font-size: 0.9rem;
-  color: #e2e8f0;
-}
-.orchestration__status-message {
-  flex: 1;
-}
-.orchestration__status-timestamp {
-  font-size: 0.75rem;
-  color: #94a3b8;
-}
-.resume-drawer {
-  display: grid;
-  gap: 16px;
-}
-.resume-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.resume-message {
-  margin: 0;
-  font-size: 0.95rem;
-  color: #e2e8f0;
-}
-.provider-badge {
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(30, 41, 59, 0.65);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #cbd5e1;
-}
-.resume-questions {
-  display: grid;
-  gap: 14px;
-}
-.resume-question {
-  display: grid;
-  gap: 8px;
-}
-.resume-question label {
-  font-weight: 600;
-  color: #e2e8f0;
-}
-.resume-question textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #334155;
-  background: #0f172a;
-  color: #f8fafc;
-  resize: vertical;
-}
-.resume-question textarea:focus {
-  border-color: #6366f1;
-}
-.resume-question__hint {
-  font-size: 0.75rem;
-  color: #94a3b8;
-}
-.resume-actions {
-  display: flex;
-  gap: 12px;
-}
 .test-controls { margin-top: 24px; padding: 16px; border: 1px solid #334155; border-radius: 12px; background: rgba(15, 23, 42, 0.7); }
 .test-controls h2 { margin-top: 0; }
 .run-tests { margin-top: 0; background: #16a34a; }
@@ -228,12 +138,8 @@ code { background: #0f172a; padding: 2px 6px; border-radius: 6px; border:1px sol
 .progress-stages .stage.current { opacity: 1; transform: scale(1.02); }
 .progress-stages .stage .dot { width: 10px; height: 10px; border-radius: 50%; background: #64748b; }
 .progress-stages .stage.completed .dot { background: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25); }
-.progress-stages .stage.paused .dot { background: #facc15; box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25); }
-.progress-stages .stage.paused { opacity: 1; }
 .progress-bar { height: 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.2); overflow: hidden; }
 .progress-bar > span { display: block; height: 100%; width: 0%; background: var(--accent-color, #3b82f6); transition: width 0.3s ease; }
-.progress-bar.paused { background: rgba(148, 163, 184, 0.12); }
-.progress-bar.paused > span { background: linear-gradient(90deg, rgba(148, 163, 184, 0.35), rgba(148, 163, 184, 0.2)); }
 
 /* File Preview Panel */
 .file-preview-panel { display: none; margin-top: 1rem; border: 1px solid rgba(148,163,184,0.15); border-radius: 12px; background: rgba(15, 23, 42, 0.6); overflow: hidden; }

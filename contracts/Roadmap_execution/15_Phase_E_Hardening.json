@@ -2,7 +2,7 @@
     "contract_version": "E.2.0",
     "contract_meta": {
       "created": "2025-10-11",
-      "phase": "E-H1",
+      "phase": "E",
       "phase_name": "Pause/Resume Durability Hardening",
       "prerequisite_phase": "E",
       "enhancement": "Durable step orchestration with cooperative cancellation and resilient resume UX",
@@ -80,7 +80,7 @@
     ],
     "tasks": [
       {
-        "id": "D60",
+        "id": "WA60",
         "stage": "Discovery",
         "title": "Map current pause/resume integration points",
         "type": "discovery",
@@ -349,7 +349,7 @@
         ]
       },
       {
-        "id": "VA68",
+        "id": "WA68",
         "stage": "Validation & Evidence",
         "title": "Run full validation suite and pause/resume E2E",
         "type": "validation",
@@ -375,7 +375,7 @@
         ]
       },
       {
-        "id": "EA69",
+        "id": "WA69",
         "stage": "Validation & Evidence",
         "title": "Publish evidence bundle and update contracts",
         "type": "evidence",
@@ -404,7 +404,7 @@
       }
     ],
     "execution_order": [
-      "D60",
+      "WA60",
       "WA61",
       "WA62",
       "WA63",
@@ -412,8 +412,8 @@
       "WA65",
       "WA66",
       "WA67",
-      "VA68",
-      "EA69"
+      "WA68",
+      "WA69"
     ],
     "execution_semantics": {
       "win_isolation": {

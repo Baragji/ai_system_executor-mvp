@@ -35,12 +35,10 @@ describe("workspaceManifest", () => {
     expect(manifest.projectSlug).toBe(TEST_SLUG);
     expect(manifest.files.length).toBeGreaterThanOrEqual(2);
     expect(manifest.summary.totalFiles).toBe(manifest.files.length);
-    expect(manifest.digest).toMatch(/^[A-F0-9]{8,16}$/i);
 
     const stored = await getManifest(TEST_SESSION);
     expect(stored).not.toBeNull();
     expect(stored?.summary.totalFiles).toBe(manifest.summary.totalFiles);
     expect(stored?.files[0]?.path).toBeDefined();
-    expect(stored?.digest).toBe(manifest.digest);
   });
 });

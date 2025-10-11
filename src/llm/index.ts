@@ -134,6 +134,13 @@ export async function generateJSON(messages: LLMMessage[], options: GenerateJSON
           signal,
           onToken: options.onToken
         });
+        if (timeoutController.signal.aborted) {
+          const reason = timeoutController.signal.reason;
+          if (reason instanceof Error) {
+            throw reason;
+          }
+          throw new Error(`LLM call timed out after ${callTimeout}ms`);
+        }
         if (sessionId) {
           throwIfAborted(sessionId, phase);
         }

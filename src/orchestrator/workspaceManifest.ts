@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import crypto from "node:crypto";
 
 import {
   resolveProjectRoot,
@@ -26,7 +25,6 @@ export interface WorkspaceManifest {
   capturedAt: string;
   files: WorkspaceFileEntry[];
   summary: WorkspaceSummary;
-  digest: string;
 }
 
 function sanitizeSessionId(sessionId: string): string {
@@ -44,14 +42,12 @@ function sanitizeSessionId(sessionId: string): string {
 export async function captureManifest(sessionId: string, projectSlug: string): Promise<WorkspaceManifest> {
   resolveProjectRoot(projectSlug); // validates slug without forcing directory creation
   const files = await scanWorkspace(projectSlug);
-  const digest = computeDigest(files);
   const manifest: WorkspaceManifest = {
     sessionId,
     projectSlug,
     capturedAt: new Date().toISOString(),
     files,
-    summary: summarizeWorkspace(files),
-    digest
+    summary: summarizeWorkspace(files)
   };
 
   await fs.mkdir(MANIFESTS_DIR, { recursive: true });
@@ -67,35 +63,11 @@ export async function getManifest(sessionId: string): Promise<WorkspaceManifest 
   const filename = `${sanitizeSessionId(sessionId)}.json`;
   try {
     const raw = await fs.readFile(path.join(MANIFESTS_DIR, filename), "utf-8");
-    const parsed = JSON.parse(raw) as Partial<WorkspaceManifest> & { files?: WorkspaceFileEntry[] };
-    const files = Array.isArray(parsed.files) ? parsed.files : [];
-    const digest = parsed.digest && typeof parsed.digest === "string" && parsed.digest.trim()
-      ? parsed.digest.trim()
-      : computeDigest(files);
-    return {
-      sessionId: parsed.sessionId ?? sessionId,
-      projectSlug: parsed.projectSlug ?? "",
-      capturedAt: parsed.capturedAt ?? new Date().toISOString(),
-      files,
-      summary: parsed.summary ?? summarizeWorkspace(files),
-      digest
-    } satisfies WorkspaceManifest;
+    return JSON.parse(raw) as WorkspaceManifest;
   } catch (error) {
     if (isErrnoLike(error) && error.code === "ENOENT") {
       return null;
     }
     throw error;
   }
-}
-
-function computeDigest(files: WorkspaceFileEntry[]): string {
-  const hash = crypto.createHash("sha256");
-  hash.update(String(files.length));
-  for (const file of files) {
-    hash.update("|");
-    hash.update(file.path);
-    hash.update(":");
-    hash.update(file.hash);
-  }
-  return hash.digest("hex").slice(0, 16);
 }

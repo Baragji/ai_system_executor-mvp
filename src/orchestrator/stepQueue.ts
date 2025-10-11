@@ -11,7 +11,6 @@ import {
 import {
   ensureWorkflowPlan,
   getNextSequence,
-  getStepRecord,
   initializeWorkflow,
   loadWorkflow,
   recordStepCompletion,
@@ -24,7 +23,6 @@ import {
   type StepRecord,
   type StepStatus
 } from "./checkpointStore.js";
-import { logStepEvent } from "./logging.js";
 
 export type ExecutionStepType =
   | "clarify"
@@ -267,19 +265,6 @@ export class StepQueue {
         result: result.data,
         stop: result.stop
       });
-      const record = await getStepRecord(job.sessionId, job.stepId);
-      await logStepEvent({
-        sessionId: job.sessionId,
-        stepId: job.stepId,
-        stepType,
-        sequence: job.sequence,
-        status,
-        queuedAt: record?.queuedAt,
-        startedAt: record?.startedAt,
-        completedAt: record?.completedAt,
-        manifestHash: (record?.payload as { manifestHash?: string } | undefined)?.manifestHash,
-        stop: result.stop
-      });
       return {
         stepId: job.stepId,
         stepType,
@@ -294,34 +279,8 @@ export class StepQueue {
         error.stepType = stepType;
         error.sequence = job.sequence;
         await recordStepPaused({ sessionId: job.sessionId, stepId: job.stepId, error });
-        const record = await getStepRecord(job.sessionId, job.stepId);
-        await logStepEvent({
-          sessionId: job.sessionId,
-          stepId: job.stepId,
-          stepType,
-          sequence: job.sequence,
-          status: "paused",
-          queuedAt: record?.queuedAt,
-          startedAt: record?.startedAt,
-          completedAt: record?.completedAt,
-          manifestHash: (record?.payload as { manifestHash?: string } | undefined)?.manifestHash,
-          errorMessage: error.message
-        });
       } else {
         await recordStepFailure({ sessionId: job.sessionId, stepId: job.stepId, error });
-        const record = await getStepRecord(job.sessionId, job.stepId);
-        await logStepEvent({
-          sessionId: job.sessionId,
-          stepId: job.stepId,
-          stepType,
-          sequence: job.sequence,
-          status: "failed",
-          queuedAt: record?.queuedAt,
-          startedAt: record?.startedAt,
-          completedAt: record?.completedAt,
-          manifestHash: (record?.payload as { manifestHash?: string } | undefined)?.manifestHash,
-          errorMessage: error instanceof Error ? error.message : String(error)
-        });
       }
       throw error;
     }

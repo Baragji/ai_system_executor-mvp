@@ -1,7 +1,7 @@
 {
   "config": {
-    "configFile": "/workspace/ai_system_executor-mvp/playwright.config.ts",
-    "rootDir": "/workspace/ai_system_executor-mvp/tests/ui",
+    "configFile": "/Users/Yousef_1/Downloads/ai_system_executor-mvp/playwright.config.ts",
+    "rootDir": "/Users/Yousef_1/Downloads/ai_system_executor-mvp/tests/ui",
     "forbidOnly": false,
     "fullyParallel": false,
     "globalSetup": null,
@@ -11,7 +11,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 1
+      "actualWorkers": 2
     },
     "preserveOutput": "always",
     "reporter": [
@@ -39,15 +39,15 @@
     "quiet": false,
     "projects": [
       {
-        "outputDir": "/workspace/ai_system_executor-mvp/test-results",
+        "outputDir": "/Users/Yousef_1/Downloads/ai_system_executor-mvp/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 2
         },
         "id": "chromium",
         "name": "chromium",
-        "testDir": "/workspace/ai_system_executor-mvp/tests/ui",
+        "testDir": "/Users/Yousef_1/Downloads/ai_system_executor-mvp/tests/ui",
         "testIgnore": [],
         "testMatch": [
           "**/*.spec.ts",
@@ -56,15 +56,15 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/workspace/ai_system_executor-mvp/test-results",
+        "outputDir": "/Users/Yousef_1/Downloads/ai_system_executor-mvp/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 2
         },
         "id": "firefox",
         "name": "firefox",
-        "testDir": "/workspace/ai_system_executor-mvp/tests/ui",
+        "testDir": "/Users/Yousef_1/Downloads/ai_system_executor-mvp/tests/ui",
         "testIgnore": [],
         "testMatch": [
           "**/*.spec.ts",
@@ -73,15 +73,15 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/workspace/ai_system_executor-mvp/test-results",
+        "outputDir": "/Users/Yousef_1/Downloads/ai_system_executor-mvp/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 2
         },
         "id": "webkit",
         "name": "webkit",
-        "testDir": "/workspace/ai_system_executor-mvp/tests/ui",
+        "testDir": "/Users/Yousef_1/Downloads/ai_system_executor-mvp/tests/ui",
         "testIgnore": [],
         "testMatch": [
           "**/*.spec.ts",
@@ -94,7 +94,7 @@
     "updateSnapshots": "missing",
     "updateSourceMethod": "patch",
     "version": "1.56.0",
-    "workers": 1,
+    "workers": 4,
     "webServer": {
       "command": "npm run dev",
       "url": "http://localhost:3000/healthz",
@@ -104,130 +104,105 @@
   },
   "suites": [
     {
-      "title": "pause-resume.spec.ts",
-      "file": "pause-resume.spec.ts",
+      "title": "pause-immediacy.spec.ts",
+      "file": "pause-immediacy.spec.ts",
       "column": 0,
       "line": 0,
-      "specs": [],
-      "suites": [
+      "specs": [
         {
-          "title": "Pause and resume UX",
-          "file": "../../ui-tests/pause-resume.spec.ts",
-          "line": 3,
-          "column": 6,
-          "specs": [
+          "title": "Pause UX immediacy",
+          "ok": true,
+          "tags": [],
+          "tests": [
             {
-              "title": "freezes progress on pause and resumes polling after resume",
-              "ok": true,
-              "tags": [],
-              "tests": [
+              "timeout": 30000,
+              "annotations": [
                 {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2972,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-11T14:05:10.831Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
+                  "type": "pause-immediacy-ms",
+                  "description": "62"
                 }
               ],
-              "id": "7347a442ccc797cbc0db-18023b3bc6c0fe032fcc",
-              "file": "../../ui-tests/pause-resume.spec.ts",
-              "line": 4,
-              "column": 3
-            },
-            {
-              "title": "freezes progress on pause and resumes polling after resume",
-              "ok": true,
-              "tags": [],
-              "tests": [
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
                 {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 949,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-10-11T09:34:32.512Z",
+                  "annotations": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5882,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-11T14:05:15.538Z",
-                      "annotations": [],
-                      "attachments": []
+                      "type": "pause-immediacy-ms",
+                      "description": "62"
                     }
                   ],
-                  "status": "expected"
+                  "attachments": []
                 }
               ],
-              "id": "7347a442ccc797cbc0db-89b9d3bd70e4a3e3e2c4",
-              "file": "../../ui-tests/pause-resume.spec.ts",
-              "line": 4,
-              "column": 3
-            },
-            {
-              "title": "freezes progress on pause and resumes polling after resume",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5845,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-11T14:05:24.652Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "7347a442ccc797cbc0db-709a357bb0b6e864ff13",
-              "file": "../../ui-tests/pause-resume.spec.ts",
-              "line": 4,
-              "column": 3
+              "status": "expected"
             }
-          ]
+          ],
+          "id": "b3ffaf60fc2de37f7693-ea96148b3cf8e257f3a9",
+          "file": "pause-immediacy.spec.ts",
+          "line": 7,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "resume-flow.spec.ts",
+      "file": "resume-flow.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Resume flow returns to running state",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1118,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-10-11T09:34:32.510Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "eea2b9759c62325e31b0-43dc9b78214bc3a72760",
+          "file": "resume-flow.spec.ts",
+          "line": 8,
+          "column": 1
         }
       ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-10-11T14:05:05.671Z",
-    "duration": 25748.205,
-    "expected": 3,
+    "startTime": "2025-10-11T09:34:29.256Z",
+    "duration": 4873.071,
+    "expected": 2,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

@@ -5,7 +5,7 @@ import cors from "cors";
 import morgan from "morgan";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import slugify from "slugify";
 
 import { generateJSON } from "./llm/index.js";
@@ -66,7 +66,6 @@ import {
 import { captureManifest, getManifest } from "./orchestrator/workspaceManifest.js";
 import { buildResumePrompts } from "./orchestrator/resumePrompt.js";
 import { StepQueue, type StepDescriptor, type StepHandler } from "./orchestrator/stepQueue.js";
-import { logAbortEvent, logPauseEvent, logResumeEvent } from "./orchestrator/logging.js";
 import type {
   ExecutorSuccessResponse,
   PlanExecutionJobResult,
@@ -75,7 +74,6 @@ import type {
   SingleExecutionOptions,
   SingleExecutionResult
 } from "./orchestrator/executionTypes.js";
-import type { DependencyValidationWarning } from "./validation/dependencyPreflight.js";
 
 const app = express();
 app.use(cors());
@@ -86,17 +84,6 @@ const PORT = Number(process.env.PORT || 3000);
 const OUTPUT_DIR = path.resolve("output");
 const PUBLIC_DIR = path.resolve("public");
 // In-memory progress sessions for SSE/polling
-type SnapshotStep = {
-  id: string;
-  type: string;
-  sequence?: number | null;
-  status?: string;
-  startedAt?: string;
-  completedAt?: string;
-  durationMs?: number;
-  queueLatencyMs?: number;
-};
-
 type ProgressSnapshot = {
   stage: string;
   progress: number;
@@ -107,9 +94,6 @@ type ProgressSnapshot = {
   paused?: boolean;
   questions?: PendingQuestion[];
   checkpointUpdatedAt?: string;
-  dependencyWarnings?: DependencyValidationWarning[];
-  step?: SnapshotStep;
-  manifestHash?: string;
 };
 
 interface OrchestrationSession {
@@ -121,9 +105,6 @@ interface OrchestrationSession {
   originalPrompt?: string;
   effectivePrompt?: string;
   projectName?: string;
-  dependencyWarnings: DependencyValidationWarning[];
-  currentStep?: SnapshotStep;
-  manifestHash?: string;
 }
 
 const progressSessions = new Map<string, ProgressSnapshot>();
@@ -133,12 +114,7 @@ const PROGRESS_SESSION_TTL_MS = Number(process.env.PROGRESS_SESSION_TTL_MS ?? 15
 function ensureOrchestrationSession(sessionId: string): OrchestrationSession {
   let session = orchestrationSessions.get(sessionId);
   if (!session) {
-    session = {
-      machine: new OrchestratorStateMachine(),
-      paused: false,
-      questions: [],
-      dependencyWarnings: []
-    };
+    session = { machine: new OrchestratorStateMachine(), paused: false, questions: [] };
     orchestrationSessions.set(sessionId, session);
   }
   return session;
@@ -150,30 +126,6 @@ function getOrchestrationSession(sessionId: string): OrchestrationSession | unde
 
 function removeOrchestrationSession(sessionId: string): void {
   orchestrationSessions.delete(sessionId);
-}
-
-function updateDependencyWarnings(sessionId: string, warnings: DependencyValidationWarning[]): void {
-  const session = ensureOrchestrationSession(sessionId);
-  session.dependencyWarnings = warnings.slice();
-
-  const existing = progressSessions.get(sessionId);
-  if (existing) {
-    const baseData = existing.data ? { ...existing.data } : {};
-    if (warnings.length > 0) {
-      baseData.dependencyWarnings = warnings;
-    } else {
-      delete baseData.dependencyWarnings;
-    }
-
-    const sanitizedData = Object.keys(baseData).length > 0 ? baseData : undefined;
-    const updated: ProgressSnapshot = {
-      ...existing,
-      data: sanitizedData,
-      dependencyWarnings: warnings.length > 0 ? warnings.slice() : undefined,
-      updatedAt: Date.now()
-    };
-    progressSessions.set(sessionId, updated);
-  }
 }
 
 function mapStageToState(stage: string, done?: boolean): OrchestratorState | null {
@@ -221,130 +173,6 @@ function purgeExpiredProgressSessions(now: number) {
   }
 }
 
-function sanitizeSnapshotStep(candidate: unknown): SnapshotStep | undefined {
-  if (!candidate || typeof candidate !== "object") {
-    return undefined;
-  }
-  const raw = candidate as Record<string, unknown>;
-  const idRaw = typeof raw.id === "string" && raw.id.trim()
-    ? raw.id.trim()
-    : typeof raw.stepId === "string" && raw.stepId.trim()
-      ? raw.stepId.trim()
-      : "";
-  if (!idRaw) {
-    return undefined;
-  }
-  const typeRaw = typeof raw.type === "string" && raw.type.trim()
-    ? raw.type.trim()
-    : typeof raw.stepType === "string" && raw.stepType.trim()
-      ? raw.stepType.trim()
-      : "unknown";
-  let sequence: number | null | undefined;
-  if (typeof raw.sequence === "number" && Number.isFinite(raw.sequence)) {
-    sequence = raw.sequence;
-  } else if (typeof raw.sequence === "string" && raw.sequence.trim()) {
-    const parsed = Number(raw.sequence);
-    sequence = Number.isFinite(parsed) ? parsed : undefined;
-  }
-  const status = typeof raw.status === "string" && raw.status.trim() ? raw.status.trim() : undefined;
-  const startedAt = typeof raw.startedAt === "string" && raw.startedAt.trim() ? raw.startedAt.trim() : undefined;
-  const completedAt = typeof raw.completedAt === "string" && raw.completedAt.trim()
-    ? raw.completedAt.trim()
-    : undefined;
-  const durationMs = typeof raw.durationMs === "number" && Number.isFinite(raw.durationMs)
-    ? raw.durationMs
-    : undefined;
-  const queueLatencyMs = typeof raw.queueLatencyMs === "number" && Number.isFinite(raw.queueLatencyMs)
-    ? raw.queueLatencyMs
-    : undefined;
-  return {
-    id: idRaw,
-    type: typeRaw,
-    ...(sequence !== undefined ? { sequence } : {}),
-    ...(status ? { status } : {}),
-    ...(startedAt ? { startedAt } : {}),
-    ...(completedAt ? { completedAt } : {}),
-    ...(durationMs !== undefined ? { durationMs } : {}),
-    ...(queueLatencyMs !== undefined ? { queueLatencyMs } : {})
-  } satisfies SnapshotStep;
-}
-
-type StepTimingSource = {
-  queueLatencyMs?: unknown;
-  durationMs?: unknown;
-  queuedAt?: unknown;
-  startedAt?: unknown;
-  completedAt?: unknown;
-} | null | undefined;
-
-function parseTimestampMs(value: unknown): number | null {
-  if (typeof value !== "string") {
-    return null;
-  }
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return null;
-  }
-  const parsed = Date.parse(trimmed);
-  if (Number.isNaN(parsed)) {
-    return null;
-  }
-  return parsed;
-}
-
-function diffTimestampMs(start: unknown, end: unknown): number | undefined {
-  const startMs = parseTimestampMs(start);
-  const endMs = parseTimestampMs(end);
-  if (startMs === null || endMs === null) {
-    return undefined;
-  }
-  const diff = endMs - startMs;
-  return diff >= 0 ? diff : undefined;
-}
-
-function deriveStepTimings(source: StepTimingSource): { durationMs?: number; queueLatencyMs?: number } {
-  const timings: { durationMs?: number; queueLatencyMs?: number } = {};
-  if (!source || typeof source !== "object") {
-    return timings;
-  }
-  const raw = source as Record<string, unknown>;
-  const queueLatency = typeof raw.queueLatencyMs === "number" && Number.isFinite(raw.queueLatencyMs)
-    ? raw.queueLatencyMs
-    : diffTimestampMs(raw.queuedAt, raw.startedAt);
-  const duration = typeof raw.durationMs === "number" && Number.isFinite(raw.durationMs)
-    ? raw.durationMs
-    : diffTimestampMs(raw.startedAt, raw.completedAt);
-
-  if (queueLatency !== undefined) {
-    timings.queueLatencyMs = queueLatency;
-  }
-  if (duration !== undefined) {
-    timings.durationMs = duration;
-  }
-  return timings;
-}
-
-function attachStepMetadata(
-  metadata: Record<string, unknown> | undefined,
-  stepId?: string,
-  stepType?: string,
-  sequence?: number | null
-): Record<string, unknown> | undefined {
-  if (!stepId || typeof stepId !== "string" || !stepId.trim()) {
-    return metadata ? { ...metadata } : undefined;
-  }
-  const base = metadata ? { ...metadata } : {};
-  const existing = sanitizeSnapshotStep(base.step);
-  const normalizedSequence = typeof sequence === "number" && Number.isFinite(sequence) ? sequence : null;
-  base.step = {
-    ...(existing ?? {}),
-    id: stepId,
-    type: typeof stepType === "string" && stepType.trim() ? stepType.trim() : existing?.type ?? "unknown",
-    ...(normalizedSequence !== null ? { sequence: normalizedSequence } : {})
-  } satisfies SnapshotStep;
-  return base;
-}
-
 function setProgress(sessionId: string | undefined, stage: string, progress: number, data?: Record<string, unknown>, done?: boolean) {
   if (!sessionId) return;
   purgeExpiredProgressSessions(Date.now());
@@ -366,47 +194,16 @@ function setProgress(sessionId: string | undefined, stage: string, progress: num
     }
   }
 
-  let dataWithWarnings: Record<string, unknown> | undefined = data ? { ...data } : undefined;
-  const warnings = session.dependencyWarnings;
-  if (warnings.length > 0) {
-    dataWithWarnings = {
-      ...(dataWithWarnings ?? {}),
-      dependencyWarnings: warnings
-    };
-  } else if (dataWithWarnings && "dependencyWarnings" in dataWithWarnings) {
-    delete (dataWithWarnings as { dependencyWarnings?: unknown }).dependencyWarnings;
-    if (Object.keys(dataWithWarnings).length === 0) {
-      dataWithWarnings = undefined;
-    }
-  }
-
-  const stepFromMetadata = dataWithWarnings?.step ?? data?.step;
-  const sanitizedStep = sanitizeSnapshotStep(stepFromMetadata);
-  if (sanitizedStep) {
-    session.currentStep = {
-      ...(session.currentStep ?? {}),
-      ...sanitizedStep
-    };
-  } else if (done) {
-    session.currentStep = undefined;
-  }
-  if (dataWithWarnings && "step" in dataWithWarnings) {
-    delete (dataWithWarnings as { step?: unknown }).step;
-  }
-
   progressSessions.set(sessionId, {
     stage,
     progress,
-    data: dataWithWarnings,
+    data,
     updatedAt: Date.now(),
     done,
     state: session.machine.state,
     paused: session.paused,
     questions: session.questions,
-    checkpointUpdatedAt: session.checkpointUpdatedAt,
-    dependencyWarnings: warnings.length > 0 ? warnings.slice() : undefined,
-    step: session.currentStep,
-    manifestHash: session.manifestHash
+    checkpointUpdatedAt: session.checkpointUpdatedAt
   });
 }
 
@@ -425,10 +222,7 @@ function getProgress(sessionId: string): ProgressSnapshot | null {
       state: session.machine.state,
       paused: session.paused,
       questions: session.questions,
-      checkpointUpdatedAt: session.checkpointUpdatedAt,
-      dependencyWarnings: session.dependencyWarnings.length > 0 ? session.dependencyWarnings.slice() : undefined,
-      step: session.currentStep,
-      manifestHash: session.manifestHash
+      checkpointUpdatedAt: session.checkpointUpdatedAt
     };
   }
   return snap;
@@ -485,39 +279,16 @@ function snapshotFromSession(sessionId: string, fallback?: ProgressSnapshot | nu
   const session = ensureOrchestrationSession(sessionId);
   const existing = fallback ?? progressSessions.get(sessionId) ?? null;
   const baseStage = existing?.stage ?? stateToStage(session.machine.state);
-  const warnings = session.dependencyWarnings;
-  let dataWithWarnings: Record<string, unknown> | undefined = existing?.data
-    ? { ...existing.data }
-    : undefined;
-  if (warnings.length > 0) {
-    dataWithWarnings = {
-      ...(dataWithWarnings ?? {}),
-      dependencyWarnings: warnings
-    };
-  } else if (dataWithWarnings && "dependencyWarnings" in dataWithWarnings) {
-    delete (dataWithWarnings as { dependencyWarnings?: unknown }).dependencyWarnings;
-    if (Object.keys(dataWithWarnings).length === 0) {
-      dataWithWarnings = undefined;
-    }
-  }
-  if (dataWithWarnings && "step" in dataWithWarnings) {
-    delete (dataWithWarnings as { step?: unknown }).step;
-  }
-  const step = session.currentStep ?? sanitizeSnapshotStep(existing?.step);
-  const manifestHash = session.manifestHash ?? existing?.manifestHash;
   return {
     stage: baseStage,
     progress: existing?.progress ?? 0,
-    data: dataWithWarnings,
+    data: existing?.data,
     updatedAt: Date.now(),
     done: existing?.done ?? false,
     state: session.machine.state,
     paused: session.paused,
     questions: session.questions,
-    checkpointUpdatedAt: session.checkpointUpdatedAt,
-    dependencyWarnings: warnings.length > 0 ? warnings.slice() : undefined,
-    step: step ?? undefined,
-    manifestHash: manifestHash
+    checkpointUpdatedAt: session.checkpointUpdatedAt
   };
 }
 
@@ -805,16 +576,7 @@ function createPlanExecutionContext(
       await ensureDefaultExportForApp(rootDir);
       await ensureJsonHealthOnDisk(rootDir);
     },
-    runTests: options =>
-      runInSandbox({
-        ...options,
-        onDependencyWarnings: warnings => {
-          const maybeSessionId = (options as { sessionId?: string }).sessionId;
-          if (typeof maybeSessionId === "string" && maybeSessionId) {
-            updateDependencyWarnings(maybeSessionId, warnings);
-          }
-        }
-      }),
+    runTests: options => runInSandbox(options),
     multiTurnRepair: context => multiTurnRepair(context),
     logTelemetry: event =>
       logEvent("plan_progress", {
@@ -1167,10 +929,6 @@ async function runSingleExecution(options: SingleExecutionOptions): Promise<Sing
 
     await logEvent("generation_start", { project: slug, mode: tracePhase ?? "single" });
 
-    if (sessionId) {
-      updateDependencyWarnings(sessionId, []);
-    }
-
     setProgress(sessionId, "generating", 55, progressMetadata);
 
     output.files = seedTestsInFiles(output.files);
@@ -1183,12 +941,7 @@ async function runSingleExecution(options: SingleExecutionOptions): Promise<Sing
     const initialRun = await runInSandbox({
       projectRoot: targetRoot,
       projectSlug: slug,
-      sessionId,
-      onDependencyWarnings: warnings => {
-        if (sessionId) {
-          updateDependencyWarnings(sessionId, warnings);
-        }
-      }
+      sessionId
     });
     await logEvent("test_run", { project: slug, stage: "initial", status: initialRun.status });
     await captureFixture(sessionId, slug, path.join("tests", "initial.json"), initialRun);
@@ -1342,15 +1095,11 @@ type SingleStepPayload = {
 const planStepHandler: StepHandler = async ({
   sessionId,
   payload,
-  queueMode,
-  stepId,
-  stepType,
-  sequence
+  queueMode
 }) => {
   const data = (payload ?? {}) as PlanStepPayload;
   if (queueMode === "bullmq" && data.queueMetadata) {
-    const metadata = attachStepMetadata(data.queueMetadata, stepId, stepType, sequence);
-    setProgress(sessionId, "planning", 20, metadata);
+    setProgress(sessionId, "planning", 20, data.queueMetadata);
   }
 
   try {
@@ -1405,7 +1154,7 @@ const planStepHandler: StepHandler = async ({
   }
 };
 
-const singleStepHandler: StepHandler = async ({ payload, queueMode, stepId, stepType, sequence }) => {
+const singleStepHandler: StepHandler = async ({ payload, queueMode }) => {
   const data = (payload ?? {}) as SingleStepPayload;
   if (!data.singleOptions) {
     throw new Error("singleOptions payload required for single step");
@@ -1414,15 +1163,11 @@ const singleStepHandler: StepHandler = async ({ payload, queueMode, stepId, step
   const baseOptions = data.singleOptions;
   const options: SingleExecutionOptions = {
     ...baseOptions,
-    progressMetadata: attachStepMetadata(baseOptions.progressMetadata, stepId, stepType, sequence)
+    progressMetadata: baseOptions.progressMetadata ? { ...baseOptions.progressMetadata } : undefined
   };
 
   if (queueMode === "bullmq") {
-    const queuedMeta = {
-      ...(options.progressMetadata ?? {}),
-      queued: true,
-      mode: "queue"
-    };
+    const queuedMeta = { ...(options.progressMetadata ?? {}), queued: true, mode: "queue" };
     options.progressMetadata = queuedMeta;
     if (options.sessionId) {
       setProgress(options.sessionId, "planning", 20, queuedMeta);
@@ -1497,9 +1242,12 @@ app.post("/api/clarify", (req, res) => {
 });
 
 app.post("/api/execute", async (req, res) => {
-  const sessionId: string | undefined = typeof req.body?.sessionId === "string" ? req.body.sessionId : undefined;
+  const providedSessionId = typeof req.body?.sessionId === "string" ? req.body.sessionId.trim() : "";
+  const sessionId = providedSessionId || randomUUID();
   const wantsSse = typeof req.headers.accept === "string" && req.headers.accept.includes("text/event-stream");
   let sseStarted = false;
+
+  res.setHeader("x-executor-session", sessionId);
 
   const ensureSse = () => {
     if (!wantsSse || sseStarted) {
@@ -1531,10 +1279,6 @@ app.post("/api/execute", async (req, res) => {
   };
 
   try {
-    if (!sessionId) {
-      return res.status(400).json({ error: "session id required" });
-    }
-
     createAbortSignal(sessionId);
 
     setProgress(sessionId, "analyzing", 10);
@@ -1667,7 +1411,6 @@ app.post("/api/execute", async (req, res) => {
       console.log(`Execution paused for session ${err.sessionId} during ${err.phase}`);
       const workflowSteps = sessionId ? await stepQueue.getWorkflow(sessionId) : null;
       const pausedRecord = workflowSteps?.slice().reverse().find(step => step.status === "paused");
-      const pausedTimings = deriveStepTimings(pausedRecord);
       const stepMeta = pausedRecord
         ? { stepId: pausedRecord.stepId, stepType: pausedRecord.stepType, sequence: pausedRecord.sequence }
         : {
@@ -1682,23 +1425,6 @@ app.post("/api/execute", async (req, res) => {
         message: err.message,
         ...stepMeta
       };
-
-      const pausedSession = ensureOrchestrationSession(err.sessionId);
-      await logPauseEvent({
-        sessionId: err.sessionId,
-        status: "acknowledged",
-        reason: err.message,
-        stepId: (stepMeta as { stepId?: string }).stepId,
-        stepType: (stepMeta as { stepType?: string }).stepType,
-        sequence: typeof (stepMeta as { sequence?: number }).sequence === "number"
-          ? (stepMeta as { sequence?: number }).sequence
-          : undefined,
-        manifestHash: pausedSession.manifestHash,
-        checkpointAt: pausedSession.checkpointUpdatedAt,
-        questions: pausedSession.questions.length,
-        trigger: "worker",
-        ...pausedTimings
-      });
 
       if (wantsSse) {
         res.status(202);
@@ -1863,8 +1589,6 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
     }
 
     const current = getProgress(sessionId);
-    const currentStep = sanitizeSnapshotStep(current?.step);
-    const currentStepTimings = deriveStepTimings(current?.step);
     if (!current) {
       return res.status(404).json({ error: "session not found" });
     }
@@ -1915,13 +1639,7 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
 
     // Abort the in-flight execution
     const aborted = abortSession(sessionId);
-    await logAbortEvent({
-      sessionId,
-      reason,
-      trigger: "api",
-      active: aborted,
-      manifestHash: session.manifestHash
-    });
+    console.log(`[Pause] Session ${sessionId} abort signal sent: ${aborted}`);
 
     const checkpoint = await raiseInterrupt({
       sessionId,
@@ -1936,12 +1654,9 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
     session.questions = checkpoint.payload?.pendingQuestions ?? [];
     session.checkpointUpdatedAt = checkpoint.updatedAt;
 
-    let capturedManifestHash: string | undefined;
     if (session.projectSlug) {
       try {
-        const manifest = await captureManifest(sessionId, session.projectSlug);
-        session.manifestHash = manifest.digest;
-        capturedManifestHash = manifest.digest;
+        await captureManifest(sessionId, session.projectSlug);
       } catch (error) {
         console.warn(`[Pause] Failed to capture manifest for session ${sessionId}:`, error);
       }
@@ -1955,21 +1670,6 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
     snapshot.done = false;
     snapshot.updatedAt = Date.now();
     progressSessions.set(sessionId, snapshot);
-
-    await logPauseEvent({
-      sessionId,
-      status: "requested",
-      reason,
-      stepId: currentStep?.id,
-      stepType: currentStep?.type,
-      sequence: currentStep?.sequence ?? undefined,
-      manifestHash: session.manifestHash ?? capturedManifestHash,
-      checkpointAt: checkpoint.updatedAt,
-      provider: undefined,
-      questions: questions.length,
-      trigger: "api",
-      ...currentStepTimings
-    });
 
     return res.status(201).json({ checkpoint });
   } catch (error) {
@@ -2019,9 +1719,6 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     session.projectSlug = projectSlug;
 
     const manifest = await getManifest(sessionId);
-    if (manifest?.digest) {
-      session.manifestHash = manifest.digest;
-    }
     const systemPrompt = await fs.readFile("src/executor/systemPrompt.md", "utf-8");
     const promptSnapshot = await resolveSessionPrompts(sessionId, session, projectSlug);
     const prompts = buildResumePrompts(systemPrompt, {
@@ -2043,30 +1740,12 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     snapshot.checkpointUpdatedAt = result.checkpoint.updatedAt;
     snapshot.updatedAt = Date.now();
     snapshot.done = false;
-    const resumeData: Record<string, unknown> = {
+    snapshot.data = {
       ...(snapshot.data ?? {}),
       resume: true,
       ...(adjustmentRaw ? { adjustment: adjustmentRaw } : {})
     };
-    if (session.dependencyWarnings.length > 0) {
-      resumeData.dependencyWarnings = session.dependencyWarnings;
-      snapshot.dependencyWarnings = session.dependencyWarnings.slice();
-    } else {
-      delete resumeData.dependencyWarnings;
-      snapshot.dependencyWarnings = undefined;
-    }
-    snapshot.data = resumeData;
     progressSessions.set(sessionId, snapshot);
-
-    await logResumeEvent({
-      sessionId,
-      checkpointAt: result.checkpoint.updatedAt,
-      manifestHash: session.manifestHash,
-      provider: undefined,
-      questionsResolved: result.answeredQuestions.length,
-      adjustment: adjustmentRaw || undefined,
-      mode: stepQueue.mode === "bullmq" ? "queue" : "inline"
-    });
 
     const resumeFixture: ResumeContextFixture = {
       adjustment: adjustmentRaw || undefined,
@@ -2088,10 +1767,7 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
 
     const progressMetadata = {
       resume: true,
-      ...(adjustmentRaw ? { adjustment: adjustmentRaw } : {}),
-      ...(session.dependencyWarnings.length > 0
-        ? { dependencyWarnings: session.dependencyWarnings }
-        : {})
+      ...(adjustmentRaw ? { adjustment: adjustmentRaw } : {})
     };
 
     const providerConfigured = Boolean(process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY);
@@ -2198,8 +1874,7 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     return res.json({
       checkpoint: result.checkpoint,
       answeredQuestions: result.answeredQuestions,
-      resumed: true,
-      dependencyWarnings: session.dependencyWarnings.slice()
+      resumed: true
     });
   } catch (error) {
     if (error instanceof ResumeValidationError) {

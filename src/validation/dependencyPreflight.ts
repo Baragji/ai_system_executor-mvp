@@ -44,8 +44,6 @@ const OFFLINE_REGISTRY_FIXTURES: Record<string, PackageMetadata> = {
   }
 };
 
-export type DependencyWarningReason = "DEPRECATED" | "VERSION_MISMATCH";
-
 export interface DependencyValidationError {
   package: string;
   version: string;
@@ -54,18 +52,10 @@ export interface DependencyValidationError {
   registryUrl?: string;
 }
 
-export interface DependencyValidationWarning {
-  package: string;
-  version: string;
-  reason: DependencyWarningReason;
-  suggestion?: string;
-}
-
 export class DependencyPreflightError extends Error {
   constructor(
     message: string,
-    public errors: DependencyValidationError[],
-    public warnings: DependencyValidationWarning[] = []
+    public errors: DependencyValidationError[]
   ) {
     super(message);
     this.name = "DependencyPreflightError";
@@ -79,10 +69,6 @@ export interface ValidateDependenciesOptions {
   allowDeprecated?: boolean;
   /** Allow version mismatches with warning (fallback to latest) */
   allowVersionMismatch?: boolean;
-}
-
-export interface DependencyValidationSummary {
-  warnings: DependencyValidationWarning[];
 }
 
 interface PackageMetadata {
@@ -159,8 +145,7 @@ function findMatchingVersion(
 async function validateDependency(
   packageName: string,
   versionRange: string,
-  options: Required<ValidateDependenciesOptions>,
-  warnings: DependencyValidationWarning[]
+  options: ValidateDependenciesOptions
 ): Promise<DependencyValidationError | null> {
   // Validate semver range
   if (!validRange(versionRange)) {
@@ -220,14 +205,8 @@ async function validateDependency(
 
   if (!matchedVersion) {
     if (options.allowVersionMismatch) {
-      warnings.push({
-        package: packageName,
-        version: versionRange,
-        reason: "VERSION_MISMATCH",
-        suggestion: `npm will attempt to resolve ${packageName} based on available versions: ${availableVersions
-          .slice(0, 5)
-          .join(", ")}${availableVersions.length > 5 ? "..." : ""}`
-      });
+      // Log warning but don't block - npm will handle version resolution
+      console.warn(`⚠️  Version mismatch for ${packageName}@${versionRange} - npm will attempt to resolve`);
       return null;
     }
     return {
@@ -241,21 +220,13 @@ async function validateDependency(
 
   // Check for deprecation
   const versionMeta = metadata.versions[matchedVersion];
-  if (versionMeta?.deprecated) {
-    if (!options.allowDeprecated) {
-      return {
-        package: packageName,
-        version: versionRange,
-        reason: "DEPRECATED",
-        suggestion: `Version ${matchedVersion} is deprecated: ${versionMeta.deprecated}`
-      };
-    }
-    warnings.push({
+  if (versionMeta?.deprecated && !options.allowDeprecated) {
+    return {
       package: packageName,
-      version: matchedVersion,
+      version: versionRange,
       reason: "DEPRECATED",
-      suggestion: versionMeta.deprecated
-    });
+      suggestion: `Version ${matchedVersion} is deprecated: ${versionMeta.deprecated}`
+    };
   }
 
   return null;
@@ -298,12 +269,11 @@ export async function validateDependencies(
   dependencies?: Record<string, string>,
   devDependencies?: Record<string, string>,
   options: ValidateDependenciesOptions = {}
-): Promise<DependencyValidationSummary> {
-  const warnings: DependencyValidationWarning[] = [];
+): Promise<void> {
   const opts: Required<ValidateDependenciesOptions> = {
     timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-    allowDeprecated: options.allowDeprecated ?? true,
-    allowVersionMismatch: options.allowVersionMismatch ?? true
+    allowDeprecated: options.allowDeprecated ?? false,
+    allowVersionMismatch: options.allowVersionMismatch ?? false
   };
 
   const errors: DependencyValidationError[] = [];
@@ -317,7 +287,7 @@ export async function validateDependencies(
   // Validate all dependencies in parallel
   const allDeps = { ...dependencies, ...devDependencies };
   const validationPromises = Object.entries(allDeps).map(([name, version]) =>
-    validateDependency(name, version, opts, warnings)
+    validateDependency(name, version, opts)
   );
 
   const results = await Promise.all(validationPromises);
@@ -330,10 +300,7 @@ export async function validateDependencies(
 
     throw new DependencyPreflightError(
       `Dependency validation failed for ${errors.length} package(s):\n${errorSummary}`,
-      errors,
-      warnings
+      errors
     );
   }
-
-  return { warnings };
 }
