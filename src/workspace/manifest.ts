@@ -133,3 +133,44 @@ export function buildWorkspaceTree(files: WorkspaceFileEntry[]): Record<string, 
 }
 
 export { OUTPUT_ROOT };
+
+function formatBytes(size: number): string {
+  if (!Number.isFinite(size) || size < 0) {
+    return "0 B";
+  }
+  const units = ["B", "KB", "MB", "GB"] as const;
+  let value = size;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+  const rounded = unitIndex === 0 ? Math.round(value) : Number(value.toFixed(1));
+  return `${rounded} ${units[unitIndex]}`;
+}
+
+export function formatWorkspaceSummary(
+  summary: WorkspaceSummary,
+  options: { topFileCount?: number } = {}
+): string {
+  const topFileCount = Math.max(0, Math.min(options.topFileCount ?? summary.topFiles.length ?? 0, summary.topFiles.length));
+  const lines: string[] = [];
+  lines.push(`Total files: ${summary.totalFiles}`);
+  lines.push(`Total size: ${formatBytes(summary.totalSize)}`);
+
+  if (summary.topFiles.length === 0) {
+    lines.push("No files captured in workspace manifest.");
+  } else {
+    const slice = summary.topFiles.slice(0, topFileCount || 5);
+    lines.push("Top files by size:");
+    slice.forEach((file, index) => {
+      const displaySize = formatBytes(file.size);
+      lines.push(`  ${index + 1}. ${file.path} (${displaySize}, hash ${file.hash})`);
+    });
+    if (summary.topFiles.length > slice.length) {
+      lines.push(`  … ${summary.topFiles.length - slice.length} more files`);
+    }
+  }
+
+  return lines.join("\n");
+}

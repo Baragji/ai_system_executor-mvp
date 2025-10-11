@@ -3,11 +3,11 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "executor-mvp@0.1.0",
-  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-7b31c7d8-559c-4d09-b91e-3b6aac80bd2f",
+  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-a0ad3d4b-eb69-4c1a-bfe6-438100d6b99e",
   "creationInfo": {
-    "created": "2025-10-10T15:02:48.632Z",
+    "created": "2025-10-11T03:02:34.515Z",
     "creators": [
-      "Tool: npm/cli-10.9.3"
+      "Tool: npm/cli-11.4.2"
     ]
   },
   "documentDescribes": [
@@ -101,6 +101,54 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "26508c3be7a174420aaa517193a21f568014566833edc53bcc3fe1f57674ab37a8b121e650954ecd242fbd84985979055c2f887cb29221f7e1bf4b1566ea7aa4"
+        }
+      ]
+    },
+    {
+      "name": "@ioredis/commands",
+      "SPDXID": "SPDXRef-Package-ioredis.commands-1.4.0",
+      "versionInfo": "1.4.0",
+      "packageFileName": "node_modules/@ioredis/commands",
+      "description": "Redis commands",
+      "downloadLocation": "https://registry.npmjs.org/@ioredis/commands/-/commands-1.4.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/ioredis/commands",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40ioredis/commands@1.4.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "6854f6c9e989268f936429a2780eea9d8190a28392ed07cd998af31adb1877783d8f98833fc0229986007ac7fbf688636cb1b5d97c42e271b90f21270bcf00b1"
+        }
+      ]
+    },
+    {
+      "name": "@msgpackr-extract/msgpackr-extract-linux-x64",
+      "SPDXID": "SPDXRef-Package-msgpackr-extract.msgpackr-extract-linux-x64-3.0.3",
+      "versionInfo": "3.0.3",
+      "packageFileName": "node_modules/@msgpackr-extract/msgpackr-extract-linux-x64",
+      "description": "Platform specific binary for msgpackr-extract on linux OS with x64 architecture",
+      "downloadLocation": "https://registry.npmjs.org/@msgpackr-extract/msgpackr-extract-linux-x64/-/msgpackr-extract-linux-x64-3.0.3.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/kriszyp/msgpackr-extract#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40msgpackr-extract/msgpackr-extract-linux-x64@3.0.3"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "72fc0d7db3f4ee92947ead6e1fe4ba289edd4fd2bc58e13866201cb2b49eb3e518e7913fd232d873ebeaf833bb8e59aa45be73020804c4a9b41fb3bf08169eb2"
         }
       ]
     },
@@ -273,6 +321,78 @@
       ]
     },
     {
+      "name": "bullmq",
+      "SPDXID": "SPDXRef-Package-bullmq-5.61.0",
+      "versionInfo": "5.61.0",
+      "packageFileName": "node_modules/bullmq",
+      "description": "Queue for messages and jobs based on Redis",
+      "downloadLocation": "https://registry.npmjs.org/bullmq/-/bullmq-5.61.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://bullmq.io/",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/bullmq@5.61.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "9216938dcd499f3698165e05ad4b6c4acaae8005bfbab46b719f50d1913e444030f16fa090716ac5b1a5bad3aeeaaee3ee7f75c226d569a36539431d884be849"
+        }
+      ]
+    },
+    {
+      "name": "uuid",
+      "SPDXID": "SPDXRef-Package-uuid-11.1.0",
+      "versionInfo": "11.1.0",
+      "packageFileName": "node_modules/bullmq/node_modules/uuid",
+      "description": "RFC9562 UUIDs",
+      "downloadLocation": "https://registry.npmjs.org/uuid/-/uuid-11.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/uuidjs/uuid#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/uuid@11.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "d3f03dac3cbd3fb709fbcc3573d583f55ffff568f5e427b630fcfc462eb4df6baccfe35f78fc71e4070dddb37eafa64bea3128d3aebfc8d601ded9f8a50131f8"
+        }
+      ]
+    },
+    {
+      "name": "cluster-key-slot",
+      "SPDXID": "SPDXRef-Package-cluster-key-slot-1.1.2",
+      "versionInfo": "1.1.2",
+      "packageFileName": "node_modules/cluster-key-slot",
+      "description": "Generates CRC hashes for strings - for use by node redis clients to determine key slots.",
+      "downloadLocation": "https://registry.npmjs.org/cluster-key-slot/-/cluster-key-slot-1.1.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/Salakar/cluster-key-slot#readme",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/cluster-key-slot@1.1.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "44caf4161b5f5de9b28a7a262f886b59c609c665fa75e15d0b1a49ce10edb7180ed7e6dc0a7924fbd76bc9d2d50e600c1bb344e9a37f7e5e05eee714ffdd2000"
+        }
+      ]
+    },
+    {
       "name": "cors",
       "SPDXID": "SPDXRef-Package-cors-2.8.5",
       "versionInfo": "2.8.5",
@@ -293,6 +413,78 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "2881db2c9aaeef7446aff8676eb3bdb817a2c4d1aebd2423ba5fe3745bd2fca152207d615957759e0ef3387c7e62b11f2272c6eeae27e861d0f5c0edc6ffcfea"
+        }
+      ]
+    },
+    {
+      "name": "cron-parser",
+      "SPDXID": "SPDXRef-Package-cron-parser-4.9.0",
+      "versionInfo": "4.9.0",
+      "packageFileName": "node_modules/cron-parser",
+      "description": "Node.js library for parsing crontab instructions",
+      "downloadLocation": "https://registry.npmjs.org/cron-parser/-/cron-parser-4.9.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/harrisiirak/cron-parser#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/cron-parser@4.9.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "a7449a363ac73a741e47cfd59df19b9a0f6d7b691fc98490ed273f8ffe83b4f2f7250bcac668cef534a3345a6e8ea577bc461806f34dbd74b1cf292c056031d5"
+        }
+      ]
+    },
+    {
+      "name": "denque",
+      "SPDXID": "SPDXRef-Package-denque-2.1.0",
+      "versionInfo": "2.1.0",
+      "packageFileName": "node_modules/denque",
+      "description": "The fastest javascript implementation of a double-ended queue. Used by the official Redis, MongoDB, MariaDB & MySQL libraries for Node.js and many other libraries. Maintains compatability with deque.",
+      "downloadLocation": "https://registry.npmjs.org/denque/-/denque-2.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://docs.page/invertase/denque",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/denque@2.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "1d5404dc001bfe9c45f1f400a22aa9be0f62ddebeaba0de1a22c1a90ec99030266fbabd97a16e46176749782714be23743133deefe5a6913618fcbf9a0185e93"
+        }
+      ]
+    },
+    {
+      "name": "detect-libc",
+      "SPDXID": "SPDXRef-Package-detect-libc-2.1.2",
+      "versionInfo": "2.1.2",
+      "packageFileName": "node_modules/detect-libc",
+      "description": "Node.js module to detect the C standard library (libc) implementation family and version",
+      "downloadLocation": "https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/lovell/detect-libc#readme",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/detect-libc@2.1.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "06d8f604e38ef37a375b21f9f5ef0c817b3111055c6ab9143a9118aee6c1d2eaf09cdd74c90dfae2bb22072535d67665a966199b4e62fe87fb8a8e26ce2841b5"
         }
       ]
     },
@@ -489,6 +681,30 @@
       ]
     },
     {
+      "name": "ioredis",
+      "SPDXID": "SPDXRef-Package-ioredis-5.8.1",
+      "versionInfo": "5.8.1",
+      "packageFileName": "node_modules/ioredis",
+      "description": "A robust, performance-focused and full-featured Redis client for Node.js.",
+      "downloadLocation": "https://registry.npmjs.org/ioredis/-/ioredis-5.8.1.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/luin/ioredis#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/ioredis@5.8.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "421a3c4e021a9aa10f76088c69d270cd1316dd3b9d220eafa60e1838da24183b9dcb87aa44826d0db557ef6a5f2c1716c6f6e7dea9bfe344f219439b756e2d2d"
+        }
+      ]
+    },
+    {
       "name": "json-schema-traverse",
       "SPDXID": "SPDXRef-Package-json-schema-traverse-1.0.0",
       "versionInfo": "1.0.0",
@@ -509,6 +725,78 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "34cf3f3fd9f75e35e12199f594b86415a0024ce5114178d6855e0103f4673aff31be0aadaa9017f483b89914314b1d51968e2dab37aa6f4b0e96bb9a3b2dddba"
+        }
+      ]
+    },
+    {
+      "name": "lodash.defaults",
+      "SPDXID": "SPDXRef-Package-lodash.defaults-4.2.0",
+      "versionInfo": "4.2.0",
+      "packageFileName": "node_modules/lodash.defaults",
+      "description": "The lodash method `_.defaults` exported as a module.",
+      "downloadLocation": "https://registry.npmjs.org/lodash.defaults/-/lodash.defaults-4.2.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://lodash.com/",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/lodash.defaults@4.2.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "aa3c4f2c7777af90e7b1d19a72a38c53aa5bfdabc9cdd87db455f6ca6828644dbb0668d7acdcbfcb82e86a24de01bf8ede02fc01fa491ada9f5ff69eda579861"
+        }
+      ]
+    },
+    {
+      "name": "lodash.isarguments",
+      "SPDXID": "SPDXRef-Package-lodash.isarguments-3.1.0",
+      "versionInfo": "3.1.0",
+      "packageFileName": "node_modules/lodash.isarguments",
+      "description": "The lodash method `_.isArguments` exported as a module.",
+      "downloadLocation": "https://registry.npmjs.org/lodash.isarguments/-/lodash.isarguments-3.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://lodash.com/",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/lodash.isarguments@3.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "7218b834766566a643d7c6b48a60c79d93eb0de05b4ed54dec65ccc2e19d447f6aa2dc408d8b376952ca73bccd386f5e75d4792ac77caef14405cf52b2080fa6"
+        }
+      ]
+    },
+    {
+      "name": "luxon",
+      "SPDXID": "SPDXRef-Package-luxon-3.7.2",
+      "versionInfo": "3.7.2",
+      "packageFileName": "node_modules/luxon",
+      "description": "Immutable date wrapper",
+      "downloadLocation": "https://registry.npmjs.org/luxon/-/luxon-3.7.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/moment/luxon#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/luxon@3.7.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "bed1215e1fe036323d620d6ee235ffd1854f32fc731ee1a00a6ead0b9919c9bd3cca31961a7a808c626f7176ea411d8fdccc8c1059d16e971d152e8f05c2ea7b"
         }
       ]
     },
@@ -609,6 +897,78 @@
       ]
     },
     {
+      "name": "msgpackr",
+      "SPDXID": "SPDXRef-Package-msgpackr-1.11.5",
+      "versionInfo": "1.11.5",
+      "packageFileName": "node_modules/msgpackr",
+      "description": "Ultra-fast MessagePack implementation with extensions for records and structured cloning",
+      "downloadLocation": "https://registry.npmjs.org/msgpackr/-/msgpackr-1.11.5.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/kriszyp/msgpackr#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/msgpackr@1.11.5"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "5239141cdd32aa9f5158acb42e996187ec25a5db7da100588142d93a216157755c952175267490599e6bf60391425358694290a11f22b6fee0ef3d710c3b8008"
+        }
+      ]
+    },
+    {
+      "name": "msgpackr-extract",
+      "SPDXID": "SPDXRef-Package-msgpackr-extract-3.0.3",
+      "versionInfo": "3.0.3",
+      "packageFileName": "node_modules/msgpackr-extract",
+      "description": "Node addon for string extraction for msgpackr",
+      "downloadLocation": "https://registry.npmjs.org/msgpackr-extract/-/msgpackr-extract-3.0.3.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/kriszyp/msgpackr-extract#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/msgpackr-extract@3.0.3"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "3f479f4f50bd8c875545e7ea8f3390f579a5e7bce93979c8b92f9cb1a07831d65b4dd9860cba3c5e1cc11b537b68ed7580a0c3909bc12d42de153a38eb0c2b78"
+        }
+      ]
+    },
+    {
+      "name": "node-abort-controller",
+      "SPDXID": "SPDXRef-Package-node-abort-controller-3.1.1",
+      "versionInfo": "3.1.1",
+      "packageFileName": "node_modules/node-abort-controller",
+      "description": "AbortController for Node based on EventEmitter",
+      "downloadLocation": "https://registry.npmjs.org/node-abort-controller/-/node-abort-controller-3.1.1.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/southpolesteve/node-abort-controller#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/node-abort-controller@3.1.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "0062b6c902888d1baa9dce95917d978f977e416f3167cee96b550aeb203aa2e532bb17c7b8c3faba613940aed499378e0329a8f99c751718aec3dad5c7cb5a1d"
+        }
+      ]
+    },
+    {
       "name": "node-domexception",
       "SPDXID": "SPDXRef-Package-node-domexception-1.0.0",
       "versionInfo": "1.0.0",
@@ -629,6 +989,30 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "fe3299a0ca70d05f06470978fde2d138f03771f717b4b0293f44332e6513fc7b8f0995b207b218f59acc78ac363bf9c522a3d00773d533d6989b4177d760170d"
+        }
+      ]
+    },
+    {
+      "name": "node-gyp-build-optional-packages",
+      "SPDXID": "SPDXRef-Package-node-gyp-build-optional-packages-5.2.2",
+      "versionInfo": "5.2.2",
+      "packageFileName": "node_modules/node-gyp-build-optional-packages",
+      "description": "Build tool and bindings loader for node-gyp that supports prebuilds",
+      "downloadLocation": "https://registry.npmjs.org/node-gyp-build-optional-packages/-/node-gyp-build-optional-packages-5.2.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/prebuild/node-gyp-build",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/node-gyp-build-optional-packages@5.2.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "b3ec3eac15a7a533304856da134517b11960ee15381637a4294e1ec808a1e53f2726e3594f59cdb2c917a7199ea922bd53390197a5204659ca73c873f0812a3b"
         }
       ]
     },
@@ -681,50 +1065,50 @@
       ]
     },
     {
-      "name": "@types/node",
-      "SPDXID": "SPDXRef-Package-types.node-18.19.129",
-      "versionInfo": "18.19.129",
-      "packageFileName": "node_modules/openai/node_modules/@types/node",
-      "description": "TypeScript definitions for node",
-      "downloadLocation": "https://registry.npmjs.org/@types/node/-/node-18.19.129.tgz",
+      "name": "redis-errors",
+      "SPDXID": "SPDXRef-Package-redis-errors-1.2.0",
+      "versionInfo": "1.2.0",
+      "packageFileName": "node_modules/redis-errors",
+      "description": "Error classes used in node_redis",
+      "downloadLocation": "https://registry.npmjs.org/redis-errors/-/redis-errors-1.2.0.tgz",
       "filesAnalyzed": false,
-      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node",
+      "homepage": "https://github.com/NodeRedis/redis-errors#readme",
       "licenseDeclared": "MIT",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40types/node@18.19.129"
+          "referenceLocator": "pkg:npm/redis-errors@1.2.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "86b9a2e635addb0eb46b2a31de2217c293049df52f38b24246dace3db1ed1f5e674e3bceeee8677a5beb740b3474ed3fce5e4367765b6a189a5c455be7871afc"
+          "checksumValue": "d6a9f2dce13109fd14bd457fe70a5829fd98c0f70ea97ce4c0a29298a1e213a64c42ce6179e13f73c7972be3cd9653ef9a38006df9ec6e9906656cbc701a67f7"
         }
       ]
     },
     {
-      "name": "undici-types",
-      "SPDXID": "SPDXRef-Package-undici-types-5.26.5",
-      "versionInfo": "5.26.5",
-      "packageFileName": "node_modules/openai/node_modules/undici-types",
-      "description": "A stand-alone types package for Undici",
-      "downloadLocation": "https://registry.npmjs.org/undici-types/-/undici-types-5.26.5.tgz",
+      "name": "redis-parser",
+      "SPDXID": "SPDXRef-Package-redis-parser-3.0.0",
+      "versionInfo": "3.0.0",
+      "packageFileName": "node_modules/redis-parser",
+      "description": "Javascript Redis protocol (RESP) parser",
+      "downloadLocation": "https://registry.npmjs.org/redis-parser/-/redis-parser-3.0.0.tgz",
       "filesAnalyzed": false,
-      "homepage": "https://undici.nodejs.org",
+      "homepage": "https://github.com/NodeRedis/node-redis-parser#readme",
       "licenseDeclared": "MIT",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/undici-types@5.26.5"
+          "referenceLocator": "pkg:npm/redis-parser@3.0.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "26508c3be7a174420aaa517193a21f568014566833edc53bcc3fe1f57674ab37a8b121e650954ecd242fbd84985979055c2f887cb29221f7e1bf4b1566ea7aa4"
+          "checksumValue": "0c99c601e7a74dda4c107eae00944afee8b21081fd595b149a82f0cee77018953064fa7cd0f0c158f1d748018d3f036f21701b7bb312501d73405ba016697ae8"
         }
       ]
     },
@@ -777,6 +1161,30 @@
       ]
     },
     {
+      "name": "standard-as-callback",
+      "SPDXID": "SPDXRef-Package-standard-as-callback-2.1.0",
+      "versionInfo": "2.1.0",
+      "packageFileName": "node_modules/standard-as-callback",
+      "description": "A performant and standard (Bluebird) library that registers a node-style callback on a promise",
+      "downloadLocation": "https://registry.npmjs.org/standard-as-callback/-/standard-as-callback-2.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/luin/asCallback#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/standard-as-callback@2.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "aa84514b244e9dc6b3d73d26bd8a8813894277da7647dd22e86c56dee66fe6e712bbcb54ec1e475d43f5806f29559b183556978e4f029571cfb6d2f2c402f8f0"
+        }
+      ]
+    },
+    {
       "name": "web-streams-polyfill",
       "SPDXID": "SPDXRef-Package-web-streams-polyfill-3.3.3",
       "versionInfo": "3.3.3",
@@ -823,6 +1231,11 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
+      "spdxElementId": "SPDXRef-Package-bullmq-5.61.0",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-cors-2.8.5",
       "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
       "relationshipType": "DEPENDENCY_OF"
@@ -834,6 +1247,11 @@
     },
     {
       "spdxElementId": "SPDXRef-Package-dotenv-16.6.1",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ioredis-5.8.1",
       "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
       "relationshipType": "DEPENDENCY_OF"
     },
@@ -928,8 +1346,38 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
+      "spdxElementId": "SPDXRef-Package-cron-parser-4.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-bullmq-5.61.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ioredis-5.8.1",
+      "relatedSpdxElement": "SPDXRef-Package-bullmq-5.61.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-msgpackr-1.11.5",
+      "relatedSpdxElement": "SPDXRef-Package-bullmq-5.61.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-node-abort-controller-3.1.1",
+      "relatedSpdxElement": "SPDXRef-Package-bullmq-5.61.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-uuid-11.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-bullmq-5.61.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-object-assign-4.1.1",
       "relatedSpdxElement": "SPDXRef-Package-cors-2.8.5",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-luxon-3.7.2",
+      "relatedSpdxElement": "SPDXRef-Package-cron-parser-4.9.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -940,6 +1388,46 @@
     {
       "spdxElementId": "SPDXRef-Package-web-streams-polyfill-4.0.0-beta.3",
       "relatedSpdxElement": "SPDXRef-Package-formdata-node-4.4.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ioredis.commands-1.4.0",
+      "relatedSpdxElement": "SPDXRef-Package-ioredis-5.8.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cluster-key-slot-1.1.2",
+      "relatedSpdxElement": "SPDXRef-Package-ioredis-5.8.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-denque-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-ioredis-5.8.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-lodash.defaults-4.2.0",
+      "relatedSpdxElement": "SPDXRef-Package-ioredis-5.8.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-lodash.isarguments-3.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-ioredis-5.8.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-redis-errors-1.2.0",
+      "relatedSpdxElement": "SPDXRef-Package-ioredis-5.8.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-redis-parser-3.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-ioredis-5.8.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-standard-as-callback-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-ioredis-5.8.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -960,6 +1448,26 @@
     {
       "spdxElementId": "SPDXRef-Package-ms-2.0.0",
       "relatedSpdxElement": "SPDXRef-Package-debug-2.6.9",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-msgpackr-extract-3.0.3",
+      "relatedSpdxElement": "SPDXRef-Package-msgpackr-1.11.5",
+      "relationshipType": "OPTIONAL_DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-node-gyp-build-optional-packages-5.2.2",
+      "relatedSpdxElement": "SPDXRef-Package-msgpackr-extract-3.0.3",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-msgpackr-extract.msgpackr-extract-linux-x64-3.0.3",
+      "relatedSpdxElement": "SPDXRef-Package-msgpackr-extract-3.0.3",
+      "relationshipType": "OPTIONAL_DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-detect-libc-2.1.2",
+      "relatedSpdxElement": "SPDXRef-Package-node-gyp-build-optional-packages-5.2.2",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -995,6 +1503,11 @@
     {
       "spdxElementId": "SPDXRef-Package-undici-types-5.26.5",
       "relatedSpdxElement": "SPDXRef-Package-types.node-18.19.129",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-redis-errors-1.2.0",
+      "relatedSpdxElement": "SPDXRef-Package-redis-parser-3.0.0",
       "relationshipType": "DEPENDENCY_OF"
     }
   ]

@@ -59,10 +59,10 @@ describe('repair hardening: skip missing-contents artifacts', () => {
     };
 
     chooseProviderMock.mockReturnValue({
-      generate: async () => {
+      generate: async () => ({
         // Both first call and strict retry return same payload (still missing server.js)
-        return JSON.stringify(payload);
-      }
+        content: JSON.stringify(payload)
+      })
     });
 
     runInSandboxMock.mockImplementation(async () => ({

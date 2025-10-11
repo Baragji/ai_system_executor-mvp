@@ -41,13 +41,7 @@ import { validateDecomposition } from "./planning/validateDecomposition.js";
 import { executeTaskPlan } from "./planning/executeTaskPlan.js";
 import { generateSubtaskOutputWithRetry } from "./planning/generateSubtaskOutput.js";
 import { estimateCompletion } from "./planning/estimateCompletion.js";
-import type {
-  PlanExecutionContext,
-  PlanExecutionResult,
-  SubtaskResult,
-  TaskPlan,
-  TimeEstimate
-} from "./planning/types.js";
+import type { PlanExecutionContext, SubtaskResult } from "./planning/types.js";
 import {
   createAbortSignal,
   cleanupAbortSignal,
@@ -69,7 +63,21 @@ import {
   ResumeStateError,
   type ResumeAnswer
 } from "./orchestrator/resume.js";
-import { captureManifest } from "./orchestrator/workspaceManifest.js";
+import { captureManifest, getManifest } from "./orchestrator/workspaceManifest.js";
+import { buildResumePrompts } from "./orchestrator/resumePrompt.js";
+import {
+  configureExecutionQueue,
+  createPlanJobPayload,
+  createSingleJobPayload
+} from "./orchestrator/jobQueue.js";
+import type {
+  ExecutorSuccessResponse,
+  PlanExecutionJobResult,
+  PlanExecutionOptions,
+  ResumeContextFixture,
+  SingleExecutionOptions,
+  SingleExecutionResult
+} from "./orchestrator/executionTypes.js";
 
 const app = express();
 app.use(cors());
@@ -98,6 +106,9 @@ interface OrchestrationSession {
   questions: PendingQuestion[];
   checkpointUpdatedAt?: string;
   projectSlug?: string;
+  originalPrompt?: string;
+  effectivePrompt?: string;
+  projectName?: string;
 }
 
 const progressSessions = new Map<string, ProgressSnapshot>();
@@ -591,22 +602,7 @@ function createPlanExecutionContext(
   };
 }
 
-async function executePlanFlow(params: {
-  plan: TaskPlan;
-  planQuality: number;
-  targetRoot: string;
-  slug: string;
-  effectivePrompt: string;
-  originalPrompt: string;
-  clarifications?: ClarificationResponse;
-  clarificationsUsed: boolean;
-  systemPrompt: string;
-  clarificationQuestions: ClarificationQuestion[];
-  clarificationsAsked: boolean;
-  projectName: string;
-  sessionId?: string;
-}): Promise<{ response: unknown; meta: unknown; status: PlanExecutionResult["status"]; timeEstimate: TimeEstimate; planExecutionResult: PlanExecutionResult }>
-{
+async function executePlanFlow(params: PlanExecutionOptions): Promise<PlanExecutionJobResult> {
   const {
     plan,
     planQuality,
@@ -852,6 +848,257 @@ function buildRepairMetrics(history: RepairHistory) {
   return metrics;
 }
 
+async function runSingleExecution(options: SingleExecutionOptions): Promise<SingleExecutionResult> {
+  const {
+    sessionId,
+    systemPrompt,
+    executorPrompt,
+    originalPrompt,
+    projectNameHint,
+    clarifications,
+    clarificationsUsed,
+    clarificationQuestions,
+    clarificationAsked,
+    preserveWorkspace,
+    slugOverride,
+    resumeFixture,
+    tracePhase,
+    progressMetadata
+  } = options;
+
+  const traceSlug = slugOverride ?? (slugify(projectNameHint || "generated-project", { lower: true, strict: true }) || "generated-project");
+
+  try {
+    setProgress(sessionId, "planning", 30, progressMetadata);
+    let output: ExecutorOutput;
+    try {
+      output = await withTraceContext({ projectSlug: traceSlug, sessionId, phase: tracePhase ?? "single" }, async () =>
+        generateExecutorOutputFromPrompt(systemPrompt, executorPrompt, { enforceTests: true, sessionId })
+      );
+    } catch (rawError) {
+      if (rawError instanceof PausedError) {
+        throw rawError;
+      }
+      const message = rawError instanceof Error ? rawError.message : "Model failed";
+      setProgress(sessionId, "finalizing", 100, { error: message }, true);
+      const wrapped = new Error(message);
+      (wrapped as { statusCode?: number }).statusCode = 422;
+      throw wrapped;
+    }
+
+    const projectName = projectNameHint?.trim() || output.project_name || "generated-project";
+    const slug = slugOverride ?? slugify(projectName, { lower: true, strict: true });
+    const targetRoot = path.join(OUTPUT_DIR, slug);
+
+    if (sessionId) {
+      const session = ensureOrchestrationSession(sessionId);
+      session.projectSlug = slug;
+      session.projectName = projectName;
+      session.originalPrompt = session.originalPrompt ?? originalPrompt;
+      session.effectivePrompt = executorPrompt;
+    }
+
+    if (!preserveWorkspace) {
+      try {
+        await fs.rm(targetRoot, { recursive: true, force: true });
+      } catch (_e) {
+        void _e;
+      }
+    }
+    await fs.mkdir(targetRoot, { recursive: true });
+
+    if (resumeFixture && sessionId) {
+      try {
+        await captureFixture(sessionId, slug, path.join("resume", "context.json"), resumeFixture);
+      } catch (error) {
+        console.warn("Failed to capture resume context fixture", error);
+      }
+    }
+
+    await logEvent("generation_start", { project: slug, mode: tracePhase ?? "single" });
+
+    setProgress(sessionId, "generating", 55, progressMetadata);
+
+    output.files = seedTestsInFiles(output.files);
+    await writeFiles(targetRoot, output.files);
+    await ensureDefaultExportForApp(targetRoot);
+    await ensureJsonHealthOnDisk(targetRoot);
+    await normalizeSeededTestsOnDisk(targetRoot);
+
+    setProgress(sessionId, "testing", 80, progressMetadata);
+    const initialRun = await runInSandbox({
+      projectRoot: targetRoot,
+      projectSlug: slug,
+      sessionId
+    });
+    await logEvent("test_run", { project: slug, stage: "initial", status: initialRun.status });
+    await captureFixture(sessionId, slug, path.join("tests", "initial.json"), initialRun);
+
+    const repairHistory = await multiTurnRepair({
+      projectPath: targetRoot,
+      projectSlug: slug,
+      originalPrompt: executorPrompt,
+      generatedFiles: output.files.map(file => file.path),
+      initialTestResult: initialRun,
+      sessionId
+    });
+    await captureFixture(sessionId, slug, path.join("repair", "history.json"), repairHistory);
+
+    await logEvent("repair_attempt", {
+      project: slug,
+      attempts: repairHistory.totalAttempts,
+      finalStatus: repairHistory.finalStatus,
+      successAttempt: repairHistory.successAttemptNumber ?? null
+    });
+
+    const testRunEntries = [buildTestRunEntry("initial", initialRun)];
+    if (initialRun.status !== "pass") {
+      for (const attempt of repairHistory.attempts) {
+        testRunEntries.push(buildTestRunEntry(`repair-${attempt.number}`, attempt.testResult));
+        await logEvent("test_run", {
+          project: slug,
+          stage: `repair-${attempt.number}`,
+          status: attempt.testResult.status
+        });
+      }
+    }
+
+    const afterRepairResult: RunResult | null =
+      initialRun.status === "pass" ? null : (repairHistory.attempts.at(-1)?.testResult as RunResult | undefined) ?? null;
+    const finalStatus = afterRepairResult?.status ?? initialRun.status;
+
+    const changedPaths = gatherChangedPaths(repairHistory);
+    const relevantPaths = await collectFilePaths(targetRoot, output.files, changedPaths);
+    const fileMetadata = await computeFileChecksums(relevantPaths, targetRoot);
+    const clarificationAnswers: ClarificationAnswer[] = clarifications
+      ? clarifications.answers.map<ClarificationAnswer>(answer => ({ ...answer }))
+      : [];
+    const clarificationTelemetry = {
+      asked: clarificationAsked,
+      questions: clarificationQuestions,
+      answers: clarificationAnswers,
+      improvedSuccess: clarificationsUsed && finalStatus === "pass"
+    };
+
+    const repairSummary = buildRepairSummary(initialRun, repairHistory);
+    const responseTestResults = {
+      initial: initialRun,
+      afterRepair: afterRepairResult
+    };
+
+    const meta = {
+      created_at: new Date().toISOString(),
+      source_prompt: executorPrompt,
+      original_prompt: originalPrompt,
+      clarification: clarificationTelemetry,
+      clarifications: {
+        used: clarificationsUsed,
+        answers: clarificationAnswers,
+        asked: clarificationTelemetry.asked
+      },
+      notes: output.notes || [],
+      testRuns: testRunEntries,
+      repair: repairSummary,
+      repairMetrics: buildRepairMetrics(repairHistory),
+      repairHistory,
+      files: fileMetadata,
+      taskPlanUsed: false,
+      decompositionQuality: null,
+      subtaskResults: [],
+      planningMetrics: null
+    };
+
+    const metaPath = path.join(targetRoot, "_executor_meta.json");
+    try {
+      await fs.writeFile(metaPath, JSON.stringify(meta, null, 2), "utf-8");
+    } catch (err: unknown) {
+      const code = (err as { code?: string } | null | undefined)?.code;
+      if (code === "ENOENT") {
+        await fs.mkdir(targetRoot, { recursive: true });
+        await fs.writeFile(metaPath, JSON.stringify(meta, null, 2), "utf-8");
+      } else {
+        throw err;
+      }
+    }
+
+    await logEvent("generation_complete", {
+      project: slug,
+      status: finalStatus,
+      mode: tracePhase ?? "single"
+    });
+
+    setProgress(sessionId, "finalizing", 95, progressMetadata);
+    const responsePayload: ExecutorSuccessResponse = {
+      ok: true,
+      project: slug,
+      files_written: output.files.length,
+      browse_url: `/output/${slug}/`,
+      abs_path: targetRoot,
+      testResults: responseTestResults,
+      repairMetrics: meta.repairMetrics,
+      repairHistory,
+      repair: meta.repair,
+      clarificationsUsed,
+      generated: executorPrompt,
+      taskPlanUsed: false,
+      taskPlan: null,
+      planExecutionResult: null,
+      timeEstimate: null,
+      decompositionQuality: null,
+      projectName
+    };
+    setProgress(sessionId, "finalizing", 100, progressMetadata, true);
+
+    if (sessionId) {
+      cleanupAbortSignal(sessionId);
+    }
+
+    return { response: responsePayload, slug, targetRoot };
+  } catch (error) {
+    if (error instanceof PausedError) {
+      if (sessionId) {
+        cleanupAbortSignal(sessionId);
+      }
+    }
+    throw error;
+  }
+}
+
+const executionQueue = await configureExecutionQueue(async job => {
+  if (job.type === "plan") {
+    const planResult = await executePlanFlow(job.payload);
+    return { type: "plan", result: planResult } as const;
+  }
+  if (job.type === "single") {
+    const singleResult = await runSingleExecution(job.payload);
+    return { type: "single", result: singleResult } as const;
+  }
+  throw new Error(`Unsupported execution job type: ${(job as { type: string }).type}`);
+});
+
+async function resolveSessionPrompts(
+  sessionId: string,
+  session: OrchestrationSession | undefined,
+  projectSlug: string
+): Promise<{ original: string; effective?: string }> {
+  const cachedOriginal = session?.originalPrompt;
+  const cachedEffective = session?.effectivePrompt;
+  if (cachedOriginal && cachedEffective) {
+    return { original: cachedOriginal, effective: cachedEffective };
+  }
+  if (cachedOriginal && !cachedEffective) {
+    return { original: cachedOriginal, effective: cachedEffective ?? undefined };
+  }
+  try {
+    const clarify = await readFixture<{ originalPrompt?: string; effectivePrompt?: string }>(projectSlug, sessionId, "clarify.json");
+    const original = cachedOriginal ?? clarify.originalPrompt ?? "<unknown>";
+    const effective = cachedEffective ?? clarify.effectivePrompt;
+    return { original, effective };
+  } catch {
+    return { original: cachedOriginal ?? "<unknown>", effective: cachedEffective ?? undefined };
+  }
+}
+
 // Sanitize model output before schema validation to improve resilience.
 // - Drops unknown top-level properties
 // - Normalizes file paths (removes leading "./")
@@ -930,6 +1177,12 @@ app.post("/api/execute", async (req, res) => {
 
     const systemPrompt = await fs.readFile("src/executor/systemPrompt.md", "utf-8");
     const projectNameInput = typeof projectNameRaw === "string" ? projectNameRaw.trim() : "";
+    const session = sessionId ? ensureOrchestrationSession(sessionId) : undefined;
+    if (session) {
+      session.originalPrompt = originalPrompt;
+      session.effectivePrompt = effectivePrompt;
+      session.projectName = projectNameInput || session.projectName;
+    }
 
     const storedQuestions = consumeClarificationQuestions(originalPrompt) ?? [];
     let clarificationQuestions = storedQuestions;
@@ -956,7 +1209,7 @@ app.post("/api/execute", async (req, res) => {
           const targetRoot = path.join(OUTPUT_DIR, slug);
 
           try {
-            const planResult = await executePlanFlow({
+            const planJob = createPlanJobPayload({
               plan,
               planQuality: quality.score,
               targetRoot,
@@ -971,6 +1224,14 @@ app.post("/api/execute", async (req, res) => {
               projectName: planProjectName,
               sessionId
             });
+            if (executionQueue.mode === "bullmq") {
+              setProgress(sessionId, "planning", 20, { queued: true, mode: "queue" });
+            }
+            const planResultJob = await executionQueue.submit(planJob);
+            const planResult = planResultJob.type === "plan" ? planResultJob.result : null;
+            if (!planResult) {
+              throw new Error("Plan job returned unexpected result type");
+            }
             setProgress(sessionId, "finalizing", 95);
             return res.json(planResult.response);
           } catch (planError) {
@@ -984,169 +1245,42 @@ app.post("/api/execute", async (req, res) => {
       }
     }
 
-    let output: ExecutorOutput;
     try {
-      setProgress(sessionId, "planning", 30);
-      output = await withTraceContext({ projectSlug: slugify(projectNameInput || "generated-project", { lower: true, strict: true }) || "generated-project", sessionId, phase: 'single' }, async () =>
-        generateExecutorOutputFromPrompt(systemPrompt, effectivePrompt, { enforceTests: true, sessionId })
-      );
+      const singleOptions: SingleExecutionOptions = {
+        sessionId,
+        systemPrompt,
+        executorPrompt: effectivePrompt,
+        originalPrompt,
+        projectNameHint: projectNameInput,
+        clarifications,
+        clarificationsUsed,
+        clarificationQuestions,
+        clarificationAsked,
+        preserveWorkspace: false,
+        tracePhase: "single"
+      };
+      if (executionQueue.mode === "bullmq") {
+        singleOptions.progressMetadata = { queued: true };
+      }
+      const singleJob = createSingleJobPayload(singleOptions);
+      if (executionQueue.mode === "bullmq") {
+        setProgress(sessionId, "planning", 20, { queued: true, mode: "queue" });
+      }
+      const resultJob = await executionQueue.submit(singleJob);
+      const result = resultJob.type === "single" ? resultJob.result : null;
+      if (!result) {
+        throw new Error("Single execution job returned unexpected result type");
+      }
+      return res.json(result.response);
     } catch (error) {
-      setProgress(sessionId, "finalizing", 100, { error: (error as Error).message }, true);
-      return res.status(422).json({ error: (error as Error).message });
-    }
-
-    const projectName = projectNameInput || output.project_name || "generated-project";
-    const slug = slugify(projectName, { lower: true, strict: true });
-    const targetRoot = path.join(OUTPUT_DIR, slug);
-
-    if (sessionId) {
-      ensureOrchestrationSession(sessionId).projectSlug = slug;
-    }
-
-    // Clean project directory to avoid stale files when reusing slug
-    try { await fs.rm(targetRoot, { recursive: true, force: true }); } catch (_e) { void _e; }
-    await fs.mkdir(targetRoot, { recursive: true });
-    await logEvent("generation_start", { project: slug });
-
-    setProgress(sessionId, "generating", 55);
-    // Seed a minimal test and ensure test script before write
-    output.files = seedTestsInFiles(output.files);
-    await writeFiles(targetRoot, output.files);
-    await ensureDefaultExportForApp(targetRoot);
-    await ensureJsonHealthOnDisk(targetRoot);
-    await normalizeSeededTestsOnDisk(targetRoot);
-
-    setProgress(sessionId, "testing", 80);
-    const initialRun = await runInSandbox({
-      projectRoot: targetRoot,
-      projectSlug: slug,
-      sessionId
-    });
-    await logEvent("test_run", { project: slug, stage: "initial", status: initialRun.status });
-    await captureFixture(sessionId, slug, path.join("tests", "initial.json"), initialRun);
-
-    const repairHistory = await multiTurnRepair({
-      projectPath: targetRoot,
-      projectSlug: slug,
-      originalPrompt: effectivePrompt,
-      generatedFiles: output.files.map(file => file.path),
-      initialTestResult: initialRun,
-      sessionId
-    });
-    await captureFixture(sessionId, slug, path.join("repair", "history.json"), repairHistory);
-
-    await logEvent("repair_attempt", {
-      project: slug,
-      attempts: repairHistory.totalAttempts,
-      finalStatus: repairHistory.finalStatus,
-      successAttempt: repairHistory.successAttemptNumber ?? null
-    });
-
-    const testRunEntries = [buildTestRunEntry("initial", initialRun)];
-    if (initialRun.status !== "pass") {
-      for (const attempt of repairHistory.attempts) {
-        testRunEntries.push(buildTestRunEntry(`repair-${attempt.number}`, attempt.testResult));
-        await logEvent("test_run", {
-          project: slug,
-          stage: `repair-${attempt.number}`,
-          status: attempt.testResult.status
-        });
+      if (error instanceof PausedError) {
+        throw error;
       }
-    }
-
-    const afterRepairResult = initialRun.status === "pass"
-      ? null
-      : repairHistory.attempts.at(-1)?.testResult ?? null;
-    const finalStatus = afterRepairResult?.status ?? initialRun.status;
-
-    const changedPaths = gatherChangedPaths(repairHistory);
-    const relevantPaths = await collectFilePaths(targetRoot, output.files, changedPaths);
-    const fileMetadata = await computeFileChecksums(relevantPaths, targetRoot);
-    const clarificationAnswers: ClarificationAnswer[] = clarifications
-      ? clarifications.answers.map<ClarificationAnswer>(answer => ({ ...answer }))
-      : [];
-    const clarificationTelemetry = {
-      asked: clarificationAsked,
-      questions: clarificationQuestions,
-      answers: clarificationAnswers,
-      improvedSuccess: clarificationsUsed && finalStatus === "pass"
-    };
-
-    const repairSummary = buildRepairSummary(initialRun, repairHistory);
-    const responseTestResults = {
-      initial: initialRun,
-      afterRepair: afterRepairResult
-    };
-
-    const meta = {
-      created_at: new Date().toISOString(),
-      source_prompt: effectivePrompt,
-      original_prompt: originalPrompt,
-      clarification: clarificationTelemetry,
-      clarifications: {
-        used: clarificationsUsed,
-        answers: clarificationAnswers,
-        asked: clarificationTelemetry.asked
-      },
-      notes: output.notes || [],
-      testRuns: testRunEntries,
-      repair: repairSummary,
-      repairMetrics: buildRepairMetrics(repairHistory),
-      repairHistory,
-      files: fileMetadata,
-      taskPlanUsed: false,
-      decompositionQuality: null,
-      subtaskResults: [],
-      planningMetrics: null
-    };
-
-    // Write metadata with a retry in case the target directory was removed concurrently
-    const metaPath = path.join(targetRoot, "_executor_meta.json");
-    try {
-      await fs.writeFile(metaPath, JSON.stringify(meta, null, 2), "utf-8");
-    } catch (err: unknown) {
-      const code = (err as { code?: string } | null | undefined)?.code;
-      if (code === "ENOENT") {
-        await fs.mkdir(targetRoot, { recursive: true });
-        await fs.writeFile(metaPath, JSON.stringify(meta, null, 2), "utf-8");
-      } else {
-        throw err;
+      if (error instanceof Error && (error as { statusCode?: number }).statusCode === 422) {
+        return res.status(422).json({ error: error.message });
       }
+      throw error;
     }
-
-    await logEvent("generation_complete", {
-      project: slug,
-      status: finalStatus
-    });
-
-    setProgress(sessionId, "finalizing", 95);
-    const responsePayload = {
-      ok: true,
-      project: slug,
-      files_written: output.files.length,
-      browse_url: `/output/${slug}/`,
-      abs_path: targetRoot,
-      testResults: responseTestResults,
-      repairMetrics: meta.repairMetrics,
-      repairHistory,
-      repair: meta.repair,
-      clarificationsUsed,
-      generated: effectivePrompt,
-      taskPlanUsed: false,
-      taskPlan: null,
-      planExecutionResult: null,
-      timeEstimate: null,
-      decompositionQuality: null,
-      projectName
-    };
-    setProgress(sessionId, "finalizing", 100, undefined, true);
-    
-    // Clean up abort signal on successful completion
-    if (sessionId) {
-      cleanupAbortSignal(sessionId);
-    }
-    
-    return res.json(responsePayload);
   } catch (err: unknown) {
     // Handle pause interruption gracefully
     if (err instanceof PausedError) {
@@ -1426,6 +1560,7 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
 
     const answers = normalizeResumeAnswers(req.body?.answers);
     const reasonRaw = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+    const adjustmentRaw = typeof req.body?.adjustment === "string" ? req.body.adjustment.trim() : "";
 
     const result = await resumeFromCheckpoint(sessionId, answers, {
       machine: session.machine,
@@ -1435,10 +1570,30 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     session.paused = false;
     session.questions = [];
     session.checkpointUpdatedAt = result.checkpoint.updatedAt;
+    session.machine = result.machine;
     const resumedSlug = result.checkpoint.payload?.executor?.projectSlug;
     if (typeof resumedSlug === "string" && resumedSlug.trim()) {
       session.projectSlug = resumedSlug.trim();
     }
+
+    const fallbackSlug = slugify(sessionId, { lower: true, strict: true }) || sessionId;
+    const projectSlug = (session.projectSlug ?? resumedSlug ?? fallbackSlug).trim();
+    session.projectSlug = projectSlug;
+
+    const manifest = await getManifest(sessionId);
+    const systemPrompt = await fs.readFile("src/executor/systemPrompt.md", "utf-8");
+    const promptSnapshot = await resolveSessionPrompts(sessionId, session, projectSlug);
+    const prompts = buildResumePrompts(systemPrompt, {
+      projectSlug,
+      originalPrompt: promptSnapshot.original,
+      effectivePrompt: promptSnapshot.effective,
+      adjustment: adjustmentRaw,
+      checkpoint: result.checkpoint,
+      answeredQuestions: result.answeredQuestions,
+      manifest
+    });
+
+    session.effectivePrompt = prompts.userPrompt;
 
     const snapshot = snapshotFromSession(sessionId, progressSessions.get(sessionId) ?? null);
     snapshot.stage = stateToStage(session.machine.state);
@@ -1447,11 +1602,88 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     snapshot.checkpointUpdatedAt = result.checkpoint.updatedAt;
     snapshot.updatedAt = Date.now();
     snapshot.done = false;
+    snapshot.data = {
+      ...(snapshot.data ?? {}),
+      resume: true,
+      ...(adjustmentRaw ? { adjustment: adjustmentRaw } : {})
+    };
     progressSessions.set(sessionId, snapshot);
+
+    const resumeFixture: ResumeContextFixture = {
+      adjustment: adjustmentRaw || undefined,
+      answeredQuestions: result.answeredQuestions.map(item => ({
+        id: item.id,
+        question: item.question,
+        answer: item.answer
+      })),
+      manifestSummary: manifest?.summary
+        ? {
+            totalFiles: manifest.summary.totalFiles,
+            totalSize: manifest.summary.totalSize,
+            topFiles: manifest.summary.topFiles.slice(0, 10)
+          }
+        : null,
+      checkpoint: { state: result.checkpoint.state, updatedAt: result.checkpoint.updatedAt },
+      prompt: { system: prompts.systemPrompt, user: prompts.userPrompt }
+    };
+
+    const progressMetadata = {
+      resume: true,
+      ...(adjustmentRaw ? { adjustment: adjustmentRaw } : {})
+    };
+
+    const providerConfigured = Boolean(process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY);
+
+    if (!providerConfigured) {
+      try {
+        await captureFixture(sessionId, projectSlug, path.join("resume", "context.json"), resumeFixture);
+      } catch (error) {
+        console.warn("[Resume] Failed to persist resume context without provider:", error);
+      }
+      console.warn(`[Resume] No LLM provider configured; skipping automatic resume for ${sessionId}`);
+    } else {
+      createAbortSignal(sessionId);
+
+      const resumeOptions: SingleExecutionOptions = {
+        sessionId,
+        systemPrompt: prompts.systemPrompt,
+        executorPrompt: prompts.userPrompt,
+        originalPrompt: promptSnapshot.original,
+        projectNameHint: session.projectName ?? projectSlug,
+        clarifications: undefined,
+        clarificationsUsed: false,
+        clarificationQuestions: [],
+        clarificationAsked: false,
+        preserveWorkspace: true,
+        slugOverride: projectSlug,
+        resumeFixture,
+        tracePhase: "resume",
+        progressMetadata
+      };
+
+      if (executionQueue.mode === "bullmq") {
+        const queuedMeta = { ...progressMetadata, queued: true, mode: "queue" };
+        resumeOptions.progressMetadata = queuedMeta;
+        setProgress(sessionId, "planning", 20, queuedMeta);
+      }
+
+      executionQueue
+        .submit(createSingleJobPayload(resumeOptions))
+        .catch(error => {
+          if (error instanceof PausedError) {
+            return;
+          }
+          const message = error instanceof Error ? error.message : "resume execution failed";
+          console.error(`[Resume] Execution failed for session ${sessionId}:`, error);
+          setProgress(sessionId, "finalizing", 100, { resume: true, error: message }, true);
+          cleanupAbortSignal(sessionId);
+        });
+    }
 
     return res.json({
       checkpoint: result.checkpoint,
-      answeredQuestions: result.answeredQuestions
+      answeredQuestions: result.answeredQuestions,
+      resumed: true
     });
   } catch (error) {
     if (error instanceof ResumeValidationError) {

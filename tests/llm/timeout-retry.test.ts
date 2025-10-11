@@ -23,9 +23,9 @@ describe("LLM timeout and retry behavior", () => {
 
     const mockProvider = {
       generate: vi.fn()
-        .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve('{"test": "data"}'), 150))) // Times out
-        .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve('{"test": "data"}'), 150))) // Times out
-        .mockResolvedValueOnce('{"test": "success"}') // Succeeds
+        .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve({ content: '{"test": "data"}' }), 150)))
+        .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve({ content: '{"test": "data"}' }), 150)))
+        .mockResolvedValueOnce({ content: '{"test": "success"}' })
     };
 
     // Mock the provider
@@ -53,7 +53,7 @@ describe("LLM timeout and retry behavior", () => {
 
     const mockProvider = {
       generate: vi.fn()
-        .mockImplementation(() => new Promise(resolve => setTimeout(() => resolve('{"test": "data"}'), 200))) // Always times out
+        .mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({ content: '{"test": "data"}' }), 200)))
     };
 
     vi.doMock("../../src/llm/providers/choose.js", () => ({
@@ -78,8 +78,7 @@ describe("LLM timeout and retry behavior", () => {
     const mockProvider = {
       generate: vi.fn()
         .mockImplementation(() => new Promise(resolve => {
-          // Simulate slow but successful response (2 seconds)
-          setTimeout(() => resolve('{"result": "slow but successful"}'), 2000);
+          setTimeout(() => resolve({ content: '{"result": "slow but successful"}' }), 2000);
         }))
     };
 

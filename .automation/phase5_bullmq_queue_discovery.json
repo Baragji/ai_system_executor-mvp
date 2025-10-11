@@ -1,0 +1,24 @@
+{
+  "phase": "5_bullmq_queue",
+  "date": "2025-10-11",
+  "change": "Introduce BullMQ-backed execution queue with inline fallback for executor and resume flows.",
+  "integration_points": [
+    { "file": "src/server.ts", "line_hint": 880, "why": "runSingleExecution currently executes inline on the HTTP request." },
+    { "file": "src/server.ts", "line_hint": 1220, "why": "POST /api/execute awaits runSingleExecution directly." },
+    { "file": "src/server.ts", "line_hint": 1580, "why": "Resume endpoint invokes runSingleExecution without queuing." },
+    { "file": "src/server.ts", "line_hint": 650, "why": "executePlanFlow handles long-running plan execution inline." }
+  ],
+  "new_files": [
+    "src/orchestrator/jobQueue.ts",
+    "tests/orchestrator/jobQueue.test.ts"
+  ],
+  "non_breaking": true,
+  "new_dependencies": true,
+  "validation_gate": {
+    "lint": true,
+    "typecheck": true,
+    "tests": true,
+    "contracts": true,
+    "sbom": true
+  }
+}
