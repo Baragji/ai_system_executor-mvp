@@ -9,6 +9,7 @@ import { validateRunResult, type RunResult } from "../contracts/validators.js";
 import { ensureDependencies } from "./installDeps.js";
 import { detectTestCommand } from "./detectTestCommand.js";
 import { logEvaluationResult, type EvaluationResult } from "../evaluation/logResults.js";
+import { throwIfAborted } from "../orchestrator/abortSignal.js";
 
 export interface RunInSandboxOptions {
   projectRoot: string;
@@ -16,6 +17,7 @@ export interface RunInSandboxOptions {
   command?: string;
   timeoutMs?: number;
   env?: Record<string, string | undefined>;
+  sessionId?: string;
 }
 
 const DEFAULT_TIMEOUT_MS = 60_000;
@@ -73,7 +75,11 @@ function deriveStatus(exitCode: number | null, timedOut: boolean): RunResult["st
 }
 
 export async function runInSandbox(options: RunInSandboxOptions): Promise<RunResult> {
-  const { projectRoot, projectSlug, command: providedCommand, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
+  const { projectRoot, projectSlug, command: providedCommand, timeoutMs = DEFAULT_TIMEOUT_MS, sessionId } = options;
+  
+  // Check if execution was paused before running tests
+  throwIfAborted(sessionId, "testing");
+  
   const env: Record<string, string | undefined> = {
     ...process.env,
     ...options.env,

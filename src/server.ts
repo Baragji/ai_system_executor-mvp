@@ -48,6 +48,13 @@ import type {
   TaskPlan,
   TimeEstimate
 } from "./planning/types.js";
+import {
+  createAbortSignal,
+  cleanupAbortSignal,
+  throwIfAborted,
+  abortSession,
+  PausedError
+} from "./orchestrator/abortSignal.js";
 import { writeFixture, listFixtures, readFixture } from "./fixtures/index.js";
 import type { MultiTurnContext } from "./repair/multiTurnRepair.js";
 import {
@@ -437,8 +444,11 @@ function isComplexPrompt(prompt: string, clarifications?: ClarificationResponse)
 async function generateExecutorOutputFromPrompt(
   systemPrompt: string,
   userPrompt: string,
-  { enforceTests }: { enforceTests: boolean }
+  { enforceTests, sessionId }: { enforceTests: boolean; sessionId?: string }
 ): Promise<ExecutorOutput> {
+  // Check if execution was paused before making LLM call
+  throwIfAborted(sessionId, "code_generation");
+  
   const messages = [
     { role: "system" as const, content: systemPrompt },
     { role: "user" as const, content: userPrompt }
@@ -503,6 +513,9 @@ function createPlanExecutionContext(
     clarifications,
     previousSubtaskResults: [],
     generateSubtaskOutput: async request => {
+      // Check if execution was paused before generating subtask
+      throwIfAborted(sessionId, `subtask_${request.subtask.id}`);
+      
       const SUBTASK_TIMEOUT_MS = Number(process.env.SUBTASK_TIMEOUT_MS ?? 120000);
       const label = `subtask:${request.subtask.id}`;
       function raceWithAbort<T>(work: () => Promise<T>): Promise<T> {
@@ -866,8 +879,14 @@ app.post("/api/clarify", (req, res) => {
 });
 
 app.post("/api/execute", async (req, res) => {
+  const sessionId: string | undefined = typeof req.body?.sessionId === 'string' ? req.body.sessionId : undefined;
+  
   try {
-    const sessionId: string | undefined = typeof req.body?.sessionId === 'string' ? req.body.sessionId : undefined;
+    // Create abort signal for pause functionality
+    if (sessionId) {
+      createAbortSignal(sessionId);
+    }
+    
     setProgress(sessionId, "analyzing", 10);
     const promptRaw = req.body?.prompt;
     const originalPrompt: string = promptRaw === undefined ? "" : promptRaw.toString();
@@ -917,6 +936,9 @@ app.post("/api/execute", async (req, res) => {
 
     if (isComplexPrompt(effectivePrompt, clarifications)) {
       try {
+        // Check if execution was paused before decomposition
+        throwIfAborted(sessionId, "decomposition");
+        
         const baseSlugPre = slugify(projectNameInput || "session", { lower: true, strict: true }) || "session";
         const plan = await withTraceContext({ projectSlug: baseSlugPre, sessionId, phase: 'decompose' }, async () =>
           decomposeTask(effectivePrompt, clarifications)
@@ -960,7 +982,7 @@ app.post("/api/execute", async (req, res) => {
     try {
       setProgress(sessionId, "planning", 30);
       output = await withTraceContext({ projectSlug: slugify(projectNameInput || "generated-project", { lower: true, strict: true }) || "generated-project", sessionId, phase: 'single' }, async () =>
-        generateExecutorOutputFromPrompt(systemPrompt, effectivePrompt, { enforceTests: true })
+        generateExecutorOutputFromPrompt(systemPrompt, effectivePrompt, { enforceTests: true, sessionId })
       );
     } catch (error) {
       setProgress(sessionId, "finalizing", 100, { error: (error as Error).message }, true);
@@ -987,7 +1009,8 @@ app.post("/api/execute", async (req, res) => {
     setProgress(sessionId, "testing", 80);
     const initialRun = await runInSandbox({
       projectRoot: targetRoot,
-      projectSlug: slug
+      projectSlug: slug,
+      sessionId
     });
     await logEvent("test_run", { project: slug, stage: "initial", status: initialRun.status });
     await captureFixture(sessionId, slug, path.join("tests", "initial.json"), initialRun);
@@ -1107,11 +1130,41 @@ app.post("/api/execute", async (req, res) => {
       projectName
     };
     setProgress(sessionId, "finalizing", 100, undefined, true);
+    
+    // Clean up abort signal on successful completion
+    if (sessionId) {
+      cleanupAbortSignal(sessionId);
+    }
+    
     return res.json(responsePayload);
   } catch (err: unknown) {
+    // Handle pause interruption gracefully
+    if (err instanceof PausedError) {
+      console.log(`Execution paused for session ${err.sessionId} during ${err.phase}`);
+      if (sessionId) {
+        cleanupAbortSignal(sessionId);
+      }
+      return res.status(202).json({
+        paused: true,
+        sessionId: err.sessionId,
+        phase: err.phase,
+        message: err.message
+      });
+    }
+    
+    // Clean up abort signal on error
+    if (sessionId) {
+      cleanupAbortSignal(sessionId);
+    }
+    
     console.error(err);
     const message = err instanceof Error ? err.message : "internal error";
     return res.status(500).json({ error: message });
+  } finally {
+    // Safety cleanup in case catch doesn't execute
+    if (sessionId) {
+      cleanupAbortSignal(sessionId);
+    }
   }
 });
 
@@ -1288,6 +1341,10 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
       }
       checkpointPayload = req.body.payload as Omit<CheckpointPayload, "pendingQuestions">;
     }
+
+    // Abort the in-flight execution
+    const aborted = abortSession(sessionId);
+    console.log(`[Pause] Session ${sessionId} abort signal sent: ${aborted}`);
 
     const checkpoint = await raiseInterrupt({
       sessionId,

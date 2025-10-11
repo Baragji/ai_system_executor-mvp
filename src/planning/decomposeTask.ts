@@ -4,6 +4,8 @@ import { validateTaskPlan } from "../contracts/taskPlanValidator.js";
 import type { TaskPlan, Subtask, DecompositionIssue } from "./types.js";
 import { TaskPlanValidationError } from "./types.js";
 import { logEvent } from "../telemetry/events.js";
+import { getTraceContext } from "../llm/trace.js";
+import { throwIfAborted } from "../orchestrator/abortSignal.js";
 
 class ClarificationRequiredError extends Error {
   public readonly code = "clarification_required";
@@ -207,6 +209,14 @@ export async function decomposeTask(
         }
         throw err;
       });
+      
+      // Check if execution was paused immediately after LLM call completes
+      // This catches pause requests that occurred during the LLM call
+      const ctx = getTraceContext();
+      if (ctx?.sessionId) {
+        throwIfAborted(ctx.sessionId, "post_decompose_llm");
+      }
+      
       const normalizedPlan = parsePlan(response, prompt);
       const validation = validateTaskPlan(normalizedPlan);
 

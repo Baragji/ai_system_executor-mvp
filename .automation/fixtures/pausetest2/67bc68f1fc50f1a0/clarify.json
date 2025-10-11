@@ -1,0 +1,18 @@
+{
+  "originalPrompt": "create hello world app with color picker",
+  "effectivePrompt": "create hello world app with color picker",
+  "clarificationQuestions": [
+    {
+      "id": "framework",
+      "text": "Which framework should power this project?",
+      "type": "choice",
+      "options": [
+        "FastAPI",
+        "Flask",
+        "Express",
+        "Django"
+      ]
+    }
+  ],
+  "clarificationsAsked": true
+}

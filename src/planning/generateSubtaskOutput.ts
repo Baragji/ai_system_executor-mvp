@@ -1,9 +1,10 @@
 import { generateJSON } from "../llm/index.js";
-import { withTraceContext } from "../llm/trace.js";
+import { withTraceContext, getTraceContext } from "../llm/trace.js";
 import { sanitizeExecutorOutput } from "../executor/outputProcessing.js";
 import { validateExecutorOutput } from "../contracts/validators.js";
 import type { ExecutorOutput } from "../executor/types.js";
 import type { SubtaskPromptRequest } from "./types.js";
+import { throwIfAborted } from "../orchestrator/abortSignal.js";
 
 const DEFAULT_MAX_ATTEMPTS = 2;
 
@@ -36,6 +37,13 @@ export async function generateSubtaskOutputWithRetry(
     }
 
   const raw = await withTraceContext({ phase: 'subtask', projectSlug: request?.subtask ? undefined : undefined }, async () => generateJSON(messages));
+
+    // Check if execution was paused immediately after LLM call completes
+    // This catches pause requests that occurred during the LLM call
+    const ctx = getTraceContext();
+    if (ctx?.sessionId) {
+      throwIfAborted(ctx.sessionId, "post_subtask_llm");
+    }
 
     let parsed: unknown;
     try {
