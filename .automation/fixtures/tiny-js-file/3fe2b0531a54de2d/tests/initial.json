@@ -1,0 +1,12 @@
+{
+  "status": "pass",
+  "passCount": 2,
+  "failCount": 0,
+  "durationMs": 7416,
+  "logsPath": "logs/tiny-js-file_last_test_run_d3de760b-0c6c-46c2-a61f-c89574c597ed.log",
+  "timestamp": "2025-10-11T09:01:09.848Z",
+  "command": "npm test",
+  "exitCode": 0,
+  "startedAt": "2025-10-11T09:01:02.432Z",
+  "finishedAt": "2025-10-11T09:01:09.848Z"
+}

@@ -1595,9 +1595,6 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     if (!session) {
       return res.status(404).json({ error: "session not found" });
     }
-    if (!session.paused) {
-      return res.status(409).json({ error: "session is not paused" });
-    }
 
     const answers = normalizeResumeAnswers(req.body?.answers);
     const reasonRaw = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";

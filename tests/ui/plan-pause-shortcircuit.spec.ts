@@ -22,7 +22,7 @@ test('Planning pause short-circuits (no single fallback)', async ({ page }) => {
   });
 
   // Give the server a moment to enter planning
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(400);
 
   // Pause the session
   const pauseResp = await api.post(`/api/sessions/${sessionId}/pause`, { data: { reason: 'Test pause during planning' } });

@@ -1,0 +1,34 @@
+{
+  "project_name": "small-ts-lib",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"small-ts-lib\",\n  \"version\": \"0.1.0\",\n  \"description\": \"A tiny TypeScript library with one function and a unit test (TypeScript + Jest)\",\n  \"main\": \"dist/index.js\",\n  \"types\": \"dist/index.d.ts\",\n  \"scripts\": {\n    \"build\": \"tsc -p tsconfig.json\",\n    \"test\": \"jest --colors\",\n    \"start\": \"node dist/index.js\"\n  },\n  \"license\": \"MIT\",\n  \"devDependencies\": {\n    \"@types/jest\": \"^29.5.0\",\n    \"jest\": \"^29.6.0\",\n    \"ts-jest\": \"^29.1.0\",\n    \"typescript\": \"^5.1.0\"\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2019\",\n    \"module\": \"CommonJS\",\n    \"declaration\": true,\n    \"outDir\": \"dist\",\n    \"rootDir\": \"src\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"forceConsistentCasingInFileNames\": true\n  },\n  \"include\": [\"src/**/*\"],\n  \"exclude\": [\"node_modules\", \"dist\"]\n}\n"
+    },
+    {
+      "path": "jest.config.js",
+      "contents": "module.exports = {\n  preset: 'ts-jest',\n  testEnvironment: 'node',\n  testMatch: ['**/tests/**/*.test.ts']\n};\n"
+    },
+    {
+      "path": "src/index.ts",
+      "contents": "/**\n * A tiny example function for the library.\n * Keeps the project runnable and testable.\n */\n\nexport function add(a: number, b: number): number {\n  return a + b;\n}\n\n// a tiny default export (optional)\nexport default { add };\n"
+    },
+    {
+      "path": "tests/add.test.ts",
+      "contents": "import { add } from '../src/index';\n\ndescribe('add()', () => {\n  test('adds two positive numbers', () => {\n    expect(add(1, 2)).toBe(3);\n  });\n\n  test('adds negative and positive number', () => {\n    expect(add(-1, 4)).toBe(3);\n  });\n});\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# small-ts-lib\n\nLanguage and test framework chosen for this project:\n\n- Language: TypeScript (Node.js)\n- Test framework: Jest (configured via ts-jest)\n\nThis minimal project includes a single library function (add) and a unit test.\n\nQuick start:\n\n1. Install dependencies\n\n   npm install\n\n2. Run tests\n\n   npm test\n\n3. Build (compile to dist/)\n\n   npm run build\n\nNotes:\n- Jest is configured to run TypeScript tests using ts-jest (see jest.config.js).\n- TypeScript compiler options are in tsconfig.json.\n"
+    }
+  ],
+  "notes": [
+    "Selected configuration: TypeScript + Jest (ts-jest).",
+    "Run `npm install` then `npm test` to execute the included test."
+  ],
+  "hasTests": true
+}

@@ -3,11 +3,11 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "executor-mvp@0.1.0",
-  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-a0ad3d4b-eb69-4c1a-bfe6-438100d6b99e",
+  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-b0d0c1d7-84ab-466a-9d10-72b853daf2d2",
   "creationInfo": {
-    "created": "2025-10-11T03:02:34.515Z",
+    "created": "2025-10-11T08:31:02.979Z",
     "creators": [
-      "Tool: npm/cli-11.4.2"
+      "Tool: npm/cli-10.8.2"
     ]
   },
   "documentDescribes": [
@@ -58,11 +58,11 @@
     },
     {
       "name": "@types/node",
-      "SPDXID": "SPDXRef-Package-types.node-18.19.129",
-      "versionInfo": "18.19.129",
+      "SPDXID": "SPDXRef-Package-types.node-18.19.130",
+      "versionInfo": "18.19.130",
       "packageFileName": "node_modules/@anthropic-ai/sdk/node_modules/@types/node",
       "description": "TypeScript definitions for node",
-      "downloadLocation": "https://registry.npmjs.org/@types/node/-/node-18.19.129.tgz",
+      "downloadLocation": "https://registry.npmjs.org/@types/node/-/node-18.19.130.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node",
       "licenseDeclared": "MIT",
@@ -70,13 +70,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40types/node@18.19.129"
+          "referenceLocator": "pkg:npm/%40types/node@18.19.130"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "86b9a2e635addb0eb46b2a31de2217c293049df52f38b24246dace3db1ed1f5e674e3bceeee8677a5beb740b3474ed3fce5e4367765b6a189a5c455be7871afc"
+          "checksumValue": "191697431ea319f2fcb0a7da2030fa3aea5b20706bf63bfb2676a697db41ee5e2fd3af0f00e5ea7dcba330ca393e16c8b3a8204755ce0c42ea6a14f647cbf47e"
         }
       ]
     },
@@ -129,12 +129,12 @@
       ]
     },
     {
-      "name": "@msgpackr-extract/msgpackr-extract-linux-x64",
-      "SPDXID": "SPDXRef-Package-msgpackr-extract.msgpackr-extract-linux-x64-3.0.3",
+      "name": "@msgpackr-extract/msgpackr-extract-darwin-arm64",
+      "SPDXID": "SPDXRef-Package-msgpackr-extract.msgpackr-extract-darwin-arm64-3.0.3",
       "versionInfo": "3.0.3",
-      "packageFileName": "node_modules/@msgpackr-extract/msgpackr-extract-linux-x64",
-      "description": "Platform specific binary for msgpackr-extract on linux OS with x64 architecture",
-      "downloadLocation": "https://registry.npmjs.org/@msgpackr-extract/msgpackr-extract-linux-x64/-/msgpackr-extract-linux-x64-3.0.3.tgz",
+      "packageFileName": "node_modules/@msgpackr-extract/msgpackr-extract-darwin-arm64",
+      "description": "Platform specific binary for msgpackr-extract on darwin OS with arm64 architecture",
+      "downloadLocation": "https://registry.npmjs.org/@msgpackr-extract/msgpackr-extract-darwin-arm64/-/msgpackr-extract-darwin-arm64-3.0.3.tgz",
       "filesAnalyzed": false,
       "homepage": "https://github.com/kriszyp/msgpackr-extract#readme",
       "licenseDeclared": "MIT",
@@ -142,13 +142,13 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/%40msgpackr-extract/msgpackr-extract-linux-x64@3.0.3"
+          "referenceLocator": "pkg:npm/%40msgpackr-extract/msgpackr-extract-darwin-arm64@3.0.3"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "72fc0d7db3f4ee92947ead6e1fe4ba289edd4fd2bc58e13866201cb2b49eb3e518e7913fd232d873ebeaf833bb8e59aa45be73020804c4a9b41fb3bf08169eb2"
+          "checksumValue": "4191ed95581b01dcb6cc0a8d03d1aed54a48b88f17bec775bfc89ce81da96667859c570c5a23cb7d65e1ed3570e1e18467f0bd4c7dbcd4ac2156879050a6f28f"
         }
       ]
     },
@@ -1065,6 +1065,54 @@
       ]
     },
     {
+      "name": "@types/node",
+      "SPDXID": "SPDXRef-Package-types.node-18.19.130",
+      "versionInfo": "18.19.130",
+      "packageFileName": "node_modules/openai/node_modules/@types/node",
+      "description": "TypeScript definitions for node",
+      "downloadLocation": "https://registry.npmjs.org/@types/node/-/node-18.19.130.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40types/node@18.19.130"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "191697431ea319f2fcb0a7da2030fa3aea5b20706bf63bfb2676a697db41ee5e2fd3af0f00e5ea7dcba330ca393e16c8b3a8204755ce0c42ea6a14f647cbf47e"
+        }
+      ]
+    },
+    {
+      "name": "undici-types",
+      "SPDXID": "SPDXRef-Package-undici-types-5.26.5",
+      "versionInfo": "5.26.5",
+      "packageFileName": "node_modules/openai/node_modules/undici-types",
+      "description": "A stand-alone types package for Undici",
+      "downloadLocation": "https://registry.npmjs.org/undici-types/-/undici-types-5.26.5.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://undici.nodejs.org",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/undici-types@5.26.5"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "26508c3be7a174420aaa517193a21f568014566833edc53bcc3fe1f57674ab37a8b121e650954ecd242fbd84985979055c2f887cb29221f7e1bf4b1566ea7aa4"
+        }
+      ]
+    },
+    {
       "name": "redis-errors",
       "SPDXID": "SPDXRef-Package-redis-errors-1.2.0",
       "versionInfo": "1.2.0",
@@ -1271,7 +1319,7 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-types.node-18.19.129",
+      "spdxElementId": "SPDXRef-Package-types.node-18.19.130",
       "relatedSpdxElement": "SPDXRef-Package-anthropic-ai.sdk-0.21.1",
       "relationshipType": "DEPENDENCY_OF"
     },
@@ -1307,7 +1355,7 @@
     },
     {
       "spdxElementId": "SPDXRef-Package-undici-types-5.26.5",
-      "relatedSpdxElement": "SPDXRef-Package-types.node-18.19.129",
+      "relatedSpdxElement": "SPDXRef-Package-types.node-18.19.130",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -1461,7 +1509,7 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-msgpackr-extract.msgpackr-extract-linux-x64-3.0.3",
+      "spdxElementId": "SPDXRef-Package-msgpackr-extract.msgpackr-extract-darwin-arm64-3.0.3",
       "relatedSpdxElement": "SPDXRef-Package-msgpackr-extract-3.0.3",
       "relationshipType": "OPTIONAL_DEPENDENCY_OF"
     },
@@ -1471,7 +1519,7 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-types.node-18.19.129",
+      "spdxElementId": "SPDXRef-Package-types.node-18.19.130",
       "relatedSpdxElement": "SPDXRef-Package-openai-4.104.0",
       "relationshipType": "DEPENDENCY_OF"
     },
@@ -1502,7 +1550,7 @@
     },
     {
       "spdxElementId": "SPDXRef-Package-undici-types-5.26.5",
-      "relatedSpdxElement": "SPDXRef-Package-types.node-18.19.129",
+      "relatedSpdxElement": "SPDXRef-Package-types.node-18.19.130",
       "relationshipType": "DEPENDENCY_OF"
     },
     {

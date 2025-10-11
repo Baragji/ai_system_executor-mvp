@@ -1,0 +1,34 @@
+{
+  "project_name": "truncate-middle",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"truncate-middle\",\n  \"version\": \"0.1.0\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"test\": \"vitest\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"^5.2.0\",\n    \"vitest\": \"^1.0.0\"\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2019\",\n    \"module\": \"ESNext\",\n    \"moduleResolution\": \"NodeNext\",\n    \"declaration\": true,\n    \"outDir\": \"dist\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true\n  },\n  \"include\": [\"src\", \"tests\"]\n}\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# truncate-middle\n\nA tiny TypeScript library providing a single function: truncateMiddle.\n\nWhat it does\n- Truncates a string by replacing the middle with an ellipsis (or custom marker) when the string is longer than a given maximum length.\n\nQuick start\n1. npm install\n2. npm test\n\nSee SPEC.md for the function specification and examples.\n"
+    },
+    {
+      "path": "SPEC.md",
+      "contents": "# Function specification: truncateMiddle\n\nPurpose\n- Provide a small, deterministic utility to truncate long strings by replacing their middle portion with an ellipsis (or a custom marker), preserving the start and end of the original string.\n\nFunction signature (TypeScript)\n\n- truncateMiddle(text: string, maxLength: number, options?: { ellipsis?: string }): string\n\nParameters\n- text: string — the input string to truncate.\n- maxLength: number — the maximum allowed length of the returned string. Must be a non-negative integer.\n- options.ellipsis?: string — optional replacement inserted in the middle when truncation occurs. Defaults to a single-character ellipsis \"…\".\n\nBehavior\n- If text.length <= maxLength, return text unchanged.\n- If maxLength is not a finite integer or is negative, throw a RangeError.\n- The returned string must have length <= maxLength.\n- If maxLength is less than the length of the provided ellipsis, return the ellipsis truncated to maxLength characters (i.e. ellipsis.slice(0, maxLength)).\n- When truncation is required and maxLength is large enough to contain the ellipsis, allocate the remaining characters (maxLength - ellipsis.length) between the start and end of the original string. If there's an odd number, the extra character goes to the start.\n\nExamples\n- truncateMiddle(\"abcdefg\", 7) -> \"abcdefg\" (no change)\n- truncateMiddle(\"abcdefghijklmnop\", 9) -> \"abcd…mnop\" (4 start, 1 ellipsis, 4 end)\n- truncateMiddle(\"abcdefghijklmnopqrstuvwxyz\", 7, { ellipsis: \"...\" }) -> \"ab...yz\"\n"
+    },
+    {
+      "path": "src/index.ts",
+      "contents": "export type TruncateOptions = { ellipsis?: string };\n\n/**\n * Truncate a string by replacing its middle with an ellipsis (or custom marker) so the result length <= maxLength.\n *\n * See SPEC.md for full specification and examples.\n */\nexport function truncateMiddle(text: string, maxLength: number, options?: TruncateOptions): string {\n  const ellipsis = options?.ellipsis ?? \"…\"; // default single-character ellipsis\n\n  if (typeof text !== \"string\") {\n    throw new TypeError(\"text must be a string\");\n  }\n\n  if (!Number.isFinite(maxLength) || Math.floor(maxLength) !== maxLength) {\n    throw new RangeError(\"maxLength must be a finite integer\");\n  }\n\n  if (maxLength < 0) {\n    throw new RangeError(\"maxLength must be a non-negative integer\");\n  }\n\n  // Fast path: no truncation needed\n  if (text.length <= maxLength) return text;\n\n  // If maxLength is 0, return empty string\n  if (maxLength === 0) return \"\";\n\n  // If maxLength is smaller than the ellipsis length, return truncated ellipsis\n  if (maxLength < ellipsis.length) return ellipsis.slice(0, maxLength);\n\n  // Otherwise, allocate remaining characters to start and end around the ellipsis.\n  const remaining = maxLength - ellipsis.length;\n  const startLen = Math.ceil(remaining / 2);\n  const endLen = Math.floor(remaining / 2);\n\n  const start = text.slice(0, startLen);\n  const end = endLen > 0 ? text.slice(text.length - endLen) : \"\";\n\n  return start + ellipsis + end;\n}\n"
+    },
+    {
+      "path": "tests/truncate.test.ts",
+      "contents": "import { describe, it, expect } from 'vitest';\nimport { truncateMiddle } from '../src/index';\n\ndescribe('truncateMiddle', () => {\n  it('returns original when shorter or equal to maxLength', () => {\n    expect(truncateMiddle('hello', 5)).toBe('hello');\n    expect(truncateMiddle('hi', 10)).toBe('hi');\n  });\n\n  it('truncates with default ellipsis preserving start and end', () => {\n    const input = 'abcdefghijklmnop'; // length 16\n    const out = truncateMiddle(input, 9); // ellipsis length 1 -> remaining 8 -> 4 + 4\n    expect(out).toBe('abcd…mnop');\n    expect(out.length).toBe(9);\n  });\n\n  it('supports a custom ellipsis', () => {\n    const input = 'abcdefghijklmnopqrstuvwxyz';\n    const out = truncateMiddle(input, 7, { ellipsis: '...' }); // ellipsis len 3 -> remaining 4 -> 2 + 2\n    expect(out).toBe('ab...yz');\n    expect(out.length).toBe(7);\n  });\n\n  it('handles very small maxLength values', () => {\n    expect(truncateMiddle('longtext', 0)).toBe('');\n    // when maxLength equals ellipsis length, result is the ellipsis\n    expect(truncateMiddle('longtext', 1)).toBe('…');\n    // when maxLength is smaller than provided ellipsis, ellipsis is truncated\n    expect(truncateMiddle('longtext', 2, { ellipsis: '***' })).toBe('**');\n  });\n\n  it('throws on invalid maxLength', () => {\n    // non-integer\n    expect(() => truncateMiddle('x', 2.5)).toThrow();\n    // NaN\n    expect(() => truncateMiddle('x', NaN)).toThrow();\n    // negative\n    expect(() => truncateMiddle('x', -1)).toThrow();\n  });\n});\n"
+    }
+  ],
+  "notes": [
+    "Install deps and run tests: npm install && npm test",
+    "This project uses TypeScript and Vitest. The test files live under tests/ and are included via tsconfig.json."
+  ],
+  "hasTests": true
+}

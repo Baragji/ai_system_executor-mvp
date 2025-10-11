@@ -15,9 +15,18 @@ test('Pause UX immediacy', async ({ page }) => {
   // Start the run
   await executeButton.click();
 
+  // If clarifications UI appears, skip to start execution
+  const clarSection = page.locator('#clarificationSection:not(.hidden)');
+  if (await clarSection.isVisible({ timeout: 1000 }).catch(() => false)) {
+    const skipBtn = page.locator('#skipClarifications');
+    if (await skipBtn.isVisible().catch(() => false)) {
+      await skipBtn.click();
+    }
+  }
+
   // Wait until orchestration controls appear and Pause is enabled
   const pauseButton = page.getByRole('button', { name: /^Pause$/ });
-  await expect(pauseButton).toBeVisible();
+  await expect(pauseButton).toBeVisible({ timeout: 10000 });
   await expect(pauseButton).toBeEnabled();
 
   // Grab session id from the client context

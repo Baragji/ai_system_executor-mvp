@@ -1,0 +1,29 @@
+{
+  "schema": "umca.phase5.checkpoint",
+  "version": 1,
+  "sessionId": "3b0be53237c47f64",
+  "state": "PAUSED",
+  "updatedAt": "2025-10-11T08:59:04.011Z",
+  "machine": {
+    "history": [
+      {
+        "state": "CLARIFYING",
+        "enteredAt": "2025-10-11T08:59:03.604Z"
+      },
+      {
+        "state": "PAUSED",
+        "enteredAt": "2025-10-11T08:59:04.011Z",
+        "reason": "Test pause during planning"
+      }
+    ]
+  },
+  "payload": {
+    "pendingQuestions": [
+      {
+        "id": "5c2cc439-ae1f-445b-81ca-db57fc9ad217",
+        "question": "Please provide guidance to continue execution.",
+        "type": "AMBIGUITY"
+      }
+    ]
+  }
+}

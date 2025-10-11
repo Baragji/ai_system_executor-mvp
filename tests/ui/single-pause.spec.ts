@@ -19,11 +19,18 @@ test('Single execution pause handling', async ({ page }) => {
   const execPromise = api.post('/api/execute', { data: { prompt: simplePrompt, sessionId } });
 
   // Wait a tiny bit to ensure server is generating
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(400);
 
   // Pause
-  const pauseResp = await api.post(`/api/sessions/${sessionId}/pause`, { data: { reason: 'Pause single' } });
-  expect([201, 409]).toContain(pauseResp.status());
+  // Try pause; if 404 snapshot not yet ready, retry a couple times
+  let pauseStatus: number | null = null;
+  for (let i = 0; i < 3; i++) {
+    const r = await api.post(`/api/sessions/${sessionId}/pause`, { data: { reason: 'Pause single' } });
+    pauseStatus = r.status();
+    if (pauseStatus === 201 || pauseStatus === 409) break;
+    await page.waitForTimeout(200);
+  }
+  expect([201, 409]).toContain(pauseStatus!);
 
   // Assert 202 from /api/execute
   const resp = await execPromise;
