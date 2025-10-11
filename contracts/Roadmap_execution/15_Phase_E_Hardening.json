@@ -1,0 +1,478 @@
+{
+    "contract_version": "E.2.0",
+    "contract_meta": {
+      "created": "2025-10-11",
+      "phase": "E-H1",
+      "phase_name": "Pause/Resume Durability Hardening",
+      "prerequisite_phase": "E",
+      "enhancement": "Durable step orchestration with cooperative cancellation and resilient resume UX",
+      "rationale": "Existing pause/resume infrastructure surfaces paused states but continues work, never restarts on resume, and blocks on dependency validation. This contract hardens the orchestration spine to match CDI expectations and industry durability patterns.",
+      "references": [
+        "docs/01_101025_todays_status/Phase5_WA4.5_Architecture_Broken.md",
+        "docs/01_101025_todays_status/Phase5_WA4.5_LLM_Issue.md",
+        "docs/01_101025_todays_status/Phase5_WA4.5_PostLLM_Success.md",
+        "docs/01_101025_todays_status/Research_output.md",
+        "docs/02_111025_todays_status.md/03_pause_resume_fixes.md",
+        "docs/02_111025_todays_status.md/04_pause_ux_fix_and_provider_caching.md",
+        "docs/02_111025_todays_status.md/06_suggestion.md"
+      ]
+    },
+    "project": {
+      "name": "UMCA Executor MVP",
+      "current_phase": "E Hardening — Pause/Resume",
+      "goal": "Deliver resilient pause/resume that halts within one step, resumes via durable checkpoints, and presents clear UI/observability signals.",
+      "scope": "Backend orchestration queue, abort propagation, child-process governance, frontend pause UX, dependency policy tuning, validation & observability.",
+      "estimated_time": "2-3 working sessions",
+      "work_profile": "Discovery-first CDI with 30–45 minute wins",
+      "out_of_scope": [
+        "Multi-tenant session routing",
+        "Provider feature expansion beyond abort support",
+        "Large-scale performance tuning beyond current flows"
+      ]
+    },
+    "execution_model": {
+      "type": "discovery_then_autonomous",
+      "verification_strategy": "Unit tests for step orchestration/cancellation, API & queue integration tests, Playwright pause/resume E2E, contract & SBOM gates.",
+      "description": "Refactor execution into checkpointed steps backed by queue semantics, propagate abort across LLM and subprocesses, repair resume UX, and validate end-to-end.",
+      "failure_mode": "HALT on validation, contract, or abort-safety regression",
+      "no_assumptions": true,
+      "evidence_required": true
+    },
+    "stack_compliance": {
+      "enforced_by": "ai-stack.json",
+      "language": "TypeScript/JavaScript",
+      "frameworks": [
+        "Express"
+      ],
+      "test_command": "vitest run --reporter=default",
+      "constraints": [
+        "No Python",
+        "No new frontend frameworks under /public",
+        "No new dependencies without justification",
+        "No breaking API changes"
+      ]
+    },
+    "observability": {
+      "description": "Structured pause/resume/abort events with step checkpoints and metrics.",
+      "trace_file": ".automation/execution_trace.jsonl",
+      "discovery_file": ".automation/phaseE_hardening_discovery_note.md",
+      "evidence_file": ".automation/phaseE_hardening_validation_report.md",
+      "monitoring": {
+        "metrics": "Pause/resume counts, abort latency, SIGTERM/SIGKILL escalations"
+      },
+      "logging": {
+        "structured": true,
+        "schema": "pause_resume_v2"
+      },
+      "evaluation": {
+        "playwright_report": ".automation/playwright-report/index.html"
+      }
+    },
+    "high_level_stages": [
+      "Discovery",
+      "Orchestration Backbone",
+      "Resume Semantics",
+      "Cooperative Cancellation",
+      "Execution Safety",
+      "Client Experience",
+      "Policy & Observability",
+      "Validation & Evidence"
+    ],
+    "tasks": [
+      {
+        "id": "D60",
+        "stage": "Discovery",
+        "title": "Map current pause/resume integration points",
+        "type": "discovery",
+        "description": "Trace backend, queue, and frontend flows to document where pause state is ignored or mishandled.",
+        "time_estimate_minutes": 30,
+        "actions": [
+          "Trace /api/execute lifecycle, noting checkpoints, fallbacks, and SSE hooks",
+          "Document resume endpoint behavior and missing re-entry points",
+          "Inventory frontend pause handling, error paths, and snapshot usage",
+          "Summarize dependency preflight policy and abort propagation gaps"
+        ],
+        "validation": [
+          "Discovery note with code snippets committed (.automation/phaseE_hardening_discovery_note.md)"
+        ],
+        "success_criteria": [
+          "Integration points recorded with file and line references",
+          "Abort/queue/fallback gaps enumerated",
+          "Frontend/API contract mismatches captured"
+        ]
+      },
+      {
+        "id": "WA61",
+        "stage": "Orchestration Backbone",
+        "title": "Introduce step queue and checkpoint store",
+        "type": "win",
+        "description": "Refactor execution into BullMQ-backed (or inline-compatible) step jobs with durable checkpoint persistence.",
+        "time_estimate_minutes": 45,
+        "actions": [
+          "Create src/orchestrator/stepQueue.ts with enqueue/dispatch for clarify, plan, generateChunk, testChunk, repair, finalize",
+          "Implement src/orchestrator/checkpointStore.ts persisting checkpoints + workspace manifest pointers",
+          "Update server.ts to submit the first step via the queue abstraction even in inline mode",
+          "Add unit tests covering enqueue/dequeue, checkpoint versioning, and idempotent resume"
+        ],
+        "validation": [
+          "npm run lint",
+          "npm run typecheck",
+          "npm test -- run orchestrator/stepQueue"
+        ],
+        "success_criteria": [
+          "Each step persists checkpoint with next-step cursor",
+          "Queue jobs can be replayed after process restart in tests",
+          "Inline fallback still routes through stepQueue for determinism"
+        ],
+        "deliverables": [
+          {
+            "path": "src/orchestrator/stepQueue.ts",
+            "validation_method": "file_exists"
+          },
+          {
+            "path": "src/orchestrator/checkpointStore.ts",
+            "validation_method": "file_exists"
+          },
+          {
+            "path": "tests/orchestrator/stepQueue.test.ts",
+            "validation_method": "file_exists"
+          }
+        ]
+      },
+      {
+        "id": "WA62",
+        "stage": "Resume Semantics",
+        "title": "Make resume requeue the next unfinished step",
+        "type": "win",
+        "description": "Ensure pause responses return 202 with step metadata and resume enqueues the next job rather than falling through to single execution.",
+        "time_estimate_minutes": 40,
+        "actions": [
+          "Update /api/execute to stream via SSE and exit with {paused:true, stepId} payload on PausedError",
+          "Enhance /api/sessions/:id/resume to load checkpoint, validate state, and enqueue the next step job",
+          "Remove single-execution fallbacks triggered by PausedError in planning/clarify catches",
+          "Add integration tests proving resume restarts execution exactly once per request"
+        ],
+        "validation": [
+          "npm run lint",
+          "npm run typecheck",
+          "npm test -- run api/sessions-pause-resume"
+        ],
+        "success_criteria": [
+          "Resume API enqueues next step and returns 202/200 with resume metadata",
+          "No code path re-enters single execution on pause-triggered errors",
+          "Integration test verifies paused session completes after resume"
+        ],
+        "deliverables": [
+          {
+            "path": "src/server.ts",
+            "validation_method": "grep",
+            "pattern": "enqueueNextStepFromCheckpoint"
+          },
+          {
+            "path": "tests/api/sessions-pause-resume.test.ts",
+            "validation_method": "file_exists"
+          }
+        ]
+      },
+      {
+        "id": "WA63",
+        "stage": "Cooperative Cancellation",
+        "title": "Propagate AbortSignal through LLM providers",
+        "type": "win",
+        "description": "Thread session AbortSignal into generateJSON, OpenAI, Anthropic providers, and post-call guards to stop work within <1s.",
+        "time_estimate_minutes": 40,
+        "actions": [
+          "Extend generateJSON signature to accept {sessionId, abortSignal, onToken}",
+          "Wire abort signals or polling loops in provider adapters with graceful stream shutdown",
+          "Add post-call throwIfAborted checkpoints across plan/generation/repair flows",
+          "Author unit tests simulating abort mid-stream and verifying PausedError handling"
+        ],
+        "validation": [
+          "npm run lint",
+          "npm run typecheck",
+          "npm test -- run llm/abort"
+        ],
+        "success_criteria": [
+          "LLM calls exit within configured poll/abort interval after pause",
+          "Partial outputs are not committed when aborted",
+          "Tests cover both signal-supporting and polling-only providers"
+        ],
+        "deliverables": [
+          {
+            "path": "src/llm/index.ts",
+            "validation_method": "grep",
+            "pattern": "abortSignal"
+          },
+          {
+            "path": "tests/llm/abortSignal.test.ts",
+            "validation_method": "file_exists"
+          }
+        ]
+      },
+      {
+        "id": "WA64",
+        "stage": "Execution Safety",
+        "title": "Abort sandboxed processes and guard fallbacks",
+        "type": "win",
+        "description": "Ensure child processes, dependency installs, and repair loops terminate promptly on pause and do not restart automatically.",
+        "time_estimate_minutes": 35,
+        "actions": [
+          "Augment runInSandbox to register onAbort hooks that send SIGTERM then SIGKILL after a grace period",
+          "Plumb abort checks before spawning subprocesses (npm install, tests, formatters)",
+          "Short-circuit planning fallback blocks when PausedError is detected",
+          "Write unit tests covering SIGTERM escalation and PausedError propagation"
+        ],
+        "validation": [
+          "npm run lint",
+          "npm run typecheck",
+          "npm test -- run runner/runInSandbox"
+        ],
+        "success_criteria": [
+          "Paused sessions do not leave orphaned child processes",
+          "Fallback paths skip single execution when pause caused the error",
+          "Tests assert SIGKILL escalation for stubborn processes"
+        ],
+        "deliverables": [
+          {
+            "path": "src/runner/runInSandbox.ts",
+            "validation_method": "grep",
+            "pattern": "onAbort"
+          },
+          {
+            "path": "tests/runner/runInSandbox.abort.test.ts",
+            "validation_method": "file_exists"
+          }
+        ]
+      },
+      {
+        "id": "WA65",
+        "stage": "Client Experience",
+        "title": "Normalize pause UX and snapshot caching",
+        "type": "win",
+        "description": "Teach the frontend to treat 202 as paused state, freeze progress indicators, and reuse immediate snapshots.",
+        "time_estimate_minutes": 35,
+        "actions": [
+          "Update public/script.js fetch handlers to branch on paused payloads instead of treating 202 as errors",
+          "Cache last snapshot immediately after pause and stop polling until resume",
+          "Surface resume controls with clear state messaging and provider badge",
+          "Add Playwright specs verifying paused cards, resume flow, and no error toast"
+        ],
+        "validation": [
+          "npm run lint",
+          "npm run typecheck",
+          "npm run test:ui -- pause-resume.spec.ts"
+        ],
+        "success_criteria": [
+          "Pause shows dedicated UI state without error banners",
+          "Resume resumes polling and progress indicators exactly once",
+          "Playwright test passes under CI-friendly timeouts"
+        ],
+        "deliverables": [
+          {
+            "path": "public/script.js",
+            "validation_method": "grep",
+            "pattern": "handlePausedResponse"
+          },
+          {
+            "path": "ui-tests/pause-resume.spec.ts",
+            "validation_method": "file_exists"
+          }
+        ]
+      },
+      {
+        "id": "WA66",
+        "stage": "Policy & Observability",
+        "title": "Tune dependency preflight and structured logging",
+        "type": "win",
+        "description": "Relax preflight to warn on deprecated/mismatched versions while emitting actionable logs and checkpoint metadata.",
+        "time_estimate_minutes": 30,
+        "actions": [
+          "Adjust validation options to allow deprecated/version mismatch with warnings only",
+          "Emit structured dependency reports into execution_trace.jsonl and resume payloads",
+          "Document new policy in docs/02_111025_todays_status.md",
+          "Add unit tests covering deprecated and mismatch scenarios"
+        ],
+        "validation": [
+          "npm run lint",
+          "npm run typecheck",
+          "npm test -- run validation/dependencyPreflight"
+        ],
+        "success_criteria": [
+          "Resume flows no longer fail on deprecated packages",
+          "Warnings appear in trace logs with remediation guidance",
+          "Tests capture warning-only behavior"
+        ],
+        "deliverables": [
+          {
+            "path": "src/validation/dependencyPreflight.ts",
+            "validation_method": "grep",
+            "pattern": "allowVersionMismatch"
+          },
+          {
+            "path": "tests/validation/dependencyPreflight.test.ts",
+            "validation_method": "file_exists"
+          }
+        ]
+      },
+      {
+        "id": "WA67",
+        "stage": "Policy & Observability",
+        "title": "Instrument pause/resume telemetry",
+        "type": "win",
+        "description": "Add structured logging, metrics, and runbook updates for pause/resume lifecycle events.",
+        "time_estimate_minutes": 30,
+        "actions": [
+          "Emit structured log events for pause, resume, abort, step completion with durations and provider metadata",
+          "Update SSE payloads to include stepId and manifest hash",
+          "Document observability schema and troubleshooting steps in docs/02_111025_todays_status.md",
+          "Add unit coverage for logging helpers"
+        ],
+        "validation": [
+          "npm run lint",
+          "npm run typecheck",
+          "npm test -- run orchestrator/logging"
+        ],
+        "success_criteria": [
+          "Logs show pause/resume events with session and step identifiers",
+          "SSE stream consumers receive consistent metadata",
+          "Runbook captures how to diagnose stuck pauses"
+        ],
+        "deliverables": [
+          {
+            "path": "src/orchestrator/logging.ts",
+            "validation_method": "file_exists"
+          },
+          {
+            "path": "docs/02_111025_todays_status.md/07_pause_resume_runbook.md",
+            "validation_method": "file_exists"
+          }
+        ]
+      },
+      {
+        "id": "VA68",
+        "stage": "Validation & Evidence",
+        "title": "Run full validation suite and pause/resume E2E",
+        "type": "validation",
+        "description": "Execute mandatory quality gates plus targeted E2E proving pause/resume durability.",
+        "time_estimate_minutes": 45,
+        "actions": [
+          "npm run lint",
+          "npm run typecheck",
+          "npm test",
+          "npm run contract:check",
+          "npm run sbom",
+          "npm run test:ui -- pause-resume-cycle.spec.ts",
+          "Capture artifacts in .automation/playwright-report/"
+        ],
+        "validation": [
+          "All commands exit 0",
+          "Playwright trace attached"
+        ],
+        "success_criteria": [
+          "Pause/resume E2E demonstrates multiple cycles without fallback",
+          "Coverage thresholds (≥80% line, ≥75% branch) maintained",
+          "SBOM regenerated without errors"
+        ]
+      },
+      {
+        "id": "EA69",
+        "stage": "Validation & Evidence",
+        "title": "Publish evidence bundle and update contracts",
+        "type": "evidence",
+        "description": "Summarize implementation, attach observability schema, and record validation outcomes.",
+        "time_estimate_minutes": 30,
+        "actions": [
+          "Author .automation/phaseE_hardening_validation_report.md with command outputs and E2E screenshots",
+          "Update contracts/Roadmap_execution/14_phase5_orchestration_contract.json appendix if needed",
+          "Summarize telemetry schema and new policies in docs/02_111025_todays_status.md"
+        ],
+        "validation": [
+          "Evidence report committed",
+          "Contract checklist updated"
+        ],
+        "success_criteria": [
+          "Evidence links to logs, tests, Playwright artifacts",
+          "Contract references align with implemented step list",
+          "Stakeholders can trace pause/resume lifecycle from documentation"
+        ],
+        "deliverables": [
+          {
+            "path": ".automation/phaseE_hardening_validation_report.md",
+            "validation_method": "file_exists"
+          }
+        ]
+      }
+    ],
+    "execution_order": [
+      "D60",
+      "WA61",
+      "WA62",
+      "WA63",
+      "WA64",
+      "WA65",
+      "WA66",
+      "WA67",
+      "VA68",
+      "EA69"
+    ],
+    "execution_semantics": {
+      "win_isolation": {
+        "each_win_independently_testable": true,
+        "timebox_minutes": "30-45"
+      },
+      "gate_enforcement": {
+        "halt_on_failure": true
+      },
+      "evidence_backed": {
+        "required": true
+      },
+      "discovery_first": {
+        "required": true
+      }
+    },
+    "completion_criteria": {
+      "all_tests_pass": true,
+      "lint_passes": true,
+      "typecheck_passes": true,
+      "contract_validated": true,
+      "pause_resume_roundtrip_verified": true,
+      "observability_events_emitted": true
+    },
+    "final_artifacts_verification": [
+      {
+        "name": "Step Queue Implementation",
+        "path": "src/orchestrator/stepQueue.ts",
+        "must_exist": true
+      },
+      {
+        "name": "Checkpoint Store",
+        "path": "src/orchestrator/checkpointStore.ts",
+        "must_exist": true
+      },
+      {
+        "name": "Frontend pause handler",
+        "path": "public/script.js",
+        "must_exist": true
+      },
+      {
+        "name": "Pause/resume Playwright report",
+        "path": ".automation/playwright-report/index.html",
+        "must_exist": true
+      },
+      {
+        "name": "Validation Report",
+        "path": ".automation/phaseE_hardening_validation_report.md",
+        "must_exist": true
+      }
+    ],
+    "ai_executor_guidelines": {
+      "wins_30_45_minutes": "All win tasks are scoped to 30-45 minutes with independent validation.",
+      "tests_first": "Implement or update tests alongside each win before refactoring adjacent code.",
+      "pause_latency_target": "<= 1s after current step completes; ensure step durations stay <=60s.",
+      "observability_required": "Every pause/resume emits structured events recorded in .automation/execution_trace.jsonl."
+    },
+    "governance_note": {
+      "for_human": "This hardening contract transforms pause/resume into a durable, restartable workflow patterned after Replit-style step orchestration and BullMQ research, addressing repeated user-reported gaps."
+    }
+  }
+  
