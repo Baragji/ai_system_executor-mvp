@@ -66,6 +66,7 @@ import {
 import { captureManifest, getManifest } from "./orchestrator/workspaceManifest.js";
 import { buildResumePrompts } from "./orchestrator/resumePrompt.js";
 import { StepQueue, type StepDescriptor, type StepHandler } from "./orchestrator/stepQueue.js";
+import { logAbortEvent, logPauseEvent, logResumeEvent } from "./orchestrator/logging.js";
 import type {
   ExecutorSuccessResponse,
   PlanExecutionJobResult,
@@ -85,6 +86,17 @@ const PORT = Number(process.env.PORT || 3000);
 const OUTPUT_DIR = path.resolve("output");
 const PUBLIC_DIR = path.resolve("public");
 // In-memory progress sessions for SSE/polling
+type SnapshotStep = {
+  id: string;
+  type: string;
+  sequence?: number | null;
+  status?: string;
+  startedAt?: string;
+  completedAt?: string;
+  durationMs?: number;
+  queueLatencyMs?: number;
+};
+
 type ProgressSnapshot = {
   stage: string;
   progress: number;
@@ -96,6 +108,8 @@ type ProgressSnapshot = {
   questions?: PendingQuestion[];
   checkpointUpdatedAt?: string;
   dependencyWarnings?: DependencyValidationWarning[];
+  step?: SnapshotStep;
+  manifestHash?: string;
 };
 
 interface OrchestrationSession {
@@ -108,6 +122,8 @@ interface OrchestrationSession {
   effectivePrompt?: string;
   projectName?: string;
   dependencyWarnings: DependencyValidationWarning[];
+  currentStep?: SnapshotStep;
+  manifestHash?: string;
 }
 
 const progressSessions = new Map<string, ProgressSnapshot>();
@@ -205,6 +221,130 @@ function purgeExpiredProgressSessions(now: number) {
   }
 }
 
+function sanitizeSnapshotStep(candidate: unknown): SnapshotStep | undefined {
+  if (!candidate || typeof candidate !== "object") {
+    return undefined;
+  }
+  const raw = candidate as Record<string, unknown>;
+  const idRaw = typeof raw.id === "string" && raw.id.trim()
+    ? raw.id.trim()
+    : typeof raw.stepId === "string" && raw.stepId.trim()
+      ? raw.stepId.trim()
+      : "";
+  if (!idRaw) {
+    return undefined;
+  }
+  const typeRaw = typeof raw.type === "string" && raw.type.trim()
+    ? raw.type.trim()
+    : typeof raw.stepType === "string" && raw.stepType.trim()
+      ? raw.stepType.trim()
+      : "unknown";
+  let sequence: number | null | undefined;
+  if (typeof raw.sequence === "number" && Number.isFinite(raw.sequence)) {
+    sequence = raw.sequence;
+  } else if (typeof raw.sequence === "string" && raw.sequence.trim()) {
+    const parsed = Number(raw.sequence);
+    sequence = Number.isFinite(parsed) ? parsed : undefined;
+  }
+  const status = typeof raw.status === "string" && raw.status.trim() ? raw.status.trim() : undefined;
+  const startedAt = typeof raw.startedAt === "string" && raw.startedAt.trim() ? raw.startedAt.trim() : undefined;
+  const completedAt = typeof raw.completedAt === "string" && raw.completedAt.trim()
+    ? raw.completedAt.trim()
+    : undefined;
+  const durationMs = typeof raw.durationMs === "number" && Number.isFinite(raw.durationMs)
+    ? raw.durationMs
+    : undefined;
+  const queueLatencyMs = typeof raw.queueLatencyMs === "number" && Number.isFinite(raw.queueLatencyMs)
+    ? raw.queueLatencyMs
+    : undefined;
+  return {
+    id: idRaw,
+    type: typeRaw,
+    ...(sequence !== undefined ? { sequence } : {}),
+    ...(status ? { status } : {}),
+    ...(startedAt ? { startedAt } : {}),
+    ...(completedAt ? { completedAt } : {}),
+    ...(durationMs !== undefined ? { durationMs } : {}),
+    ...(queueLatencyMs !== undefined ? { queueLatencyMs } : {})
+  } satisfies SnapshotStep;
+}
+
+type StepTimingSource = {
+  queueLatencyMs?: unknown;
+  durationMs?: unknown;
+  queuedAt?: unknown;
+  startedAt?: unknown;
+  completedAt?: unknown;
+} | null | undefined;
+
+function parseTimestampMs(value: unknown): number | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+  const parsed = Date.parse(trimmed);
+  if (Number.isNaN(parsed)) {
+    return null;
+  }
+  return parsed;
+}
+
+function diffTimestampMs(start: unknown, end: unknown): number | undefined {
+  const startMs = parseTimestampMs(start);
+  const endMs = parseTimestampMs(end);
+  if (startMs === null || endMs === null) {
+    return undefined;
+  }
+  const diff = endMs - startMs;
+  return diff >= 0 ? diff : undefined;
+}
+
+function deriveStepTimings(source: StepTimingSource): { durationMs?: number; queueLatencyMs?: number } {
+  const timings: { durationMs?: number; queueLatencyMs?: number } = {};
+  if (!source || typeof source !== "object") {
+    return timings;
+  }
+  const raw = source as Record<string, unknown>;
+  const queueLatency = typeof raw.queueLatencyMs === "number" && Number.isFinite(raw.queueLatencyMs)
+    ? raw.queueLatencyMs
+    : diffTimestampMs(raw.queuedAt, raw.startedAt);
+  const duration = typeof raw.durationMs === "number" && Number.isFinite(raw.durationMs)
+    ? raw.durationMs
+    : diffTimestampMs(raw.startedAt, raw.completedAt);
+
+  if (queueLatency !== undefined) {
+    timings.queueLatencyMs = queueLatency;
+  }
+  if (duration !== undefined) {
+    timings.durationMs = duration;
+  }
+  return timings;
+}
+
+function attachStepMetadata(
+  metadata: Record<string, unknown> | undefined,
+  stepId?: string,
+  stepType?: string,
+  sequence?: number | null
+): Record<string, unknown> | undefined {
+  if (!stepId || typeof stepId !== "string" || !stepId.trim()) {
+    return metadata ? { ...metadata } : undefined;
+  }
+  const base = metadata ? { ...metadata } : {};
+  const existing = sanitizeSnapshotStep(base.step);
+  const normalizedSequence = typeof sequence === "number" && Number.isFinite(sequence) ? sequence : null;
+  base.step = {
+    ...(existing ?? {}),
+    id: stepId,
+    type: typeof stepType === "string" && stepType.trim() ? stepType.trim() : existing?.type ?? "unknown",
+    ...(normalizedSequence !== null ? { sequence: normalizedSequence } : {})
+  } satisfies SnapshotStep;
+  return base;
+}
+
 function setProgress(sessionId: string | undefined, stage: string, progress: number, data?: Record<string, unknown>, done?: boolean) {
   if (!sessionId) return;
   purgeExpiredProgressSessions(Date.now());
@@ -240,6 +380,20 @@ function setProgress(sessionId: string | undefined, stage: string, progress: num
     }
   }
 
+  const stepFromMetadata = dataWithWarnings?.step ?? data?.step;
+  const sanitizedStep = sanitizeSnapshotStep(stepFromMetadata);
+  if (sanitizedStep) {
+    session.currentStep = {
+      ...(session.currentStep ?? {}),
+      ...sanitizedStep
+    };
+  } else if (done) {
+    session.currentStep = undefined;
+  }
+  if (dataWithWarnings && "step" in dataWithWarnings) {
+    delete (dataWithWarnings as { step?: unknown }).step;
+  }
+
   progressSessions.set(sessionId, {
     stage,
     progress,
@@ -250,7 +404,9 @@ function setProgress(sessionId: string | undefined, stage: string, progress: num
     paused: session.paused,
     questions: session.questions,
     checkpointUpdatedAt: session.checkpointUpdatedAt,
-    dependencyWarnings: warnings.length > 0 ? warnings.slice() : undefined
+    dependencyWarnings: warnings.length > 0 ? warnings.slice() : undefined,
+    step: session.currentStep,
+    manifestHash: session.manifestHash
   });
 }
 
@@ -269,7 +425,10 @@ function getProgress(sessionId: string): ProgressSnapshot | null {
       state: session.machine.state,
       paused: session.paused,
       questions: session.questions,
-      checkpointUpdatedAt: session.checkpointUpdatedAt
+      checkpointUpdatedAt: session.checkpointUpdatedAt,
+      dependencyWarnings: session.dependencyWarnings.length > 0 ? session.dependencyWarnings.slice() : undefined,
+      step: session.currentStep,
+      manifestHash: session.manifestHash
     };
   }
   return snap;
@@ -341,6 +500,11 @@ function snapshotFromSession(sessionId: string, fallback?: ProgressSnapshot | nu
       dataWithWarnings = undefined;
     }
   }
+  if (dataWithWarnings && "step" in dataWithWarnings) {
+    delete (dataWithWarnings as { step?: unknown }).step;
+  }
+  const step = session.currentStep ?? sanitizeSnapshotStep(existing?.step);
+  const manifestHash = session.manifestHash ?? existing?.manifestHash;
   return {
     stage: baseStage,
     progress: existing?.progress ?? 0,
@@ -351,7 +515,9 @@ function snapshotFromSession(sessionId: string, fallback?: ProgressSnapshot | nu
     paused: session.paused,
     questions: session.questions,
     checkpointUpdatedAt: session.checkpointUpdatedAt,
-    dependencyWarnings: warnings.length > 0 ? warnings.slice() : undefined
+    dependencyWarnings: warnings.length > 0 ? warnings.slice() : undefined,
+    step: step ?? undefined,
+    manifestHash: manifestHash
   };
 }
 
@@ -1176,11 +1342,15 @@ type SingleStepPayload = {
 const planStepHandler: StepHandler = async ({
   sessionId,
   payload,
-  queueMode
+  queueMode,
+  stepId,
+  stepType,
+  sequence
 }) => {
   const data = (payload ?? {}) as PlanStepPayload;
   if (queueMode === "bullmq" && data.queueMetadata) {
-    setProgress(sessionId, "planning", 20, data.queueMetadata);
+    const metadata = attachStepMetadata(data.queueMetadata, stepId, stepType, sequence);
+    setProgress(sessionId, "planning", 20, metadata);
   }
 
   try {
@@ -1235,7 +1405,7 @@ const planStepHandler: StepHandler = async ({
   }
 };
 
-const singleStepHandler: StepHandler = async ({ payload, queueMode }) => {
+const singleStepHandler: StepHandler = async ({ payload, queueMode, stepId, stepType, sequence }) => {
   const data = (payload ?? {}) as SingleStepPayload;
   if (!data.singleOptions) {
     throw new Error("singleOptions payload required for single step");
@@ -1244,11 +1414,15 @@ const singleStepHandler: StepHandler = async ({ payload, queueMode }) => {
   const baseOptions = data.singleOptions;
   const options: SingleExecutionOptions = {
     ...baseOptions,
-    progressMetadata: baseOptions.progressMetadata ? { ...baseOptions.progressMetadata } : undefined
+    progressMetadata: attachStepMetadata(baseOptions.progressMetadata, stepId, stepType, sequence)
   };
 
   if (queueMode === "bullmq") {
-    const queuedMeta = { ...(options.progressMetadata ?? {}), queued: true, mode: "queue" };
+    const queuedMeta = {
+      ...(options.progressMetadata ?? {}),
+      queued: true,
+      mode: "queue"
+    };
     options.progressMetadata = queuedMeta;
     if (options.sessionId) {
       setProgress(options.sessionId, "planning", 20, queuedMeta);
@@ -1493,6 +1667,7 @@ app.post("/api/execute", async (req, res) => {
       console.log(`Execution paused for session ${err.sessionId} during ${err.phase}`);
       const workflowSteps = sessionId ? await stepQueue.getWorkflow(sessionId) : null;
       const pausedRecord = workflowSteps?.slice().reverse().find(step => step.status === "paused");
+      const pausedTimings = deriveStepTimings(pausedRecord);
       const stepMeta = pausedRecord
         ? { stepId: pausedRecord.stepId, stepType: pausedRecord.stepType, sequence: pausedRecord.sequence }
         : {
@@ -1507,6 +1682,23 @@ app.post("/api/execute", async (req, res) => {
         message: err.message,
         ...stepMeta
       };
+
+      const pausedSession = ensureOrchestrationSession(err.sessionId);
+      await logPauseEvent({
+        sessionId: err.sessionId,
+        status: "acknowledged",
+        reason: err.message,
+        stepId: (stepMeta as { stepId?: string }).stepId,
+        stepType: (stepMeta as { stepType?: string }).stepType,
+        sequence: typeof (stepMeta as { sequence?: number }).sequence === "number"
+          ? (stepMeta as { sequence?: number }).sequence
+          : undefined,
+        manifestHash: pausedSession.manifestHash,
+        checkpointAt: pausedSession.checkpointUpdatedAt,
+        questions: pausedSession.questions.length,
+        trigger: "worker",
+        ...pausedTimings
+      });
 
       if (wantsSse) {
         res.status(202);
@@ -1671,6 +1863,8 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
     }
 
     const current = getProgress(sessionId);
+    const currentStep = sanitizeSnapshotStep(current?.step);
+    const currentStepTimings = deriveStepTimings(current?.step);
     if (!current) {
       return res.status(404).json({ error: "session not found" });
     }
@@ -1721,7 +1915,13 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
 
     // Abort the in-flight execution
     const aborted = abortSession(sessionId);
-    console.log(`[Pause] Session ${sessionId} abort signal sent: ${aborted}`);
+    await logAbortEvent({
+      sessionId,
+      reason,
+      trigger: "api",
+      active: aborted,
+      manifestHash: session.manifestHash
+    });
 
     const checkpoint = await raiseInterrupt({
       sessionId,
@@ -1736,9 +1936,12 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
     session.questions = checkpoint.payload?.pendingQuestions ?? [];
     session.checkpointUpdatedAt = checkpoint.updatedAt;
 
+    let capturedManifestHash: string | undefined;
     if (session.projectSlug) {
       try {
-        await captureManifest(sessionId, session.projectSlug);
+        const manifest = await captureManifest(sessionId, session.projectSlug);
+        session.manifestHash = manifest.digest;
+        capturedManifestHash = manifest.digest;
       } catch (error) {
         console.warn(`[Pause] Failed to capture manifest for session ${sessionId}:`, error);
       }
@@ -1752,6 +1955,21 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
     snapshot.done = false;
     snapshot.updatedAt = Date.now();
     progressSessions.set(sessionId, snapshot);
+
+    await logPauseEvent({
+      sessionId,
+      status: "requested",
+      reason,
+      stepId: currentStep?.id,
+      stepType: currentStep?.type,
+      sequence: currentStep?.sequence ?? undefined,
+      manifestHash: session.manifestHash ?? capturedManifestHash,
+      checkpointAt: checkpoint.updatedAt,
+      provider: undefined,
+      questions: questions.length,
+      trigger: "api",
+      ...currentStepTimings
+    });
 
     return res.status(201).json({ checkpoint });
   } catch (error) {
@@ -1801,6 +2019,9 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     session.projectSlug = projectSlug;
 
     const manifest = await getManifest(sessionId);
+    if (manifest?.digest) {
+      session.manifestHash = manifest.digest;
+    }
     const systemPrompt = await fs.readFile("src/executor/systemPrompt.md", "utf-8");
     const promptSnapshot = await resolveSessionPrompts(sessionId, session, projectSlug);
     const prompts = buildResumePrompts(systemPrompt, {
@@ -1836,6 +2057,16 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     }
     snapshot.data = resumeData;
     progressSessions.set(sessionId, snapshot);
+
+    await logResumeEvent({
+      sessionId,
+      checkpointAt: result.checkpoint.updatedAt,
+      manifestHash: session.manifestHash,
+      provider: undefined,
+      questionsResolved: result.answeredQuestions.length,
+      adjustment: adjustmentRaw || undefined,
+      mode: stepQueue.mode === "bullmq" ? "queue" : "inline"
+    });
 
     const resumeFixture: ResumeContextFixture = {
       adjustment: adjustmentRaw || undefined,

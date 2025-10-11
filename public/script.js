@@ -102,6 +102,66 @@ function formatCheckpointTimestamp(isoString) {
   return `Checkpoint saved ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 }
 
+function shortHash(value, length = 8) {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  return trimmed.slice(0, Math.max(1, length)).toUpperCase();
+}
+
+function formatStepLabel(step) {
+  if (!step || typeof step !== "object") return "";
+  const id = typeof step.id === "string" && step.id.trim()
+    ? step.id.trim()
+    : typeof step.stepId === "string" && step.stepId.trim()
+      ? step.stepId.trim()
+      : "";
+  const sequence = typeof step.sequence === "number" && Number.isFinite(step.sequence)
+    ? step.sequence
+    : undefined;
+  const rawType = typeof step.type === "string" && step.type.trim()
+    ? step.type.trim()
+    : typeof step.stepType === "string" && step.stepType.trim()
+      ? step.stepType.trim()
+      : "";
+  const type = rawType ? rawType.charAt(0).toUpperCase() + rawType.slice(1) : "";
+  const status = typeof step.status === "string" && step.status.trim() ? step.status.trim() : "";
+  const tokens = [];
+  if (Number.isFinite(sequence)) {
+    tokens.push(`Step ${sequence}`);
+  }
+  if (type) {
+    tokens.push(type);
+  }
+  if (id) {
+    tokens.push(`#${shortHash(id)}`);
+  }
+  if (status) {
+    tokens.push(status);
+  }
+  return tokens.join(" · ");
+}
+
+function formatSnapshotDetails(snapshot) {
+  if (!snapshot || typeof snapshot !== "object") return "";
+  const labels = [];
+  const checkpointLabel = formatCheckpointTimestamp(snapshot.checkpointUpdatedAt);
+  if (checkpointLabel) {
+    labels.push(checkpointLabel);
+  }
+  const manifest = typeof snapshot.manifestHash === "string" && snapshot.manifestHash.trim()
+    ? `Manifest ${shortHash(snapshot.manifestHash)}`
+    : "";
+  if (manifest) {
+    labels.push(manifest);
+  }
+  const stepLabel = formatStepLabel(snapshot.step || snapshot);
+  if (stepLabel) {
+    labels.push(stepLabel);
+  }
+  return labels.join(" • ");
+}
+
 function setOrchestrationStatus(message, timestampLabel) {
   if (!orchestrationStatusEl || !orchestrationStatusMessageEl) return;
   orchestrationStatusEl.classList.remove("hidden");
@@ -459,8 +519,8 @@ function showResumeDrawer(questions, meta = {}) {
   }
 
   const statusMessage = meta.status || (meta.paused ? `Paused — ${stageLabel}` : "Awaiting your input");
-  const timestampLabel = formatCheckpointTimestamp(meta.checkpointUpdatedAt);
-  setOrchestrationStatus(statusMessage, timestampLabel);
+  const detailsLabel = formatSnapshotDetails(meta);
+  setOrchestrationStatus(statusMessage, detailsLabel);
 
   resumeDrawer.classList.remove("hidden");
 }
@@ -592,6 +652,8 @@ function updateOrchestrationState(snapshot) {
       stage: stageForMessage,
       provider,
       checkpointUpdatedAt: snapshot.checkpointUpdatedAt,
+      manifestHash: snapshot.manifestHash,
+      step: snapshot.step,
       message,
       status
     });
@@ -603,6 +665,8 @@ function updateOrchestrationState(snapshot) {
       paused: false,
       stage: snapshot.stage,
       checkpointUpdatedAt: snapshot.checkpointUpdatedAt,
+      manifestHash: snapshot.manifestHash,
+      step: snapshot.step,
       status: `Action required — ${describeStage(snapshot.stage)}`,
       message: "Additional input is required to continue execution."
     });
@@ -628,7 +692,8 @@ function updateOrchestrationState(snapshot) {
   const resumeStatus = stageForMessage
     ? `Resumed — ${describeStage(stageForMessage)}`
     : "Resumed";
-  setOrchestrationStatus(resumeStatus, checkpointLabel);
+  const details = formatSnapshotDetails(snapshot);
+  setOrchestrationStatus(resumeStatus, details || checkpointLabel);
 }
 
 function createOrchestrationControls() {

@@ -252,3 +252,192 @@ interface OrchestrationSession {
 3. Draft frontend state diagram for paused/resumed UI to ensure polling vs SSE is coordinated (`WA65`).
 4. Update dependency validation options to emit warnings instead of throwing on mismatches (`WA66`).
 
+## WA67 Integration Points (Telemetry & SSE payloads)
+
+### `src/orchestrator/stepQueue.ts`
+```ts
+  private async handle(job: StepJobPayload): Promise<StepExecutionResult> {
+    const stepType = job.stepType as ExecutionStepType;
+    const handler = this.handlers.get(stepType);
+    if (!handler) {
+      throw new Error(`No handler registered for step ${job.stepType}`);
+    }
+
+    await recordStepRunning(job.sessionId, job.stepId);
+    try {
+      const result = await handler({
+        sessionId: job.sessionId,
+        stepId: job.stepId,
+        stepType,
+        sequence: job.sequence,
+        payload: job.payload,
+        queueMode: this.controller.mode
+      });
+      const status: StepStatus = result.status ?? "completed";
+      await recordStepCompletion({
+        sessionId: job.sessionId,
+        stepId: job.stepId,
+        status,
+        result: result.data,
+        stop: result.stop
+      });
+      return {
+        stepId: job.stepId,
+        stepType,
+        status,
+        data: result.data,
+        stop: result.stop,
+        sequence: job.sequence
+      };
+    } catch (error) {
+      if (error instanceof PausedError) {
+        error.stepId = job.stepId;
+        error.stepType = stepType;
+        error.sequence = job.sequence;
+        await recordStepPaused({ sessionId: job.sessionId, stepId: job.stepId, error });
+      } else {
+        await recordStepFailure({ sessionId: job.sessionId, stepId: job.stepId, error });
+      }
+      throw error;
+    }
+  }
+```
+- Steps transition without emitting structured telemetry; no duration metrics or context is forwarded to logging.
+- `StepHandler` contexts omit step metadata when calling downstream code, so `setProgress` calls cannot attach `stepId`/`sequence`.
+
+### `src/server.ts`
+```ts
+function setProgress(sessionId: string | undefined, stage: string, progress: number, data?: Record<string, unknown>, done?: boolean) {
+  if (!sessionId) return;
+  purgeExpiredProgressSessions(Date.now());
+  const session = ensureOrchestrationSession(sessionId);
+
+  if (!session.paused) {
+    const target = mapStageToState(stage, done);
+    if (target && target !== session.machine.state && target !== "PAUSED") {
+      try {
+        session.machine.transition(target, { reason: `progress:${stage}` });
+      } catch (err) {
+        console.warn(`Failed to transition orchestrator for ${sessionId}:`, err);
+      }
+    }
+    if (done) {
+      session.paused = false;
+      session.questions = [];
+      removeOrchestrationSession(sessionId);
+    }
+  }
+
+  let dataWithWarnings: Record<string, unknown> | undefined = data ? { ...data } : undefined;
+  const warnings = session.dependencyWarnings;
+  if (warnings.length > 0) {
+    dataWithWarnings = {
+      ...(dataWithWarnings ?? {}),
+      dependencyWarnings: warnings
+    };
+  } else if (dataWithWarnings && "dependencyWarnings" in dataWithWarnings) {
+    delete (dataWithWarnings as { dependencyWarnings?: unknown }).dependencyWarnings;
+    if (Object.keys(dataWithWarnings).length === 0) {
+      dataWithWarnings = undefined;
+    }
+  }
+
+  progressSessions.set(sessionId, {
+    stage,
+    progress,
+    data: dataWithWarnings,
+    updatedAt: Date.now(),
+    done,
+    state: session.machine.state,
+    paused: session.paused,
+    questions: session.questions,
+    checkpointUpdatedAt: session.checkpointUpdatedAt,
+    dependencyWarnings: warnings.length > 0 ? warnings.slice() : undefined
+  });
+}
+```
+- Progress snapshots omit `stepId`/`sequence` context and do not carry the manifest hash captured during pause.
+- SSE clients therefore cannot correlate resume states with specific step checkpoints.
+
+### `src/orchestrator/workspaceManifest.ts`
+```ts
+export async function captureManifest(sessionId: string, projectSlug: string): Promise<WorkspaceManifest> {
+  resolveProjectRoot(projectSlug); // validates slug without forcing directory creation
+  const files = await scanWorkspace(projectSlug);
+  const manifest: WorkspaceManifest = {
+    sessionId,
+    projectSlug,
+    capturedAt: new Date().toISOString(),
+    files,
+    summary: summarizeWorkspace(files)
+  };
+
+  await fs.mkdir(MANIFESTS_DIR, { recursive: true });
+  const filename = `${sanitizeSessionId(sessionId)}.json`;
+  const temp = path.join(MANIFESTS_DIR, `${filename}.tmp-${process.pid}-${Date.now()}`);
+  await fs.writeFile(temp, JSON.stringify(manifest, null, 2), "utf-8");
+  await fs.rename(temp, path.join(MANIFESTS_DIR, filename));
+
+  return manifest;
+}
+```
+- Manifest snapshots lack a stable digest, so downstream telemetry cannot reference a consistent `manifestHash`.
+- Paused sessions capture manifests, but the progress snapshots never surface that identifier.
+
+### `public/script.js`
+```js
+function applyProgressSnapshot(fillEl, snapshot, fallbackStage) {
+  if (!(fillEl instanceof HTMLElement)) {
+    return fallbackStage;
+  }
+
+  const percentRaw = typeof snapshot?.progress === "number" ? snapshot.progress : Number(snapshot?.progress ?? 0);
+  const percent = Number.isFinite(percentRaw) ? Math.max(0, Math.min(100, percentRaw)) : 0;
+  fillEl.style.width = `${percent}%`;
+
+  const stageRaw = typeof snapshot?.stage === "string" && snapshot.stage ? snapshot.stage : fallbackStage;
+  let resolvedStage = stageRaw && PROGRESS_STAGE_ORDER.includes(stageRaw) ? stageRaw : fallbackStage;
+  if (!resolvedStage) {
+    resolvedStage = "analyzing";
+  }
+
+  document.querySelectorAll(".progress-stages .stage").forEach(node => {
+    node.classList.remove("current", "completed", "paused");
+  });
+  // ...
+}
+```
+- UI renders progress but does not surface current step metadata or manifest digest, so operators cannot confirm telemetry context from the client.
+
+### `src/telemetry/events.ts`
+```ts
+export async function logEvent(name: string, payload?: Record<string, unknown>): Promise<void> {
+  const event: TelemetryEvent = {
+    name,
+    timestamp: new Date().toISOString(),
+    payload
+  };
+  try {
+    await fs.mkdir(TELEMETRY_DIR, { recursive: true });
+    await fs.appendFile(TELEMETRY_FILE, `${JSON.stringify(event)}\n`, "utf-8");
+  } catch (err) {
+    console.warn("Failed to write telemetry event", err);
+  }
+
+  try {
+    const traceEntry = buildTraceEntry(event);
+    await fs.mkdir(AUTOMATION_DIR, { recursive: true });
+    await fs.appendFile(TRACE_FILE, `${JSON.stringify(traceEntry)}\n`, "utf-8");
+  } catch (err) {
+    console.warn("Failed to write execution trace entry", err);
+  }
+}
+```
+- Existing telemetry helpers only log raw events; there is no orchestrator-specific schema for pause/resume lifecycle instrumentation.
+
+### Observations for WA67
+1. Step queue operations and pause/resume flows rely on `console` statements instead of structured telemetry, so `.automation/execution_trace.jsonl` lacks pause/resume context.
+2. Progress snapshots omit identifiers that contract consumers need (step IDs and manifest hashes), preventing clients from verifying which checkpoint will resume.
+3. Workspace manifests are stored without a digest, making it impossible to correlate snapshots with telemetry events or UI state.
+4. Frontend status surfaces provider badges but not the underlying step/manifest metadata, so operators must inspect logs manually during incidents.
+
