@@ -34,6 +34,10 @@ let resumeDrawer = null;
 let resumeFormEl = null;
 let resumeQuestionsEl = null;
 let resumeMessageEl = null;
+let resumeProviderBadgeEl = null;
+let orchestrationStatusEl = null;
+let orchestrationStatusMessageEl = null;
+let orchestrationStatusTimestampEl = null;
 
 let activeSessionId = null;
 let orchestrationQuestions = [];
@@ -44,6 +48,10 @@ let storedPrompt = "";
 let storedProjectName = "";
 let repairHistoryExpanded = false;
 // legacy loading state removed
+
+let activeProgressManager = null;
+
+const PROGRESS_STAGE_ORDER = ["analyzing", "planning", "generating", "testing", "finalizing"];
 
 const DEFAULT_APP_PORT = "3000";
 const currentPort = typeof window !== "undefined" && window.location ? window.location.port : "";
@@ -60,6 +68,282 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function describeStage(stage) {
+  const normalized = typeof stage === "string" ? stage.toLowerCase() : "";
+  switch (normalized) {
+    case "analyzing":
+      return "Analysis";
+    case "planning":
+      return "Planning";
+    case "generating":
+      return "Generation";
+    case "testing":
+      return "Testing";
+    case "finalizing":
+      return "Finalization";
+    default:
+      if (!normalized) {
+        return "Current stage";
+      }
+      return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  }
+}
+
+function formatCheckpointTimestamp(isoString) {
+  if (!isoString || typeof isoString !== "string") {
+    return "";
+  }
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  return `Checkpoint saved ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+}
+
+function setOrchestrationStatus(message, timestampLabel) {
+  if (!orchestrationStatusEl || !orchestrationStatusMessageEl) return;
+  orchestrationStatusEl.classList.remove("hidden");
+  orchestrationStatusMessageEl.textContent = message;
+  if (orchestrationStatusTimestampEl) {
+    if (timestampLabel) {
+      orchestrationStatusTimestampEl.textContent = timestampLabel;
+      orchestrationStatusTimestampEl.classList.remove("hidden");
+    } else {
+      orchestrationStatusTimestampEl.textContent = "";
+      orchestrationStatusTimestampEl.classList.add("hidden");
+    }
+  }
+}
+
+function clearOrchestrationStatus() {
+  if (orchestrationStatusEl) {
+    orchestrationStatusEl.classList.add("hidden");
+  }
+  if (orchestrationStatusMessageEl) {
+    orchestrationStatusMessageEl.textContent = "";
+  }
+  if (orchestrationStatusTimestampEl) {
+    orchestrationStatusTimestampEl.textContent = "";
+    orchestrationStatusTimestampEl.classList.add("hidden");
+  }
+}
+
+function extractProvider(snapshot) {
+  if (!snapshot || typeof snapshot !== "object") {
+    return "";
+  }
+  const data = snapshot.data;
+  if (!data || typeof data !== "object") {
+    return "";
+  }
+  const candidates = [
+    data.provider,
+    data.resume?.provider,
+    data.executor?.provider,
+    data.metadata?.provider
+  ];
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+  return "";
+}
+
+function applyProgressSnapshot(fillEl, snapshot, fallbackStage) {
+  if (!(fillEl instanceof HTMLElement)) {
+    return fallbackStage;
+  }
+
+  const percentRaw = typeof snapshot?.progress === "number" ? snapshot.progress : Number(snapshot?.progress ?? 0);
+  const percent = Number.isFinite(percentRaw) ? Math.max(0, Math.min(100, percentRaw)) : 0;
+  fillEl.style.width = `${percent}%`;
+
+  const stageRaw = typeof snapshot?.stage === "string" && snapshot.stage ? snapshot.stage : fallbackStage;
+  let resolvedStage = stageRaw && PROGRESS_STAGE_ORDER.includes(stageRaw) ? stageRaw : fallbackStage;
+  if (!resolvedStage) {
+    resolvedStage = "analyzing";
+  }
+
+  document.querySelectorAll(".progress-stages .stage").forEach(node => {
+    node.classList.remove("current", "completed", "paused");
+  });
+
+  const bar = fillEl.parentElement;
+  if (bar instanceof HTMLElement) {
+    bar.classList.toggle("paused", Boolean(snapshot?.paused));
+  }
+
+  const index = PROGRESS_STAGE_ORDER.indexOf(resolvedStage);
+  if (index >= 0) {
+    PROGRESS_STAGE_ORDER.forEach((name, idx) => {
+      const el = document.querySelector(`.progress-stages .stage-${name}`);
+      if (!el) return;
+      if (idx < index) {
+        el.classList.add("completed");
+      }
+      if (idx === index) {
+        el.classList.add("current");
+      }
+    });
+    if (snapshot?.paused) {
+      const pausedEl = document.querySelector(`.progress-stages .stage-${resolvedStage}`);
+      pausedEl?.classList.add("paused");
+    }
+  }
+
+  return resolvedStage;
+}
+
+function createProgressManager(sessionId, fillEl) {
+  let stop = false;
+  let paused = false;
+  let waitForResume = null;
+  let eventSource = null;
+  let lastSnapshot = null;
+  let lastStage = "analyzing";
+
+  const applySnapshot = snapshot => {
+    lastSnapshot = snapshot;
+    lastStage = applyProgressSnapshot(fillEl, snapshot, lastStage);
+    updateOrchestrationState(snapshot);
+    if (snapshot?.paused) {
+      handlePauseInternal();
+      return;
+    }
+    if (paused) {
+      paused = false;
+      if (waitForResume) {
+        waitForResume();
+        waitForResume = null;
+      }
+      startEventSource();
+    }
+    if (snapshot?.done) {
+      stopAll();
+    }
+  };
+
+  const pollLoop = async () => {
+    while (!stop) {
+      if (paused) {
+        await new Promise(resolve => {
+          waitForResume = resolve;
+        });
+        waitForResume = null;
+        if (stop) {
+          break;
+        }
+      }
+      try {
+        const resp = await fetch(`/api/progress/snapshot/${sessionId}`);
+        if (resp.ok) {
+          const snapshot = await resp.json();
+          applySnapshot(snapshot);
+        }
+      } catch {
+        // ignore polling failures
+      }
+      if (stop) {
+        break;
+      }
+      if (!paused) {
+        await new Promise(resolve => {
+          setTimeout(resolve, 900);
+        });
+      }
+    }
+  };
+
+  function startEventSource() {
+    if (eventSource || stop || paused) return;
+    try {
+      const es = new EventSource(`/api/progress/${sessionId}`);
+      es.onmessage = ev => {
+        try {
+          const snapshot = JSON.parse(ev.data);
+          applySnapshot(snapshot);
+        } catch {
+          // ignore malformed events
+        }
+      };
+      es.onerror = () => {
+        es.close();
+        eventSource = null;
+      };
+      eventSource = es;
+    } catch {
+      eventSource = null;
+    }
+  }
+
+  function handlePauseInternal() {
+    if (paused) return;
+    paused = true;
+    if (eventSource) {
+      eventSource.close();
+      eventSource = null;
+    }
+  }
+
+  function resumeInternal() {
+    if (!paused) return;
+    paused = false;
+    if (waitForResume) {
+      waitForResume();
+      waitForResume = null;
+    }
+    if (!stop) {
+      startEventSource();
+    }
+    if (lastSnapshot) {
+      applyProgressSnapshot(fillEl, { ...lastSnapshot, paused: false }, lastStage);
+    }
+  }
+
+  function stopAll() {
+    stop = true;
+    if (waitForResume) {
+      waitForResume();
+      waitForResume = null;
+    }
+    if (eventSource) {
+      eventSource.close();
+      eventSource = null;
+    }
+  }
+
+  return {
+    start() {
+      stop = false;
+      paused = false;
+      pollLoop();
+      startEventSource();
+    },
+    applySnapshot,
+    handlePause: handlePauseInternal,
+    resume: resumeInternal,
+    stop: stopAll,
+    isPaused() {
+      return paused;
+    },
+    sessionId,
+    getLastSnapshot() {
+      return lastSnapshot;
+    },
+    getLastStage() {
+      return lastStage;
+    }
+  };
+}
+
+function getLastKnownStage() {
+  if (activeProgressManager && typeof activeProgressManager.getLastStage === "function") {
+    return activeProgressManager.getLastStage();
+  }
+  return undefined;
 }
 
 function hideDebugDisclosure() {
@@ -79,15 +363,21 @@ hideDebugDisclosure();
 
 function resetOrchestrationControls() {
   orchestrationQuestions = [];
+  if (activeProgressManager) {
+    activeProgressManager.stop();
+    activeProgressManager = null;
+  }
   activeSessionId = null;
   if (pauseSessionButton) {
     pauseSessionButton.disabled = true;
   }
   hideResumeDrawer();
+  clearOrchestrationStatus();
   orchestrationSection?.classList.add("hidden");
 }
 
-function hideResumeDrawer() {
+function hideResumeDrawer(options = {}) {
+  const { keepStatus = false } = options;
   if (resumeDrawer) {
     resumeDrawer.classList.add("hidden");
   }
@@ -98,7 +388,17 @@ function hideResumeDrawer() {
     resumeMessageEl.textContent = "Session paused. Provide answers to resume.";
     resumeMessageEl.classList.remove("error");
   }
+  if (resumeProviderBadgeEl) {
+    resumeProviderBadgeEl.textContent = "";
+    resumeProviderBadgeEl.classList.add("hidden");
+  }
+  if (resumeFormEl) {
+    resumeFormEl.reset();
+  }
   orchestrationQuestions = [];
+  if (!keepStatus) {
+    clearOrchestrationStatus();
+  }
 }
 
 function renderResumeQuestions(questions) {
@@ -134,9 +434,34 @@ function renderResumeQuestions(questions) {
   }
 }
 
-function showResumeDrawer(questions) {
+function showResumeDrawer(questions, meta = {}) {
   if (!resumeDrawer) return;
   renderResumeQuestions(questions);
+
+  const stageValue = meta.stage ?? getLastKnownStage();
+  const stageLabel = describeStage(stageValue);
+  const defaultMessage = meta.paused
+    ? `Execution paused during ${stageLabel}. Provide answers to resume.`
+    : "Execution requires your input to continue.";
+  if (resumeMessageEl) {
+    resumeMessageEl.textContent = meta.message || defaultMessage;
+    resumeMessageEl.classList.remove("error");
+  }
+  if (resumeProviderBadgeEl) {
+    const provider = typeof meta.provider === "string" ? meta.provider.trim() : "";
+    if (provider) {
+      resumeProviderBadgeEl.textContent = provider.toUpperCase();
+      resumeProviderBadgeEl.classList.remove("hidden");
+    } else {
+      resumeProviderBadgeEl.textContent = "";
+      resumeProviderBadgeEl.classList.add("hidden");
+    }
+  }
+
+  const statusMessage = meta.status || (meta.paused ? `Paused — ${stageLabel}` : "Awaiting your input");
+  const timestampLabel = formatCheckpointTimestamp(meta.checkpointUpdatedAt);
+  setOrchestrationStatus(statusMessage, timestampLabel);
+
   resumeDrawer.classList.remove("hidden");
 }
 
@@ -172,15 +497,19 @@ async function handlePauseClick() {
       throw data;
     }
     const questions = data?.checkpoint?.payload?.pendingQuestions ?? [];
-    showResumeDrawer(questions);
-    
+    showResumeDrawer(questions, { paused: true, stage: getLastKnownStage() });
+
     // Immediately fetch updated progress snapshot to ensure UI reflects paused state
     // This eliminates the 900ms polling delay that causes UI to appear frozen
     try {
       const snapshotResp = await fetch(`/api/progress/snapshot/${activeSessionId}`);
       if (snapshotResp.ok) {
         const snapshot = await snapshotResp.json();
-        updateOrchestrationState(snapshot);
+        if (activeProgressManager && activeProgressManager.sessionId === activeSessionId) {
+          activeProgressManager.applySnapshot(snapshot);
+        } else {
+          updateOrchestrationState(snapshot);
+        }
       }
     } catch (snapshotErr) {
       console.warn("Failed to fetch snapshot after pause:", snapshotErr);
@@ -205,10 +534,12 @@ async function handleResumeSubmit(event) {
     if (!resp.ok) {
       throw data;
     }
-    hideResumeDrawer();
+    hideResumeDrawer({ keepStatus: true });
+    setOrchestrationStatus("Resume request accepted. Waiting for orchestrator updates...");
     if (pauseSessionButton) {
-      pauseSessionButton.disabled = false;
+      pauseSessionButton.disabled = true;
     }
+    activeProgressManager?.resume();
   } catch (err) {
     if (resumeMessageEl) {
       resumeMessageEl.textContent = `Resume failed: ${err?.error || err?.message || err}`;
@@ -224,7 +555,11 @@ async function handlePausedResponse(sessionId) {
     const snapshotResp = await fetch(`/api/progress/snapshot/${sessionId}`);
     if (snapshotResp.ok) {
       const snapshot = await snapshotResp.json();
-      updateOrchestrationState(snapshot);
+      if (activeProgressManager && activeProgressManager.sessionId === sessionId) {
+        activeProgressManager.applySnapshot(snapshot);
+      } else {
+        updateOrchestrationState(snapshot);
+      }
       return true;
     }
   } catch (err) {
@@ -237,25 +572,63 @@ function updateOrchestrationState(snapshot) {
   if (!snapshot || !orchestrationSection) return;
   orchestrationSection.classList.remove("hidden");
 
+  const checkpointLabel = formatCheckpointTimestamp(snapshot.checkpointUpdatedAt);
+
   if (snapshot.paused) {
-    pauseSessionButton && (pauseSessionButton.disabled = true);
-    showResumeDrawer(snapshot.questions || []);
+    if (pauseSessionButton) {
+      pauseSessionButton.disabled = true;
+    }
+    const stageForMessage = snapshot.stage && PROGRESS_STAGE_ORDER.includes(snapshot.stage)
+      ? snapshot.stage
+      : getLastKnownStage() || snapshot.stage;
+    const provider = extractProvider(snapshot);
+    const reason = typeof snapshot?.data?.reason === "string" && snapshot.data.reason.trim()
+      ? snapshot.data.reason.trim()
+      : "";
+    const status = `Paused — ${describeStage(stageForMessage)}`;
+    const message = reason || undefined;
+    showResumeDrawer(snapshot.questions || [], {
+      paused: true,
+      stage: stageForMessage,
+      provider,
+      checkpointUpdatedAt: snapshot.checkpointUpdatedAt,
+      message,
+      status
+    });
     return;
   }
 
   if (snapshot.questions && snapshot.questions.length > 0) {
-    showResumeDrawer(snapshot.questions);
-  } else {
-    hideResumeDrawer();
+    showResumeDrawer(snapshot.questions, {
+      paused: false,
+      stage: snapshot.stage,
+      checkpointUpdatedAt: snapshot.checkpointUpdatedAt,
+      status: `Action required — ${describeStage(snapshot.stage)}`,
+      message: "Additional input is required to continue execution."
+    });
+    return;
   }
+
+  hideResumeDrawer({ keepStatus: true });
 
   if (pauseSessionButton) {
     pauseSessionButton.disabled = !activeSessionId || Boolean(snapshot.done);
   }
+
   if (snapshot.done) {
     activeSessionId = null;
     orchestrationSection?.classList.add("hidden");
+    clearOrchestrationStatus();
+    return;
   }
+
+  const stageForMessage = snapshot.stage && PROGRESS_STAGE_ORDER.includes(snapshot.stage)
+    ? snapshot.stage
+    : getLastKnownStage() || snapshot.stage;
+  const resumeStatus = stageForMessage
+    ? `Resumed — ${describeStage(stageForMessage)}`
+    : "Resumed";
+  setOrchestrationStatus(resumeStatus, checkpointLabel);
 }
 
 function createOrchestrationControls() {
@@ -279,13 +652,32 @@ function createOrchestrationControls() {
 
   orchestrationSection.appendChild(header);
 
+  orchestrationStatusEl = document.createElement("div");
+  orchestrationStatusEl.className = "orchestration__status hidden";
+  orchestrationStatusMessageEl = document.createElement("span");
+  orchestrationStatusMessageEl.className = "orchestration__status-message";
+  orchestrationStatusEl.appendChild(orchestrationStatusMessageEl);
+  orchestrationStatusTimestampEl = document.createElement("span");
+  orchestrationStatusTimestampEl.className = "orchestration__status-timestamp hidden";
+  orchestrationStatusEl.appendChild(orchestrationStatusTimestampEl);
+  orchestrationSection.appendChild(orchestrationStatusEl);
+
   resumeDrawer = document.createElement("div");
   resumeDrawer.className = "resume-drawer hidden";
+
+  const resumeHeader = document.createElement("div");
+  resumeHeader.className = "resume-header";
 
   resumeMessageEl = document.createElement("p");
   resumeMessageEl.className = "resume-message";
   resumeMessageEl.textContent = "Session paused. Provide answers to resume.";
-  resumeDrawer.appendChild(resumeMessageEl);
+  resumeHeader.appendChild(resumeMessageEl);
+
+  resumeProviderBadgeEl = document.createElement("span");
+  resumeProviderBadgeEl.className = "provider-badge hidden";
+  resumeHeader.appendChild(resumeProviderBadgeEl);
+
+  resumeDrawer.appendChild(resumeHeader);
 
   resumeFormEl = document.createElement("form");
   resumeFormEl.id = "resumeForm";
@@ -308,7 +700,7 @@ function createOrchestrationControls() {
   cancelButton.type = "button";
   cancelButton.className = "btn btn-ghost";
   cancelButton.textContent = "Cancel";
-  cancelButton.addEventListener("click", hideResumeDrawer);
+  cancelButton.addEventListener("click", () => hideResumeDrawer());
   resumeActions.appendChild(cancelButton);
 
   resumeFormEl.appendChild(resumeActions);
@@ -1305,7 +1697,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
   resetTaskPlanUI();
   resetOrchestrationControls();
 
-  // Start progress UI and polling
+  // Start progress UI and progress tracking
   const { fill } = renderProgressStages();
   const sessionId = (() => {
     const arr = new Uint8Array(8);
@@ -1319,68 +1711,8 @@ async function executeRequest({ prompt, projectName, clarifications }) {
   if (pauseSessionButton) {
     pauseSessionButton.disabled = false;
   }
-  let stopPolling = false;
-  (async () => {
-    while (!stopPolling) {
-      try {
-        const r = await fetch(`/api/progress/snapshot/${sessionId}`);
-        if (r.ok) {
-          const p = await r.json();
-          const percent = Math.max(0, Math.min(100, Number(p.progress || 0)));
-          fill.style.width = `${percent}%`;
-          const current = p.stage || 'analyzing';
-          document.querySelectorAll('.progress-stages .stage').forEach(node => node.classList.remove('current','completed'));
-          const order = ['analyzing','planning','generating','testing','finalizing'];
-          const idx = order.indexOf(current);
-          order.forEach((name,i) => {
-            const el = document.querySelector(`.stage-${name}`);
-            if (!el) return;
-            if (i < idx) el.classList.add('completed');
-            if (i === idx) el.classList.add('current');
-          });
-          updateOrchestrationState(p);
-          if (p.done) break;
-        }
-      } catch {
-        /* ignore */ void 0;
-      }
-      await new Promise(r => setTimeout(r, 900));
-    }
-  })();
-
-  // Try EventSource (SSE) for real-time progress; fallback polling remains
-  try {
-    const es = new EventSource(`/api/progress/${sessionId}`);
-    es.onmessage = ev => {
-      try {
-        const p = JSON.parse(ev.data);
-        const percent = Math.max(0, Math.min(100, Number(p.progress || 0)));
-        fill.style.width = `${percent}%`;
-        const current = p.stage || 'analyzing';
-        document.querySelectorAll('.progress-stages .stage').forEach(node => node.classList.remove('current','completed'));
-        const order = ['analyzing','planning','generating','testing','finalizing'];
-        const idx = order.indexOf(current);
-        order.forEach((name,i) => {
-          const el = document.querySelector(`.stage-${name}`);
-          if (!el) return;
-          if (i < idx) el.classList.add('completed');
-          if (i === idx) el.classList.add('current');
-        });
-        updateOrchestrationState(p);
-        if (p.done) {
-          stopPolling = true;
-          es.close();
-        }
-      } catch {
-        /* ignore */ void 0;
-      }
-    };
-    es.onerror = () => {
-      es.close();
-    };
-  } catch {
-    // silently fall back to polling only
-  }
+  activeProgressManager = createProgressManager(sessionId, fill);
+  activeProgressManager.start();
 
   const payload = { prompt, sessionId };
   if (projectName) {
