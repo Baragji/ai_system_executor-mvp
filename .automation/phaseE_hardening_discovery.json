@@ -1,0 +1,50 @@
+{
+  "phase": "E Hardening — Pause/Resume",
+  "task": "D60",
+  "date": "2025-10-11",
+  "objective": "Document current pause/resume integration points across backend orchestration, frontend UX, and dependency policy before refactoring.",
+  "integration_points": [
+    {
+      "file": "src/server.ts",
+      "line_hint": 1145,
+      "summary": "POST /api/execute orchestrates plan + single execution with PausedError handling but no step-level jobs."
+    },
+    {
+      "file": "src/server.ts",
+      "line_hint": 1586,
+      "summary": "Resume endpoint reloads checkpoint then submits a single execution job without awaiting or step metadata."
+    },
+    {
+      "file": "src/llm/index.ts",
+      "line_hint": 53,
+      "summary": "generateJSON supports AbortSignal but callers never pass session-aware signals."
+    },
+    {
+      "file": "src/runner/runInSandbox.ts",
+      "line_hint": 43,
+      "summary": "Sandbox tests only check abort before spawn; child process lacks pause-aware termination."
+    },
+    {
+      "file": "public/script.js",
+      "line_hint": 220,
+      "summary": "Frontend treats 202 as paused but keeps polling indefinitely and lacks step context."
+    },
+    {
+      "file": "src/runner/installDeps.ts",
+      "line_hint": 39,
+      "summary": "Dependency preflight still throws for registry validation failures, blocking resume flows."
+    }
+  ],
+  "risks": [
+    "Pause requests rely on coarse monolithic jobs, so resume restarts large chunks of work.",
+    "Abort signals are not propagated into LLM or sandbox processes, leading to long pause latencies.",
+    "Frontend polling may conflict with future SSE-driven step updates during paused states.",
+    "Dependency validation can still fail hard even when npm install would succeed."
+  ],
+  "next_steps": [
+    "Design BullMQ-compatible step queue API and checkpoint payload schema (WA61).",
+    "Propagate AbortSignal through LLM providers and sandbox subprocess lifecycle (WA63/WA64).",
+    "Define paused-state UX updates and polling/SSE coordination (WA65).",
+    "Relax dependency preflight errors into structured warnings (WA66)."
+  ]
+}

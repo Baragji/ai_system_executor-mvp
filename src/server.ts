@@ -65,11 +65,7 @@ import {
 } from "./orchestrator/resume.js";
 import { captureManifest, getManifest } from "./orchestrator/workspaceManifest.js";
 import { buildResumePrompts } from "./orchestrator/resumePrompt.js";
-import {
-  configureExecutionQueue,
-  createPlanJobPayload,
-  createSingleJobPayload
-} from "./orchestrator/jobQueue.js";
+import { StepQueue, type StepDescriptor, type StepHandler } from "./orchestrator/stepQueue.js";
 import type {
   ExecutorSuccessResponse,
   PlanExecutionJobResult,
@@ -1075,17 +1071,115 @@ async function runSingleExecution(options: SingleExecutionOptions): Promise<Sing
   }
 }
 
-const executionQueue = await configureExecutionQueue(async job => {
-  if (job.type === "plan") {
-    const planResult = await executePlanFlow(job.payload);
-    return { type: "plan", result: planResult } as const;
+type PlanStepPayload = {
+  systemPrompt: string;
+  effectivePrompt: string;
+  originalPrompt: string;
+  clarifications?: ClarificationResponse;
+  clarificationsUsed: boolean;
+  clarificationQuestions: ClarificationQuestion[];
+  clarificationAsked: boolean;
+  projectNameInput: string;
+  queueMetadata?: Record<string, unknown>;
+};
+
+type SingleStepPayload = {
+  singleOptions: SingleExecutionOptions;
+};
+
+const planStepHandler: StepHandler = async ({
+  sessionId,
+  payload,
+  queueMode
+}) => {
+  const data = (payload ?? {}) as PlanStepPayload;
+  if (queueMode === "bullmq" && data.queueMetadata) {
+    setProgress(sessionId, "planning", 20, data.queueMetadata);
   }
-  if (job.type === "single") {
-    const singleResult = await runSingleExecution(job.payload);
-    return { type: "single", result: singleResult } as const;
+
+  try {
+    throwIfAborted(sessionId, "decomposition");
+
+    const baseSlugPre = slugify(data.projectNameInput || "session", { lower: true, strict: true }) || "session";
+    const plan = await withTraceContext({ projectSlug: baseSlugPre, sessionId, phase: "decompose" }, async () =>
+      decomposeTask(data.effectivePrompt, data.clarifications)
+    );
+    const quality = validateDecomposition(plan, data.effectivePrompt);
+    if (quality.score < 70) {
+      return { status: "skipped" };
+    }
+
+    const planProjectName = data.projectNameInput || plan.originalPrompt || "planned-project";
+    const slug = slugify(planProjectName, { lower: true, strict: true }) || `planned-${Date.now()}`;
+    const targetRoot = path.join(OUTPUT_DIR, slug);
+
+    const planOptions: PlanExecutionOptions = {
+      plan,
+      planQuality: quality.score,
+      targetRoot,
+      slug,
+      effectivePrompt: data.effectivePrompt,
+      originalPrompt: data.originalPrompt,
+      clarifications: data.clarifications,
+      clarificationsUsed: data.clarificationsUsed,
+      systemPrompt: data.systemPrompt,
+      clarificationQuestions: data.clarificationQuestions,
+      clarificationsAsked: data.clarificationAsked,
+      projectName: planProjectName,
+      sessionId
+    };
+
+    const planResult = await executePlanFlow(planOptions);
+    const response = planResult.response as ExecutorSuccessResponse;
+    return { status: "completed", data: { response, slug, targetRoot }, stop: true };
+  } catch (error) {
+    if (error instanceof PausedError) {
+      throw error;
+    }
+    console.warn("Planning execution failed, falling back to single execution", error);
+    try {
+      const session = ensureOrchestrationSession(sessionId);
+      if (session.machine.state === "PLANNING") {
+        session.machine.transition("GENERATING", { reason: "fallback_to_single_after_plan_error" });
+      }
+    } catch (transitionErr) {
+      console.warn("Could not transition state during plan fallback:", transitionErr);
+    }
+    return { status: "skipped" };
   }
-  throw new Error(`Unsupported execution job type: ${(job as { type: string }).type}`);
-});
+};
+
+const singleStepHandler: StepHandler = async ({ payload, queueMode }) => {
+  const data = (payload ?? {}) as SingleStepPayload;
+  if (!data.singleOptions) {
+    throw new Error("singleOptions payload required for single step");
+  }
+
+  const baseOptions = data.singleOptions;
+  const options: SingleExecutionOptions = {
+    ...baseOptions,
+    progressMetadata: baseOptions.progressMetadata ? { ...baseOptions.progressMetadata } : undefined
+  };
+
+  if (queueMode === "bullmq") {
+    const queuedMeta = { ...(options.progressMetadata ?? {}), queued: true, mode: "queue" };
+    options.progressMetadata = queuedMeta;
+    if (options.sessionId) {
+      setProgress(options.sessionId, "planning", 20, queuedMeta);
+    }
+  }
+
+  const result = await runSingleExecution(options);
+  return {
+    status: "completed",
+    data: { response: result.response, slug: result.slug, targetRoot: result.targetRoot },
+    stop: true
+  };
+};
+
+const stepQueue = await StepQueue.create();
+stepQueue.registerHandler("plan", planStepHandler);
+stepQueue.registerHandler("single", singleStepHandler);
 
 async function resolveSessionPrompts(
   sessionId: string,
@@ -1146,10 +1240,12 @@ app.post("/api/execute", async (req, res) => {
   const sessionId: string | undefined = typeof req.body?.sessionId === 'string' ? req.body.sessionId : undefined;
   
   try {
-    // Create abort signal for pause functionality
-    if (sessionId) {
-      createAbortSignal(sessionId);
+    if (!sessionId) {
+      return res.status(400).json({ error: "session id required" });
     }
+
+    // Create abort signal for pause functionality
+    createAbortSignal(sessionId);
     
     setProgress(sessionId, "analyzing", 10);
     const promptRaw = req.body?.prompt;
@@ -1204,124 +1300,53 @@ app.post("/api/execute", async (req, res) => {
       clarificationAsked = clarificationQuestions.length > 0;
     }
 
+    const queueMetadata = stepQueue.mode === "bullmq" ? { queued: true, mode: "queue" } : undefined;
+
+    const steps: StepDescriptor[] = [];
+
     if (isComplexPrompt(effectivePrompt, clarifications)) {
-      try {
-        // Check if execution was paused before decomposition
-        throwIfAborted(sessionId, "decomposition");
-        
-        const baseSlugPre = slugify(projectNameInput || "session", { lower: true, strict: true }) || "session";
-        const plan = await withTraceContext({ projectSlug: baseSlugPre, sessionId, phase: 'decompose' }, async () =>
-          decomposeTask(effectivePrompt, clarifications)
-        );
-        const quality = validateDecomposition(plan, effectivePrompt);
-        if (quality.score >= 70) {
-          const planProjectName = projectNameInput || plan.originalPrompt || "planned-project";
-          const slug = slugify(planProjectName, { lower: true, strict: true }) || `planned-${Date.now()}`;
-          const targetRoot = path.join(OUTPUT_DIR, slug);
-
-          try {
-            const planJob = createPlanJobPayload({
-              plan,
-              planQuality: quality.score,
-              targetRoot,
-              slug,
-              effectivePrompt,
-              originalPrompt,
-              clarifications,
-              clarificationsUsed,
-              systemPrompt,
-              clarificationQuestions,
-              clarificationsAsked: clarificationAsked,
-              projectName: planProjectName,
-              sessionId
-            });
-            if (executionQueue.mode === "bullmq") {
-              setProgress(sessionId, "planning", 20, { queued: true, mode: "queue" });
-            }
-            const planResultJob = await executionQueue.submit(planJob);
-            const planResult = planResultJob.type === "plan" ? planResultJob.result : null;
-            if (!planResult) {
-              throw new Error("Plan job returned unexpected result type");
-            }
-            setProgress(sessionId, "finalizing", 95);
-            return res.json(planResult.response);
-          } catch (planError) {
-            if (planError instanceof PausedError) {
-              throw planError;
-            }
-            console.error("Plan execution failed, falling back to single execution", planError);
-            // Transition state machine when falling back from plan execution to single
-            if (sessionId) {
-              try {
-                const session = ensureOrchestrationSession(sessionId);
-                // If we're in PLANNING and falling back, transition to GENERATING for single execution
-                if (session.machine.state === "PLANNING") {
-                  session.machine.transition("GENERATING", { reason: "fallback_to_single_after_plan_error" });
-                }
-              } catch (transitionErr) {
-                console.warn("Could not transition state during fallback:", transitionErr);
-              }
-            }
-            // Fall through to single execution below
-          }
-        }
-      } catch (error) {
-        if (error instanceof PausedError) {
-          throw error;
-        }
-        console.warn("Planning decomposition failed, falling back to single execution", error);
-        // Transition state machine when falling back from planning to single
-        if (sessionId) {
-          try {
-            const session = ensureOrchestrationSession(sessionId);
-            // If we're in PLANNING and falling back, transition to GENERATING for single execution
-            if (session.machine.state === "PLANNING") {
-              session.machine.transition("GENERATING", { reason: "fallback_to_single_after_planning_failure" });
-            }
-          } catch (transitionErr) {
-            console.warn("Could not transition state during fallback:", transitionErr);
-          }
-        }
-        // Fall through to single execution below
-      }
-    }
-
-    try {
-      const singleOptions: SingleExecutionOptions = {
-        sessionId,
+      const planPayload: PlanStepPayload = {
         systemPrompt,
-        executorPrompt: effectivePrompt,
+        effectivePrompt,
         originalPrompt,
-        projectNameHint: projectNameInput,
         clarifications,
         clarificationsUsed,
         clarificationQuestions,
         clarificationAsked,
-        preserveWorkspace: false,
-        tracePhase: "single"
+        projectNameInput,
+        queueMetadata
       };
-      if (executionQueue.mode === "bullmq") {
-        singleOptions.progressMetadata = { queued: true };
-      }
-      const singleJob = createSingleJobPayload(singleOptions);
-      if (executionQueue.mode === "bullmq") {
-        setProgress(sessionId, "planning", 20, { queued: true, mode: "queue" });
-      }
-      const resultJob = await executionQueue.submit(singleJob);
-      const result = resultJob.type === "single" ? resultJob.result : null;
-      if (!result) {
-        throw new Error("Single execution job returned unexpected result type");
-      }
-      return res.json(result.response);
-    } catch (error) {
-      if (error instanceof PausedError) {
-        throw error;
-      }
-      if (error instanceof Error && (error as { statusCode?: number }).statusCode === 422) {
-        return res.status(422).json({ error: error.message });
-      }
-      throw error;
+      steps.push({ type: "plan", payload: planPayload, stopOnSuccess: true, optional: true });
     }
+
+    const singleOptions: SingleExecutionOptions = {
+      sessionId,
+      systemPrompt,
+      executorPrompt: effectivePrompt,
+      originalPrompt,
+      projectNameHint: projectNameInput,
+      clarifications,
+      clarificationsUsed,
+      clarificationQuestions,
+      clarificationAsked,
+      preserveWorkspace: false,
+      tracePhase: "single"
+    };
+
+    if (queueMetadata) {
+      singleOptions.progressMetadata = { ...queueMetadata };
+    }
+
+    const singlePayload: SingleStepPayload = { singleOptions };
+    steps.push({ type: "single", payload: singlePayload, stopOnSuccess: true });
+
+    const workflow = await stepQueue.runWorkflow(sessionId, steps);
+    const finalStep = workflow.last;
+    const responsePayload = finalStep?.data?.response as ExecutorSuccessResponse | undefined;
+    if (!responsePayload) {
+      throw new Error("Execution pipeline did not produce a response payload");
+    }
+    return res.json(responsePayload);
   } catch (err: unknown) {
     // Handle pause interruption gracefully
     if (err instanceof PausedError) {
@@ -1699,14 +1724,12 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
         progressMetadata
       };
 
-      if (executionQueue.mode === "bullmq") {
-        const queuedMeta = { ...progressMetadata, queued: true, mode: "queue" };
-        resumeOptions.progressMetadata = queuedMeta;
-        setProgress(sessionId, "planning", 20, queuedMeta);
+      if (stepQueue.mode === "bullmq") {
+        resumeOptions.progressMetadata = { ...progressMetadata, queued: true, mode: "queue" };
       }
 
-      executionQueue
-        .submit(createSingleJobPayload(resumeOptions))
+      stepQueue
+        .enqueueStep({ sessionId, stepType: "single", payload: { singleOptions: resumeOptions } })
         .catch(error => {
           if (error instanceof PausedError) {
             return;
