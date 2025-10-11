@@ -1,0 +1,46 @@
+{
+  "contract": "contracts/Roadmap_execution/15_Phase_E_Hardening.json",
+  "status": "executed",
+  "evidence": {
+    "branch": "PhaseA_Harden",
+    "merge_pr": "#24 codex/execute-win-wa65-according-to-contract",
+    "merge_commit": "93e4fd3",
+    "related_commits": [
+      { "sha": "ba52213", "message": "Normalize pause resume UI handling" },
+      { "sha": "ff6decf", "message": "feat: persist dependency preflight warnings for telemetry" },
+      { "sha": "93ca62c", "message": "Capture pause durations in telemetry" }
+    ],
+    "endpoints": [
+      { "path": "src/server.ts", "line": 1583, "method": "POST", "route": "/api/sessions/:id/pause" },
+      { "path": "src/server.ts", "line": 1703, "method": "POST", "route": "/api/sessions/:id/resume" },
+      { "path": "src/server.ts", "line": 1800, "note": "stepQueue workflow resume integration" },
+      { "path": "src/server.ts", "line": 1410, "note": "PausedError handling in execute flow" }
+    ],
+    "orchestrator": [
+      "src/orchestrator/abortSignal.ts",
+      "src/orchestrator/checkpoints.ts",
+      "src/orchestrator/interrupts.ts",
+      "src/orchestrator/resume.ts",
+      "src/orchestrator/stepQueue.ts",
+      "src/orchestrator/checkpointStore.ts",
+      "src/orchestrator/jobQueue.ts",
+      "src/orchestrator/stateMachine.ts",
+      "src/orchestrator/workspaceManifest.ts"
+    ],
+    "llm_abort_propagation": "src/llm/index.ts",
+    "ui_integration": "public/script.js",
+    "tests": [
+      "tests/ui/pause-resume-e2e.spec.ts",
+      "tests/ui/pause-resume-api.spec.ts",
+      "tests/ui/pause-immediacy.spec.ts"
+    ],
+    "discovery_note": ".automation/phaseE_hardening_discovery_note.md",
+    "playwright_results": ".automation/playwright-results.json",
+    "sbom": "sbom.spdx.json"
+  },
+  "notes": [
+    "Phase E features are present across server, orchestrator, LLM, and UI.",
+    "Abort and pause flow integrated end-to-end; tests exist to validate."
+  ],
+  "timestamp": "2025-10-11T00:00:00Z"
+}

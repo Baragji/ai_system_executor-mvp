@@ -1,0 +1,21 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "pass",
+      "changedFiles": [],
+      "summary": "no repair",
+      "testResult": {
+        "status": "pass",
+        "passCount": 2,
+        "failCount": 0,
+        "durationMs": 500,
+        "logsPath": "logs/pass.log"
+      },
+      "durationMs": 500,
+      "cumulativeTime": 500
+    }
+  ],
+  "finalStatus": "pass",
+  "totalAttempts": 1
+}
