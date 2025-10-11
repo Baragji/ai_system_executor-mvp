@@ -1,0 +1,24 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "pass",
+      "startedAt": "2025-10-11T09:00:17.143Z",
+      "finishedAt": "2025-10-11T09:00:27.859Z",
+      "changedFiles": [],
+      "summary": "Initial test run passed - no repair needed.",
+      "testResult": {
+        "status": "pass",
+        "passCount": 1,
+        "failCount": 0,
+        "durationMs": 10716,
+        "logsPath": "logs/hello-server_last_test_run_a0f56bdd-c95e-432e-a29f-79be49556a26.log"
+      },
+      "durationMs": 10716,
+      "cumulativeTime": 10716
+    }
+  ],
+  "finalStatus": "pass",
+  "totalAttempts": 1,
+  "successAttemptNumber": 1
+}

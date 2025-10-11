@@ -67,6 +67,8 @@ export interface ValidateDependenciesOptions {
   timeoutMs?: number;
   /** Allow deprecated packages with warning */
   allowDeprecated?: boolean;
+  /** Allow version mismatches with warning (fallback to latest) */
+  allowVersionMismatch?: boolean;
 }
 
 interface PackageMetadata {
@@ -202,6 +204,11 @@ async function validateDependency(
   const matchedVersion = findMatchingVersion(versionRange, availableVersions);
 
   if (!matchedVersion) {
+    if (options.allowVersionMismatch) {
+      // Log warning but don't block - npm will handle version resolution
+      console.warn(`⚠️  Version mismatch for ${packageName}@${versionRange} - npm will attempt to resolve`);
+      return null;
+    }
     return {
       package: packageName,
       version: versionRange,
@@ -265,7 +272,8 @@ export async function validateDependencies(
 ): Promise<void> {
   const opts: Required<ValidateDependenciesOptions> = {
     timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-    allowDeprecated: options.allowDeprecated ?? false
+    allowDeprecated: options.allowDeprecated ?? false,
+    allowVersionMismatch: options.allowVersionMismatch ?? false
   };
 
   const errors: DependencyValidationError[] = [];

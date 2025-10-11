@@ -61,7 +61,10 @@ export async function ensureDependencies(
     // Validate dependencies before attempting install (fail-fast on invalid versions)
     if (allDeps.length > 0) {
       try {
-        await validateDependencies(pkg.dependencies, pkg.devDependencies);
+        await validateDependencies(pkg.dependencies, pkg.devDependencies, {
+          allowDeprecated: true,  // Allow deprecated packages with warning (LLMs might generate older versions)
+          allowVersionMismatch: true  // Allow version mismatches - LLMs may hallucinate versions, let npm resolve
+        });
       } catch (err) {
         const offlineRegistryFailure =
           err &&

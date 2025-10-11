@@ -152,10 +152,12 @@ async function requestPlan(
   previousIssues?: DecompositionIssue[]
 ): Promise<string> {
   const systemPrompt = buildPrompt(prompt, clarifications, previousIssues);
+  const trace = getTraceContext();
+  const sessionId = trace?.sessionId;
   return generateJSON([
     { role: "system", content: "You output JSON for task plans." },
     { role: "user", content: systemPrompt }
-  ]);
+  ], { sessionId });
 }
 
 function ms(n: number, fallback: number): number {

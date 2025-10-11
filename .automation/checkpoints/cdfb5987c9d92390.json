@@ -1,0 +1,38 @@
+{
+  "schema": "umca.phase5.checkpoint",
+  "version": 1,
+  "sessionId": "cdfb5987c9d92390",
+  "state": "CLARIFYING",
+  "updatedAt": "2025-10-11T08:57:51.043Z",
+  "machine": {
+    "history": [
+      {
+        "state": "CLARIFYING",
+        "enteredAt": "2025-10-11T08:57:50.820Z"
+      },
+      {
+        "state": "PAUSED",
+        "enteredAt": "2025-10-11T08:57:50.892Z",
+        "reason": "Manual pause requested"
+      },
+      {
+        "state": "CLARIFYING",
+        "enteredAt": "2025-10-11T08:57:51.043Z",
+        "reason": "Resume from checkpoint"
+      }
+    ]
+  },
+  "payload": {
+    "metadata": {
+      "resolvedQuestions": [
+        {
+          "id": "41640add-dfe2-42ff-9b45-0672201780bb",
+          "question": "Please provide guidance to continue execution.",
+          "type": "AMBIGUITY",
+          "answer": "Proceed with the best default."
+        }
+      ],
+      "resumedAt": "2025-10-11T08:57:51.043Z"
+    }
+  }
+}

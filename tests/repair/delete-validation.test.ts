@@ -38,7 +38,7 @@ describe('repair intake: invalid delete stops with explicit category', () => {
     };
 
     chooseProviderMock.mockReturnValue({
-      generate: async () => JSON.stringify(payload)
+      generate: async () => ({ content: JSON.stringify(payload) })
     });
 
     runInSandboxMock.mockImplementation(async () => ({

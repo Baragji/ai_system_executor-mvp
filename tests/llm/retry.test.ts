@@ -27,7 +27,7 @@ describe('LLM retry/backoff', () => {
           err.status = 429;
           throw err;
         }
-        return '{"ok":true}';
+        return { content: '{"ok":true}' };
       }
     });
 

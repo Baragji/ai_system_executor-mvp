@@ -41,13 +41,7 @@ import { validateDecomposition } from "./planning/validateDecomposition.js";
 import { executeTaskPlan } from "./planning/executeTaskPlan.js";
 import { generateSubtaskOutputWithRetry } from "./planning/generateSubtaskOutput.js";
 import { estimateCompletion } from "./planning/estimateCompletion.js";
-import type {
-  PlanExecutionContext,
-  PlanExecutionResult,
-  SubtaskResult,
-  TaskPlan,
-  TimeEstimate
-} from "./planning/types.js";
+import type { PlanExecutionContext, SubtaskResult } from "./planning/types.js";
 import {
   createAbortSignal,
   cleanupAbortSignal,
@@ -69,6 +63,17 @@ import {
   ResumeStateError,
   type ResumeAnswer
 } from "./orchestrator/resume.js";
+import { captureManifest, getManifest } from "./orchestrator/workspaceManifest.js";
+import { buildResumePrompts } from "./orchestrator/resumePrompt.js";
+import { StepQueue, type StepDescriptor, type StepHandler } from "./orchestrator/stepQueue.js";
+import type {
+  ExecutorSuccessResponse,
+  PlanExecutionJobResult,
+  PlanExecutionOptions,
+  ResumeContextFixture,
+  SingleExecutionOptions,
+  SingleExecutionResult
+} from "./orchestrator/executionTypes.js";
 
 const app = express();
 app.use(cors());
@@ -96,6 +101,10 @@ interface OrchestrationSession {
   paused: boolean;
   questions: PendingQuestion[];
   checkpointUpdatedAt?: string;
+  projectSlug?: string;
+  originalPrompt?: string;
+  effectivePrompt?: string;
+  projectName?: string;
 }
 
 const progressSessions = new Map<string, ProgressSnapshot>();
@@ -454,7 +463,12 @@ async function generateExecutorOutputFromPrompt(
     { role: "user" as const, content: userPrompt }
   ];
 
-  const raw = await withTraceContext({ phase: 'single' }, async () => generateJSON(messages));
+  const raw = await withTraceContext({ phase: "single", sessionId }, async () => {
+    return generateJSON(messages, { sessionId });
+  });
+  if (sessionId) {
+    throwIfAborted(sessionId, "post_single_llm");
+  }
   let data: unknown;
   try {
     data = JSON.parse(raw);
@@ -589,22 +603,7 @@ function createPlanExecutionContext(
   };
 }
 
-async function executePlanFlow(params: {
-  plan: TaskPlan;
-  planQuality: number;
-  targetRoot: string;
-  slug: string;
-  effectivePrompt: string;
-  originalPrompt: string;
-  clarifications?: ClarificationResponse;
-  clarificationsUsed: boolean;
-  systemPrompt: string;
-  clarificationQuestions: ClarificationQuestion[];
-  clarificationsAsked: boolean;
-  projectName: string;
-  sessionId?: string;
-}): Promise<{ response: unknown; meta: unknown; status: PlanExecutionResult["status"]; timeEstimate: TimeEstimate; planExecutionResult: PlanExecutionResult }>
-{
+async function executePlanFlow(params: PlanExecutionOptions): Promise<PlanExecutionJobResult> {
   const {
     plan,
     planQuality,
@@ -620,6 +619,10 @@ async function executePlanFlow(params: {
     projectName,
     sessionId
   } = params;
+
+  if (sessionId) {
+    ensureOrchestrationSession(sessionId).projectSlug = slug;
+  }
 
   // Clean project directory to avoid stale files influencing plan runs
   try { await fs.rm(targetRoot, { recursive: true, force: true }); } catch (_e) { void _e; }
@@ -846,6 +849,366 @@ function buildRepairMetrics(history: RepairHistory) {
   return metrics;
 }
 
+async function runSingleExecution(options: SingleExecutionOptions): Promise<SingleExecutionResult> {
+  const {
+    sessionId,
+    systemPrompt,
+    executorPrompt,
+    originalPrompt,
+    projectNameHint,
+    clarifications,
+    clarificationsUsed,
+    clarificationQuestions,
+    clarificationAsked,
+    preserveWorkspace,
+    slugOverride,
+    resumeFixture,
+    tracePhase,
+    progressMetadata
+  } = options;
+
+  const traceSlug = slugOverride ?? (slugify(projectNameHint || "generated-project", { lower: true, strict: true }) || "generated-project");
+
+  try {
+    // Only set progress to planning if not resuming or if state allows it
+    if (!resumeFixture && sessionId) {
+      const session = ensureOrchestrationSession(sessionId);
+      // Only transition to planning if we're in a valid state (CLARIFYING)
+      if (session.machine.state === "CLARIFYING") {
+        setProgress(sessionId, "planning", 30, progressMetadata);
+      }
+    } else if (!sessionId) {
+      // No session tracking, safe to call setProgress
+      setProgress(sessionId, "planning", 30, progressMetadata);
+    }
+    // If resuming, skip setProgress to avoid invalid transitions
+    let output: ExecutorOutput;
+    try {
+      output = await withTraceContext({ projectSlug: traceSlug, sessionId, phase: tracePhase ?? "single" }, async () =>
+        generateExecutorOutputFromPrompt(systemPrompt, executorPrompt, { enforceTests: true, sessionId })
+      );
+    } catch (rawError) {
+      if (rawError instanceof PausedError) {
+        throw rawError;
+      }
+      const message = rawError instanceof Error ? rawError.message : "Model failed";
+      setProgress(sessionId, "finalizing", 100, { error: message }, true);
+      const wrapped = new Error(message);
+      (wrapped as { statusCode?: number }).statusCode = 422;
+      throw wrapped;
+    }
+
+    const projectName = projectNameHint?.trim() || output.project_name || "generated-project";
+    const slug = slugOverride ?? slugify(projectName, { lower: true, strict: true });
+    const targetRoot = path.join(OUTPUT_DIR, slug);
+
+    if (sessionId) {
+      const session = ensureOrchestrationSession(sessionId);
+      session.projectSlug = slug;
+      session.projectName = projectName;
+      session.originalPrompt = session.originalPrompt ?? originalPrompt;
+      session.effectivePrompt = executorPrompt;
+    }
+
+    if (!preserveWorkspace) {
+      try {
+        await fs.rm(targetRoot, { recursive: true, force: true });
+      } catch (_e) {
+        void _e;
+      }
+    }
+    await fs.mkdir(targetRoot, { recursive: true });
+
+    if (resumeFixture && sessionId) {
+      try {
+        await captureFixture(sessionId, slug, path.join("resume", "context.json"), resumeFixture);
+      } catch (error) {
+        console.warn("Failed to capture resume context fixture", error);
+      }
+    }
+
+    await logEvent("generation_start", { project: slug, mode: tracePhase ?? "single" });
+
+    setProgress(sessionId, "generating", 55, progressMetadata);
+
+    output.files = seedTestsInFiles(output.files);
+    await writeFiles(targetRoot, output.files);
+    await ensureDefaultExportForApp(targetRoot);
+    await ensureJsonHealthOnDisk(targetRoot);
+    await normalizeSeededTestsOnDisk(targetRoot);
+
+    setProgress(sessionId, "testing", 80, progressMetadata);
+    const initialRun = await runInSandbox({
+      projectRoot: targetRoot,
+      projectSlug: slug,
+      sessionId
+    });
+    await logEvent("test_run", { project: slug, stage: "initial", status: initialRun.status });
+    await captureFixture(sessionId, slug, path.join("tests", "initial.json"), initialRun);
+
+    const repairHistory = await multiTurnRepair({
+      projectPath: targetRoot,
+      projectSlug: slug,
+      originalPrompt: executorPrompt,
+      generatedFiles: output.files.map(file => file.path),
+      initialTestResult: initialRun,
+      sessionId
+    });
+    await captureFixture(sessionId, slug, path.join("repair", "history.json"), repairHistory);
+
+    await logEvent("repair_attempt", {
+      project: slug,
+      attempts: repairHistory.totalAttempts,
+      finalStatus: repairHistory.finalStatus,
+      successAttempt: repairHistory.successAttemptNumber ?? null
+    });
+
+    const testRunEntries = [buildTestRunEntry("initial", initialRun)];
+    if (initialRun.status !== "pass") {
+      for (const attempt of repairHistory.attempts) {
+        testRunEntries.push(buildTestRunEntry(`repair-${attempt.number}`, attempt.testResult));
+        await logEvent("test_run", {
+          project: slug,
+          stage: `repair-${attempt.number}`,
+          status: attempt.testResult.status
+        });
+      }
+    }
+
+    const afterRepairResult: RunResult | null =
+      initialRun.status === "pass" ? null : (repairHistory.attempts.at(-1)?.testResult as RunResult | undefined) ?? null;
+    const finalStatus = afterRepairResult?.status ?? initialRun.status;
+
+    const changedPaths = gatherChangedPaths(repairHistory);
+    const relevantPaths = await collectFilePaths(targetRoot, output.files, changedPaths);
+    const fileMetadata = await computeFileChecksums(relevantPaths, targetRoot);
+    const clarificationAnswers: ClarificationAnswer[] = clarifications
+      ? clarifications.answers.map<ClarificationAnswer>(answer => ({ ...answer }))
+      : [];
+    const clarificationTelemetry = {
+      asked: clarificationAsked,
+      questions: clarificationQuestions,
+      answers: clarificationAnswers,
+      improvedSuccess: clarificationsUsed && finalStatus === "pass"
+    };
+
+    const repairSummary = buildRepairSummary(initialRun, repairHistory);
+    const responseTestResults = {
+      initial: initialRun,
+      afterRepair: afterRepairResult
+    };
+
+    const meta = {
+      created_at: new Date().toISOString(),
+      source_prompt: executorPrompt,
+      original_prompt: originalPrompt,
+      clarification: clarificationTelemetry,
+      clarifications: {
+        used: clarificationsUsed,
+        answers: clarificationAnswers,
+        asked: clarificationTelemetry.asked
+      },
+      notes: output.notes || [],
+      testRuns: testRunEntries,
+      repair: repairSummary,
+      repairMetrics: buildRepairMetrics(repairHistory),
+      repairHistory,
+      files: fileMetadata,
+      taskPlanUsed: false,
+      decompositionQuality: null,
+      subtaskResults: [],
+      planningMetrics: null
+    };
+
+    const metaPath = path.join(targetRoot, "_executor_meta.json");
+    try {
+      await fs.writeFile(metaPath, JSON.stringify(meta, null, 2), "utf-8");
+    } catch (err: unknown) {
+      const code = (err as { code?: string } | null | undefined)?.code;
+      if (code === "ENOENT") {
+        await fs.mkdir(targetRoot, { recursive: true });
+        await fs.writeFile(metaPath, JSON.stringify(meta, null, 2), "utf-8");
+      } else {
+        throw err;
+      }
+    }
+
+    await logEvent("generation_complete", {
+      project: slug,
+      status: finalStatus,
+      mode: tracePhase ?? "single"
+    });
+
+    setProgress(sessionId, "finalizing", 95, progressMetadata);
+    const responsePayload: ExecutorSuccessResponse = {
+      ok: true,
+      project: slug,
+      files_written: output.files.length,
+      browse_url: `/output/${slug}/`,
+      abs_path: targetRoot,
+      testResults: responseTestResults,
+      repairMetrics: meta.repairMetrics,
+      repairHistory,
+      repair: meta.repair,
+      clarificationsUsed,
+      generated: executorPrompt,
+      taskPlanUsed: false,
+      taskPlan: null,
+      planExecutionResult: null,
+      timeEstimate: null,
+      decompositionQuality: null,
+      projectName
+    };
+    setProgress(sessionId, "finalizing", 100, progressMetadata, true);
+
+    if (sessionId) {
+      cleanupAbortSignal(sessionId);
+    }
+
+    return { response: responsePayload, slug, targetRoot };
+  } catch (error) {
+    if (error instanceof PausedError) {
+      if (sessionId) {
+        cleanupAbortSignal(sessionId);
+      }
+    }
+    throw error;
+  }
+}
+
+type PlanStepPayload = {
+  systemPrompt: string;
+  effectivePrompt: string;
+  originalPrompt: string;
+  clarifications?: ClarificationResponse;
+  clarificationsUsed: boolean;
+  clarificationQuestions: ClarificationQuestion[];
+  clarificationAsked: boolean;
+  projectNameInput: string;
+  queueMetadata?: Record<string, unknown>;
+};
+
+type SingleStepPayload = {
+  singleOptions: SingleExecutionOptions;
+};
+
+const planStepHandler: StepHandler = async ({
+  sessionId,
+  payload,
+  queueMode
+}) => {
+  const data = (payload ?? {}) as PlanStepPayload;
+  if (queueMode === "bullmq" && data.queueMetadata) {
+    setProgress(sessionId, "planning", 20, data.queueMetadata);
+  }
+
+  try {
+    throwIfAborted(sessionId, "decomposition");
+
+    const baseSlugPre = slugify(data.projectNameInput || "session", { lower: true, strict: true }) || "session";
+    const plan = await withTraceContext({ projectSlug: baseSlugPre, sessionId, phase: "decompose" }, async () =>
+      decomposeTask(data.effectivePrompt, data.clarifications)
+    );
+    const quality = validateDecomposition(plan, data.effectivePrompt);
+    if (quality.score < 70) {
+      return { status: "skipped" };
+    }
+
+    const planProjectName = data.projectNameInput || plan.originalPrompt || "planned-project";
+    const slug = slugify(planProjectName, { lower: true, strict: true }) || `planned-${Date.now()}`;
+    const targetRoot = path.join(OUTPUT_DIR, slug);
+
+    const planOptions: PlanExecutionOptions = {
+      plan,
+      planQuality: quality.score,
+      targetRoot,
+      slug,
+      effectivePrompt: data.effectivePrompt,
+      originalPrompt: data.originalPrompt,
+      clarifications: data.clarifications,
+      clarificationsUsed: data.clarificationsUsed,
+      systemPrompt: data.systemPrompt,
+      clarificationQuestions: data.clarificationQuestions,
+      clarificationsAsked: data.clarificationAsked,
+      projectName: planProjectName,
+      sessionId
+    };
+
+    const planResult = await executePlanFlow(planOptions);
+    const response = planResult.response as ExecutorSuccessResponse;
+    return { status: "completed", data: { response, slug, targetRoot }, stop: true };
+  } catch (error) {
+    if (error instanceof PausedError) {
+      throw error;
+    }
+    console.warn("Planning execution failed, falling back to single execution", error);
+    try {
+      const session = ensureOrchestrationSession(sessionId);
+      if (session.machine.state === "PLANNING") {
+        session.machine.transition("GENERATING", { reason: "fallback_to_single_after_plan_error" });
+      }
+    } catch (transitionErr) {
+      console.warn("Could not transition state during plan fallback:", transitionErr);
+    }
+    return { status: "skipped" };
+  }
+};
+
+const singleStepHandler: StepHandler = async ({ payload, queueMode }) => {
+  const data = (payload ?? {}) as SingleStepPayload;
+  if (!data.singleOptions) {
+    throw new Error("singleOptions payload required for single step");
+  }
+
+  const baseOptions = data.singleOptions;
+  const options: SingleExecutionOptions = {
+    ...baseOptions,
+    progressMetadata: baseOptions.progressMetadata ? { ...baseOptions.progressMetadata } : undefined
+  };
+
+  if (queueMode === "bullmq") {
+    const queuedMeta = { ...(options.progressMetadata ?? {}), queued: true, mode: "queue" };
+    options.progressMetadata = queuedMeta;
+    if (options.sessionId) {
+      setProgress(options.sessionId, "planning", 20, queuedMeta);
+    }
+  }
+
+  const result = await runSingleExecution(options);
+  return {
+    status: "completed",
+    data: { response: result.response, slug: result.slug, targetRoot: result.targetRoot },
+    stop: true
+  };
+};
+
+const stepQueue = await StepQueue.create();
+stepQueue.registerHandler("plan", planStepHandler);
+stepQueue.registerHandler("single", singleStepHandler);
+
+async function resolveSessionPrompts(
+  sessionId: string,
+  session: OrchestrationSession | undefined,
+  projectSlug: string
+): Promise<{ original: string; effective?: string }> {
+  const cachedOriginal = session?.originalPrompt;
+  const cachedEffective = session?.effectivePrompt;
+  if (cachedOriginal && cachedEffective) {
+    return { original: cachedOriginal, effective: cachedEffective };
+  }
+  if (cachedOriginal && !cachedEffective) {
+    return { original: cachedOriginal, effective: cachedEffective ?? undefined };
+  }
+  try {
+    const clarify = await readFixture<{ originalPrompt?: string; effectivePrompt?: string }>(projectSlug, sessionId, "clarify.json");
+    const original = cachedOriginal ?? clarify.originalPrompt ?? "<unknown>";
+    const effective = cachedEffective ?? clarify.effectivePrompt;
+    return { original, effective };
+  } catch {
+    return { original: cachedOriginal ?? "<unknown>", effective: cachedEffective ?? undefined };
+  }
+}
+
 // Sanitize model output before schema validation to improve resilience.
 // - Drops unknown top-level properties
 // - Normalizes file paths (removes leading "./")
@@ -879,14 +1242,46 @@ app.post("/api/clarify", (req, res) => {
 });
 
 app.post("/api/execute", async (req, res) => {
-  const sessionId: string | undefined = typeof req.body?.sessionId === 'string' ? req.body.sessionId : undefined;
-  
-  try {
-    // Create abort signal for pause functionality
-    if (sessionId) {
-      createAbortSignal(sessionId);
+  const sessionId: string | undefined = typeof req.body?.sessionId === "string" ? req.body.sessionId : undefined;
+  const wantsSse = typeof req.headers.accept === "string" && req.headers.accept.includes("text/event-stream");
+  let sseStarted = false;
+
+  const ensureSse = () => {
+    if (!wantsSse || sseStarted) {
+      return;
     }
-    
+    sseStarted = true;
+    res.status(202);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders?.();
+  };
+
+  const sendSse = (event: string, data: unknown) => {
+    if (!wantsSse) {
+      return;
+    }
+    ensureSse();
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  const closeSse = () => {
+    if (!wantsSse) {
+      return;
+    }
+    ensureSse();
+    res.end();
+  };
+
+  try {
+    if (!sessionId) {
+      return res.status(400).json({ error: "session id required" });
+    }
+
+    createAbortSignal(sessionId);
+
     setProgress(sessionId, "analyzing", 10);
     const promptRaw = req.body?.prompt;
     const originalPrompt: string = promptRaw === undefined ? "" : promptRaw.toString();
@@ -915,15 +1310,26 @@ app.post("/api/execute", async (req, res) => {
         effectivePrompt = augmented;
       }
     }
-    // Capture clarify/effective prompt fixtures for replay
-    await captureFixture(sessionId, slugify(projectNameRaw || "session", { lower: true, strict: true }) || "session", "clarify.json", {
-      originalPrompt,
-      effectivePrompt,
-      clarifications
-    });
+
+    await captureFixture(
+      sessionId,
+      slugify(projectNameRaw || "session", { lower: true, strict: true }) || "session",
+      "clarify.json",
+      {
+        originalPrompt,
+        effectivePrompt,
+        clarifications
+      }
+    );
 
     const systemPrompt = await fs.readFile("src/executor/systemPrompt.md", "utf-8");
     const projectNameInput = typeof projectNameRaw === "string" ? projectNameRaw.trim() : "";
+    const session = sessionId ? ensureOrchestrationSession(sessionId) : undefined;
+    if (session) {
+      session.originalPrompt = originalPrompt;
+      session.effectivePrompt = effectivePrompt;
+      session.projectName = projectNameInput || session.projectName;
+    }
 
     const storedQuestions = consumeClarificationQuestions(originalPrompt) ?? [];
     let clarificationQuestions = storedQuestions;
@@ -934,234 +1340,114 @@ app.post("/api/execute", async (req, res) => {
       clarificationAsked = clarificationQuestions.length > 0;
     }
 
+    const queueMetadata = stepQueue.mode === "bullmq" ? { queued: true, mode: "queue" } : undefined;
+
+    const steps: StepDescriptor[] = [];
+
     if (isComplexPrompt(effectivePrompt, clarifications)) {
-      try {
-        // Check if execution was paused before decomposition
-        throwIfAborted(sessionId, "decomposition");
-        
-        const baseSlugPre = slugify(projectNameInput || "session", { lower: true, strict: true }) || "session";
-        const plan = await withTraceContext({ projectSlug: baseSlugPre, sessionId, phase: 'decompose' }, async () =>
-          decomposeTask(effectivePrompt, clarifications)
-        );
-        const quality = validateDecomposition(plan, effectivePrompt);
-        if (quality.score >= 70) {
-          const planProjectName = projectNameInput || plan.originalPrompt || "planned-project";
-          const slug = slugify(planProjectName, { lower: true, strict: true }) || `planned-${Date.now()}`;
-          const targetRoot = path.join(OUTPUT_DIR, slug);
-
-          try {
-            const planResult = await executePlanFlow({
-              plan,
-              planQuality: quality.score,
-              targetRoot,
-              slug,
-              effectivePrompt,
-              originalPrompt,
-              clarifications,
-              clarificationsUsed,
-              systemPrompt,
-              clarificationQuestions,
-              clarificationsAsked: clarificationAsked,
-              projectName: planProjectName,
-              sessionId
-            });
-            setProgress(sessionId, "finalizing", 95);
-            return res.json(planResult.response);
-          } catch (planError) {
-            console.error("Plan execution failed, falling back to single execution", planError);
-            // Fall through to single execution below
-          }
-        }
-      } catch (error) {
-        console.warn("Planning decomposition failed, falling back to single execution", error);
-        // Fall through to single execution below
-      }
+      const planPayload: PlanStepPayload = {
+        systemPrompt,
+        effectivePrompt,
+        originalPrompt,
+        clarifications,
+        clarificationsUsed,
+        clarificationQuestions,
+        clarificationAsked,
+        projectNameInput,
+        queueMetadata
+      };
+      steps.push({ type: "plan", payload: planPayload, stopOnSuccess: true, optional: true });
     }
 
-    let output: ExecutorOutput;
-    try {
-      setProgress(sessionId, "planning", 30);
-      output = await withTraceContext({ projectSlug: slugify(projectNameInput || "generated-project", { lower: true, strict: true }) || "generated-project", sessionId, phase: 'single' }, async () =>
-        generateExecutorOutputFromPrompt(systemPrompt, effectivePrompt, { enforceTests: true, sessionId })
-      );
-    } catch (error) {
-      setProgress(sessionId, "finalizing", 100, { error: (error as Error).message }, true);
-      return res.status(422).json({ error: (error as Error).message });
+    const singleOptions: SingleExecutionOptions = {
+      sessionId,
+      systemPrompt,
+      executorPrompt: effectivePrompt,
+      originalPrompt,
+      projectNameHint: projectNameInput,
+      clarifications,
+      clarificationsUsed,
+      clarificationQuestions,
+      clarificationAsked,
+      preserveWorkspace: false,
+      tracePhase: "single"
+    };
+
+    if (queueMetadata) {
+      singleOptions.progressMetadata = { ...queueMetadata };
     }
 
-    const projectName = projectNameInput || output.project_name || "generated-project";
-    const slug = slugify(projectName, { lower: true, strict: true });
-    const targetRoot = path.join(OUTPUT_DIR, slug);
+    const singlePayload: SingleStepPayload = { singleOptions };
+    steps.push({ type: "single", payload: singlePayload, stopOnSuccess: true });
 
-    // Clean project directory to avoid stale files when reusing slug
-    try { await fs.rm(targetRoot, { recursive: true, force: true }); } catch (_e) { void _e; }
-    await fs.mkdir(targetRoot, { recursive: true });
-    await logEvent("generation_start", { project: slug });
-
-    setProgress(sessionId, "generating", 55);
-    // Seed a minimal test and ensure test script before write
-    output.files = seedTestsInFiles(output.files);
-    await writeFiles(targetRoot, output.files);
-    await ensureDefaultExportForApp(targetRoot);
-    await ensureJsonHealthOnDisk(targetRoot);
-    await normalizeSeededTestsOnDisk(targetRoot);
-
-    setProgress(sessionId, "testing", 80);
-    const initialRun = await runInSandbox({
-      projectRoot: targetRoot,
-      projectSlug: slug,
-      sessionId
-    });
-    await logEvent("test_run", { project: slug, stage: "initial", status: initialRun.status });
-    await captureFixture(sessionId, slug, path.join("tests", "initial.json"), initialRun);
-
-    const repairHistory = await multiTurnRepair({
-      projectPath: targetRoot,
-      projectSlug: slug,
-      originalPrompt: effectivePrompt,
-      generatedFiles: output.files.map(file => file.path),
-      initialTestResult: initialRun,
-      sessionId
-    });
-    await captureFixture(sessionId, slug, path.join("repair", "history.json"), repairHistory);
-
-    await logEvent("repair_attempt", {
-      project: slug,
-      attempts: repairHistory.totalAttempts,
-      finalStatus: repairHistory.finalStatus,
-      successAttempt: repairHistory.successAttemptNumber ?? null
-    });
-
-    const testRunEntries = [buildTestRunEntry("initial", initialRun)];
-    if (initialRun.status !== "pass") {
-      for (const attempt of repairHistory.attempts) {
-        testRunEntries.push(buildTestRunEntry(`repair-${attempt.number}`, attempt.testResult));
-        await logEvent("test_run", {
-          project: slug,
-          stage: `repair-${attempt.number}`,
-          status: attempt.testResult.status
+    const workflow = await stepQueue.runWorkflow(sessionId, steps, {
+      onStep: step => {
+        sendSse("step", {
+          sessionId,
+          stepId: step.stepId,
+          stepType: step.stepType,
+          status: step.status,
+          sequence: step.sequence,
+          stop: Boolean(step.stop),
+          timestamp: new Date().toISOString()
         });
       }
-    }
-
-    const afterRepairResult = initialRun.status === "pass"
-      ? null
-      : repairHistory.attempts.at(-1)?.testResult ?? null;
-    const finalStatus = afterRepairResult?.status ?? initialRun.status;
-
-    const changedPaths = gatherChangedPaths(repairHistory);
-    const relevantPaths = await collectFilePaths(targetRoot, output.files, changedPaths);
-    const fileMetadata = await computeFileChecksums(relevantPaths, targetRoot);
-    const clarificationAnswers: ClarificationAnswer[] = clarifications
-      ? clarifications.answers.map<ClarificationAnswer>(answer => ({ ...answer }))
-      : [];
-    const clarificationTelemetry = {
-      asked: clarificationAsked,
-      questions: clarificationQuestions,
-      answers: clarificationAnswers,
-      improvedSuccess: clarificationsUsed && finalStatus === "pass"
-    };
-
-    const repairSummary = buildRepairSummary(initialRun, repairHistory);
-    const responseTestResults = {
-      initial: initialRun,
-      afterRepair: afterRepairResult
-    };
-
-    const meta = {
-      created_at: new Date().toISOString(),
-      source_prompt: effectivePrompt,
-      original_prompt: originalPrompt,
-      clarification: clarificationTelemetry,
-      clarifications: {
-        used: clarificationsUsed,
-        answers: clarificationAnswers,
-        asked: clarificationTelemetry.asked
-      },
-      notes: output.notes || [],
-      testRuns: testRunEntries,
-      repair: repairSummary,
-      repairMetrics: buildRepairMetrics(repairHistory),
-      repairHistory,
-      files: fileMetadata,
-      taskPlanUsed: false,
-      decompositionQuality: null,
-      subtaskResults: [],
-      planningMetrics: null
-    };
-
-    // Write metadata with a retry in case the target directory was removed concurrently
-    const metaPath = path.join(targetRoot, "_executor_meta.json");
-    try {
-      await fs.writeFile(metaPath, JSON.stringify(meta, null, 2), "utf-8");
-    } catch (err: unknown) {
-      const code = (err as { code?: string } | null | undefined)?.code;
-      if (code === "ENOENT") {
-        await fs.mkdir(targetRoot, { recursive: true });
-        await fs.writeFile(metaPath, JSON.stringify(meta, null, 2), "utf-8");
-      } else {
-        throw err;
-      }
-    }
-
-    await logEvent("generation_complete", {
-      project: slug,
-      status: finalStatus
     });
 
-    setProgress(sessionId, "finalizing", 95);
-    const responsePayload = {
-      ok: true,
-      project: slug,
-      files_written: output.files.length,
-      browse_url: `/output/${slug}/`,
-      abs_path: targetRoot,
-      testResults: responseTestResults,
-      repairMetrics: meta.repairMetrics,
-      repairHistory,
-      repair: meta.repair,
-      clarificationsUsed,
-      generated: effectivePrompt,
-      taskPlanUsed: false,
-      taskPlan: null,
-      planExecutionResult: null,
-      timeEstimate: null,
-      decompositionQuality: null,
-      projectName
-    };
-    setProgress(sessionId, "finalizing", 100, undefined, true);
-    
-    // Clean up abort signal on successful completion
-    if (sessionId) {
-      cleanupAbortSignal(sessionId);
+    const finalStep = workflow.last;
+    const responsePayload = finalStep?.data?.response as ExecutorSuccessResponse | undefined;
+    if (!responsePayload) {
+      throw new Error("Execution pipeline did not produce a response payload");
     }
-    
+
+    if (wantsSse) {
+      sendSse("completed", { sessionId, response: responsePayload });
+      closeSse();
+      return;
+    }
+
     return res.json(responsePayload);
   } catch (err: unknown) {
-    // Handle pause interruption gracefully
     if (err instanceof PausedError) {
       console.log(`Execution paused for session ${err.sessionId} during ${err.phase}`);
-      if (sessionId) {
-        cleanupAbortSignal(sessionId);
-      }
-      return res.status(202).json({
+      const workflowSteps = sessionId ? await stepQueue.getWorkflow(sessionId) : null;
+      const pausedRecord = workflowSteps?.slice().reverse().find(step => step.status === "paused");
+      const stepMeta = pausedRecord
+        ? { stepId: pausedRecord.stepId, stepType: pausedRecord.stepType, sequence: pausedRecord.sequence }
+        : {
+            stepId: err.stepId,
+            stepType: err.stepType,
+            sequence: err.sequence
+          };
+      const payload = {
         paused: true,
         sessionId: err.sessionId,
         phase: err.phase,
-        message: err.message
-      });
+        message: err.message,
+        ...stepMeta
+      };
+
+      if (wantsSse) {
+        res.status(202);
+        sendSse("paused", payload);
+        closeSse();
+        return;
+      }
+
+      return res.status(202).json(payload);
     }
-    
-    // Clean up abort signal on error
-    if (sessionId) {
-      cleanupAbortSignal(sessionId);
-    }
-    
+
     console.error(err);
     const message = err instanceof Error ? err.message : "internal error";
+
+    if (wantsSse) {
+      sendSse("error", { sessionId, message });
+      closeSse();
+      return;
+    }
+
     return res.status(500).json({ error: message });
   } finally {
-    // Safety cleanup in case catch doesn't execute
     if (sessionId) {
       cleanupAbortSignal(sessionId);
     }
@@ -1342,6 +1628,16 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
       checkpointPayload = req.body.payload as Omit<CheckpointPayload, "pendingQuestions">;
     }
 
+    if (session.projectSlug) {
+      checkpointPayload = {
+        ...(checkpointPayload ?? {}),
+        executor: {
+          ...(checkpointPayload?.executor ?? {}),
+          projectSlug: session.projectSlug
+        }
+      };
+    }
+
     // Abort the in-flight execution
     const aborted = abortSession(sessionId);
     console.log(`[Pause] Session ${sessionId} abort signal sent: ${aborted}`);
@@ -1358,6 +1654,14 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
     session.paused = true;
     session.questions = checkpoint.payload?.pendingQuestions ?? [];
     session.checkpointUpdatedAt = checkpoint.updatedAt;
+
+    if (session.projectSlug) {
+      try {
+        await captureManifest(sessionId, session.projectSlug);
+      } catch (error) {
+        console.warn(`[Pause] Failed to capture manifest for session ${sessionId}:`, error);
+      }
+    }
 
     const snapshot = snapshotFromSession(sessionId, current);
     snapshot.stage = stateToStage(session.machine.state);
@@ -1392,12 +1696,10 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     if (!session) {
       return res.status(404).json({ error: "session not found" });
     }
-    if (!session.paused) {
-      return res.status(409).json({ error: "session is not paused" });
-    }
 
     const answers = normalizeResumeAnswers(req.body?.answers);
     const reasonRaw = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+    const adjustmentRaw = typeof req.body?.adjustment === "string" ? req.body.adjustment.trim() : "";
 
     const result = await resumeFromCheckpoint(sessionId, answers, {
       machine: session.machine,
@@ -1407,6 +1709,30 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     session.paused = false;
     session.questions = [];
     session.checkpointUpdatedAt = result.checkpoint.updatedAt;
+    session.machine = result.machine;
+    const resumedSlug = result.checkpoint.payload?.executor?.projectSlug;
+    if (typeof resumedSlug === "string" && resumedSlug.trim()) {
+      session.projectSlug = resumedSlug.trim();
+    }
+
+    const fallbackSlug = slugify(sessionId, { lower: true, strict: true }) || sessionId;
+    const projectSlug = (session.projectSlug ?? resumedSlug ?? fallbackSlug).trim();
+    session.projectSlug = projectSlug;
+
+    const manifest = await getManifest(sessionId);
+    const systemPrompt = await fs.readFile("src/executor/systemPrompt.md", "utf-8");
+    const promptSnapshot = await resolveSessionPrompts(sessionId, session, projectSlug);
+    const prompts = buildResumePrompts(systemPrompt, {
+      projectSlug,
+      originalPrompt: promptSnapshot.original,
+      effectivePrompt: promptSnapshot.effective,
+      adjustment: adjustmentRaw,
+      checkpoint: result.checkpoint,
+      answeredQuestions: result.answeredQuestions,
+      manifest
+    });
+
+    session.effectivePrompt = prompts.userPrompt;
 
     const snapshot = snapshotFromSession(sessionId, progressSessions.get(sessionId) ?? null);
     snapshot.stage = stateToStage(session.machine.state);
@@ -1415,11 +1741,141 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     snapshot.checkpointUpdatedAt = result.checkpoint.updatedAt;
     snapshot.updatedAt = Date.now();
     snapshot.done = false;
+    snapshot.data = {
+      ...(snapshot.data ?? {}),
+      resume: true,
+      ...(adjustmentRaw ? { adjustment: adjustmentRaw } : {})
+    };
     progressSessions.set(sessionId, snapshot);
+
+    const resumeFixture: ResumeContextFixture = {
+      adjustment: adjustmentRaw || undefined,
+      answeredQuestions: result.answeredQuestions.map(item => ({
+        id: item.id,
+        question: item.question,
+        answer: item.answer
+      })),
+      manifestSummary: manifest?.summary
+        ? {
+            totalFiles: manifest.summary.totalFiles,
+            totalSize: manifest.summary.totalSize,
+            topFiles: manifest.summary.topFiles.slice(0, 10)
+          }
+        : null,
+      checkpoint: { state: result.checkpoint.state, updatedAt: result.checkpoint.updatedAt },
+      prompt: { system: prompts.systemPrompt, user: prompts.userPrompt }
+    };
+
+    const progressMetadata = {
+      resume: true,
+      ...(adjustmentRaw ? { adjustment: adjustmentRaw } : {})
+    };
+
+    const providerConfigured = Boolean(process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY);
+
+    if (!providerConfigured) {
+      try {
+        await captureFixture(sessionId, projectSlug, path.join("resume", "context.json"), resumeFixture);
+      } catch (error) {
+        console.warn("[Resume] Failed to persist resume context without provider:", error);
+      }
+      console.warn(`[Resume] No LLM provider configured; skipping automatic resume for ${sessionId}`);
+    } else {
+      createAbortSignal(sessionId);
+
+      const resumeOptions: SingleExecutionOptions = {
+        sessionId,
+        systemPrompt: prompts.systemPrompt,
+        executorPrompt: prompts.userPrompt,
+        originalPrompt: promptSnapshot.original,
+        projectNameHint: session.projectName ?? projectSlug,
+        clarifications: undefined,
+        clarificationsUsed: false,
+        clarificationQuestions: [],
+        clarificationAsked: false,
+        preserveWorkspace: true,
+        slugOverride: projectSlug,
+        resumeFixture,
+        tracePhase: "resume",
+        progressMetadata
+      };
+
+      if (stepQueue.mode === "bullmq") {
+        resumeOptions.progressMetadata = { ...progressMetadata, queued: true, mode: "queue" };
+      }
+
+      const plannedSteps = await stepQueue.getPlannedSteps(sessionId);
+
+      type PlanEntry = {
+        order: number;
+        stepType: string;
+        optional: boolean;
+        stopOnSuccess: boolean;
+        payload?: Record<string, unknown>;
+      };
+
+      const orderedPlan: PlanEntry[] = plannedSteps && plannedSteps.length > 0
+        ? plannedSteps
+            .slice()
+            .sort((a, b) => a.order - b.order)
+            .map(entry => ({
+              order: entry.order,
+              stepType: entry.stepType,
+              optional: entry.optional,
+              stopOnSuccess: entry.stopOnSuccess,
+              payload: entry.payload
+                ? (JSON.parse(JSON.stringify(entry.payload)) as Record<string, unknown>)
+                : undefined
+            }))
+        : [
+            {
+              order: 0,
+              stepType: "single",
+              optional: false,
+              stopOnSuccess: true,
+              payload: { singleOptions: resumeOptions }
+            }
+          ];
+
+      const descriptors: StepDescriptor[] = orderedPlan.map(entry => {
+        const basePayload = entry.payload ? { ...entry.payload } : undefined;
+        if (entry.stepType === "single") {
+          const payload: Record<string, unknown> = basePayload ? { ...basePayload } : {};
+          payload.singleOptions = resumeOptions;
+          return {
+            type: entry.stepType as StepDescriptor["type"],
+            payload,
+            optional: entry.optional,
+            stopOnSuccess: entry.stopOnSuccess
+          };
+        }
+        return {
+          type: entry.stepType as StepDescriptor["type"],
+          payload: basePayload,
+          optional: entry.optional,
+          stopOnSuccess: entry.stopOnSuccess
+        };
+      });
+
+      stepQueue
+        .runWorkflow(sessionId, descriptors, { resume: true })
+        .catch(error => {
+          if (error instanceof PausedError) {
+            return;
+          }
+          const message = error instanceof Error ? error.message : "resume execution failed";
+          console.error(`[Resume] Execution failed for session ${sessionId}:`, error);
+          setProgress(sessionId, "finalizing", 100, { resume: true, error: message }, true);
+        })
+        .finally(() => {
+          cleanupAbortSignal(sessionId);
+        });
+    }
 
     return res.json({
       checkpoint: result.checkpoint,
-      answeredQuestions: result.answeredQuestions
+      answeredQuestions: result.answeredQuestions,
+      resumed: true
     });
   } catch (error) {
     if (error instanceof ResumeValidationError) {

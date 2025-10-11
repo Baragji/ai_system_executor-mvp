@@ -173,6 +173,18 @@ async function handlePauseClick() {
     }
     const questions = data?.checkpoint?.payload?.pendingQuestions ?? [];
     showResumeDrawer(questions);
+    
+    // Immediately fetch updated progress snapshot to ensure UI reflects paused state
+    // This eliminates the 900ms polling delay that causes UI to appear frozen
+    try {
+      const snapshotResp = await fetch(`/api/progress/snapshot/${activeSessionId}`);
+      if (snapshotResp.ok) {
+        const snapshot = await snapshotResp.json();
+        updateOrchestrationState(snapshot);
+      }
+    } catch (snapshotErr) {
+      console.warn("Failed to fetch snapshot after pause:", snapshotErr);
+    }
   } catch (err) {
     resultEl.innerHTML = formatError(err);
     pauseSessionButton.disabled = false;
@@ -203,6 +215,22 @@ async function handleResumeSubmit(event) {
       resumeMessageEl.classList.add("error");
     }
   }
+}
+
+// Treat 202 Accepted (paused) as a first-class state instead of an error
+async function handlePausedResponse(sessionId) {
+  try {
+    // Fetch latest snapshot so UI can reflect paused state immediately
+    const snapshotResp = await fetch(`/api/progress/snapshot/${sessionId}`);
+    if (snapshotResp.ok) {
+      const snapshot = await snapshotResp.json();
+      updateOrchestrationState(snapshot);
+      return true;
+    }
+  } catch (err) {
+    console.warn("Failed to fetch snapshot after 202 paused:", err);
+  }
+  return false;
 }
 
 function updateOrchestrationState(snapshot) {
@@ -1285,6 +1313,8 @@ async function executeRequest({ prompt, projectName, clarifications }) {
     return Array.from(arr).map(n => n.toString(16).padStart(2,'0')).join('');
   })();
   activeSessionId = sessionId;
+  // Expose for tests/diagnostics
+  try { globalThis.activeSessionId = sessionId; } catch { /* noop */ }
   orchestrationSection?.classList.remove("hidden");
   if (pauseSessionButton) {
     pauseSessionButton.disabled = false;
@@ -1369,6 +1399,14 @@ async function executeRequest({ prompt, projectName, clarifications }) {
           body: JSON.stringify(payload),
         });
 
+    // 202 Accepted means execution paused; treat as paused UX, not an error
+    if (resp.status === 202) {
+      await resp.json().catch(() => ({})); // drain body for devtools/debug
+      await handlePausedResponse(sessionId);
+      // Keep polling; user can resume from drawer
+      return;
+    }
+
     const data = await resp.json();
     if (!resp.ok) {
       renderErrorCard({ error: data?.error || resp.statusText });
@@ -1413,10 +1451,8 @@ async function executeRequest({ prompt, projectName, clarifications }) {
   } catch (err) {
     renderErrorCard({ error: err });
   } finally {
-    stopPolling = true;
-    if (pauseSessionButton) {
-      pauseSessionButton.disabled = true;
-    }
+    // Do not stop polling or disable controls if we're in a paused flow (202 handled above)
+    // Polling loop will exit on done=true or remain active during pause until resume completes
   }
 }
 
