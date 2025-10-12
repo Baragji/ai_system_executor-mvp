@@ -53,6 +53,7 @@ import {
   PausedError
 } from "./orchestrator/abortSignal.js";
 import { writeFixture, listFixtures, readFixture } from "./fixtures/index.js";
+import { executeAdapter as executeAdapterLanggraph } from "./orchestrator/adapter.js";
 import type { MultiTurnContext } from "./repair/multiTurnRepair.js";
 import {
   type CheckpointPayload,
@@ -77,6 +78,8 @@ import type {
   SingleExecutionOptions,
   SingleExecutionResult
 } from "./orchestrator/executionTypes.js";
+import { installProblemDetails } from "./middleware/problemDetails.js";
+import { maybeInitTelemetry } from "./telemetry/otel.js";
 
 const IS_TEST_ENV = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
 
@@ -102,6 +105,10 @@ if (IS_TEST_ENV) {
 }
 
 const app = express();
+
+// Initialize optional telemetry and error envelopes without changing defaults
+maybeInitTelemetry();
+installProblemDetails(app);
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 app.use(morgan("dev"));
@@ -1506,12 +1513,29 @@ app.post("/api/clarify", (req, res) => {
 });
 
 app.post("/api/execute", async (req, res) => {
+  // Feature-flagged orchestrator adapter: if AGENTS_RUNTIME=langgraph, delegate and return
+  if ((process.env.AGENTS_RUNTIME || "").toLowerCase() === "langgraph") {
+    try {
+      await executeAdapterLanggraph(req, res);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "internal error";
+      return res.status(500).json({ error: message });
+    }
+    return; // do not continue into default StepQueue pipeline
+  }
   const providedSessionId = typeof req.body?.sessionId === "string" ? req.body.sessionId.trim() : "";
   const sessionId = providedSessionId || randomUUID();
   const wantsSse = typeof req.headers.accept === "string" && req.headers.accept.includes("text/event-stream");
   let sseStarted = false;
 
   res.setHeader("x-executor-session", sessionId);
+
+  // Best-effort: ensure checkpoint root exists to avoid rare ENOENT under concurrency in tests
+  try {
+    await fs.mkdir(path.resolve(".automation", "checkpoints", "step-workflows"), { recursive: true });
+  } catch {
+    // ignore
+  }
 
   const ensureSse = () => {
     if (!wantsSse || sseStarted) {

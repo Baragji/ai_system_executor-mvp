@@ -1,0 +1,45 @@
+%% Phase 19 Orchestrator — Mermaid Graph
+%% Wire: Clarify → Plan → Generate → Test → Repair → Deliver/Error
+%% Gates: G1 (Architecture), G3 (Orchestrator Pilot), G4 (HITL+MCP)
+flowchart TD
+  classDef gate fill:#f8f8ff,stroke:#6a5acd,stroke-width:1px
+  classDef hitl fill:#fff7e6,stroke:#f2a654,stroke-width:1px
+  classDef sys fill:#eef6ff,stroke:#1f6feb,stroke-width:1px
+  classDef err fill:#ffecec,stroke:#d73a49,stroke-width:1px
+
+  subgraph GATES[MCA Gates]
+    G1["G1: ADR-019 Approved<br/>Graph diagram + Alternatives + Risk Memo" ]:::gate
+    G3["G3: Orchestrator Pilot<br/>Deterministic replay + 90% cov + &lt;500ms/transition" ]:::gate
+    G4["G4: HITL + MCP<br/>Approvals enforced, tool allow-list, SIEM audit" ]:::gate
+  end
+
+  subgraph ORCH[LangGraph.js StateGraph]
+    C[Clarify]:::hitl --> P[Plan]:::sys --> G[Generate]:::sys --> T[Test]:::sys
+    T -- pass --> D[Deliver]:::sys
+    T -- fail --> R[Critic/Repair]:::sys --> G
+    C -. HITL Approval .-> P
+    R -. HITL Approval .-> G
+  end
+
+  subgraph TRUST[Trust Spine]
+    SBOM[SBOM CycloneDX 1.6]:::sys
+    SLSA[SLSA v1.0 Provenance]:::sys
+    OTel[OpenTelemetry GenAI + Langfuse]:::sys
+    RFC[Errors RFC 9457 JSONL]:::sys
+  end
+
+  Start([/api/execute]):::sys --> Check{AGENTS_RUNTIME<br/>'langgraph'?}:::sys
+  Check -- Yes --> ORCH
+  Check -- No  --> Fallback[StepQueue/StateMachine]:::sys --> D
+
+  ORCH --> D
+  D --> Evidence[(Evidence Bundle)]:::sys
+  Evidence --> SBOM & SLSA & OTel & RFC
+
+  G1 -. enables .- ORCH
+  G3 -. proves .- ORCH
+  G4 -. governs .- C & R
+
+  E[Error]:::err
+  G -- unrecoverable --> E
+  T -- irreparable --> E
