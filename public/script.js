@@ -906,6 +906,15 @@ function renderPartialCard(data) {
     });
     actions.appendChild(openLink);
   }
+  // Download full project archive (.tar.gz)
+  if (data.project) {
+    const dl = document.createElement("a");
+    dl.href = `/output-archive/${encodeURIComponent(data.project)}`;
+    dl.className = "btn btn-secondary";
+    dl.textContent = "Download .tar.gz";
+    dl.setAttribute("download", "");
+    actions.appendChild(dl);
+  }
   const viewResultsButton = document.createElement("button");
   viewResultsButton.type = "button";
   viewResultsButton.className = "btn btn-secondary";

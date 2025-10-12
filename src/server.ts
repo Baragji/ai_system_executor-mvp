@@ -6,6 +6,7 @@ import morgan from "morgan";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
+import { spawn } from "node:child_process";
 import slugify from "slugify";
 
 import { generateJSON } from "./llm/index.js";
@@ -365,6 +366,64 @@ function consumeClarificationQuestions(prompt: string): ClarificationQuestion[] 
 }
 
 app.get("/healthz", (_req, res) => res.json({ status: "ok" }));
+
+// Archive (tar.gz) download for output folders
+app.get("/output-archive/:project/*?", async (req, res) => {
+  try {
+    const { project } = req.params as { project: string };
+    const tail = (req.params as { "0"?: string })["0"] || "";
+    const slug = slugify(project, { lower: true, strict: true });
+    const projectRoot = path.join(OUTPUT_DIR, slug);
+    const decodedTail = decodeURIComponent(tail);
+    const absolute = path.resolve(projectRoot, decodedTail);
+    if (!absolute.startsWith(projectRoot)) {
+      return res.status(403).json({ error: "forbidden" });
+    }
+    let stat;
+    try {
+      stat = await fs.stat(absolute);
+    } catch {
+      return res.status(404).json({ error: "not found" });
+    }
+    if (!stat.isDirectory()) {
+      return res.status(400).json({ error: "path must be a directory" });
+    }
+
+    const rel = path.relative(projectRoot, absolute);
+    const archiveBase = `${slug}${rel ? `_${rel.replace(/\/+|\\+/g, "_")}` : ""}.tar.gz`;
+    res.setHeader("Content-Type", "application/gzip");
+    res.setHeader("Content-Disposition", `attachment; filename="${archiveBase}"`);
+
+    // Use system tar to stream a gzipped archive without extra deps
+    // tar -czf - -C <dir> <subpath>
+    const tarCwd = rel ? path.dirname(absolute) : projectRoot;
+    const sub = rel ? path.basename(absolute) : ".";
+    const args = ["-czf", "-", "-C", tarCwd, sub];
+    const tar = spawn("tar", args);
+
+    tar.stdout.pipe(res);
+    tar.stderr.on("data", chunk => {
+      // Best-effort logging; do not spam
+      const msg = chunk?.toString?.() || "";
+      if (msg) console.warn("[Archive] tar:", msg.trim());
+    });
+    tar.on("error", err => {
+      if ((err as { code?: string }).code === "ENOENT") {
+        res.status(501).end("tar is not available on this system");
+      } else {
+        res.status(500).end("failed to create archive");
+      }
+    });
+    tar.on("close", code => {
+      if (code !== 0) {
+        try { res.end(); } catch { /* ignore */ }
+      }
+    });
+  } catch (err) {
+    const message = (err as Error).message || "internal error";
+    return res.status(500).json({ error: message });
+  }
+});
 
 // Directory listing for /output projects (safe, read-only)
 app.get("/output/:project/*?", async (req, res, next) => {
