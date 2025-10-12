@@ -1,0 +1,30 @@
+{
+  "server_archive_route": {
+    "file": "src/server.ts",
+    "line": 371,
+    "current_snippet": "// Archive (tar.gz) download for output folders\napp.get(\"/output-archive/:project/*?\", async (req, res) => {\n  try {\n    const { project } = req.params as { project: string };\n    const tail = (req.params as { \"0\"?: string })[\"0\"] || \"\";\n    const slug = slugify(project, { lower: true, strict: true });\n    const projectRoot = path.join(OUTPUT_DIR, slug);\n    const decodedTail = decodeURIComponent(tail);\n    const absolute = path.resolve(projectRoot, decodedTail);\n    if (!absolute.startsWith(projectRoot)) {\n      return res.status(403).json({ error: \"forbidden\" });\n    }\n    let stat;\n    try {\n      stat = await fs.stat(absolute);\n    } catch {\n      return res.status(404).json({ error: \"not found\" });\n    }\n    if (!stat.isDirectory()) {\n      return res.status(400).json({ error: \"path must be a directory\" });\n    }\n\n    const rel = path.relative(projectRoot, absolute);\n    const archiveBase = `${slug}${rel ? `_${rel.replace(/\\/+|\\\\+/g, \"_\")}` : \"\"}.tar.gz`;\n    res.setHeader(\"Content-Type\", \"application/gzip\");\n    res.setHeader(\"Content-Disposition\", `attachment; filename=\"${archiveBase}\"`);\n\n    // Use system tar to stream a gzipped archive without extra deps\n    // tar -czf - -C <dir> <subpath>\n    const tarCwd = rel ? path.dirname(absolute) : projectRoot;\n    const sub = rel ? path.basename(absolute) : \".\";\n    const args = [\"-czf\", \"-\", \"-C\", tarCwd, sub];\n    const tar = spawn(\"tar\", args);\n\n    tar.stdout.pipe(res);\n    tar.stderr.on(\"data\", chunk => {\n      // Best-effort logging; do not spam\n      const msg = chunk?.toString?.() || \"\";\n      if (msg) console.warn(\"[Archive] tar:\", msg.trim());\n    });\n    tar.on(\"error\", err => {\n      if ((err as { code?: string }).code === \"ENOENT\") {\n        res.status(501).end(\"tar is not available on this system\");\n      } else {\n        res.status(500).end(\"failed to create archive\");\n      }\n    });\n    tar.on(\"close\", code => {\n      if (code !== 0) {\n        try { res.end(); } catch { /* ignore */ }\n      }\n    });\n  } catch (err) {\n    const message = (err as Error).message || \"internal error\";\n    return res.status(500).json({ error: message });\n  }\n});",
+    "planned_change": "Allow ?format=zip (default) that streams a ZIP archive using yazl; retain tar path as fallback for ?format=tar",
+    "dependencies": ["fs.stat access to directory", "slugify sanitisation", "Express response streaming", "Step queue unaffected"]
+  },
+  "success_card_action": {
+    "file": "public/script.js",
+    "line": 906,
+    "current_snippet": "  if (data.project) {\n    const dl = document.createElement(\"a\");\n    dl.href = `/output-archive/${encodeURIComponent(data.project)}`;\n    dl.className = \"btn btn-secondary\";\n    dl.textContent = \"Download .tar.gz\";\n    dl.setAttribute(\"download\", \"\");\n    actions.appendChild(dl);\n  }",
+    "planned_change": "Expose both ZIP (default) and tar download links with query parameter",
+    "dependencies": ["Success card actions container", "project slug from response"]
+  },
+  "directory_index": {
+    "file": "src/server.ts",
+    "line": 460,
+    "current_snippet": "${rel ? `<p><a href=\"${parentHref}\">⬆ Parent directory</a></p>` : \"\"}\n<table>\n  <thead><tr><th>Name</th><th class=\"num\">Size</th><th>Modified</th></tr></thead>\n  <tbody>${rows || `<tr><td class=\"muted\" colspan=\"3\">(empty)</td></tr>`}</tbody>\n</table>",
+    "planned_change": "Add download buttons (zip + tar) near top using same slug/tail computation",
+    "dependencies": ["slugified path context", "Express static fallback"]
+  },
+  "api_test_gap": {
+    "file": "tests/api/files.test.ts",
+    "line": 1,
+    "current_snippet": "describe(\"GET /api/files/:project/:path\", () => { ... });",
+    "planned_change": "Add coverage for ZIP archive endpoint, asserting response type and filename contains entries",
+    "dependencies": ["supertest", "project fixture in output"]
+  }
+}

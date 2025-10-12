@@ -17,3 +17,14 @@ playwright/.cache/
 # Automation artifacts (some are tracked for evidence)
 .automation/playwright-report/
 .automation/lighthouse-reports/*.html
+
+# Automation runtime (ephemeral state; do not version)
+.automation/checkpoints/
+.automation/fixtures/
+.automation/manifests/
+.automation/execution_trace.jsonl
+.automation/evaluation_results.json
+.automation/playwright-results.json
+
+# Local telemetry log cache
+.telemetry/

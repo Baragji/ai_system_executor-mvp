@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "executor-mvp@0.1.0",
-  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-65b94655-17ce-40f5-a90d-b5ac3c736715",
+  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-a8241aa7-c17f-404c-9025-e50099a6a728",
   "creationInfo": {
-    "created": "2025-10-11T23:10:05.147Z",
+    "created": "2025-10-12T07:22:17.828Z",
     "creators": [
       "Tool: npm/cli-10.9.3"
     ]
@@ -1255,6 +1255,54 @@
           "checksumValue": "7762562c28af999613488a207bd32c805099aede7bd418a47161989230b59219656d3783946a99d83f2f0fc13f9496bc58659b6fb3e59bcfd725857b2091d967"
         }
       ]
+    },
+    {
+      "name": "yazl",
+      "SPDXID": "SPDXRef-Package-yazl-3.3.1",
+      "versionInfo": "3.3.1",
+      "packageFileName": "node_modules/yazl",
+      "description": "yet another zip library for node",
+      "downloadLocation": "https://registry.npmjs.org/yazl/-/yazl-3.3.1.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/thejoshwolfe/yazl",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/yazl@3.3.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "05b1130d5586f9570c5257b7ee4e45aa9fffed20ce2b6ff5f93ed7f130fde8cdc3f46f232b954b51d4157558c68bc8a6ec51a46b35fb924e61914f17e0be419e"
+        }
+      ]
+    },
+    {
+      "name": "buffer-crc32",
+      "SPDXID": "SPDXRef-Package-buffer-crc32-1.0.0",
+      "versionInfo": "1.0.0",
+      "packageFileName": "node_modules/yazl/node_modules/buffer-crc32",
+      "description": "A pure javascript CRC32 algorithm that plays nice with binary data",
+      "downloadLocation": "https://registry.npmjs.org/buffer-crc32/-/buffer-crc32-1.0.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/brianloveswords/buffer-crc32",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/buffer-crc32@1.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "0dbd526e0052fdf83fdfdd806e5acc264f7b2a0826bd886be290796483135ad6a2bc23cc58b9266fb9b6d5c26fa6f80af89de7b14d829a68b1341671e2f163ff"
+        }
+      ]
     }
   ],
   "relationships": [
@@ -1315,6 +1363,11 @@
     },
     {
       "spdxElementId": "SPDXRef-Package-slugify-1.6.6",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-yazl-3.3.1",
       "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
       "relationshipType": "DEPENDENCY_OF"
     },
@@ -1556,6 +1609,11 @@
     {
       "spdxElementId": "SPDXRef-Package-redis-errors-1.2.0",
       "relatedSpdxElement": "SPDXRef-Package-redis-parser-3.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-buffer-crc32-1.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-yazl-3.3.1",
       "relationshipType": "DEPENDENCY_OF"
     }
   ]

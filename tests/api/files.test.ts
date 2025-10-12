@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import request from "supertest";
+import request, { type Response } from "supertest";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { app } from "../../src/server.js";
@@ -8,14 +8,28 @@ const OUTPUT_DIR = path.resolve("output");
 const slug = "api-files-test";
 const projectRoot = path.join(OUTPUT_DIR, slug);
 
+const binaryParser = (res: Response, callback: (err: Error | null, data?: Buffer) => void) => {
+  res.setEncoding("binary");
+  let raw = "";
+  res.on("data", (chunk: string) => {
+    raw += chunk;
+  });
+  res.on("end", () => {
+    callback(null, Buffer.from(raw, "binary"));
+  });
+  res.on("error", err => callback(err as Error));
+};
+
+beforeAll(async () => {
+  await fs.mkdir(path.join(projectRoot, "src"), { recursive: true });
+  await fs.writeFile(path.join(projectRoot, "src", "index.ts"), "export const x=1;\n", "utf-8");
+});
+
+afterAll(async () => {
+  // leave output for inspection
+});
+
 describe("GET /api/files/:project/:path", () => {
-  beforeAll(async () => {
-    await fs.mkdir(path.join(projectRoot, "src"), { recursive: true });
-    await fs.writeFile(path.join(projectRoot, "src", "index.ts"), "export const x=1;\n", "utf-8");
-  });
-  afterAll(async () => {
-    // leave output for inspection
-  });
 
   it("returns content for valid file", async () => {
     const res = await request(app).get(`/api/files/${slug}/${encodeURIComponent("src/index.ts")}`);
@@ -31,6 +45,36 @@ describe("GET /api/files/:project/:path", () => {
   it("blocks path traversal", async () => {
     const res = await request(app).get(`/api/files/${slug}/${encodeURIComponent("../../etc/passwd")}`);
     expect(res.status).toBe(403);
+  });
+});
+
+describe("GET /output-archive/:project", () => {
+  it("streams a ZIP archive by default", async () => {
+    const res = await request(app)
+      .get(`/output-archive/${slug}`)
+      .buffer()
+      .parse(binaryParser);
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toBe("application/zip");
+    expect(res.headers["content-disposition"]).toMatch(/\.zip"?$/);
+    const body = res.body as Buffer;
+    expect(Buffer.isBuffer(body)).toBe(true);
+    expect(body.slice(0, 4).toString("binary")).toBe("PK\u0003\u0004");
+    expect(body.toString("utf-8")).toContain("src/index.ts");
+  });
+
+  it("supports tar.gz via format=tar", async () => {
+    const res = await request(app)
+      .get(`/output-archive/${slug}`)
+      .query({ format: "tar" })
+      .buffer()
+      .parse(binaryParser);
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toBe("application/gzip");
+    expect(res.headers["content-disposition"]).toMatch(/\.tar\.gz"?$/);
+    const body = res.body as Buffer;
+    expect(body[0]).toBe(0x1f);
+    expect(body[1]).toBe(0x8b);
   });
 });
 

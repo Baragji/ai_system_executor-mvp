@@ -906,14 +906,22 @@ function renderPartialCard(data) {
     });
     actions.appendChild(openLink);
   }
-  // Download full project archive (.tar.gz)
+  // Download full project archive (.zip/.tar.gz)
   if (data.project) {
-    const dl = document.createElement("a");
-    dl.href = `/output-archive/${encodeURIComponent(data.project)}`;
-    dl.className = "btn btn-secondary";
-    dl.textContent = "Download .tar.gz";
-    dl.setAttribute("download", "");
-    actions.appendChild(dl);
+    const projectSlug = encodeURIComponent(data.project);
+    const zipLink = document.createElement("a");
+    zipLink.href = `/output-archive/${projectSlug}?format=zip`;
+    zipLink.className = "btn btn-secondary";
+    zipLink.textContent = "Download .zip";
+    zipLink.setAttribute("download", "");
+    actions.appendChild(zipLink);
+
+    const tarLink = document.createElement("a");
+    tarLink.href = `/output-archive/${projectSlug}?format=tar`;
+    tarLink.className = "btn btn-ghost";
+    tarLink.textContent = "Download .tar.gz";
+    tarLink.setAttribute("download", "");
+    actions.appendChild(tarLink);
   }
   const viewResultsButton = document.createElement("button");
   viewResultsButton.type = "button";

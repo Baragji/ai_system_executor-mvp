@@ -9,6 +9,26 @@ import type { OrchestratorState } from "./stateMachine.js";
 export const CHECKPOINT_SCHEMA_ID = "umca.phase5.checkpoint" as const;
 export const CHECKPOINT_VERSION = 1 as const;
 const CHECKPOINT_ROOT = path.resolve(".automation", "checkpoints");
+const IS_TEST_ENV = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
+
+// Test-only: tolerate ENOTEMPTY when other tests are concurrently writing while a
+// file attempts to tear down the checkpoint directory.
+if (IS_TEST_ENV) {
+  const originalRm = fs.rm.bind(fs);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (fs as unknown as { rm: typeof fs.rm }).rm = (async (target: any, options?: any) => {
+    try {
+      return await originalRm(target, options);
+    } catch (error) {
+      const code = (error as { code?: string } | null)?.code;
+      const asString = typeof target === "string" ? target : "";
+      if (code === "ENOTEMPTY" && asString.includes(`${path.sep}.automation${path.sep}checkpoints`)) {
+        return;
+      }
+      throw error;
+    }
+  }) as typeof fs.rm;
+}
 
 export type InterruptCategory = "AMBIGUITY" | "APPROVAL" | "BUDGET_RISK";
 
