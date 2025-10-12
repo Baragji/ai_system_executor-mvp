@@ -1,0 +1,21 @@
+Evaluation Criteria,Weight,Option,Score(1-5),Rationale
+Security & Compliance,30%,Option 1,2,Meets current repo CDI checks; gaps vs ASVS v5.0/SLSA/CycloneDX/ISO42001/EU AI Act
+Security & Compliance,30%,Option 2,4,Clear mapping via SSOT v1.2 + MCA gates; needs SBOM/provenance wiring
+Security & Compliance,30%,Option 3,3,Improves transparency but ad‑hoc without MCA
+Security & Compliance,30%,Option 4,5,"Full mapping, human gates, supply‑chain attestations"
+Performance & Scalability,25%,Option 1,2,Single‑agent ceiling; limited specialization
+Performance & Scalability,25%,Option 2,4,Agent specialization + orchestrated flow
+Performance & Scalability,25%,Option 3,3,Incremental gains; risk of drift
+Performance & Scalability,25%,Option 4,4,"Small orchestration overhead, higher first‑pass quality"
+Total Cost of Ownership (3y),20%,Option 1,3,Low infra; higher staff time
+Total Cost of Ownership (3y),20%,Option 2,4,Moderate build; reusable governance artifacts
+Total Cost of Ownership (3y),20%,Option 3,3,Cheap now; costly rework later
+Total Cost of Ownership (3y),20%,Option 4,4,Balanced cost; avoids re‑platform later
+Implementation Complexity,15%,Option 1,4,Minimal change; contract validation only
+Implementation Complexity,15%,Option 2,3,Reconciliation effort and governance setup
+Implementation Complexity,15%,Option 3,4,Local changes; low ceremony
+Implementation Complexity,15%,Option 4,3,Add MCA + agents + CI attestations
+Team Expertise & Support,10%,Option 1,3,Existing team familiar; no new skills
+Team Expertise & Support,10%,Option 2,4,MCA/SSOT documentation anchors
+Team Expertise & Support,10%,Option 3,3,Relies on discipline; fewer docs
+Team Expertise & Support,10%,Option 4,4,Clear ownership split; repeatable gates
