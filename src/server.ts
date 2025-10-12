@@ -366,6 +366,107 @@ function consumeClarificationQuestions(prompt: string): ClarificationQuestion[] 
 
 app.get("/healthz", (_req, res) => res.json({ status: "ok" }));
 
+// Directory listing for /output projects (safe, read-only)
+app.get("/output/:project/*?", async (req, res, next) => {
+  try {
+    const { project } = req.params as { project: string };
+    const tail = (req.params as { "0"?: string })["0"] || "";
+    const slug = slugify(project, { lower: true, strict: true });
+    const projectRoot = path.join(OUTPUT_DIR, slug);
+    const decodedTail = decodeURIComponent(tail);
+    const absolute = path.resolve(projectRoot, decodedTail);
+    if (!absolute.startsWith(projectRoot)) {
+      return res.status(403).send("forbidden");
+    }
+
+    let stat;
+    try {
+      stat = await fs.stat(absolute);
+    } catch {
+      return next();
+    }
+
+    if (!stat.isDirectory()) {
+      return next();
+    }
+
+    const entries = await fs.readdir(absolute, { withFileTypes: true });
+    const rel = path.relative(projectRoot, absolute);
+    const basePath = `/output/${slug}/${rel ? rel + "/" : ""}`;
+
+    // Collect size and mtime details for each entry
+    const detailed = await Promise.all(
+      entries.map(async entry => {
+        const name = entry.name;
+        const full = path.join(absolute, name);
+        let size = 0;
+        let modified: Date | null = null;
+        try {
+          const st = await fs.stat(full);
+          size = st.size;
+          modified = st.mtime;
+        } catch {
+          // ignore stat failures for transient files
+        }
+        const isDir = entry.isDirectory();
+        const href = basePath + encodeURIComponent(name) + (isDir ? "/" : "");
+        return { name, isDir, href, size, modified };
+      })
+    );
+
+    const formatBytes = (n: number) => {
+      if (!n || n < 0) return "—";
+      const units = ["B", "KB", "MB", "GB"]; let i = 0; let v = n;
+      while (v >= 1024 && i < units.length - 1) { v /= 1024; i += 1; }
+      return `${v.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+    };
+
+    const rows = detailed
+      .sort((a, b) => Number(b.isDir) - Number(a.isDir) || a.name.localeCompare(b.name))
+      .map(d => {
+        const label = d.isDir ? `${d.name}/` : d.name;
+        const size = d.isDir ? "—" : formatBytes(d.size);
+        const mtime = d.modified ? new Date(d.modified).toLocaleString() : "—";
+        return `<tr><td><a href="${d.href}">${label}</a></td><td class="num">${size}</td><td class="muted">${mtime}</td></tr>`;
+      })
+      .join("\n");
+
+    const parentRel = rel ? path.dirname(rel) : "";
+    const parentHref = `/output/${slug}/${parentRel !== "." && parentRel !== "" ? encodeURIComponent(parentRel) + "/" : ""}`;
+
+    const doc = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Index of ${slug}/${rel}</title>
+<style>
+  body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial; margin:20px; background:#0b0f19; color:#e6e9ef}
+  a{color:#60a5fa; text-decoration:underline}
+  .container{max-width:900px; margin:0 auto; background:#111827; padding:16px 20px; border-radius:12px; border:1px solid rgba(148,163,184,.2)}
+  h1{font-size:18px; margin:0 0 12px 0}
+  table{width:100%; border-collapse:collapse;}
+  th,td{padding:8px 6px; border-bottom:1px solid rgba(148,163,184,.15)}
+  th{color:#cbd5e1; text-align:left; font-weight:600}
+  td.num{text-align:right}
+  .muted{color:#94a3b8}
+  .top{margin-bottom:10px}
+  .sep{opacity:.35; margin:0 4px}
+</style></head>
+<body><div class="container">
+<div class="top"><span class="muted">Index of</span> <strong>/output/${slug}/${rel}</strong></div>
+<div class="top"><a href="/">Home</a><span class="sep">/</span><a href="/output/${slug}/">${slug}</a>${rel ? `<span class="sep">/</span><span>${rel}</span>` : ""}</div>
+${rel ? `<p><a href="${parentHref}">⬆ Parent directory</a></p>` : ""}
+<table>
+  <thead><tr><th>Name</th><th class="num">Size</th><th>Modified</th></tr></thead>
+  <tbody>${rows || `<tr><td class="muted" colspan="3">(empty)</td></tr>`}</tbody>
+</table>
+</div></body></html>`;
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.send(doc);
+  } catch (err) {
+    return next(err);
+  }
+});
+
 app.use("/", express.static(PUBLIC_DIR, { extensions: ["html"] }));
 app.use("/output", express.static(OUTPUT_DIR, { extensions: ["html"] }));
 

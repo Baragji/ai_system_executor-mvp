@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { handleClarifications } from "./helpers.js";
 
 test.describe("Pause/Resume E2E Flow", () => {
   test("should pause execution and resume successfully", async ({ page }) => {
@@ -18,54 +19,8 @@ test.describe("Pause/Resume E2E Flow", () => {
     
     console.log("✓ Clicked Execute button");
     
-    // Handle clarification modal if it appears
-    await page.waitForTimeout(3000); // Wait longer for clarifications to load
-    const clarificationSection = page.locator('#clarificationSection');
-    const isClarificationVisible = await clarificationSection.isVisible().catch(() => false);
-    
-    if (isClarificationVisible) {
-      console.log("  Clarification section appeared");
-      
-      // Wait for clarification form to be ready
-      await page.waitForTimeout(500);
-      
-      // Find all radio button inputs (for choice-type clarifications)
-      const radioInputs = await page.locator('input[type="radio"]').all();
-      console.log(`  Found ${radioInputs.length} radio button options`);
-      
-      // Select the first option for each radio group
-      const checkedRadios = new Set();
-      for (const radio of radioInputs) {
-        const name = await radio.getAttribute('name');
-        if (name && !checkedRadios.has(name)) {
-          await radio.check();
-          checkedRadios.add(name);
-          console.log(`  Checked radio: ${name}`);
-        }
-      }
-      
-      // Find all text inputs
-      const textInputs = await page.locator('input[type="text"]').all();
-      console.log(`  Found ${textInputs.length} text input(s)`);
-      
-      // Fill text inputs with placeholder values if empty
-      for (const input of textInputs) {
-        const value = await input.inputValue();
-        if (!value) {
-          await input.fill("test-value");
-        }
-      }
-      
-      // Click answer button
-      const answerButton = page.locator('#answerClarifications');
-      await answerButton.click();
-      console.log("  Submitted clarifications");
-      
-      // Wait for clarifications to be processed
-      await page.waitForTimeout(2000);
-    } else {
-      console.log("  No clarifications needed - direct execution");
-    }
+    // Resolve clarifications, preferring to answer when possible
+    await handleClarifications(page, { timeoutMs: 5000 });
     
     // Wait for execution to start
     await page.waitForTimeout(2000);
@@ -141,6 +96,8 @@ test.describe("Pause/Resume E2E Flow", () => {
     
     console.log("✓ Started execution");
     
+    // Resolve any clarifications then pause and resume twice
+    await handleClarifications(page, { timeoutMs: 5000 });
     // Pause and resume twice
     for (let i = 1; i <= 2; i++) {
       await page.waitForTimeout(2000);

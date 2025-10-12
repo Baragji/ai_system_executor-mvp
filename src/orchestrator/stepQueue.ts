@@ -127,11 +127,14 @@ export class StepQueue {
     }));
 
     if (options?.resume) {
+      // Resume-safe: if workflow was never initialized (or was cleaned up),
+      // initialize it now with the provided planned steps and continue.
       const workflow = await loadWorkflow(sessionId);
       if (!workflow) {
-        throw new Error(`Workflow not initialized for session ${sessionId}`);
+        await initializeWorkflow(sessionId, planned);
+      } else {
+        await ensureWorkflowPlan(sessionId, planned);
       }
-      await ensureWorkflowPlan(sessionId, planned);
     } else {
       await this.resetSession(sessionId);
       await initializeWorkflow(sessionId, planned);
@@ -247,7 +250,27 @@ export class StepQueue {
       throw new Error(`No handler registered for step ${job.stepType}`);
     }
 
-    await recordStepRunning(job.sessionId, job.stepId);
+    // Mark step as running; if workflow/step record was concurrently removed,
+    // re-queue the step record and retry once to avoid flakiness.
+    try {
+      await recordStepRunning(job.sessionId, job.stepId);
+    } catch (err) {
+      const message = (err as Error | undefined)?.message || "";
+      const isInitMissing = message.includes("Workflow not initialized");
+      const isUnknownStep = message.includes("Unknown step");
+      if (isInitMissing || isUnknownStep) {
+        await recordStepQueued({
+          sessionId: job.sessionId,
+          stepId: job.stepId,
+          stepType: job.stepType,
+          sequence: job.sequence,
+          payload: job.payload
+        });
+        await recordStepRunning(job.sessionId, job.stepId);
+      } else {
+        throw err;
+      }
+    }
     try {
       const result = await handler({
         sessionId: job.sessionId,
@@ -258,13 +281,38 @@ export class StepQueue {
         queueMode: this.controller.mode
       });
       const status: StepStatus = result.status ?? "completed";
-      await recordStepCompletion({
-        sessionId: job.sessionId,
-        stepId: job.stepId,
-        status,
-        result: result.data,
-        stop: result.stop
-      });
+      try {
+        await recordStepCompletion({
+          sessionId: job.sessionId,
+          stepId: job.stepId,
+          status,
+          result: result.data,
+          stop: result.stop
+        });
+      } catch (err) {
+        const message = (err as Error | undefined)?.message || "";
+        const isInitMissing = message.includes("Workflow not initialized");
+        const isUnknownStep = message.includes("Unknown step");
+        if (isInitMissing || isUnknownStep) {
+          await recordStepQueued({
+            sessionId: job.sessionId,
+            stepId: job.stepId,
+            stepType: job.stepType,
+            sequence: job.sequence,
+            payload: job.payload
+          });
+          await recordStepRunning(job.sessionId, job.stepId);
+          await recordStepCompletion({
+            sessionId: job.sessionId,
+            stepId: job.stepId,
+            status,
+            result: result.data,
+            stop: result.stop
+          });
+        } else {
+          throw err;
+        }
+      }
       return {
         stepId: job.stepId,
         stepType,
@@ -280,7 +328,25 @@ export class StepQueue {
         error.sequence = job.sequence;
         await recordStepPaused({ sessionId: job.sessionId, stepId: job.stepId, error });
       } else {
-        await recordStepFailure({ sessionId: job.sessionId, stepId: job.stepId, error });
+        try {
+          await recordStepFailure({ sessionId: job.sessionId, stepId: job.stepId, error });
+        } catch (err) {
+          const message = (err as Error | undefined)?.message || "";
+          const isInitMissing = message.includes("Workflow not initialized");
+          const isUnknownStep = message.includes("Unknown step");
+          if (isInitMissing || isUnknownStep) {
+            await recordStepQueued({
+              sessionId: job.sessionId,
+              stepId: job.stepId,
+              stepType: job.stepType,
+              sequence: job.sequence,
+              payload: job.payload
+            });
+            await recordStepFailure({ sessionId: job.sessionId, stepId: job.stepId, error });
+          } else {
+            throw err;
+          }
+        }
       }
       throw error;
     }

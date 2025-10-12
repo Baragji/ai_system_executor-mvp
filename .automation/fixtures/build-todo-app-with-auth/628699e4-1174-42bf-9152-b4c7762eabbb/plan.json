@@ -1,0 +1,18 @@
+{
+  "originalPrompt": "build todo app with auth",
+  "subtasks": [
+    {
+      "id": "setup",
+      "title": "Setup",
+      "description": "init",
+      "status": "pending"
+    },
+    {
+      "id": "feature",
+      "title": "Feature",
+      "description": "build",
+      "status": "pending"
+    }
+  ],
+  "totalSubtasks": 2
+}

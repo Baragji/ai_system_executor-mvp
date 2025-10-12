@@ -1,0 +1,102 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "fail",
+      "startedAt": "2025-10-11T23:30:24.484Z",
+      "finishedAt": "2025-10-11T23:30:24.484Z",
+      "changedFiles": [
+        "src/index.ts"
+      ],
+      "summary": "Attempt 1 fail",
+      "testResult": {
+        "status": "fail",
+        "passCount": 1,
+        "failCount": 1,
+        "durationMs": 600,
+        "logsPath": "logs/attempt1.log"
+      },
+      "failureAnalysis": {
+        "category": "timeout",
+        "failedTests": [],
+        "totalFailed": 1
+      },
+      "durationMs": 600,
+      "cumulativeTime": 600
+    },
+    {
+      "number": 2,
+      "status": "fail",
+      "startedAt": "2025-10-11T23:30:24.484Z",
+      "finishedAt": "2025-10-11T23:30:24.484Z",
+      "changedFiles": [
+        "src/index.ts"
+      ],
+      "summary": "Attempt 2 fail",
+      "testResult": {
+        "status": "fail",
+        "passCount": 1,
+        "failCount": 1,
+        "durationMs": 700,
+        "logsPath": "logs/attempt2.log"
+      },
+      "failureAnalysis": {
+        "category": "exception",
+        "failedTests": [],
+        "totalFailed": 1
+      },
+      "durationMs": 700,
+      "cumulativeTime": 1400
+    },
+    {
+      "number": 3,
+      "status": "fail",
+      "startedAt": "2025-10-11T23:30:24.484Z",
+      "finishedAt": "2025-10-11T23:30:24.484Z",
+      "changedFiles": [
+        "src/index.ts"
+      ],
+      "summary": "Attempt 3 fail",
+      "testResult": {
+        "status": "fail",
+        "passCount": 1,
+        "failCount": 1,
+        "durationMs": 650,
+        "logsPath": "logs/attempt3.log"
+      },
+      "failureAnalysis": {
+        "category": "syntax",
+        "failedTests": [],
+        "totalFailed": 1
+      },
+      "durationMs": 650,
+      "cumulativeTime": 1950
+    },
+    {
+      "number": 4,
+      "status": "fail",
+      "startedAt": "2025-10-11T23:30:24.484Z",
+      "finishedAt": "2025-10-11T23:30:24.484Z",
+      "changedFiles": [
+        "src/index.ts"
+      ],
+      "summary": "Attempt 4 fail",
+      "testResult": {
+        "status": "fail",
+        "passCount": 1,
+        "failCount": 1,
+        "durationMs": 720,
+        "logsPath": "logs/attempt4.log"
+      },
+      "failureAnalysis": {
+        "category": "multiple",
+        "failedTests": [],
+        "totalFailed": 1
+      },
+      "durationMs": 720,
+      "cumulativeTime": 2880
+    }
+  ],
+  "finalStatus": "exhausted",
+  "totalAttempts": 4
+}

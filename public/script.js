@@ -45,6 +45,11 @@ let storedProjectName = "";
 let repairHistoryExpanded = false;
 // legacy loading state removed
 
+// Progress streaming controls
+let progressStopFlag = false;
+let progressEventSource = null;
+let progressFillEl = null;
+
 const DEFAULT_APP_PORT = "3000";
 const currentPort = typeof window !== "undefined" && window.location ? window.location.port : "";
 const isDemoMode = Boolean(currentPort && currentPort !== DEFAULT_APP_PORT);
@@ -209,6 +214,40 @@ async function handleResumeSubmit(event) {
     if (pauseSessionButton) {
       pauseSessionButton.disabled = false;
     }
+    // Resume progress streams after successful resume
+    try { progressStopFlag = false; } catch { /* noop */ }
+    try { progressEventSource?.close?.(); } catch { /* noop */ }
+    (async () => {
+      const sessionId = activeSessionId;
+      const fill = progressFillEl;
+      while (sessionId && !progressStopFlag) {
+        try {
+          const r = await fetch(`/api/progress/snapshot/${sessionId}`);
+          if (r.ok) {
+            const p = await r.json();
+            const percent = Math.max(0, Math.min(100, Number(p.progress || 0)));
+            if (fill) fill.style.width = `${percent}%`;
+            updateOrchestrationState(p);
+            if (p.done) { progressStopFlag = true; break; }
+          }
+        } catch { /* ignore */ }
+        await new Promise(r => setTimeout(r, 900));
+      }
+    })();
+    try {
+      const es = new EventSource(`/api/progress/${activeSessionId}`);
+      progressEventSource = es;
+      es.onmessage = ev => {
+        try {
+          const p = JSON.parse(ev.data);
+          const percent = Math.max(0, Math.min(100, Number(p.progress || 0)));
+          if (progressFillEl) progressFillEl.style.width = `${percent}%`;
+          updateOrchestrationState(p);
+          if (p.done) { progressStopFlag = true; es.close(); }
+        } catch { /* ignore */ }
+      };
+      es.onerror = () => es.close();
+    } catch { /* fallback to polling above */ }
   } catch (err) {
     if (resumeMessageEl) {
       resumeMessageEl.textContent = `Resume failed: ${err?.error || err?.message || err}`;
@@ -240,6 +279,9 @@ function updateOrchestrationState(snapshot) {
   if (snapshot.paused) {
     pauseSessionButton && (pauseSessionButton.disabled = true);
     showResumeDrawer(snapshot.questions || []);
+    // Stop progress streams while paused to avoid noisy 304 polling
+    try { progressStopFlag = true; } catch { /* noop */ }
+    try { progressEventSource?.close?.(); } catch { /* noop */ }
     return;
   }
 
@@ -846,6 +888,22 @@ function renderPartialCard(data) {
     openLink.rel = "noopener";
     openLink.className = "btn btn-primary";
     openLink.textContent = "Open Project";
+    // Try to open index.html if present; otherwise fall back to folder
+    openLink.addEventListener("click", async (ev) => {
+      try {
+        ev.preventDefault();
+        const base = openLink.href.replace(/\/$/, "");
+        const indexUrl = `${base}/index.html`;
+        const r = await fetch(indexUrl, { method: "HEAD" });
+        if (r.ok) {
+          window.open(indexUrl, "_blank", "noopener");
+        } else {
+          window.open(openLink.href, "_blank", "noopener");
+        }
+      } catch {
+        window.open(openLink.href, "_blank", "noopener");
+      }
+    });
     actions.appendChild(openLink);
   }
   const viewResultsButton = document.createElement("button");
@@ -925,16 +983,31 @@ function renderTestLifecycle(testResults, repair) {
 }
 
 function computeOutcome(data) {
+  // Robust outcome classification that tolerates missing/zero test counts
   if (!data || data.error) return 'error';
   const files = Number(data.files_written || 0);
-  if (!files) return 'error';
-  const initial = data.testResults?.initial;
-  const passCount = Number(initial?.passCount ?? 0);
-  const failCount = Number(initial?.failCount ?? 0);
-  const executed = passCount + failCount > 0;
-  const status = String(initial?.status ?? '').toUpperCase();
-  if (executed && (status === 'PASS' || status === 'PASSED')) return 'success';
-  if (executed && status === 'FAIL') return 'partial';
+  if (!Number.isFinite(files) || files <= 0) return 'error';
+
+  const initial = data.testResults?.initial || null;
+  const after = data.testResults?.afterRepair || null;
+  const statusRaw = (after?.status ?? initial?.status ?? '').toString();
+  const status = statusRaw.toUpperCase();
+  const passCount = Number(after?.passCount ?? initial?.passCount ?? 0);
+  const failCount = Number(after?.failCount ?? initial?.failCount ?? 0);
+  const executed = (Number.isFinite(passCount) && Number.isFinite(failCount) && (passCount + failCount > 0));
+
+  // If the server marked success and we have files, prefer success
+  if (data.ok && files > 0 && (status === 'PASS' || status === 'PASSED' || !status)) {
+    return 'success';
+  }
+
+  // Clear PASS even when counts are zero (some runs skip tests but still succeed)
+  if (status === 'PASS' || status === 'PASSED') return 'success';
+  if (status === 'FAIL') return 'partial';
+
+  // Fallback by counts
+  if (executed && failCount > 0) return 'partial';
+  if (data.ok && files > 0) return 'success';
   return 'error';
 }
 
@@ -996,8 +1069,22 @@ function renderSuccessCard(data) {
   viewFilesBtn.type = "button";
   viewFilesBtn.className = "btn btn-secondary";
   viewFilesBtn.textContent = "View files";
-  const files = getGeneratedFiles(data);
-  viewFilesBtn.addEventListener("click", () => renderFilePreview(files));
+  viewFilesBtn.addEventListener("click", async () => {
+    let files = getGeneratedFiles(data);
+    if ((!files || files.length === 0) && currentProjectSlug) {
+      try {
+        const metaResp = await fetch(`/output/${currentProjectSlug}/_executor_meta.json`);
+        if (metaResp.ok) {
+          const meta = await metaResp.json();
+          const paths = Array.isArray(meta.files)
+            ? meta.files.map((f) => (typeof f?.path === 'string' ? f.path : null)).filter(Boolean)
+            : [];
+          if (paths.length > 0) files = paths;
+        }
+      } catch { /* ignore; use empty list */ }
+    }
+    renderFilePreview(files || []);
+  });
   actions.appendChild(viewFilesBtn);
 
   const openDebugButton = document.createElement("button");
@@ -1307,6 +1394,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
 
   // Start progress UI and polling
   const { fill } = renderProgressStages();
+  progressFillEl = fill;
   const sessionId = (() => {
     const arr = new Uint8Array(8);
     (window.crypto || self.crypto).getRandomValues(arr);
@@ -1319,9 +1407,9 @@ async function executeRequest({ prompt, projectName, clarifications }) {
   if (pauseSessionButton) {
     pauseSessionButton.disabled = false;
   }
-  let stopPolling = false;
+  progressStopFlag = false;
   (async () => {
-    while (!stopPolling) {
+    while (!progressStopFlag) {
       try {
         const r = await fetch(`/api/progress/snapshot/${sessionId}`);
         if (r.ok) {
@@ -1339,7 +1427,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
             if (i === idx) el.classList.add('current');
           });
           updateOrchestrationState(p);
-          if (p.done) break;
+          if (p.done) { progressStopFlag = true; break; }
         }
       } catch {
         /* ignore */ void 0;
@@ -1351,6 +1439,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
   // Try EventSource (SSE) for real-time progress; fallback polling remains
   try {
     const es = new EventSource(`/api/progress/${sessionId}`);
+    progressEventSource = es;
     es.onmessage = ev => {
       try {
         const p = JSON.parse(ev.data);
@@ -1367,10 +1456,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
           if (i === idx) el.classList.add('current');
         });
         updateOrchestrationState(p);
-        if (p.done) {
-          stopPolling = true;
-          es.close();
-        }
+        if (p.done) { progressStopFlag = true; es.close(); }
       } catch {
         /* ignore */ void 0;
       }
@@ -1403,7 +1489,9 @@ async function executeRequest({ prompt, projectName, clarifications }) {
     if (resp.status === 202) {
       await resp.json().catch(() => ({})); // drain body for devtools/debug
       await handlePausedResponse(sessionId);
-      // Keep polling; user can resume from drawer
+      // Stop progress streams while paused; resume will restart
+      try { progressStopFlag = true; } catch { /* noop */ }
+      try { progressEventSource?.close?.(); } catch { /* noop */ }
       return;
     }
 
@@ -1451,8 +1539,7 @@ async function executeRequest({ prompt, projectName, clarifications }) {
   } catch (err) {
     renderErrorCard({ error: err });
   } finally {
-    // Do not stop polling or disable controls if we're in a paused flow (202 handled above)
-    // Polling loop will exit on done=true or remain active during pause until resume completes
+    // No-op; paused flow handled above. Progress streams stop on done=true or pause.
   }
 }
 

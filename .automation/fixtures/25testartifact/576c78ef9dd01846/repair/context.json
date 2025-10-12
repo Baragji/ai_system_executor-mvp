@@ -1,0 +1,30 @@
+{
+  "projectPath": "/Users/Yousef_1/Downloads/ai_system_executor-mvp/output/25testartifact",
+  "projectSlug": "25testartifact",
+  "originalPrompt": "make a ui with hello wolrd rainbows",
+  "generatedFiles": [
+    "package.json",
+    "tsconfig.json",
+    "jest.config.cjs",
+    "README.md",
+    "docs/requirements.md",
+    "src/server.ts",
+    "public/index.html",
+    "public/styles.css",
+    "public/app.js",
+    "tests/server.test.ts"
+  ],
+  "initialTestResult": {
+    "status": "fail",
+    "passCount": 3,
+    "failCount": 4,
+    "durationMs": 1943,
+    "logsPath": "logs/25testartifact_last_test_run_b360b6f6-c713-49e5-9e2c-5467692f51c2.log",
+    "timestamp": "2025-10-12T00:01:54.677Z",
+    "command": "npm test",
+    "exitCode": 1,
+    "startedAt": "2025-10-12T00:01:52.734Z",
+    "finishedAt": "2025-10-12T00:01:54.677Z"
+  },
+  "sessionId": "576c78ef9dd01846"
+}

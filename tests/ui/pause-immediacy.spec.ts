@@ -1,4 +1,5 @@
 import { test, expect, request } from '@playwright/test';
+import { handleClarifications } from './helpers.js';
 
 /**
  * Verifies that clicking Pause immediately updates orchestration state via snapshot fetch,
@@ -15,14 +16,8 @@ test('Pause UX immediacy', async ({ page }) => {
   // Start the run
   await executeButton.click();
 
-  // If clarifications UI appears, skip to start execution
-  const clarSection = page.locator('#clarificationSection:not(.hidden)');
-  if (await clarSection.isVisible({ timeout: 1000 }).catch(() => false)) {
-    const skipBtn = page.locator('#skipClarifications');
-    if (await skipBtn.isVisible().catch(() => false)) {
-      await skipBtn.click();
-    }
-  }
+  // Resolve clarifications reliably before expecting Pause button
+  await handleClarifications(page, { timeoutMs: 5000 });
 
   // Wait until orchestration controls appear and Pause is enabled
   const pauseButton = page.getByRole('button', { name: /^Pause$/ });

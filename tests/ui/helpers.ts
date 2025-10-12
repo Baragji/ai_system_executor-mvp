@@ -1,4 +1,4 @@
-import { APIRequestContext } from '@playwright/test';
+import { APIRequestContext, type Page } from '@playwright/test';
 import { randomBytes } from 'node:crypto';
 
 export function makeSessionId(): string {
@@ -37,4 +37,75 @@ export async function postResume(api: APIRequestContext, sessionId: string, answ
   const r = await api.post(`/api/sessions/${sessionId}/resume`, { data: { answers } });
   const body = await r.json().catch(() => ({}));
   return { status: r.status(), body };
+}
+
+/**
+ * UI helper to reliably resolve clarification prompts.
+ * - Waits up to timeoutMs for the clarification section to appear
+ * - Selects the first radio per group, fills empty text inputs/areas
+ * - Prefers answering; falls back to Skip if no actionable inputs
+ *
+ * Returns: 'answered' | 'skipped' | 'none'
+ */
+export async function handleClarifications(
+  page: Page,
+  opts: { timeoutMs?: number; preferSkip?: boolean } = {}
+): Promise<'answered' | 'skipped' | 'none'> {
+  const { timeoutMs = 5000, preferSkip = false } = opts;
+  const section = page.locator('#clarificationSection:not(.hidden)');
+
+  // Poll for visibility with small sleeps to avoid flakiness
+  const start = Date.now();
+  let visible = false;
+  while (Date.now() - start < timeoutMs) {
+    if (await section.isVisible().catch(() => false)) { visible = true; break; }
+    await page.waitForTimeout(150);
+  }
+  if (!visible) return 'none';
+
+  const radios = await page.locator('input[type="radio"]').all();
+  const chosen = new Set<string>();
+  for (const radio of radios) {
+    const disabled = await radio.isDisabled().catch(() => false);
+    const name = await radio.getAttribute('name');
+    if (disabled || !name || chosen.has(name)) continue;
+    await radio.check().catch(() => undefined);
+    chosen.add(name);
+  }
+
+  const textInputs = await page.locator('input[type="text"]').all();
+  for (const input of textInputs) {
+    const val = await input.inputValue().catch(() => '');
+    if (!val) {
+      await input.fill('test-value').catch(() => undefined);
+    }
+  }
+
+  const textareas = await page.locator('textarea').all();
+  for (const ta of textareas) {
+    const val = await ta.inputValue().catch(() => '');
+    if (!val) {
+      await ta.fill('test-value').catch(() => undefined);
+    }
+  }
+
+  // Decide whether to answer or skip based on available inputs or preference
+  const hasAnswers = chosen.size > 0 || textInputs.length > 0 || textareas.length > 0;
+  if (!preferSkip && hasAnswers) {
+    const answerBtn = page.locator('#answerClarifications');
+    if (await answerBtn.isVisible().catch(() => false)) {
+      await answerBtn.click();
+      await page.waitForTimeout(500);
+      return 'answered';
+    }
+  }
+
+  const skipBtn = page.locator('#skipClarifications');
+  if (await skipBtn.isVisible().catch(() => false)) {
+    await skipBtn.click();
+    await page.waitForTimeout(300);
+    return 'skipped';
+  }
+
+  return 'none';
 }

@@ -1,0 +1,16 @@
+{
+  "originalPrompt": "Create a backend service",
+  "effectivePrompt": "Framework: FastAPI, Port: 5050\n\nOriginal request: Create a backend service",
+  "clarifications": {
+    "answers": [
+      {
+        "questionId": "framework",
+        "value": "FastAPI"
+      },
+      {
+        "questionId": "port",
+        "value": 5050
+      }
+    ]
+  }
+}
