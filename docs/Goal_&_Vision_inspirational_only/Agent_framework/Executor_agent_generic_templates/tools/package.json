@@ -1,0 +1,16 @@
+{
+  "name": "executor-ai-tools",
+  "private": true,
+  "type": "module",
+  "description": "Helper scripts for the Universal Executor AI framework.",
+  "scripts": {
+    "prepare-session": "node executor_runner.js",
+    "calculate-metrics": "node metrics.js"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.8.0",
+    "@opentelemetry/sdk-node": "^0.51.0",
+    "@opentelemetry/sdk-trace-base": "^1.24.0",
+    "yaml": "^2.4.5"
+  }
+}

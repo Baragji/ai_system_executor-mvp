@@ -1,7 +1,12 @@
+---
+description: Repository Information Overview
+alwaysApply: true
+---
+
 # Repository Context: AI System Executor MVP
 
 **Generated:** 2025-01-09  
-**Last Updated:** 2025-01-09  
+**Last Updated:** 2023-11-14  
 **Repository:** ai_system_executor-mvp  
 **Owner:** @yousefbaragji
 
