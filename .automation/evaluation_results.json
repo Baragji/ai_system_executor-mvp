@@ -1199,3 +1199,12 @@
 {"timestamp":"2025-10-12T20:39:18.373Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:failing","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
 {"timestamp":"2025-10-12T20:39:18.636Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:hang","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":false},"notes":"Process timed out after 200ms"}
 {"timestamp":"2025-10-12T20:39:20.879Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-13T09:04:08.053Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-13T09:04:08.080Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-13T09:04:08.608Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:demo","status":"pass","quality_dimensions":{"correctness":true,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-13T09:04:10.420Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-13T09:04:10.927Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:failing","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-13T09:04:11.193Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:hang","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":false},"notes":"Process timed out after 200ms"}
+{"timestamp":"2025-10-13T09:04:12.571Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:passing","status":"pass","quality_dimensions":{"correctness":true,"completeness":true,"safety":true}}
+{"timestamp":"2025-10-13T09:18:42.005Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:01handytest","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
+{"timestamp":"2025-10-13T09:30:36.732Z","phase":"2A-OBSERVABILITY-FIX","task_id":"run-tests:01handytest","status":"fail","quality_dimensions":{"correctness":false,"completeness":false,"safety":true}}
