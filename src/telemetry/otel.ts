@@ -14,9 +14,13 @@ function truthy(envVar: string | undefined): boolean {
 
 let started = false;
 
+export function isTelemetryEnabled(): boolean {
+  return truthy(process.env.OTEL_ENABLED);
+}
+
 export function maybeInitTelemetry(): void {
   if (started) return;
-  if (!truthy(process.env.OTEL_ENABLED)) return;
+  if (!isTelemetryEnabled()) return;
   // Placeholder reserved for future OTel init under env flag. No-ops by design to avoid new deps.
   started = true;
 }

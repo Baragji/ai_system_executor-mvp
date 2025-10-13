@@ -78,7 +78,8 @@ import type {
   SingleExecutionOptions,
   SingleExecutionResult
 } from "./orchestrator/executionTypes.js";
-import { installProblemDetails } from "./middleware/problemDetails.js";
+import { installProblemDetails, respondWithProblem } from "./middleware/problemDetails.js";
+import { getExecution } from "./orchestrator/executionsStore.js";
 import { maybeInitTelemetry } from "./telemetry/otel.js";
 
 const IS_TEST_ENV = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
@@ -421,6 +422,17 @@ async function addDirectoryToZip(zip: ZipFile, absoluteDir: string, relativeDir:
 }
 
 app.get("/healthz", (_req, res) => res.json({ status: "ok" }));
+
+// Executions status endpoint for LangGraph runtime (and future runtimes)
+app.get("/api/executions/:id", (req, res) => {
+  const { id } = req.params as { id: string };
+  const record = getExecution(id);
+  if (!record) {
+    respondWithProblem(res, 404, "NotFound", "execution not found", req.originalUrl || req.url || "/api/executions");
+    return;
+  }
+  res.json(record);
+});
 
 // Archive download for output folders (zip default, tar fallback)
 app.get("/output-archive/:project/:tail(*)?", async (req, res) => {
@@ -1491,7 +1503,8 @@ app.post("/api/clarify", (req, res) => {
     const promptRaw = req.body?.prompt;
     const prompt = typeof promptRaw === "string" ? promptRaw.trim() : "";
     if (!prompt) {
-      return res.status(400).json({ error: "prompt required" });
+      respondWithProblem(res, 400, "BadRequest", "prompt required", req.originalUrl || req.url || "/api/clarify");
+      return;
     }
 
     const missing = detectMissing(prompt);
@@ -1501,25 +1514,35 @@ app.post("/api/clarify", (req, res) => {
     const validation = validateClarificationRequest(payload);
     if (!validation.ok) {
       console.error("Clarification payload failed validation", validation.errors);
-      return res.status(500).json({ error: "clarification contract violation" });
+      respondWithProblem(
+        res,
+        500,
+        "ClarificationContractViolation",
+        "clarification contract violation",
+        req.originalUrl || req.url || "/api/clarify"
+      );
+      return;
     }
 
     return res.json(payload);
   } catch (err: unknown) {
     console.error(err);
     const message = err instanceof Error ? err.message : "internal error";
-    return res.status(500).json({ error: message });
+    respondWithProblem(res, 500, "InternalServerError", message, req.originalUrl || req.url || "/api/clarify");
+    return;
   }
 });
 
 app.post("/api/execute", async (req, res) => {
+  const instance = req.originalUrl || req.url || "/api/execute";
   // Feature-flagged orchestrator adapter: if AGENTS_RUNTIME=langgraph, delegate and return
   if ((process.env.AGENTS_RUNTIME || "").toLowerCase() === "langgraph") {
     try {
       await executeAdapterLanggraph(req, res);
     } catch (err) {
       const message = err instanceof Error ? err.message : "internal error";
-      return res.status(500).json({ error: message });
+      respondWithProblem(res, 500, "InternalServerError", message, instance);
+      return;
     }
     return; // do not continue into default StepQueue pipeline
   }
@@ -1575,7 +1598,8 @@ app.post("/api/execute", async (req, res) => {
     const promptForValidation = originalPrompt.trim();
     const projectNameRaw: string | undefined = req.body?.projectName;
     if (!promptForValidation || promptForValidation.length < 3) {
-      return res.status(400).json({ error: "prompt required" });
+      respondWithProblem(res, 400, "BadRequest", "prompt required", instance);
+      return;
     }
 
     let clarificationsUsed = false;
@@ -1584,7 +1608,10 @@ app.post("/api/execute", async (req, res) => {
     if (req.body?.clarifications !== undefined) {
       const validation = validateClarificationResponse(req.body.clarifications);
       if (!validation.ok) {
-        return res.status(400).json({ error: "invalid clarifications", details: validation.errors });
+        respondWithProblem(res, 400, "BadRequest", "invalid clarifications", instance, {
+          details: validation.errors
+        });
+        return;
       }
       clarifications = validation.value;
     }
@@ -1733,7 +1760,8 @@ app.post("/api/execute", async (req, res) => {
       return;
     }
 
-    return res.status(500).json({ error: message });
+    respondWithProblem(res, 500, "InternalServerError", message, instance);
+    return;
   } finally {
     if (sessionId) {
       cleanupAbortSignal(sessionId);

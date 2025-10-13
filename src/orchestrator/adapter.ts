@@ -9,6 +9,9 @@
 
 import type { Request, Response } from "express";
 
+import { respondWithProblem } from "../middleware/problemDetails.js";
+import type { GraphRunArgs, GraphRunResult } from "./graph.js";
+
 type RunResult = {
   executionId: string;
   status: "started" | "completed" | "failed";
@@ -16,28 +19,25 @@ type RunResult = {
   result?: unknown;
 };
 
-const FLAG = (process.env.AGENTS_RUNTIME || "stepqueue").toLowerCase();
-
-function problem(status: number, title: string, detail: string, instance: string, type = "about:blank") {
-  return {
-    type,
-    title,
-    status,
-    detail,
-    instance,
-    "urn:ts": new Date().toISOString()
-  } as const;
+function isLangGraphRuntime(): boolean {
+  return (process.env.AGENTS_RUNTIME || "").toLowerCase() === "langgraph";
 }
 
-async function tryRunGraph(args: { prompt: string; sessionId?: string; deterministic?: boolean; seed?: string }): Promise<RunResult> {
+async function tryRunGraph(args: GraphRunArgs): Promise<RunResult> {
   try {
     // Dynamic import via variable to avoid type resolution when file is absent
     const modPath = "./graph.js";
-    const mod = await import(modPath as string);
+    const mod = (await import(modPath as string)) as { runGraph?: (input: GraphRunArgs) => Promise<GraphRunResult> };
     if (typeof mod.runGraph !== "function") {
       return { executionId: "unavailable", status: "failed", result: { error: "runGraph not implemented" } };
     }
-    return await mod.runGraph(args);
+    const result = await mod.runGraph(args);
+    return {
+      executionId: result.executionId,
+      status: result.status,
+      location: result.location,
+      result: result.result
+    } satisfies RunResult;
   } catch {
     return { executionId: "unavailable", status: "failed", result: { error: "graph.js not present" } };
   }
@@ -66,17 +66,24 @@ export async function executeAdapter(req: Request, res: Response): Promise<void>
   const sessionId = typeof body.sessionId === "string" && body.sessionId ? body.sessionId : undefined;
   const deterministic = body.deterministic === true;
   const seed = typeof body.seed === "string" && body.seed ? body.seed : undefined;
-  const instance = "/api/execute";
+  const instance = req.originalUrl || req.url || "/api/execute";
 
   if (!prompt) {
-    res.status(400).json(problem(400, "BadRequest", "prompt is required", instance));
+    respondWithProblem(res, 400, "BadRequest", "prompt is required", instance);
     return;
   }
 
-  if (FLAG === "langgraph") {
+  if (isLangGraphRuntime()) {
     const result = await tryRunGraph({ prompt, sessionId, deterministic, seed });
     if (result.status === "failed") {
-      res.status(500).json(problem(500, "GraphStartFailed", "LangGraph failed to start/execute", instance));
+      respondWithProblem(
+        res,
+        500,
+        "GraphStartFailed",
+        "LangGraph failed to start/execute",
+        instance,
+        typeof result.result === "object" && result.result !== null ? { details: result.result } : undefined
+      );
       return;
     }
     res
