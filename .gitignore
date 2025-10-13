@@ -28,3 +28,9 @@ playwright/.cache/
 
 # Local telemetry log cache
 .telemetry/
+
+# Trust Spine artifacts (Phase 19) — generated locally, uploaded in CI
+sbom.spdx.json
+sbom.cdx.json
+provenance.intoto.jsonl
+.automation/actions.jsonl

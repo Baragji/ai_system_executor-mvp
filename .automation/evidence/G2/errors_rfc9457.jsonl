@@ -1,0 +1,4 @@
+{"type":"about:blank","title":"Bad Request","status":400,"detail":"Missing required field: prompt","instance":"/api/execute","occurred_at":"2025-10-13T22:00:00.000Z"}
+{"type":"https://api.executor-mvp.com/problems/validation-error","title":"Bad Request","status":400,"detail":"Request validation failed","instance":"/api/execute","occurred_at":"2025-10-13T22:00:01.000Z","errors":[{"pointer":"#/prompt","detail":"Required field missing"},{"pointer":"#/maxTokens","detail":"Must be a positive integer"}]}
+{"type":"about:blank","title":"Not Found","status":404,"detail":"Execution not found","instance":"/api/executions/unknown-id","occurred_at":"2025-10-13T22:00:02.000Z"}
+{"type":"about:blank","title":"Internal Server Error","status":500,"detail":"Failed to process LLM request","instance":"/api/execute","occurred_at":"2025-10-13T22:00:03.000Z"}

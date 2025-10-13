@@ -80,7 +80,7 @@ import type {
 } from "./orchestrator/executionTypes.js";
 import { installProblemDetails, respondWithProblem } from "./middleware/problemDetails.js";
 import { getExecution } from "./orchestrator/executionsStore.js";
-import { maybeInitTelemetry } from "./telemetry/otel.js";
+import { maybeInitTelemetry, shutdownTelemetry } from "./telemetry/otel.js";
 
 const IS_TEST_ENV = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
 
@@ -2258,10 +2258,23 @@ app.get("/api/files/:project/:path(*)", async (req, res) => {
 });
 
 if (process.env.NODE_ENV !== "test") {
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`Executor MVP listening on http://localhost:${PORT}`);
     console.log(`UI: http://localhost:${PORT}/`);
   });
+
+  // Graceful shutdown handler for OpenTelemetry
+  const shutdown = async (signal: string) => {
+    console.log(`\n${signal} received, shutting down gracefully...`);
+    server.close(() => {
+      console.log('HTTP server closed');
+    });
+    await shutdownTelemetry();
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
 export { app };
