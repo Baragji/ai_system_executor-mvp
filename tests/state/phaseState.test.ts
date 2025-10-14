@@ -19,6 +19,9 @@ describe("phaseState shared module", () => {
     expect(state.phaseName.length).toBeGreaterThan(0);
     expect(state.gates && typeof state.gates).toBe("object");
     expect(Array.isArray(state.tasks)).toBe(true);
+    if (state.tasks.length > 0) {
+      expect(state.tasks[0]).toHaveProperty("status");
+    }
   });
 
   it("suggests committing when uncommitted changes exist", () => {

@@ -215,6 +215,15 @@ async function main() {
 
   snapshot.suggested_next_action = suggestNextAction({ gates, validations, uncommitted });
 
+  if (Array.isArray(contract?.tasks)) {
+    snapshot.tasks = contract.tasks.map((task) => ({
+      id: task?.id ?? null,
+      title: task?.title ?? null,
+      status: task?.status ?? null,
+      completed_at: task?.completed_at ?? null
+    }));
+  }
+
   // Add a concise human-readable summary for quick scanning in terminals
   function summarizeGates(g) {
     const entries = Object.entries(g || {});

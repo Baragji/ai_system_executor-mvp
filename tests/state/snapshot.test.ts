@@ -26,5 +26,6 @@ describe("state snapshot (read-only)", () => {
     expect(json).toHaveProperty("uncommitted_changes");
     expect(json).toHaveProperty("suggested_next_action");
     expect(typeof json.suggested_next_action.action).toBe("string");
+    expect(Array.isArray(json.tasks) || json.tasks === undefined).toBe(true);
   });
 });

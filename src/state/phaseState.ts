@@ -9,6 +9,12 @@ export interface PhaseTask {
   status?: "pending" | "in_progress" | "complete" | "blocked";
   started_at?: string;
   completed_at?: string;
+  validation_results?: Array<{
+    cmd: string;
+    exit_code: number;
+    timestamp: string;
+    notes?: string;
+  }>;
 }
 
 export interface PhaseState {
@@ -96,7 +102,21 @@ export async function loadPhaseState(options: { rootDir?: string } = {}): Promis
       const json = JSON.parse(raw) as { contract_meta?: { phase_name?: string }; tasks?: PhaseTask[] };
       phaseName = json.contract_meta?.phase_name || phaseName;
       if (Array.isArray((json as { tasks?: unknown }).tasks)) {
-        tasks = (json.tasks as PhaseTask[]).map(t => ({ id: String(t.id), title: String(t.title), status: t.status }));
+        tasks = (json.tasks as PhaseTask[]).map(t => ({
+          id: String(t.id),
+          title: String(t.title),
+          status: t.status,
+          started_at: t.started_at,
+          completed_at: t.completed_at,
+          validation_results: Array.isArray(t.validation_results)
+            ? t.validation_results.map(result => ({
+                cmd: String(result.cmd),
+                exit_code: Number(result.exit_code),
+                timestamp: String(result.timestamp),
+                ...(result.notes ? { notes: String(result.notes) } : {})
+              }))
+            : undefined
+        }));
       }
     } catch {
       // fall back to defaults
