@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "executor-mvp@0.1.0",
-  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-a780e724-3bf4-44a0-a951-f22ccabfc55c",
+  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-a040ee22-fcc2-46a1-9bd1-40041992c834",
   "creationInfo": {
-    "created": "2025-10-12T20:39:31.468Z",
+    "created": "2025-10-14T01:39:48.344Z",
     "creators": [
       "Tool: npm/cli-10.9.3"
     ]
@@ -105,6 +105,270 @@
       ]
     },
     {
+      "name": "@grpc/grpc-js",
+      "SPDXID": "SPDXRef-Package-grpc.grpc-js-1.14.0",
+      "versionInfo": "1.14.0",
+      "packageFileName": "node_modules/@grpc/grpc-js",
+      "description": "gRPC Library for Node - pure JS implementation",
+      "downloadLocation": "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.14.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://grpc.io/",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40grpc/grpc-js@1.14.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "37c271e8f698cdc4d13738ab45e242b400d5a2ae33efed4a43813bd234e0fe4a1088ca1448dd646cd8cf3aaa4f6e130585f535fe5ee2c6ca4f97c74d63e16852"
+        }
+      ]
+    },
+    {
+      "name": "@grpc/proto-loader",
+      "SPDXID": "SPDXRef-Package-grpc.proto-loader-0.8.0",
+      "versionInfo": "0.8.0",
+      "packageFileName": "node_modules/@grpc/proto-loader",
+      "description": "gRPC utility library for loading .proto files",
+      "downloadLocation": "https://registry.npmjs.org/@grpc/proto-loader/-/proto-loader-0.8.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://grpc.io/",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40grpc/proto-loader@0.8.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "adcd61390b632161b1731a5bf5a1c07cba4872d8c49ec0de863d0302255f065993f38baf474b94b4dda1122fde72f5958d75067f9a8f178a848222cec7560831"
+        }
+      ]
+    },
+    {
+      "name": "ansi-regex",
+      "SPDXID": "SPDXRef-Package-ansi-regex-5.0.1",
+      "versionInfo": "5.0.1",
+      "packageFileName": "node_modules/@grpc/proto-loader/node_modules/ansi-regex",
+      "description": "Regular expression for matching ANSI escape codes",
+      "downloadLocation": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-5.0.1.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/chalk/ansi-regex#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/ansi-regex@5.0.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "aae2505e54d25062f62c7f52517a3c570b18e2ca1a9e1828e8b3529bce04d4b05c13cb373b4c29762473c91f73fd9649325316bf7eea38e6fda5d26531410a15"
+        }
+      ]
+    },
+    {
+      "name": "cliui",
+      "SPDXID": "SPDXRef-Package-cliui-8.0.1",
+      "versionInfo": "8.0.1",
+      "packageFileName": "node_modules/@grpc/proto-loader/node_modules/cliui",
+      "description": "easily create complex multi-column command-line-interfaces",
+      "downloadLocation": "https://registry.npmjs.org/cliui/-/cliui-8.0.1.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/yargs/cliui#readme",
+      "licenseDeclared": "ISC",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/cliui@8.0.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "05278d9f2bacef90b8fff350f6042dd7f72c4d7ca8ffc49bf9a7cb024cc0a6d16e32ca1df4716890636e759a62fe8415ef786754afac47ee4f55131df83afb61"
+        }
+      ]
+    },
+    {
+      "name": "is-fullwidth-code-point",
+      "SPDXID": "SPDXRef-Package-is-fullwidth-code-point-3.0.0",
+      "versionInfo": "3.0.0",
+      "packageFileName": "node_modules/@grpc/proto-loader/node_modules/is-fullwidth-code-point",
+      "description": "Check if the character represented by a given Unicode code point is fullwidth",
+      "downloadLocation": "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/sindresorhus/is-fullwidth-code-point#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/is-fullwidth-code-point@3.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "cf29a6e7ebbeb02b125b20fda8d69e8d5dc316f84229c94a762cd868952e1c0f3744b8dbee74ae1a775d0871afd2193e298ec130096c59e2b851e83a115e9742"
+        }
+      ]
+    },
+    {
+      "name": "string-width",
+      "SPDXID": "SPDXRef-Package-string-width-4.2.3",
+      "versionInfo": "4.2.3",
+      "packageFileName": "node_modules/@grpc/proto-loader/node_modules/string-width",
+      "description": "Get the visual width of a string - the number of columns required to display it",
+      "downloadLocation": "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/sindresorhus/string-width#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/string-width@4.2.3"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "c0ac90450a63274b08a7ad84ad265d1ac8cc256b1aa79a1136284786ee86ec954effd8c807a5327af2feb57b8eaab9e0f23fdcc4a4d6c96530bd24eb8a2673fe"
+        }
+      ]
+    },
+    {
+      "name": "strip-ansi",
+      "SPDXID": "SPDXRef-Package-strip-ansi-6.0.1",
+      "versionInfo": "6.0.1",
+      "packageFileName": "node_modules/@grpc/proto-loader/node_modules/strip-ansi",
+      "description": "Strip ANSI escape codes from a string",
+      "downloadLocation": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/chalk/strip-ansi#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/strip-ansi@6.0.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "637f153d21dcaa416b0a916743dbee4979aabaebf9a1738aa46793e9a1abaf7a3719cf409556ba2417d448e0a76f1186645fbfd28a08ecaacfb944b3b54754e4"
+        }
+      ]
+    },
+    {
+      "name": "wrap-ansi",
+      "SPDXID": "SPDXRef-Package-wrap-ansi-7.0.0",
+      "versionInfo": "7.0.0",
+      "packageFileName": "node_modules/@grpc/proto-loader/node_modules/wrap-ansi",
+      "description": "Wordwrap a string with ANSI escape codes",
+      "downloadLocation": "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-7.0.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/chalk/wrap-ansi#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/wrap-ansi@7.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "6151888f691a98b493c70e8db198e80717d2c2c9f4c9c75eb26738a7e436d5ce733ee675a65f8d7f155dc4fb5d1ef98d54e43a5d2606e0052dcadfc58bb0f5e9"
+        }
+      ]
+    },
+    {
+      "name": "y18n",
+      "SPDXID": "SPDXRef-Package-y18n-5.0.8",
+      "versionInfo": "5.0.8",
+      "packageFileName": "node_modules/@grpc/proto-loader/node_modules/y18n",
+      "description": "the bare-bones internationalization library used by yargs",
+      "downloadLocation": "https://registry.npmjs.org/y18n/-/y18n-5.0.8.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/yargs/y18n",
+      "licenseDeclared": "ISC",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/y18n@5.0.8"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "d297c5cde81e0d62472480264cb44fd83c078dd179b3b8e8f6dbb3b5d43102120d09dbd2fb79c620da8f774d00a61a8947fd0b8403544baffeed209bf7c60e7c"
+        }
+      ]
+    },
+    {
+      "name": "yargs",
+      "SPDXID": "SPDXRef-Package-yargs-17.7.2",
+      "versionInfo": "17.7.2",
+      "packageFileName": "node_modules/@grpc/proto-loader/node_modules/yargs",
+      "description": "yargs the modern, pirate-themed, successor to optimist.",
+      "downloadLocation": "https://registry.npmjs.org/yargs/-/yargs-17.7.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://yargs.js.org/",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/yargs@17.7.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "edd4b3cd143ef822a7348fe4aca9d8455ec928a3d45cc121eb5b286872a0f66ad6121cc55a1167c4fc4697eebd703d4ebbadc2d773543c29e621caefa82b8ceb"
+        }
+      ]
+    },
+    {
+      "name": "yargs-parser",
+      "SPDXID": "SPDXRef-Package-yargs-parser-21.1.1",
+      "versionInfo": "21.1.1",
+      "packageFileName": "node_modules/@grpc/proto-loader/node_modules/yargs-parser",
+      "description": "the mighty option parser used by yargs",
+      "downloadLocation": "https://registry.npmjs.org/yargs-parser/-/yargs-parser-21.1.1.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/yargs/yargs-parser#readme",
+      "licenseDeclared": "ISC",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/yargs-parser@21.1.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "b55a6c256ec376379c0221696c80757b7ab1210b04e8da0f739fde4ddadb6c80b88742d5b16867a1ade0fa6d87725048ba31f3b31678549540f8652e736fcb07"
+        }
+      ]
+    },
+    {
       "name": "@ioredis/commands",
       "SPDXID": "SPDXRef-Package-ioredis.commands-1.4.0",
       "versionInfo": "1.4.0",
@@ -129,6 +393,30 @@
       ]
     },
     {
+      "name": "@js-sdsl/ordered-map",
+      "SPDXID": "SPDXRef-Package-js-sdsl.ordered-map-4.4.2",
+      "versionInfo": "4.4.2",
+      "packageFileName": "node_modules/@js-sdsl/ordered-map",
+      "description": "javascript standard data structure library which benchmark against C++ STL",
+      "downloadLocation": "https://registry.npmjs.org/@js-sdsl/ordered-map/-/ordered-map-4.4.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://js-sdsl.org",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40js-sdsl/ordered-map@4.4.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "8942a09b9d93f07384fe66a44b18eaa1685ef79649035fc6d6c62c19ebf6243294492d78280820d4b1dbf816be20fa30d317e56e74a43ac65c3b4f02ef0d6063"
+        }
+      ]
+    },
+    {
       "name": "@msgpackr-extract/msgpackr-extract-darwin-arm64",
       "SPDXID": "SPDXRef-Package-msgpackr-extract.msgpackr-extract-darwin-arm64-3.0.3",
       "versionInfo": "3.0.3",
@@ -149,6 +437,942 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "4191ed95581b01dcb6cc0a8d03d1aed54a48b88f17bec775bfc89ce81da96667859c570c5a23cb7d65e1ed3570e1e18467f0bd4c7dbcd4ac2156879050a6f28f"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/api",
+      "SPDXID": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "versionInfo": "1.9.0",
+      "packageFileName": "node_modules/@opentelemetry/api",
+      "description": "Public API for OpenTelemetry",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/api/-/api-1.9.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/api",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/api@1.9.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "de0880390bd9887e45f5b325322bfcf8648f31eaa0d1d6da7a8e7cff44a503db314aa6619d4b71cd7f7fd85cf2852f6c5907f94b418913400a06b16a8e979872"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/api-logs",
+      "SPDXID": "SPDXRef-Package-opentelemetry.api-logs-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/api-logs",
+      "description": "Public logs API for OpenTelemetry",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/api-logs/-/api-logs-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/api-logs",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/api-logs@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "c88543bbd8d7fff9d5e7048c2d92dd1dd6f548a1c8323f64fb041516d967e4595c81d95dcfd0641ed6afbc4c50889a81660d8ea441091199b341acd8ced773d8"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/context-async-hooks",
+      "SPDXID": "SPDXRef-Package-opentelemetry.context-async-hooks-2.1.0",
+      "versionInfo": "2.1.0",
+      "packageFileName": "node_modules/@opentelemetry/context-async-hooks",
+      "description": "OpenTelemetry AsyncHooks-based Context Manager",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/context-async-hooks/-/context-async-hooks-2.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-context-async-hooks",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/context-async-hooks@2.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "ccec9eb66669a67c13c8faede12ee331f5e2497f72c9f174871940f01e68a364ed2a5fbf4460b2edf8b80eb05f21fde508fae42ac441599643ed11688caec50e"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/core",
+      "SPDXID": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "versionInfo": "2.1.0",
+      "packageFileName": "node_modules/@opentelemetry/core",
+      "description": "OpenTelemetry Core provides constants and utilities shared by all OpenTelemetry SDK packages.",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/core/-/core-2.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-core",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/core@2.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "44c12d1ecc49b3f1a21c7c584f9f08639ed45c0413b949d955ca3aca60c4a9336524a4e298ce2a3d43d57bc227345c818e11c1100c7893743c2ed35ac81b1b51"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/exporter-logs-otlp-grpc",
+      "SPDXID": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-grpc-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/exporter-logs-otlp-grpc",
+      "description": "OpenTelemetry Collector Exporter allows user to send collected log records to the OpenTelemetry Collector",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/exporter-logs-otlp-grpc/-/exporter-logs-otlp-grpc-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/exporter-logs-otlp-grpc",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/exporter-logs-otlp-grpc@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "9092b1281686c2a5a8a7de5dead725bb3dbad085b0220386d011fca159bae36f6d83c2f16363c96fb3a6f1de6cfb9bce14cf039146029c8a67f5dff5dff45c29"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/exporter-logs-otlp-http",
+      "SPDXID": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-http-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/exporter-logs-otlp-http",
+      "description": "OpenTelemetry Collector Logs Exporter allows user to send collected logs to the OpenTelemetry Collector",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/exporter-logs-otlp-http/-/exporter-logs-otlp-http-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/exporter-logs-otlp-http",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/exporter-logs-otlp-http@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "5567071274bed6437eb104c07428129f66a7a873f1635fdee767e1a5eda67129c4697235b2b15fdd15390c0bbb87340ee93f433d0cce286f2473beaf0adc980f"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/exporter-logs-otlp-proto",
+      "SPDXID": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-proto-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/exporter-logs-otlp-proto",
+      "description": "An OTLP exporter to send logs using protobuf over HTTP",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/exporter-logs-otlp-proto/-/exporter-logs-otlp-proto-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/exporter-logs-otlp-proto",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/exporter-logs-otlp-proto@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "0ac60d5c9c249f5a825c9184fbf26fbd8b9c0232fcae96b16b686797eb433fa3391343b75156bccc6e1950479b8ebe49e4d737d9e82fb25119c79ae034ea7795"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/exporter-metrics-otlp-grpc",
+      "SPDXID": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-grpc-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/exporter-metrics-otlp-grpc",
+      "description": "OpenTelemetry Collector Metrics Exporter allows user to send collected metrics to the OpenTelemetry Collector",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/exporter-metrics-otlp-grpc/-/exporter-metrics-otlp-grpc-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/opentelemetry-exporter-metrics-otlp-grpc",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/exporter-metrics-otlp-grpc@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "fea188c156b6ec1486ab350b077e0ef94b44565e22b1cfa011ddb274c7d9562756a5d90961b31e6596015a2e33ea0883d30d037a9e64fcd209fe548466828422"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/exporter-metrics-otlp-http",
+      "SPDXID": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-http-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/exporter-metrics-otlp-http",
+      "description": "OpenTelemetry Collector Metrics Exporter allows user to send collected metrics to the OpenTelemetry Collector",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/exporter-metrics-otlp-http/-/exporter-metrics-otlp-http-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/opentelemetry-exporter-metrics-otlp-http",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/exporter-metrics-otlp-http@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "bbaced1cd6e0365170def0ae384ac6b2288470393d281d29c1dfc9bfa68f9ef578a0a25dff92be95f8928c3a42154879514149746987b400f15206d1a5830fc8"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/exporter-metrics-otlp-proto",
+      "SPDXID": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-proto-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/exporter-metrics-otlp-proto",
+      "description": "OpenTelemetry Collector Metrics Exporter allows user to send collected metrics to the OpenTelemetry Collector using protobuf over HTTP",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/exporter-metrics-otlp-proto/-/exporter-metrics-otlp-proto-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/opentelemetry-exporter-metrics-otlp-proto",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/exporter-metrics-otlp-proto@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "98b9665e654e4b0330f029bd44acf966e4d4596dbc95059621ccb9729114848ac9e5cb92b9367f3ca21a6b7f821e670a924176a5615d064cce21aafd680a73a1"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/exporter-prometheus",
+      "SPDXID": "SPDXRef-Package-opentelemetry.exporter-prometheus-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/exporter-prometheus",
+      "description": "OpenTelemetry Exporter Prometheus provides a metrics endpoint for Prometheus",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/exporter-prometheus/-/exporter-prometheus-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/opentelemetry-exporter-prometheus",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/exporter-prometheus@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "b02cd6faf1362a19436611fbddfeddaebf9dd24be5b2a1b4dadf711ad1b8d1ceade218e0a5ae6a1301194f3168f6ce1d8ed52b983063c09e52dcd62e0844552a"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/exporter-trace-otlp-grpc",
+      "SPDXID": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-grpc-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/exporter-trace-otlp-grpc",
+      "description": "OpenTelemetry Collector Exporter allows user to send collected traces to the OpenTelemetry Collector",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/exporter-trace-otlp-grpc/-/exporter-trace-otlp-grpc-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/exporter-trace-otlp-grpc",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/exporter-trace-otlp-grpc@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "feaf2c53dc23db4b53f66fb9dbd55737d13d0f3a6f36e8b90a272df289d8fe0446797a936afdb5c4792f9afd054a97ad6ffdbd592f3d76b5637c8f3f31fda259"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/exporter-trace-otlp-http",
+      "SPDXID": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-http-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/exporter-trace-otlp-http",
+      "description": "OpenTelemetry Collector Trace Exporter allows user to send collected traces to the OpenTelemetry Collector",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/exporter-trace-otlp-http/-/exporter-trace-otlp-http-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/exporter-trace-otlp-http",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/exporter-trace-otlp-http@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "c62121259c44f720dbd771555b85da17b279e9ba0bbf53402ce18456edc5f23302db8899997e5349544908d18b5b2cb55dbdcddbb62edf591d4ac9840429f1cb"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/exporter-trace-otlp-proto",
+      "SPDXID": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-proto-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/exporter-trace-otlp-proto",
+      "description": "OpenTelemetry Collector Exporter allows user to send collected traces to the OpenTelemetry Collector using protobuf over HTTP",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/exporter-trace-otlp-proto/-/exporter-trace-otlp-proto-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/exporter-trace-otlp-proto",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/exporter-trace-otlp-proto@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "037946a77f6aa991ade8f53ff57ebcdbfe0a7640ccbbe8cefac967342766f19922dc028416e958db262dcf8acbd2b6a1fe588df84351b0541623f077c498991b"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/exporter-zipkin",
+      "SPDXID": "SPDXRef-Package-opentelemetry.exporter-zipkin-2.1.0",
+      "versionInfo": "2.1.0",
+      "packageFileName": "node_modules/@opentelemetry/exporter-zipkin",
+      "description": "OpenTelemetry Zipkin Exporter allows the user to send collected traces to Zipkin.",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/exporter-zipkin/-/exporter-zipkin-2.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-exporter-zipkin",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/exporter-zipkin@2.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "d26108d150d9aeb5fdb79444d45840c86cfe8c01adf7a1d2b97bbbde57acc2d6372f96190f5d60b5ca40458d8a031fece99dbeae3e4c863e7ae89b08d82ee67c"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/instrumentation",
+      "SPDXID": "SPDXRef-Package-opentelemetry.instrumentation-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/instrumentation",
+      "description": "Base class for node which OpenTelemetry instrumentation modules extend",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/instrumentation/-/instrumentation-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/opentelemetry-instrumentation",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/instrumentation@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "6a73d4f46027def487ff4245419e1eeb6eb1470f29f11db593133bc5a9a6164f414617c3c3522982abc532595b6fed4c4871c45fd12252a6072725a8fc1e8a18"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/instrumentation-http",
+      "SPDXID": "SPDXRef-Package-opentelemetry.instrumentation-http-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/instrumentation-http",
+      "description": "OpenTelemetry instrumentation for `node:http` and `node:https` http client and server modules",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/instrumentation-http/-/instrumentation-http-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/opentelemetry-instrumentation-http",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/instrumentation-http@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "537e7953a3e94528f93432ea23cb98d923e9e2e6a9b8601248614b3e841baeaa611d0ea926b1c31414d1ef66be4b95ef1c9a353e52d2f3893820e97eb5760fb0"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/otlp-exporter-base",
+      "SPDXID": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/otlp-exporter-base",
+      "description": "OpenTelemetry OTLP Exporter base (for internal use only)",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/otlp-exporter-base/-/otlp-exporter-base-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/otlp-exporter-base",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/otlp-exporter-base@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "46fe78a1234a307612e61bfe1f910692c7c152dbcf4161532be0e4e8c8c9ba7f6d3a28c2b0526b85116f02a83977aed3592327f9941844a21e5e1e682d5ae901"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/otlp-grpc-exporter-base",
+      "SPDXID": "SPDXRef-Package-opentelemetry.otlp-grpc-exporter-base-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/otlp-grpc-exporter-base",
+      "description": "OpenTelemetry OTLP-gRPC Exporter base (for internal use only)",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/otlp-grpc-exporter-base/-/otlp-grpc-exporter-base-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/otlp-grpc-exporter-base",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/otlp-grpc-exporter-base@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "200f040dbac1f0e2ad89d32a12b058f2c51cf66874dcb397b8d3f0a78feb74faf14ade39835801b99328bd15dd1167d1c8a29b17613b31d8a94f69b5d5bb3a49"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/otlp-transformer",
+      "SPDXID": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/otlp-transformer",
+      "description": "Transform OpenTelemetry SDK data into OTLP",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/otlp-transformer/-/otlp-transformer-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/otlp-transformer",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/otlp-transformer@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "2e2d828a4d569e635b5369a64e7c3b0f1bd189784c72702e4df01c94ff32ff3cbb879f86acb0e94d9f99d1752cf90dcc2e46ff877af2e2e16b0bfcfed9ae97ee"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/propagator-b3",
+      "SPDXID": "SPDXRef-Package-opentelemetry.propagator-b3-2.1.0",
+      "versionInfo": "2.1.0",
+      "packageFileName": "node_modules/@opentelemetry/propagator-b3",
+      "description": "OpenTelemetry B3 propagator provides context propagation for systems that are using the B3 header format",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/propagator-b3/-/propagator-b3-2.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-propagator-b3",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/propagator-b3@2.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "c8e747985b1e2028586a775d30ccf4989205407ca3c1b361a3173ae5f10003cc9a9f17013f0a050e8875f960545803bf674351824fa4f3b77e68523301985c07"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/propagator-jaeger",
+      "SPDXID": "SPDXRef-Package-opentelemetry.propagator-jaeger-2.1.0",
+      "versionInfo": "2.1.0",
+      "packageFileName": "node_modules/@opentelemetry/propagator-jaeger",
+      "description": "OpenTelemetry Jaeger propagator provides HTTP header propagation for systems that are using Jaeger HTTP header format.",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/propagator-jaeger/-/propagator-jaeger-2.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-propagator-jaeger",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/propagator-jaeger@2.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "418a3bbcbc8c8eb042513a7040117f7beaef3fba06b24ad210b1b1852bcb8f98293346b3f68267bbfd0ee25d8d9bb2c48407dff349ed4582a401c4b0560bd255"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/resources",
+      "SPDXID": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "versionInfo": "2.1.0",
+      "packageFileName": "node_modules/@opentelemetry/resources",
+      "description": "OpenTelemetry SDK resources",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/resources/-/resources-2.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-resources",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/resources@2.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "d422637f72c2be879f50e81e8318bc87aaf807fc0b4b3227ca118fd94988058365a38424e4267bdded5e1325a67d7bc5b66d726e499f6f60ea5afb29b182eb5b"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/sdk-logs",
+      "SPDXID": "SPDXRef-Package-opentelemetry.sdk-logs-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/sdk-logs",
+      "description": "OpenTelemetry logs SDK",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/sdk-logs/-/sdk-logs-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/sdk-logs",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/sdk-logs@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "490db24e6a9ee0cc3d448ddafe095591f8d63ec5e1e8bc92be79635ee6e266ae33bbe50ff0d309b768fcd99b186fe2a90fb12efbfe35ffbaa52678dd7958f3ed"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/sdk-metrics",
+      "SPDXID": "SPDXRef-Package-opentelemetry.sdk-metrics-2.1.0",
+      "versionInfo": "2.1.0",
+      "packageFileName": "node_modules/@opentelemetry/sdk-metrics",
+      "description": "OpenTelemetry metrics SDK",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/sdk-metrics/-/sdk-metrics-2.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/sdk-metrics",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/sdk-metrics@2.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "27d417e39f66cea1cb2fd63a159e3040f4591b84cea4c0b23ce87a9a4aff86e9b11355b64b706f7f88bbe7288c5bdbb279dd8a7f9af198b8539bf50af2f36403"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/sdk-node",
+      "SPDXID": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "versionInfo": "0.206.0",
+      "packageFileName": "node_modules/@opentelemetry/sdk-node",
+      "description": "OpenTelemetry SDK for Node.js",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/sdk-node/-/sdk-node-0.206.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/experimental/packages/opentelemetry-sdk-node",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/sdk-node@0.206.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "b7fdb1606d7ea572b63388eb6b8f06c3a052d04fe1cf8cd8c2ea82f06f09093c7d510a4288595a0376316e7b3bf51d61e8d6d0cfb3407b69093b7fc97fd06820"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/sdk-trace-base",
+      "SPDXID": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "versionInfo": "2.1.0",
+      "packageFileName": "node_modules/@opentelemetry/sdk-trace-base",
+      "description": "OpenTelemetry Tracing",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/sdk-trace-base/-/sdk-trace-base-2.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-sdk-trace-base",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/sdk-trace-base@2.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "b935fd141955426e12da05503b5b1be6ac812eafc53e36e9fad986a31bb8b4882d606981601e38f8a5ffef6e511437b7d32052680f4c97d7eaa617b585b5322d"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/sdk-trace-node",
+      "SPDXID": "SPDXRef-Package-opentelemetry.sdk-trace-node-2.1.0",
+      "versionInfo": "2.1.0",
+      "packageFileName": "node_modules/@opentelemetry/sdk-trace-node",
+      "description": "OpenTelemetry Node SDK provides automatic telemetry (tracing, metrics, etc) for Node.js applications",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/sdk-trace-node/-/sdk-trace-node-2.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/packages/opentelemetry-sdk-trace-node",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/sdk-trace-node@2.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "4af56504573f8c8f7abbf9a694a9bcea7f416d309b437e67b0fa0ea21a895fa0d71fdd8ad244deef7cc6639afcc682354248d1f4f8b3b335492f3302f7aeb2f5"
+        }
+      ]
+    },
+    {
+      "name": "@opentelemetry/semantic-conventions",
+      "SPDXID": "SPDXRef-Package-opentelemetry.semantic-conventions-1.37.0",
+      "versionInfo": "1.37.0",
+      "packageFileName": "node_modules/@opentelemetry/semantic-conventions",
+      "description": "OpenTelemetry semantic conventions",
+      "downloadLocation": "https://registry.npmjs.org/@opentelemetry/semantic-conventions/-/semantic-conventions-1.37.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/open-telemetry/opentelemetry-js/tree/main/semantic-conventions",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40opentelemetry/semantic-conventions@1.37.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "243e837ab20a7491a6469e234325f9165ad08c0e2d8cec3572f7ec3c06577ce38412b3141e33dc3d22024bee969ccd2707479f48501187428066cb3e6ef13138"
+        }
+      ]
+    },
+    {
+      "name": "@protobufjs/aspromise",
+      "SPDXID": "SPDXRef-Package-protobufjs.aspromise-1.1.2",
+      "versionInfo": "1.1.2",
+      "packageFileName": "node_modules/@protobufjs/aspromise",
+      "description": "Returns a promise from a node-style callback function.",
+      "downloadLocation": "https://registry.npmjs.org/@protobufjs/aspromise/-/aspromise-1.1.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/dcodeIO/protobuf.js#readme",
+      "licenseDeclared": "BSD-3-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40protobufjs/aspromise@1.1.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "8fe80a13112e2e62b0bf3dce811397b6b276506db1f028766195316a187eb351761d9fb001c79434b92fcbacca08f551914fbe65642b771b147905e6720e2ea1"
+        }
+      ]
+    },
+    {
+      "name": "@protobufjs/base64",
+      "SPDXID": "SPDXRef-Package-protobufjs.base64-1.1.2",
+      "versionInfo": "1.1.2",
+      "packageFileName": "node_modules/@protobufjs/base64",
+      "description": "A minimal base64 implementation for number arrays.",
+      "downloadLocation": "https://registry.npmjs.org/@protobufjs/base64/-/base64-1.1.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/dcodeIO/protobuf.js#readme",
+      "licenseDeclared": "BSD-3-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40protobufjs/base64@1.1.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "01991c000e6f9cdfefe0f0ea2b2311e65c7b859b6d3c380296ff3713ffc530d851d9331c2d485f4540470a64a5d288bdccc8030ea4542644b13b7c26f39f972e"
+        }
+      ]
+    },
+    {
+      "name": "@protobufjs/codegen",
+      "SPDXID": "SPDXRef-Package-protobufjs.codegen-2.0.4",
+      "versionInfo": "2.0.4",
+      "packageFileName": "node_modules/@protobufjs/codegen",
+      "description": "A minimalistic code generation utility.",
+      "downloadLocation": "https://registry.npmjs.org/@protobufjs/codegen/-/codegen-2.0.4.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/dcodeIO/protobuf.js#readme",
+      "licenseDeclared": "BSD-3-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40protobufjs/codegen@2.0.4"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "63215a8a4a8ce6c1f4ce215908ddf10c2ef3786681fddd0851bf42013ba01d66ddd45445c16c2de2577839830f5aee5add77b4d6618050b09daa13253e5dbd26"
+        }
+      ]
+    },
+    {
+      "name": "@protobufjs/eventemitter",
+      "SPDXID": "SPDXRef-Package-protobufjs.eventemitter-1.1.0",
+      "versionInfo": "1.1.0",
+      "packageFileName": "node_modules/@protobufjs/eventemitter",
+      "description": "A minimal event emitter.",
+      "downloadLocation": "https://registry.npmjs.org/@protobufjs/eventemitter/-/eventemitter-1.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/dcodeIO/protobuf.js#readme",
+      "licenseDeclared": "BSD-3-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40protobufjs/eventemitter@1.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "8fd79d9d14fcd6f609f4e7d5b971ba1114937442f5c55b0d82aa64c4cb1b21a6f34a8de0a028c322f79e1afe5dd37a26dfd30bef545d9ab18d8c6e5245e04ffd"
+        }
+      ]
+    },
+    {
+      "name": "@protobufjs/fetch",
+      "SPDXID": "SPDXRef-Package-protobufjs.fetch-1.1.0",
+      "versionInfo": "1.1.0",
+      "packageFileName": "node_modules/@protobufjs/fetch",
+      "description": "Fetches the contents of a file accross node and browsers.",
+      "downloadLocation": "https://registry.npmjs.org/@protobufjs/fetch/-/fetch-1.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/dcodeIO/protobuf.js#readme",
+      "licenseDeclared": "BSD-3-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40protobufjs/fetch@1.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "9658d55e9a9779ba6c8a35bbd4f65a098788704e689f5c390e5432e561fa18b6c5af22d4ac10f8f77d96fc4d814a97d1256b1e20be2ffca3e0045c4338874aa5"
+        }
+      ]
+    },
+    {
+      "name": "@protobufjs/float",
+      "SPDXID": "SPDXRef-Package-protobufjs.float-1.0.2",
+      "versionInfo": "1.0.2",
+      "packageFileName": "node_modules/@protobufjs/float",
+      "description": "Reads / writes floats / doubles from / to buffers in both modern and ancient browsers.",
+      "downloadLocation": "https://registry.npmjs.org/@protobufjs/float/-/float-1.0.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/dcodeIO/protobuf.js#readme",
+      "licenseDeclared": "BSD-3-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40protobufjs/float@1.0.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "0dd6fe9155e55ecb7d77e47d3df4c8c61d4474d920a117b9b4e5fab74d5fd656163af26748f0c1946db8d502f37323dda0d4ec6e52d476e8c6484e11ceb4d919"
+        }
+      ]
+    },
+    {
+      "name": "@protobufjs/inquire",
+      "SPDXID": "SPDXRef-Package-protobufjs.inquire-1.1.0",
+      "versionInfo": "1.1.0",
+      "packageFileName": "node_modules/@protobufjs/inquire",
+      "description": "Requires a module only if available and hides the require call from bundlers.",
+      "downloadLocation": "https://registry.npmjs.org/@protobufjs/inquire/-/inquire-1.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/dcodeIO/protobuf.js#readme",
+      "licenseDeclared": "BSD-3-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40protobufjs/inquire@1.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "91d49e7dc3ddaee26214c5526e7f34d6de2f14aeca07fe607767d8bebc61b89620f082eb9a7f522925f6b59755e95fa4b2e956a92eda5e305c457977c07a03f5"
+        }
+      ]
+    },
+    {
+      "name": "@protobufjs/path",
+      "SPDXID": "SPDXRef-Package-protobufjs.path-1.1.2",
+      "versionInfo": "1.1.2",
+      "packageFileName": "node_modules/@protobufjs/path",
+      "description": "A minimal path module to resolve Unix, Windows and URL paths alike.",
+      "downloadLocation": "https://registry.npmjs.org/@protobufjs/path/-/path-1.1.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/dcodeIO/protobuf.js#readme",
+      "licenseDeclared": "BSD-3-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40protobufjs/path@1.1.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "e8939c2794e6d3c74e1c06dd4771abbcffb25147e48c6e5e3ec1d87333052eadd998c9000fdf1c0e0713da2035949f4d57015de2d1ff8924a87b8e185a496d10"
+        }
+      ]
+    },
+    {
+      "name": "@protobufjs/pool",
+      "SPDXID": "SPDXRef-Package-protobufjs.pool-1.1.0",
+      "versionInfo": "1.1.0",
+      "packageFileName": "node_modules/@protobufjs/pool",
+      "description": "A general purpose buffer pool.",
+      "downloadLocation": "https://registry.npmjs.org/@protobufjs/pool/-/pool-1.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/dcodeIO/protobuf.js#readme",
+      "licenseDeclared": "BSD-3-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40protobufjs/pool@1.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "d2410b6864880c12af7204b8ce48f3d4f79d75ab6b8d87263163a502e00fc0079c714acf1dd52aa3f27a2e2ca61c7122253e4dac5d54570c58d787fe7f2e1643"
+        }
+      ]
+    },
+    {
+      "name": "@protobufjs/utf8",
+      "SPDXID": "SPDXRef-Package-protobufjs.utf8-1.1.0",
+      "versionInfo": "1.1.0",
+      "packageFileName": "node_modules/@protobufjs/utf8",
+      "description": "A minimal UTF8 implementation for number arrays.",
+      "downloadLocation": "https://registry.npmjs.org/@protobufjs/utf8/-/utf8-1.1.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/dcodeIO/protobuf.js#readme",
+      "licenseDeclared": "BSD-3-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40protobufjs/utf8@1.1.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "56f9f7cd9ae1419924044f0b4ae5b77a6f7c73417080ee27c73bfa39d4b13ca24810a6366c66c79fe9a11883deaf3238b7077168ff3fd3ed3a1c1a707f7e392f"
         }
       ]
     },
@@ -201,6 +1425,30 @@
       ]
     },
     {
+      "name": "acorn-import-attributes",
+      "SPDXID": "SPDXRef-Package-acorn-import-attributes-1.9.5",
+      "versionInfo": "1.9.5",
+      "packageFileName": "node_modules/acorn-import-attributes",
+      "description": "Support for import attributes in acorn",
+      "downloadLocation": "https://registry.npmjs.org/acorn-import-attributes/-/acorn-import-attributes-1.9.5.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/xtuc/acorn-import-attributes#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/acorn-import-attributes@1.9.5"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "9f4d95ca4bf9b80dde1c633f676750adc0f9ea42fc4f20dbda9d7ed0ff373c294c9c2fe773e6a76d046120e5a74aae0a7bf2af0cfad8dc2f610ed0bf0377879d"
+        }
+      ]
+    },
+    {
       "name": "agentkeepalive",
       "SPDXID": "SPDXRef-Package-agentkeepalive-4.6.0",
       "versionInfo": "4.6.0",
@@ -221,54 +1469,6 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "9236bc8fb3e39a770e36a693b01f1f43ec04da6494d8327d0f85caa09e4f15621d44c6ba48b48dd5f7f898eaf88c26df452b3147891e222c92254d0df53e6121"
-        }
-      ]
-    },
-    {
-      "name": "ajv",
-      "SPDXID": "SPDXRef-Package-ajv-8.17.1",
-      "versionInfo": "8.17.1",
-      "packageFileName": "node_modules/ajv",
-      "description": "Another JSON Schema Validator",
-      "downloadLocation": "https://registry.npmjs.org/ajv/-/ajv-8.17.1.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://ajv.js.org",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/ajv@8.17.1"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "07f801b8d8394a2313acf902f80dbe716d11b33c316269fa558c41fe29e5052b52e67c7ac4722dfde84a46120c86abac97b6bc2e34286678c2b39be1c31390d6"
-        }
-      ]
-    },
-    {
-      "name": "ajv-formats",
-      "SPDXID": "SPDXRef-Package-ajv-formats-3.0.1",
-      "versionInfo": "3.0.1",
-      "packageFileName": "node_modules/ajv-formats",
-      "description": "Format validation for Ajv v7+",
-      "downloadLocation": "https://registry.npmjs.org/ajv-formats/-/ajv-formats-3.0.1.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/ajv-validator/ajv-formats#readme",
-      "licenseDeclared": "MIT",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/ajv-formats@3.0.1"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "f2252a979d04511fae51c7514371c3a9ae84572a3776870bf20e5627714d7169aeeb621b90652e7bfa44c8b056f1518a2ae7133e0a9e92ce1f214d43038ca8c1"
         }
       ]
     },
@@ -369,6 +1569,30 @@
       ]
     },
     {
+      "name": "cjs-module-lexer",
+      "SPDXID": "SPDXRef-Package-cjs-module-lexer-1.4.3",
+      "versionInfo": "1.4.3",
+      "packageFileName": "node_modules/cjs-module-lexer",
+      "description": "Lexes CommonJS modules, returning their named exports metadata",
+      "downloadLocation": "https://registry.npmjs.org/cjs-module-lexer/-/cjs-module-lexer-1.4.3.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/nodejs/cjs-module-lexer#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/cjs-module-lexer@1.4.3"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "f73f1365a18cd697ecc18797ad4a733eb931f149d661d849725b2260c9bac7fc39fa737ef137ff2e70207cb1900a6e7da803b153c5b01c4ab6bcdc05ea2e23f9"
+        }
+      ]
+    },
+    {
       "name": "cluster-key-slot",
       "SPDXID": "SPDXRef-Package-cluster-key-slot-1.1.2",
       "versionInfo": "1.1.2",
@@ -465,30 +1689,6 @@
       ]
     },
     {
-      "name": "detect-libc",
-      "SPDXID": "SPDXRef-Package-detect-libc-2.1.2",
-      "versionInfo": "2.1.2",
-      "packageFileName": "node_modules/detect-libc",
-      "description": "Node.js module to detect the C standard library (libc) implementation family and version",
-      "downloadLocation": "https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/lovell/detect-libc#readme",
-      "licenseDeclared": "Apache-2.0",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/detect-libc@2.1.2"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "06d8f604e38ef37a375b21f9f5ef0c817b3111055c6ab9143a9118aee6c1d2eaf09cdd74c90dfae2bb22072535d67665a966199b4e62fe87fb8a8e26ce2841b5"
-        }
-      ]
-    },
-    {
       "name": "diff",
       "SPDXID": "SPDXRef-Package-diff-5.2.0",
       "versionInfo": "5.2.0",
@@ -557,30 +1757,6 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "8bfd976e74b3feec51094ebe35d54980a5834cce36efe32a61b910cc3df6d43b8240952a3ae24a200d08336f96db1b581dd28e999e1d47a7c4c6c7784972fe59"
-        }
-      ]
-    },
-    {
-      "name": "fast-uri",
-      "SPDXID": "SPDXRef-Package-fast-uri-3.1.0",
-      "versionInfo": "3.1.0",
-      "packageFileName": "node_modules/fast-uri",
-      "description": "Dependency-free RFC 3986 URI toolbox",
-      "downloadLocation": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.0.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/fastify/fast-uri",
-      "licenseDeclared": "BSD-3-Clause",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/fast-uri@3.1.0"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "88f79e0ca25259fe0810e6ac555ae49d7a5a055d08029cff829ed2d9b6fb6782e58db976306251a889d9894ad0c15d7a729cf0fc3dd2e63e49ba58ff813e7600"
         }
       ]
     },
@@ -657,6 +1833,30 @@
       ]
     },
     {
+      "name": "forwarded-parse",
+      "SPDXID": "SPDXRef-Package-forwarded-parse-2.1.2",
+      "versionInfo": "2.1.2",
+      "packageFileName": "node_modules/forwarded-parse",
+      "description": "Parse the Forwarded header (RFC 7239) into an array of objects",
+      "downloadLocation": "https://registry.npmjs.org/forwarded-parse/-/forwarded-parse-2.1.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/lpinca/forwarded-parse",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/forwarded-parse@2.1.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "6a54c565940328ca68ac11fbefce7aa57833844cda51598b08393e7a02e02201ecb774e99ddcf3f0c9ca7be1b344945fbd5767ebd1e1a56edc997cefb4bbc903"
+        }
+      ]
+    },
+    {
       "name": "humanize-ms",
       "SPDXID": "SPDXRef-Package-humanize-ms-1.2.1",
       "versionInfo": "1.2.1",
@@ -677,6 +1877,30 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "165ef4bd8b6c0056ff0b4e8f4d2f5d641a3b8a16aef93bbf0cd0a4fcec8785e6b4ed2f9a78c5a914591469745af1f23e49c65b108f1d7d2c7063b83167d48055"
+        }
+      ]
+    },
+    {
+      "name": "import-in-the-middle",
+      "SPDXID": "SPDXRef-Package-import-in-the-middle-1.15.0",
+      "versionInfo": "1.15.0",
+      "packageFileName": "node_modules/import-in-the-middle",
+      "description": "Intercept imports in Node.js",
+      "downloadLocation": "https://registry.npmjs.org/import-in-the-middle/-/import-in-the-middle-1.15.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/nodejs/import-in-the-middle#readme",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/import-in-the-middle@1.15.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "6e9432f82aec466626a0f30013fd06df78b046ac16e28baa75183c8e06c7dda2ae0ad39cf25c609985e0d9d30cf760918863faeb412d05cca61ff79552909268"
         }
       ]
     },
@@ -705,26 +1929,26 @@
       ]
     },
     {
-      "name": "json-schema-traverse",
-      "SPDXID": "SPDXRef-Package-json-schema-traverse-1.0.0",
-      "versionInfo": "1.0.0",
-      "packageFileName": "node_modules/json-schema-traverse",
-      "description": "Traverse JSON Schema passing each schema object to callback",
-      "downloadLocation": "https://registry.npmjs.org/json-schema-traverse/-/json-schema-traverse-1.0.0.tgz",
+      "name": "lodash.camelcase",
+      "SPDXID": "SPDXRef-Package-lodash.camelcase-4.3.0",
+      "versionInfo": "4.3.0",
+      "packageFileName": "node_modules/lodash.camelcase",
+      "description": "The lodash method `_.camelCase` exported as a module.",
+      "downloadLocation": "https://registry.npmjs.org/lodash.camelcase/-/lodash.camelcase-4.3.0.tgz",
       "filesAnalyzed": false,
-      "homepage": "https://github.com/epoberezkin/json-schema-traverse#readme",
+      "homepage": "https://lodash.com/",
       "licenseDeclared": "MIT",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/json-schema-traverse@1.0.0"
+          "referenceLocator": "pkg:npm/lodash.camelcase@4.3.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "34cf3f3fd9f75e35e12199f594b86415a0024ce5114178d6855e0103f4673aff31be0aadaa9017f483b89914314b1d51968e2dab37aa6f4b0e96bb9a3b2dddba"
+          "checksumValue": "4f0b849c29f16dcdeb02f85ffcb6c6eed2540f386a5f2167bf776dccb38f8021bf84e0cbed6167b1bc24b640fbc9457446bade3ff9753c02eafd84a0e95be394"
         }
       ]
     },
@@ -777,6 +2001,30 @@
       ]
     },
     {
+      "name": "long",
+      "SPDXID": "SPDXRef-Package-long-5.3.2",
+      "versionInfo": "5.3.2",
+      "packageFileName": "node_modules/long",
+      "description": "A Long class for representing a 64-bit two's-complement integer value.",
+      "downloadLocation": "https://registry.npmjs.org/long/-/long-5.3.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/dcodeIO/long.js#readme",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/long@5.3.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "98d0206751a6c8d843ec0baa9d31b7fd5436ea8efad3e65804f2a33efba03bcfa72db61f5fa4d5a493ec781be8a5b758faaa59fe52949e611cd4b799612dd000"
+        }
+      ]
+    },
+    {
       "name": "luxon",
       "SPDXID": "SPDXRef-Package-luxon-3.7.2",
       "versionInfo": "3.7.2",
@@ -797,6 +2045,30 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "bed1215e1fe036323d620d6ee235ffd1854f32fc731ee1a00a6ead0b9919c9bd3cca31961a7a808c626f7176ea411d8fdccc8c1059d16e971d152e8f05c2ea7b"
+        }
+      ]
+    },
+    {
+      "name": "module-details-from-path",
+      "SPDXID": "SPDXRef-Package-module-details-from-path-1.0.4",
+      "versionInfo": "1.0.4",
+      "packageFileName": "node_modules/module-details-from-path",
+      "description": "Resolve npm package details, like name and base path, given an absolute path to a file inside a package",
+      "downloadLocation": "https://registry.npmjs.org/module-details-from-path/-/module-details-from-path-1.0.4.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/watson/module-details-from-path#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/module-details-from-path@1.0.4"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "10658a83100b18c833bf1605d54c864f2d075d7ff6bc72e4c3af8dbc3296da3ca959b1e98d0ba3e1431ca905971c444985518a8a4a254f4e86ddb70a7b87e2ef"
         }
       ]
     },
@@ -1113,6 +2385,30 @@
       ]
     },
     {
+      "name": "protobufjs",
+      "SPDXID": "SPDXRef-Package-protobufjs-7.5.4",
+      "versionInfo": "7.5.4",
+      "packageFileName": "node_modules/protobufjs",
+      "description": "Protocol Buffers for JavaScript (& TypeScript).",
+      "downloadLocation": "https://registry.npmjs.org/protobufjs/-/protobufjs-7.5.4.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://protobufjs.github.io/protobuf.js/",
+      "licenseDeclared": "BSD-3-Clause",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/protobufjs@7.5.4"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "0af7b16d9b5ba2fea35b679702f2ee9178d7516d53cc56a2bc2e3a06959cff7069702cac6f955f7eef81dd71cc9bc95512ecb6326e1719ec7c8414a0d726a93e"
+        }
+      ]
+    },
+    {
       "name": "redis-errors",
       "SPDXID": "SPDXRef-Package-redis-errors-1.2.0",
       "versionInfo": "1.2.0",
@@ -1161,26 +2457,26 @@
       ]
     },
     {
-      "name": "require-from-string",
-      "SPDXID": "SPDXRef-Package-require-from-string-2.0.2",
-      "versionInfo": "2.0.2",
-      "packageFileName": "node_modules/require-from-string",
-      "description": "Require module from string",
-      "downloadLocation": "https://registry.npmjs.org/require-from-string/-/require-from-string-2.0.2.tgz",
+      "name": "require-in-the-middle",
+      "SPDXID": "SPDXRef-Package-require-in-the-middle-8.0.0",
+      "versionInfo": "8.0.0",
+      "packageFileName": "node_modules/require-in-the-middle",
+      "description": "Module to hook into the Node.js require function",
+      "downloadLocation": "https://registry.npmjs.org/require-in-the-middle/-/require-in-the-middle-8.0.0.tgz",
       "filesAnalyzed": false,
-      "homepage": "https://github.com/floatdrop/require-from-string#readme",
+      "homepage": "https://github.com/nodejs/require-in-the-middle#readme",
       "licenseDeclared": "MIT",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/require-from-string@2.0.2"
+          "referenceLocator": "pkg:npm/require-in-the-middle@8.0.0"
         }
       ],
       "checksums": [
         {
           "algorithm": "SHA512",
-          "checksumValue": "5dfd2759ee91b1ece214cbbe029f5b8a251b9a996ae92f7fa7eef0ed85cffc904786b5030d48706bebc0372b9bbaa7d9593bde53ffc36151ac0c6ed128bfef13"
+          "checksumValue": "f6cd299cce6d1fc1b8752237a66b3619ba183acdb92f03869d133137f1f1dd3613d4ad2b87a3a36967f8748d030109ccc9a1175a81959d24cf41ab2ac334d300"
         }
       ]
     },
@@ -1317,12 +2613,32 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-ajv-8.17.1",
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
       "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-ajv-formats-3.0.1",
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-http-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.instrumentation-http-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.semantic-conventions-1.37.0",
       "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
       "relationshipType": "DEPENDENCY_OF"
     },
@@ -1412,6 +2728,836 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
+      "spdxElementId": "SPDXRef-Package-grpc.proto-loader-0.8.0",
+      "relatedSpdxElement": "SPDXRef-Package-grpc.grpc-js-1.14.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-js-sdsl.ordered-map-4.4.2",
+      "relatedSpdxElement": "SPDXRef-Package-grpc.grpc-js-1.14.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-lodash.camelcase-4.3.0",
+      "relatedSpdxElement": "SPDXRef-Package-grpc.proto-loader-0.8.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-long-5.3.2",
+      "relatedSpdxElement": "SPDXRef-Package-grpc.proto-loader-0.8.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-protobufjs-7.5.4",
+      "relatedSpdxElement": "SPDXRef-Package-grpc.proto-loader-0.8.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-yargs-17.7.2",
+      "relatedSpdxElement": "SPDXRef-Package-grpc.proto-loader-0.8.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-string-width-4.2.3",
+      "relatedSpdxElement": "SPDXRef-Package-cliui-8.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-strip-ansi-6.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-cliui-8.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-wrap-ansi-7.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-cliui-8.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-is-fullwidth-code-point-3.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-string-width-4.2.3",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-strip-ansi-6.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-string-width-4.2.3",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ansi-regex-5.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-strip-ansi-6.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-string-width-4.2.3",
+      "relatedSpdxElement": "SPDXRef-Package-wrap-ansi-7.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-strip-ansi-6.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-wrap-ansi-7.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cliui-8.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-yargs-17.7.2",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-string-width-4.2.3",
+      "relatedSpdxElement": "SPDXRef-Package-yargs-17.7.2",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-y18n-5.0.8",
+      "relatedSpdxElement": "SPDXRef-Package-yargs-17.7.2",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-yargs-parser-21.1.1",
+      "relatedSpdxElement": "SPDXRef-Package-yargs-17.7.2",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.api-logs-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.context-async-hooks-2.1.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.semantic-conventions-1.37.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-grpc-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-grpc.grpc-js-1.14.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-grpc-exporter-base-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-logs-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-http-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-logs-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-logs-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-proto-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-logs-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-logs-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-grpc-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-grpc.grpc-js-1.14.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-http-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-grpc-exporter-base-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-metrics-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-http-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-metrics-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-proto-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-http-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-metrics-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-prometheus-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-prometheus-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-prometheus-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-metrics-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-prometheus-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-grpc-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-grpc.grpc-js-1.14.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-grpc-exporter-base-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-grpc-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-http-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-proto-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-proto-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-zipkin-2.1.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-zipkin-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-zipkin-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-zipkin-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.semantic-conventions-1.37.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.exporter-zipkin-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.instrumentation-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-logs-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.instrumentation-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-import-in-the-middle-1.15.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.instrumentation-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-require-in-the-middle-8.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.instrumentation-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.instrumentation-http-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.instrumentation-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.instrumentation-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.instrumentation-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.semantic-conventions-1.37.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.instrumentation-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-forwarded-parse-2.1.2",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.instrumentation-http-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-grpc-exporter-base-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-grpc.grpc-js-1.14.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-grpc-exporter-base-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-grpc-exporter-base-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-exporter-base-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-grpc-exporter-base-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-grpc-exporter-base-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-logs-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-logs-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-metrics-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-protobufjs-7.5.4",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.otlp-transformer-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.propagator-b3-2.1.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.propagator-b3-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.propagator-jaeger-2.1.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.propagator-jaeger-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.semantic-conventions-1.37.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-logs-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-logs-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-logs-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-logs-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-logs-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-metrics-2.1.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-metrics-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-metrics-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-logs-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-grpc-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-http-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-logs-otlp-proto-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-grpc-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-http-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-metrics-otlp-proto-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-prometheus-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-grpc-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-http-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-proto-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-zipkin-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.instrumentation-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.propagator-b3-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.propagator-jaeger-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-logs-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-metrics-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-trace-node-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.semantic-conventions-1.37.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-node-0.206.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.resources-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.semantic-conventions-1.37.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-node-2.1.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.context-async-hooks-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-node-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.core-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-node-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-opentelemetry.sdk-trace-node-2.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-protobufjs.aspromise-1.1.2",
+      "relatedSpdxElement": "SPDXRef-Package-protobufjs.fetch-1.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-protobufjs.inquire-1.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-protobufjs.fetch-1.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-event-target-shim-5.0.1",
       "relatedSpdxElement": "SPDXRef-Package-abort-controller-3.0.0",
       "relationshipType": "DEPENDENCY_OF"
@@ -1419,26 +3565,6 @@
     {
       "spdxElementId": "SPDXRef-Package-humanize-ms-1.2.1",
       "relatedSpdxElement": "SPDXRef-Package-agentkeepalive-4.6.0",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-fast-uri-3.1.0",
-      "relatedSpdxElement": "SPDXRef-Package-ajv-8.17.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-json-schema-traverse-1.0.0",
-      "relatedSpdxElement": "SPDXRef-Package-ajv-8.17.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-require-from-string-2.0.2",
-      "relatedSpdxElement": "SPDXRef-Package-ajv-8.17.1",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-ajv-8.17.1",
-      "relatedSpdxElement": "SPDXRef-Package-ajv-formats-3.0.1",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -1489,6 +3615,21 @@
     {
       "spdxElementId": "SPDXRef-Package-web-streams-polyfill-4.0.0-beta.3",
       "relatedSpdxElement": "SPDXRef-Package-formdata-node-4.4.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-acorn-import-attributes-1.9.5",
+      "relatedSpdxElement": "SPDXRef-Package-import-in-the-middle-1.15.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cjs-module-lexer-1.4.3",
+      "relatedSpdxElement": "SPDXRef-Package-import-in-the-middle-1.15.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-module-details-from-path-1.0.4",
+      "relatedSpdxElement": "SPDXRef-Package-import-in-the-middle-1.15.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -1567,11 +3708,6 @@
       "relationshipType": "OPTIONAL_DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-detect-libc-2.1.2",
-      "relatedSpdxElement": "SPDXRef-Package-node-gyp-build-optional-packages-5.2.2",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
       "spdxElementId": "SPDXRef-Package-types.node-18.19.130",
       "relatedSpdxElement": "SPDXRef-Package-openai-4.104.0",
       "relationshipType": "DEPENDENCY_OF"
@@ -1607,8 +3743,68 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
+      "spdxElementId": "SPDXRef-Package-protobufjs.aspromise-1.1.2",
+      "relatedSpdxElement": "SPDXRef-Package-protobufjs-7.5.4",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-protobufjs.base64-1.1.2",
+      "relatedSpdxElement": "SPDXRef-Package-protobufjs-7.5.4",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-protobufjs.codegen-2.0.4",
+      "relatedSpdxElement": "SPDXRef-Package-protobufjs-7.5.4",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-protobufjs.eventemitter-1.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-protobufjs-7.5.4",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-protobufjs.fetch-1.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-protobufjs-7.5.4",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-protobufjs.float-1.0.2",
+      "relatedSpdxElement": "SPDXRef-Package-protobufjs-7.5.4",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-protobufjs.inquire-1.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-protobufjs-7.5.4",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-protobufjs.path-1.1.2",
+      "relatedSpdxElement": "SPDXRef-Package-protobufjs-7.5.4",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-protobufjs.pool-1.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-protobufjs-7.5.4",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-protobufjs.utf8-1.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-protobufjs-7.5.4",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-long-5.3.2",
+      "relatedSpdxElement": "SPDXRef-Package-protobufjs-7.5.4",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-redis-errors-1.2.0",
       "relatedSpdxElement": "SPDXRef-Package-redis-parser-3.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-module-details-from-path-1.0.4",
+      "relatedSpdxElement": "SPDXRef-Package-require-in-the-middle-8.0.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
