@@ -6,7 +6,7 @@
     "phase_name": "Autonomous Transition — Trust Spine & LangGraph Foundation",
     "prerequisite_phase": "Phase A (UI fixes), Phase E (orchestration)",
     "supersedes": null,
-    "status": "active",
+    "status": "completed",
     "enhancement": "Establishes TypeScript-only autonomous coding platform with Fortune 500-grade trust spine, feature-flagged LangGraph orchestration, and evidence-driven governance per ADR-019.",
     "rationale": "The MVP successfully executes single-task workflows via StepQueue but lacks enterprise-scale autonomy requirements: supply chain attestation (CycloneDX/SLSA), standardized error contracts (RFC 9457), LLM observability (OpenTelemetry), multi-agent orchestration (LangGraph), and human-in-the-loop controls (HITL/MCP). Phase 19 implements the Trust Spine foundation (T0) and feature-flagged orchestrator infrastructure (M1-partial) to enable controlled rollout of autonomous capabilities while maintaining CDI rigor and rollback safety.",
     "references": [
@@ -224,7 +224,7 @@
     {
       "id": "G2",
       "name": "Trust-Spine Baseline",
-      "status": "in_progress",
+      "status": "passed",
       "acceptance": [
         "CycloneDX 1.6 SBOM generated via npm run sbom:cyclonedx",
         "SLSA v1.0 provenance emitted via npm run provenance",
