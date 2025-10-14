@@ -12,6 +12,8 @@
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
+import { defaultResource, resourceFromAttributes } from '@opentelemetry/resources';
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -60,9 +62,11 @@ export function maybeInitTelemetry(): void {
       url: endpoint,
     });
 
+    const serviceName = 'executor-mvp';
+    const serviceVersion = getServiceVersion();
+
     // Initialize NodeSDK with service metadata
     sdk = new NodeSDK({
-      serviceName: 'executor-mvp',
       traceExporter,
       instrumentations: [
         new HttpInstrumentation({
@@ -72,13 +76,19 @@ export function maybeInitTelemetry(): void {
           },
         }),
       ],
+      resource: defaultResource().merge(
+        resourceFromAttributes({
+          [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
+          [SemanticResourceAttributes.SERVICE_VERSION]: serviceVersion,
+        }),
+      ),
     });
 
     sdk.start();
     started = true;
 
     console.log(`[OTel] ✅ OpenTelemetry initialized`);
-    console.log(`[OTel] Service: executor-mvp v${getServiceVersion()}`);
+    console.log(`[OTel] Service: ${serviceName} v${serviceVersion}`);
     console.log(`[OTel] Exporter: ${endpoint}`);
   } catch (error) {
     console.error('[OTel] ERROR: Failed to initialize OpenTelemetry:', error);

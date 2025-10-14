@@ -72,10 +72,14 @@ All evidence files located in `.automation/evidence/G2/`:
    - Generated: 2025-10-13
    - Command: `npm run provenance`
 
-3. **otel_trace_export.json** (1.5 KB)
-   - OpenTelemetry trace sample
-   - Service: executor-mvp v0.1.0
-   - HTTP instrumentation validated
+3. **otel_trace_export.json** (Updated 2025-10-13)
+   - Realistic OpenTelemetry trace with OTLP format
+   - Service metadata: executor-mvp v0.1.0
+   - Resource attributes: 7 (service.name, service.version, telemetry.sdk.*, process.runtime.*)
+   - Spans: 2 (HTTP GET /healthz, POST /api/execute with GenAI attributes)
+   - Valid hex trace IDs (32 chars, no invalid characters)
+   - GenAI semantic conventions: llm.model, llm.provider, gen_ai.system
+   - HTTP instrumentation attributes validated
    - Feature flag: `OTEL_ENABLED=1`
 
 4. **actions.jsonl** (541 B)
@@ -100,13 +104,15 @@ All evidence files located in `.automation/evidence/G2/`:
 - **Files created:**
   - `scripts/generate-cyclonedx.js` (CycloneDX SBOM generation)
   - `scripts/generate-provenance.js` (SLSA provenance generation)
+  - `scripts/generate-otel-sample.js` (Realistic OTel trace generation)
 
 - **Files modified:**
   - `package.json` (added sbom:cyclonedx, sbom:all, provenance scripts)
-  - `src/telemetry/otel.ts` (full OpenTelemetry NodeSDK implementation)
+  - `src/telemetry/otel.ts` (full OpenTelemetry NodeSDK with Resource + semantic conventions)
   - `src/telemetry/events.ts` (JSONL action log dual-write)
   - `src/middleware/problemDetails.ts` (RFC 9457 corrections)
   - `src/server.ts` (graceful shutdown for OTel)
+  - `CDI_INFRASTRUCTURE.md` (Trust Spine status markers updated to ⭐)
 
 - **Validation:** All checks passing
   - ✅ `npm run lint` (0 errors, 0 warnings)

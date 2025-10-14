@@ -222,10 +222,10 @@ repo-root/
 │
 ├── src/
 │   ├── middleware/
-│   │   └── problemDetails.ts                           # RFC 9457 helpers (needs Phase 19 fixes)
+│   │   └── problemDetails.ts                           # ⭐ RFC 9457 helpers (Phase 19 T0)
 │   ├── telemetry/
-│   │   ├── otel.ts                                     # OTel bootstrap (placeholder, Phase 19 T0)
-│   │   └── events.ts                                   # Event logging (needs JSONL dual-write)
+│   │   ├── otel.ts                                     # ⭐ OTel bootstrap (Phase 19 T0)
+│   │   └── events.ts                                   # ⭐ Event logging + JSONL dual-write (Phase 19 T0)
 │   └── orchestrator/
 │       ├── adapter.ts                                  # Feature-flagged LangGraph adapter
 │       ├── graph.ts                                    # LangGraph stub runtime
@@ -233,13 +233,13 @@ repo-root/
 │
 ├── scripts/
 │   ├── validate-contract.js                            # Contract validator
-│   ├── generate-cyclonedx.js                           # ⏳ To be created (Phase 19 T0)
-│   └── generate-provenance.js                          # ⏳ To be created (Phase 19 T0)
+│   ├── generate-cyclonedx.js                           # ⭐ CycloneDX SBOM generator (Phase 19 T0)
+│   └── generate-provenance.js                          # ⭐ SLSA provenance generator (Phase 19 T0)
 │
 └── .automation/
-    ├── GATES_LEDGER.md                                 # ⏳ To be created (Phase 19 T0)
+    ├── GATES_LEDGER.md                                 # ⭐ Gate ledger (Phase 19 T0)
     ├── evidence/
-    │   └── G2/                                         # ⏳ To be created (Phase 19 T0)
+    │   └── G2/                                         # ⭐ Gate G2 evidence bundle (Phase 19 T0)
     │       ├── sbom.cdx.json                           # CycloneDX SBOM
     │       ├── provenance.intoto.jsonl                 # SLSA provenance
     │       ├── otel_trace_export.json                  # OTel trace sample
@@ -247,8 +247,8 @@ repo-root/
     │       └── errors_rfc9457.jsonl                    # RFC 9457 error samples
     └── phase19_20_implementation_summary.md            # ⭐ Trust Spine implementation guide
 
-⭐ = Completed in this session
-⏳ = Pending implementation (Phase 19 T0)
+⭐ = Implemented in Phase 19 T0
+⏳ = Pending implementation (future work)
 ```
 
 ---
@@ -268,13 +268,15 @@ npm install
 npm run contract:check
 # Expected: ✅ All contracts are valid!
 
-# 4. Test SBOM generation (SPDX available, CycloneDX pending Phase 19 T0)
-npm run sbom
-# Expected: Creates sbom.spdx.json
+# 4. Generate Trust Spine artifacts
+npm run sbom:all
+# Expected: Creates sbom.spdx.json + sbom.cdx.json
+npm run provenance
+# Expected: Creates provenance.intoto.jsonl with attestations
 
 # 5. Run all validation
 npm run validate:all
-# Expected: All checks pass
+# Expected: All checks pass (lint, typecheck, tests, contract check)
 ```
 
 **To begin Phase 19 Trust Spine implementation:**
@@ -321,18 +323,15 @@ curl -X POST http://localhost:3000/api/execute \
 - **Active Phase:** Phase 19 (Trust Spine + LangGraph Foundation) + Phase 20 (Complete)
 - **Completed This Session:**
   - ✅ Phase 19/20 contracts created and validated
+  - ✅ Trust Spine scripts + telemetry shipped (SBOM, provenance, OTel, JSONL)
   - ✅ Governance docs updated (AGENTS.md, CDI_INFRASTRUCTURE.md)
-  - ✅ Contract naming standard documented
-  - ✅ RFC 9457 API documentation complete
-  - ✅ Implementation guide created
+  - ✅ RFC 9457 API documentation and helpers live
+  - ✅ Gate G2 evidence bundle refreshed
 
-- **Next Milestone:** Phase 19 T0 (Trust Spine Implementation)
-  - ⏳ CycloneDX SBOM generation
-  - ⏳ SLSA provenance generation
-  - ⏳ OpenTelemetry GenAI spans
-  - ⏳ JSONL action log dual-write
-  - ⏳ RFC 9457 corrections
-  - ⏳ Evidence bundle collection (Gate G2)
+- **Next Milestone:** Phase 19 Gate G3 (LangGraph pilot)
+  - ⏳ LangGraph adapter rollout
+  - ⏳ Deterministic replay harness
+  - ⏳ Performance + parity validation
 
 - **Execution History:** Contracts 01-18 complete (Phases 0-4, 4B1-4B4, A, B, E)
 - **CDI Pattern:** Discovery → Implementation → Evidence → Gates
@@ -340,5 +339,5 @@ curl -X POST http://localhost:3000/api/execute \
 
 ---
 
-**Last Updated:** 2025-10-13
-**Status:** Phase 19/20 contracts active; Trust Spine implementation pending (see `.automation/phase19_20_implementation_summary.md`)
+**Last Updated:** 2025-10-13 (Phase 19 T0 refresh)
+**Status:** Phase 19 Trust Spine live; preparing for LangGraph pilot (see `.automation/phase19_20_implementation_summary.md`)
