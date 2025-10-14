@@ -22,6 +22,9 @@ Files are written to `./output/<project>`.
 
 ## 📍 Quick Navigation
 
+**Confused about what you're working on?** Start here:
+- **[WHAT_IS_WHAT.md](WHAT_IS_WHAT.md)** - Category clarification: Product vs Workflow (3 min read)
+
 **New to this repo?** Start here:
 - **[FILE_INDEX.md](FILE_INDEX.md)** - Quick map: what's where (2 min read)
 - **[CDI_INFRASTRUCTURE.md](CDI_INFRASTRUCTURE.md)** - CDI pattern overview (5 min read)
