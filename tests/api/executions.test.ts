@@ -1,5 +1,5 @@
 import request from "supertest";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { app } from "../../src/server.js";
 import { __test as execStoreTest } from "../../src/orchestrator/executionsStore.js";
@@ -8,8 +8,12 @@ describe("LangGraph executions endpoint", () => {
   beforeEach(() => {
     process.env.NODE_ENV = "test";
     process.env.AGENTS_RUNTIME = "langgraph";
-    delete process.env.PROBLEM_DETAILS_ENABLED; // default: JSON error shape
+    process.env.PROBLEM_DETAILS_ENABLED = "1";
     execStoreTest.clear();
+  });
+
+  afterEach(() => {
+    delete process.env.PROBLEM_DETAILS_ENABLED;
   });
 
   it("returns 202 + Location for /api/execute and exposes status at /api/executions/:id", async () => {
@@ -36,7 +40,13 @@ describe("LangGraph executions endpoint", () => {
 
   it("returns 404 for unknown execution id", async () => {
     const res = await request(app).get("/api/executions/does-not-exist").expect(404);
-    // Fallback error shape when problem details disabled
-    expect(res.body).toHaveProperty("error");
+    expect(res.headers["content-type"]).toContain("application/problem+json");
+    expect(res.body).toMatchObject({
+      status: 404,
+      title: "Not Found",
+      detail: "execution not found",
+      instance: "/api/executions/does-not-exist"
+    });
+    expect(res.body).not.toHaveProperty("error");
   });
 });

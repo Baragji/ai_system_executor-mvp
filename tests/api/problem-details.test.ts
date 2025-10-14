@@ -20,7 +20,7 @@ afterEach(() => {
 
 describe("problem+json envelope", () => {
   it("returns legacy error body when disabled", async () => {
-    delete process.env.PROBLEM_DETAILS_ENABLED;
+    process.env.PROBLEM_DETAILS_ENABLED = "0";
     const app = await getFreshApp();
 
     const response = await request(app).post("/api/execute").send({}).expect(400);
@@ -39,7 +39,7 @@ describe("problem+json envelope", () => {
     expect(response.headers["content-type"]).toContain("application/problem+json");
     expect(response.body).toMatchObject({
       status: 400,
-      title: "BadRequest",
+      title: "Bad Request",
       detail: "prompt required",
       instance: "/api/execute"
     });

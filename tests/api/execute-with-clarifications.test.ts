@@ -136,6 +136,13 @@ describe("POST /api/execute with clarifications", () => {
       .send({ prompt: "Generate something", clarifications: { answers: [{}] } });
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toBe("invalid clarifications");
+    expect(res.headers["content-type"]).toContain("application/problem+json");
+    expect(res.body).toMatchObject({
+      status: 400,
+      title: "Bad Request",
+      detail: "invalid clarifications",
+      instance: "/api/execute"
+    });
+    expect(res.body).not.toHaveProperty("error");
   });
 });
