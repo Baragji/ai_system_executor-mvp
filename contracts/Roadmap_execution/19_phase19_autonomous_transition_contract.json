@@ -143,7 +143,12 @@
     "monitoring": {
       "discovery_phase_tracking": true,
       "integration_point_validation": true,
-      "milestone_status": ["T0-pending", "T0-in_progress", "T0-complete", "M1-complete"],
+      "milestone_status": [
+        "T0-pending",
+        "T0-in_progress",
+        "T0-complete",
+        "M1-complete"
+      ],
       "evidence_collection_tracking": true,
       "gate_g2_status": "pending"
     },
@@ -281,7 +286,7 @@
       "title": "Update AGENTS.md with Phase 19 requirements",
       "type": "documentation",
       "description": "Add feature flags section (AGENTS_RUNTIME, OTEL_ENABLED, ACTION_LOG_JSONL, PROBLEM_DETAILS_ENABLED), update SBOM requirements to include CycloneDX, add RFC 9457 error handling requirement, update Last Updated date.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 60,
       "prerequisite": null,
       "actions": [
@@ -292,10 +297,22 @@
         "Add reference to Phase 19 contract"
       ],
       "validation": [
-        {"cmd": "grep -q 'AGENTS_RUNTIME' AGENTS.md", "expect_exit_code": 0},
-        {"cmd": "grep -q 'CycloneDX' AGENTS.md", "expect_exit_code": 0},
-        {"cmd": "grep -q 'RFC 9457' AGENTS.md", "expect_exit_code": 0},
-        {"cmd": "grep -q '2025-10-13' AGENTS.md", "expect_exit_code": 0}
+        {
+          "cmd": "grep -q 'AGENTS_RUNTIME' AGENTS.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'CycloneDX' AGENTS.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'RFC 9457' AGENTS.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q '2025-10-13' AGENTS.md",
+          "expect_exit_code": 0
+        }
       ],
       "validation_results": [],
       "success_criteria": [
@@ -308,7 +325,8 @@
         "decision_point": "agents_md_phase19_updated",
         "reasoning_required": false,
         "critical": true
-      }
+      },
+      "completed_at": "2025-10-14T14:20:30.565Z"
     },
     {
       "id": "T0-DOC-2",
@@ -316,7 +334,7 @@
       "title": "Update CDI_INFRASTRUCTURE.md for Phase 19/20",
       "type": "documentation",
       "description": "Change Current Phase to 19/20, add Trust Spine section with new files, add feature flag workflow documentation, add Phase 19/20 contract references.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 60,
       "prerequisite": null,
       "actions": [
@@ -327,9 +345,18 @@
         "Update Quick File Finder with new references"
       ],
       "validation": [
-        {"cmd": "grep -q 'Phase 19' CDI_INFRASTRUCTURE.md", "expect_exit_code": 0},
-        {"cmd": "grep -q 'Trust Spine' CDI_INFRASTRUCTURE.md", "expect_exit_code": 0},
-        {"cmd": "grep -q 'Feature Flag' CDI_INFRASTRUCTURE.md", "expect_exit_code": 0}
+        {
+          "cmd": "grep -q 'Phase 19' CDI_INFRASTRUCTURE.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'Trust Spine' CDI_INFRASTRUCTURE.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'Feature Flag' CDI_INFRASTRUCTURE.md",
+          "expect_exit_code": 0
+        }
       ],
       "validation_results": [],
       "success_criteria": [
@@ -342,7 +369,8 @@
         "decision_point": "cdi_infrastructure_phase19_updated",
         "reasoning_required": false,
         "critical": true
-      }
+      },
+      "completed_at": "2025-10-14T14:20:30.565Z"
     },
     {
       "id": "T0-DOC-3",
@@ -350,7 +378,7 @@
       "title": "Create contracts/README.md with naming standard",
       "type": "documentation",
       "description": "Document contract naming standard (NN_phase<ID>_<slug>_contract.json), explain legacy naming, provide examples, add contract metadata structure documentation.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 45,
       "prerequisite": null,
       "actions": [
@@ -361,9 +389,18 @@
         "Add guidance for finding contracts by phase"
       ],
       "validation": [
-        {"cmd": "test -f contracts/README.md", "expect_exit_code": 0},
-        {"cmd": "grep -q 'NN_phase' contracts/README.md", "expect_exit_code": 0},
-        {"cmd": "grep -q 'Legacy Naming' contracts/README.md", "expect_exit_code": 0}
+        {
+          "cmd": "test -f contracts/README.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'NN_phase' contracts/README.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'Legacy Naming' contracts/README.md",
+          "expect_exit_code": 0
+        }
       ],
       "validation_results": [],
       "success_criteria": [
@@ -376,7 +413,8 @@
         "decision_point": "contract_naming_standard_documented",
         "reasoning_required": false,
         "critical": true
-      }
+      },
+      "completed_at": "2025-10-14T14:20:30.565Z"
     },
     {
       "id": "T0-DOC-4",
@@ -384,7 +422,7 @@
       "title": "Create docs/api/problem_types.md for RFC 9457",
       "type": "documentation",
       "description": "Document RFC 9457 problem types (validation-error, not-found, internal-error), provide examples with JSON Pointer format, add client integration guidance.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 30,
       "prerequisite": null,
       "actions": [
@@ -396,9 +434,18 @@
         "Link from AGENTS.md Error Handling section"
       ],
       "validation": [
-        {"cmd": "test -f docs/api/problem_types.md", "expect_exit_code": 0},
-        {"cmd": "grep -q 'RFC 9457' docs/api/problem_types.md", "expect_exit_code": 0},
-        {"cmd": "grep -q 'JSON Pointer' docs/api/problem_types.md", "expect_exit_code": 0}
+        {
+          "cmd": "test -f docs/api/problem_types.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'RFC 9457' docs/api/problem_types.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'JSON Pointer' docs/api/problem_types.md",
+          "expect_exit_code": 0
+        }
       ],
       "validation_results": [],
       "success_criteria": [
@@ -411,7 +458,8 @@
         "decision_point": "problem_types_documented",
         "reasoning_required": false,
         "critical": false
-      }
+      },
+      "completed_at": "2025-10-14T14:20:30.565Z"
     },
     {
       "id": "T0-IMPL-1",
@@ -419,7 +467,7 @@
       "title": "Implement CycloneDX SBOM generation",
       "type": "implementation",
       "description": "Install @cyclonedx/cyclonedx-npm, create scripts/generate-cyclonedx.js, add npm run sbom:cyclonedx command, test generation, update CI workflow.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 90,
       "prerequisite": null,
       "actions": [
@@ -431,10 +479,22 @@
         "Add sbom.cdx.json to .gitignore"
       ],
       "validation": [
-        {"cmd": "test -f scripts/generate-cyclonedx.js", "expect_exit_code": 0},
-        {"cmd": "npm run sbom:cyclonedx", "expect_exit_code": 0},
-        {"cmd": "test -f sbom.cdx.json", "expect_exit_code": 0},
-        {"cmd": "grep -q 'bomFormat.*CycloneDX' sbom.cdx.json", "expect_exit_code": 0}
+        {
+          "cmd": "test -f scripts/generate-cyclonedx.js",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run sbom:cyclonedx",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f sbom.cdx.json",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'bomFormat.*CycloneDX' sbom.cdx.json",
+          "expect_exit_code": 0
+        }
       ],
       "validation_results": [],
       "success_criteria": [
@@ -448,7 +508,8 @@
         "decision_point": "cyclonedx_sbom_implemented",
         "reasoning_required": false,
         "critical": true
-      }
+      },
+      "completed_at": "2025-10-14T14:20:30.565Z"
     },
     {
       "id": "T0-IMPL-2",
@@ -456,7 +517,7 @@
       "title": "Implement SLSA provenance generation",
       "type": "implementation",
       "description": "Install @sigstore/cli or implement SLSA v1.0 provenance generation, create scripts/generate-provenance.js, add npm run provenance command, test generation.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 120,
       "prerequisite": null,
       "actions": [
@@ -468,10 +529,22 @@
         "Update CI workflow to generate provenance after build"
       ],
       "validation": [
-        {"cmd": "test -f scripts/generate-provenance.js", "expect_exit_code": 0},
-        {"cmd": "npm run provenance", "expect_exit_code": 0},
-        {"cmd": "test -f provenance.intoto.jsonl", "expect_exit_code": 0},
-        {"cmd": "grep -q 'slsa.dev/provenance' provenance.intoto.jsonl", "expect_exit_code": 0}
+        {
+          "cmd": "test -f scripts/generate-provenance.js",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run provenance",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f provenance.intoto.jsonl",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'slsa.dev/provenance' provenance.intoto.jsonl",
+          "expect_exit_code": 0
+        }
       ],
       "validation_results": [],
       "success_criteria": [
@@ -485,7 +558,8 @@
         "decision_point": "slsa_provenance_implemented",
         "reasoning_required": false,
         "critical": true
-      }
+      },
+      "completed_at": "2025-10-14T14:20:30.565Z"
     },
     {
       "id": "T0-IMPL-3",
@@ -493,7 +567,7 @@
       "title": "Implement JSONL action log dual-write",
       "type": "implementation",
       "description": "Extend src/telemetry/events.ts:logEvent() to dual-write to .automation/actions.jsonl when ACTION_LOG_JSONL=1, add tests for dual-write behavior.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 45,
       "prerequisite": null,
       "actions": [
@@ -504,8 +578,14 @@
         "Add unit test verifying no dual-write when flag disabled"
       ],
       "validation": [
-        {"cmd": "npm test -- events.test.ts", "expect_exit_code": 0},
-        {"cmd": "ACTION_LOG_JSONL=1 npm run dev & sleep 2 && test -f .automation/actions.jsonl && kill %1", "expect_exit_code": 0}
+        {
+          "cmd": "npm test -- events.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "ACTION_LOG_JSONL=1 npm run dev & sleep 2 && test -f .automation/actions.jsonl && kill %1",
+          "expect_exit_code": 0
+        }
       ],
       "validation_results": [],
       "success_criteria": [
@@ -519,7 +599,8 @@
         "decision_point": "jsonl_action_log_implemented",
         "reasoning_required": false,
         "critical": true
-      }
+      },
+      "completed_at": "2025-10-14T14:20:30.565Z"
     },
     {
       "id": "T0-IMPL-4",
@@ -527,7 +608,7 @@
       "title": "Implement OpenTelemetry GenAI spans",
       "type": "implementation",
       "description": "Install OTel packages, implement src/telemetry/otel.ts with NodeSDK initialization, wire into server.ts startup, add graceful shutdown, test with OTEL_ENABLED=1.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 180,
       "prerequisite": null,
       "actions": [
@@ -541,8 +622,14 @@
         "Add unit test for otel init with flag on/off"
       ],
       "validation": [
-        {"cmd": "npm test -- otel.test.ts", "expect_exit_code": 0},
-        {"cmd": "grep -q 'NodeSDK' src/telemetry/otel.ts", "expect_exit_code": 0}
+        {
+          "cmd": "npm test -- otel.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'NodeSDK' src/telemetry/otel.ts",
+          "expect_exit_code": 0
+        }
       ],
       "validation_results": [],
       "success_criteria": [
@@ -557,7 +644,8 @@
         "decision_point": "otel_genai_spans_implemented",
         "reasoning_required": false,
         "critical": true
-      }
+      },
+      "completed_at": "2025-10-14T14:20:30.565Z"
     },
     {
       "id": "T0-IMPL-5",
@@ -565,7 +653,7 @@
       "title": "Fix RFC 9457 problem details implementation",
       "type": "implementation",
       "description": "Correct src/middleware/problemDetails.ts: fix extension naming (urn:ts → occurred_at), add HTTP reason phrase for about:blank, add toValidationProblem helper, enable by default in dev/test.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 60,
       "prerequisite": null,
       "actions": [
@@ -577,10 +665,22 @@
         "Add unit tests for RFC 9457 compliance (title, status, occurred_at, errors format)"
       ],
       "validation": [
-        {"cmd": "npm test -- problemDetails.test.ts", "expect_exit_code": 0},
-        {"cmd": "grep -q 'occurred_at' src/middleware/problemDetails.ts", "expect_exit_code": 0},
-        {"cmd": "grep -q 'getHttpReasonPhrase' src/middleware/problemDetails.ts", "expect_exit_code": 0},
-        {"cmd": "grep -q 'toValidationProblem' src/middleware/problemDetails.ts", "expect_exit_code": 0}
+        {
+          "cmd": "npm test -- problemDetails.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'occurred_at' src/middleware/problemDetails.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'getHttpReasonPhrase' src/middleware/problemDetails.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'toValidationProblem' src/middleware/problemDetails.ts",
+          "expect_exit_code": 0
+        }
       ],
       "validation_results": [],
       "success_criteria": [
@@ -595,7 +695,8 @@
         "decision_point": "rfc9457_corrections_applied",
         "reasoning_required": false,
         "critical": true
-      }
+      },
+      "completed_at": "2025-10-14T14:20:30.565Z"
     },
     {
       "id": "T0-TEST-1",
@@ -603,7 +704,7 @@
       "title": "Add tests for Trust Spine components",
       "type": "testing",
       "description": "Create tests for CycloneDX generation, SLSA provenance, JSONL action logs, OTel initialization, and RFC 9457 format validation.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 180,
       "prerequisite": "T0-IMPL-1, T0-IMPL-2, T0-IMPL-3, T0-IMPL-4, T0-IMPL-5",
       "actions": [
@@ -616,10 +717,22 @@
         "Ensure all tests pass: npm test"
       ],
       "validation": [
-        {"cmd": "npm test", "expect_exit_code": 0},
-        {"cmd": "npm test -- --coverage", "expect_exit_code": 0},
-        {"cmd": "test -f tests/trust-spine/cyclonedx.test.ts", "expect_exit_code": 0},
-        {"cmd": "test -f tests/trust-spine/provenance.test.ts", "expect_exit_code": 0}
+        {
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- --coverage",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f tests/trust-spine/cyclonedx.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f tests/trust-spine/provenance.test.ts",
+          "expect_exit_code": 0
+        }
       ],
       "validation_results": [],
       "success_criteria": [
@@ -634,7 +747,8 @@
         "decision_point": "trust_spine_tests_added",
         "reasoning_required": false,
         "critical": true
-      }
+      },
+      "completed_at": "2025-10-14T14:20:30.565Z"
     },
     {
       "id": "T0-EVID-1",
@@ -642,7 +756,7 @@
       "title": "Collect evidence bundle for Gate G2",
       "type": "evidence",
       "description": "Create .automation/evidence/G2 directory, copy all Trust Spine artifacts (sbom.cdx.json, provenance.intoto.jsonl, otel_trace_export.json, actions.jsonl, errors_rfc9457.jsonl), validate completeness.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 60,
       "prerequisite": "T0-IMPL-1, T0-IMPL-2, T0-IMPL-3, T0-IMPL-4, T0-IMPL-5, T0-TEST-1",
       "actions": [
@@ -655,12 +769,30 @@
         "Validate all 5 files exist with ls -la .automation/evidence/G2/"
       ],
       "validation": [
-        {"cmd": "test -f .automation/evidence/G2/sbom.cdx.json", "expect_exit_code": 0},
-        {"cmd": "test -f .automation/evidence/G2/provenance.intoto.jsonl", "expect_exit_code": 0},
-        {"cmd": "test -f .automation/evidence/G2/otel_trace_export.json", "expect_exit_code": 0},
-        {"cmd": "test -f .automation/evidence/G2/actions.jsonl", "expect_exit_code": 0},
-        {"cmd": "test -f .automation/evidence/G2/errors_rfc9457.jsonl", "expect_exit_code": 0},
-        {"cmd": "test $(ls .automation/evidence/G2/ | wc -l) -ge 5", "expect_exit_code": 0}
+        {
+          "cmd": "test -f .automation/evidence/G2/sbom.cdx.json",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f .automation/evidence/G2/provenance.intoto.jsonl",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f .automation/evidence/G2/otel_trace_export.json",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f .automation/evidence/G2/actions.jsonl",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f .automation/evidence/G2/errors_rfc9457.jsonl",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test $(ls .automation/evidence/G2/ | wc -l) -ge 5",
+          "expect_exit_code": 0
+        }
       ],
       "validation_results": [],
       "success_criteria": [
@@ -675,7 +807,8 @@
         "decision_point": "g2_evidence_collected",
         "reasoning_required": false,
         "critical": true
-      }
+      },
+      "completed_at": "2025-10-14T14:22:51.785Z"
     },
     {
       "id": "T0-GATE-1",
@@ -683,7 +816,7 @@
       "title": "Update GATES_LEDGER with G2 completion",
       "type": "governance",
       "description": "Create or update .automation/GATES_LEDGER.md marking G2 status as 'passed', attach evidence paths, timestamp completion, document acceptance criteria met.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 30,
       "prerequisite": "T0-EVID-1",
       "actions": [
@@ -695,9 +828,18 @@
         "Reference Gate_Checklist_Phase19_2025-10-12.json"
       ],
       "validation": [
-        {"cmd": "test -f .automation/GATES_LEDGER.md", "expect_exit_code": 0},
-        {"cmd": "grep -q 'G2.*passed' .automation/GATES_LEDGER.md", "expect_exit_code": 0},
-        {"cmd": "grep -q 'sbom.cdx.json' .automation/GATES_LEDGER.md", "expect_exit_code": 0}
+        {
+          "cmd": "test -f .automation/GATES_LEDGER.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'G2.*passed' .automation/GATES_LEDGER.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'sbom.cdx.json' .automation/GATES_LEDGER.md",
+          "expect_exit_code": 0
+        }
       ],
       "validation_results": [],
       "success_criteria": [
@@ -711,7 +853,8 @@
         "decision_point": "gates_ledger_updated",
         "reasoning_required": false,
         "critical": true
-      }
+      },
+      "completed_at": "2025-10-14T14:20:30.565Z"
     }
   ],
   "acceptance_criteria": {

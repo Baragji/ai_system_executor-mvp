@@ -24,6 +24,9 @@ describe("state snapshot (read-only)", () => {
     expect(json).toHaveProperty("gates_summary");
     expect(json).toHaveProperty("validation_summary");
     expect(json).toHaveProperty("uncommitted_changes");
+    expect(json).toHaveProperty("sync_status");
+    expect(typeof json.sync_status.contract_stale).toBe("boolean");
+    expect(Array.isArray(json.sync_status.stale_tasks)).toBe(true);
     expect(json).toHaveProperty("suggested_next_action");
     expect(typeof json.suggested_next_action.action).toBe("string");
     expect(Array.isArray(json.tasks) || json.tasks === undefined).toBe(true);

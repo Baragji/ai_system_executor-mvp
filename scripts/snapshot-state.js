@@ -190,11 +190,14 @@ async function main() {
 
   const contractPath = await findPhase19Contract();
   const contract = contractPath ? await loadJson(contractPath) : null;
+  const contractStat = contractPath ? await fs.stat(contractPath).catch(() => null) : null;
   const phaseId = '19';
   const phaseName = contract?.contract_meta?.phase_name || 'Autonomous Transition';
 
   const uncommitted = await getGitStatus();
   const validations = await getValidationSummary(args.validate);
+  const tasks = Array.isArray(contract?.tasks) ? contract.tasks : [];
+  const pendingTasks = tasks.filter((task) => task && task.status !== 'complete');
 
   const snapshot = {
     generated_at: new Date().toISOString(),
@@ -211,12 +214,17 @@ async function main() {
     gates_summary: gates,
     validation_summary: validations,
     uncommitted_changes: uncommitted,
+    sync_status: {
+      last_sync: contractStat ? contractStat.mtime.toISOString() : null,
+      contract_stale: pendingTasks.length > 0,
+      stale_tasks: pendingTasks.map((task) => task?.id).filter(Boolean),
+    },
   };
 
   snapshot.suggested_next_action = suggestNextAction({ gates, validations, uncommitted });
 
-  if (Array.isArray(contract?.tasks)) {
-    snapshot.tasks = contract.tasks.map((task) => ({
+  if (tasks.length > 0) {
+    snapshot.tasks = tasks.map((task) => ({
       id: task?.id ?? null,
       title: task?.title ?? null,
       status: task?.status ?? null,

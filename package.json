@@ -30,6 +30,7 @@
     "validate:all": "npm run lint && npm run typecheck && npm test && npm run contract:check",
     "state:snapshot": "node scripts/snapshot-state.js",
     "state:show": "node scripts/snapshot-state.js --print",
+    "state:sync": "node scripts/sync-contract-status.js 19",
     "state:show:validate": "node scripts/snapshot-state.js --print --validate"
   },
   "dependencies": {
