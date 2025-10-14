@@ -27,7 +27,10 @@
     "sbom:cyclonedx": "node scripts/generate-cyclonedx.js",
     "sbom:all": "npm run sbom && npm run sbom:cyclonedx",
     "provenance": "node scripts/generate-provenance.js",
-    "validate:all": "npm run lint && npm run typecheck && npm test && npm run contract:check"
+    "validate:all": "npm run lint && npm run typecheck && npm test && npm run contract:check",
+    "state:snapshot": "node scripts/snapshot-state.js",
+    "state:show": "node scripts/snapshot-state.js --print",
+    "state:show:validate": "node scripts/snapshot-state.js --print --validate"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.21.1",

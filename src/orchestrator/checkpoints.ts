@@ -258,12 +258,25 @@ function normalizeRecord(input: CheckpointInput): CheckpointRecord {
 
 export async function saveCheckpoint(input: CheckpointInput): Promise<CheckpointRecord> {
   const record = normalizeRecord(input);
-  await ensureDirectory();
   const target = resolveCheckpointPath(record.sessionId);
-  const temp = `${target}.tmp-${process.pid}-${Date.now()}`;
   const payload = JSON.stringify(record, null, 2);
-  await fs.writeFile(temp, payload, "utf-8");
-  await fs.rename(temp, target);
+  const attemptOnce = async () => {
+    await ensureDirectory();
+    const temp = `${target}.tmp-${process.pid}-${Date.now()}`;
+    await fs.writeFile(temp, payload, "utf-8");
+    await fs.rename(temp, target);
+  };
+  try {
+    await attemptOnce();
+  } catch (error) {
+    const code = (error as { code?: string } | null)?.code;
+    if (code === "ENOENT") {
+      // Directory may have been concurrently removed by another test; retry once.
+      await attemptOnce();
+    } else {
+      throw error;
+    }
+  }
   return record;
 }
 

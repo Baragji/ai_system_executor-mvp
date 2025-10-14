@@ -16,6 +16,18 @@
 
 ---
 
+## Quick Status Check
+
+```bash
+npm run state:show  # Generates and displays .automation/WHERE_AM_I.json
+```
+
+- Snapshot is read-only and synthesized from authoritative sources (GATES_LEDGER, contracts, git status).
+- File: `.automation/WHERE_AM_I.json` is auto-generated; do not commit.
+- See `CDI_INFRASTRUCTURE.md` for source mapping and usage.
+
+---
+
 ## Stack & Constraints
 
 ### Allowed Technology
