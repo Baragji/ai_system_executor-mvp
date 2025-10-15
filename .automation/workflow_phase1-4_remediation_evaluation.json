@@ -1,0 +1,59 @@
+{
+  "tasks": [
+    {
+      "id": "WF5-V01",
+      "decision_point": "wf5_baseline_verification",
+      "outcome": "pass",
+      "verified_at": "2025-10-15T12:31:54+00:00",
+      "details": {
+        "correctness": "Observed server contamination and verified API test passes, matching baseline expectations.",
+        "completeness": "All contract-mandated observations executed with outputs recorded in evidence files.",
+        "safety": "No code changes applied; commands limited to read/test operations."
+      }
+    },
+    {
+      "id": "WF5-W51",
+      "decision_point": "wf5_runtime_decoupling",
+      "outcome": "pass",
+      "verified_at": "2025-10-15T15:45:00+00:00",
+      "details": {
+        "correctness": "Server snapshots and SSE payloads exclude workflow metadata and the status endpoint responds 404 as expected.",
+        "completeness": "All contract validation commands executed with outputs captured, including the intentional workflow-status Vitest failure.",
+        "safety": "Changes confined to Express server and associated tests; no new dependencies introduced."
+      }
+    },
+    {
+      "id": "WF5-W52",
+      "decision_point": "wf5_workflow_isolation",
+      "outcome": "pass",
+      "verified_at": "2025-10-15T13:16:54.662+00:00",
+      "details": {
+        "correctness": "CLI tooling and tests resolve the workflow module from workflow/lib with no residual src/ imports.",
+        "completeness": "Contract validations for WF5-W52 executed, evidence stored, and manual workflow CLI commands observed.",
+        "safety": "No product server code reintroduced workflow dependencies; relocation scoped to workflow directories and tests."
+      }
+    },
+    {
+      "id": "WF5-W53",
+      "decision_point": "wf5_evidence_capture",
+      "outcome": "pass",
+      "verified_at": "2025-10-15T14:00:12+00:00",
+      "details": {
+        "correctness": "Sync script now records command exit codes and output into validation_results before marking documentation tasks complete.",
+        "completeness": "Regression tests enforce evidence population and contract files refreshed to store the captured validation entries.",
+        "safety": "Changes limited to workflow tooling and tests; no product runtime regressions or dependency shifts introduced."
+      }
+    },
+    {
+      "id": "WF5-W54",
+      "decision_point": "wf5_cli_validation",
+      "outcome": "pass",
+      "verified_at": "2025-10-15T15:05:30+00:00",
+      "details": {
+        "correctness": "Workflow status API coverage was removed and the CLI tests confirm sanitized metadata without workflowMetadata leakage.",
+        "completeness": "Contract validations for WF5-W54 executed, including deletion verification and targeted CLI test run with evidence captured.",
+        "safety": "Adjustments are isolated to Vitest suites; runtime server behavior and dependencies remain unchanged."
+      }
+    }
+  ]
+}

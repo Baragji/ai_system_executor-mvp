@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
+import { loadPhaseState, buildWorkflowMetadata } from "../../workflow/lib/phaseState.js";
 
 const execAsync = promisify(exec);
 
@@ -184,5 +185,25 @@ describe("execute-next-action script", () => {
 
     const commandMatch = stdout.match(/Command: (.+)/);
     expect(commandMatch).toBeTruthy();
+  });
+
+  it("omits legacy workflow metadata fields from CLI output", async () => {
+    const { stdout } = await execAsync(`tsx ${scriptPath} --dry-run`);
+
+    expect(stdout).not.toContain("workflowMetadata");
+    expect(stdout).not.toContain("Workflow Metadata");
+  });
+
+  it("builds sanitized workflow metadata via isolated module", async () => {
+    const state = await loadPhaseState();
+    const metadata = buildWorkflowMetadata(state, {
+      validations: null,
+      uncommittedChanges: [],
+      computedAt: Date.now()
+    });
+
+    expect(metadata.phase.name).toBeTruthy();
+    expect(metadata).not.toHaveProperty("workflowMetadata");
+    expect(Array.isArray(metadata.uncommittedChanges)).toBe(true);
   });
 });

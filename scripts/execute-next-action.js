@@ -19,7 +19,7 @@ import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import { stdin, stdout } from 'node:process';
 import * as readline from 'node:readline';
-import { loadPhaseState, buildWorkflowMetadata } from '../src/state/phaseState.js';
+import { loadPhaseState, buildWorkflowMetadata } from '../workflow/lib/phaseState.js';
 
 const execAsync = promisify(exec);
 

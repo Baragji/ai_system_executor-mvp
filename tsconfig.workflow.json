@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "workflow",
+    "outDir": "dist-workflow",
+    "tsBuildInfoFile": ".tsbuildinfo.workflow"
+  },
+  "include": ["workflow/**/*.ts"],
+  "exclude": ["src", "dist", "node_modules"]
+}
