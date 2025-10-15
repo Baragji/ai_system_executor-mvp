@@ -109,6 +109,7 @@ export interface PlanExecutionResult {
   totalDurationMs: number;
   failedSubtasks: string[];
   completedSubtasks: string[];
+  haltReason?: string;
 }
 
 export interface TimeEstimate {

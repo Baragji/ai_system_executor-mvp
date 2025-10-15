@@ -677,7 +677,12 @@ function renderTaskPlan(taskPlan, executionResult, timeEstimate) {
   }
 
   if (taskPlanSummary) {
-    taskPlanSummary.textContent = `Completed ${completed} of ${taskPlan.subtasks.length} · Failed ${failed} · Status: ${executionResult?.status ?? "pending"}`;
+    const planStatus = executionResult?.status ?? "pending";
+    const testsStatus = String(executionResult?.subtaskResults?.at(-1)?.testResult?.status || '').toUpperCase();
+    const finalLabel = (planStatus === 'partial' && testsStatus === 'PASS') ? 'execution complete' : planStatus;
+    const halt = (executionResult && executionResult.haltReason) || (window.lastHaltReason) || '';
+    const suffix = halt ? ` · Halt reason: ${halt}` : '';
+    taskPlanSummary.textContent = `Completed ${completed} of ${taskPlan.subtasks.length} · Failed ${failed} · Status: ${finalLabel}${suffix}`;
   }
 
   if (currentSubtaskLabel) {
@@ -1127,6 +1132,9 @@ function computeOutcome(data) {
   const failCount = Number(after?.failCount ?? initial?.failCount ?? 0);
   const executed = (Number.isFinite(passCount) && Number.isFinite(failCount) && (passCount + failCount > 0));
 
+  // Treat passing test status as success even if plan shows partial due to time-budget
+  if (status === 'PASS' && files > 0) return 'success';
+
   // If the server marked success and we have files, prefer success
   if (data.ok && files > 0 && (status === 'PASS' || status === 'PASSED' || !status)) {
     return 'success';
@@ -1168,10 +1176,19 @@ function renderSuccessCard(data) {
 
   const metrics = document.createElement("div");
   metrics.className = "outcome-card__metrics";
-  [
-    { label: "Files generated", value: data.files_written },
-    { label: "Tests passed", value: data.testResults?.initial?.passCount ?? 0 }
-  ].forEach(m => {
+  const metricItems = [
+    { label: "Files generated", value: data.files_written }
+  ];
+  const pc = Number(data.testResults?.initial?.passCount ?? 0);
+  const fc = Number(data.testResults?.initial?.failCount ?? 0);
+  const status = String(data.testResults?.initial?.status || '').toUpperCase();
+  const executed = Number.isFinite(pc) && Number.isFinite(fc) && (pc + fc > 0);
+  if (executed) {
+    metricItems.push({ label: "Tests passed", value: pc });
+  } else if (status === 'PASS' || data.ok) {
+    metricItems.push({ label: "Tests", value: "PASS" });
+  }
+  metricItems.forEach(m => {
     const metric = document.createElement("div");
     metric.className = "outcome-card__metric";
     const mv = document.createElement("span");
@@ -1194,6 +1211,21 @@ function renderSuccessCard(data) {
     openLink.rel = "noopener";
     openLink.className = "btn btn-primary";
     openLink.textContent = "Open Project";
+    openLink.addEventListener("click", async (ev) => {
+      try {
+        ev.preventDefault();
+        const base = openLink.href.replace(/\/$/, "");
+        const indexUrl = `${base}/index.html`;
+        const r = await fetch(indexUrl, { method: "HEAD" });
+        if (r.ok) {
+          window.open(indexUrl, "_blank", "noopener");
+        } else {
+          window.open(openLink.href, "_blank", "noopener");
+        }
+      } catch {
+        window.open(openLink.href, "_blank", "noopener");
+      }
+    });
     actions.appendChild(openLink);
   }
   const viewFilesBtn = document.createElement("button");

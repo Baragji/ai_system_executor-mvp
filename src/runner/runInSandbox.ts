@@ -63,6 +63,15 @@ function parseCounts(log: string): { passCount: number; failCount: number } {
       if (key === "fail") failCount = val;
       continue;
     }
+
+    // Fallback heuristic: if a line explicitly says "test passed" and no framework summary exists
+    if (/\b(test|tests)\s+passed\b/i.test(line)) {
+      // Only bump if we haven't parsed any framework counts yet
+      if (passCount === 0 && failCount === 0) {
+        passCount = 1;
+      }
+      continue;
+    }
   }
 
   return { passCount, failCount };

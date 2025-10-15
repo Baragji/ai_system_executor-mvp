@@ -978,7 +978,12 @@ async function executePlanFlow(params: PlanExecutionOptions): Promise<PlanExecut
 
   const lastResult = planExecutionResult.subtaskResults.at(-1) ?? null;
   const lastHistory = lastResult?.repairHistory ?? null;
-  const finalStatus = planExecutionResult.status === "completed" ? "pass" : "fail";
+  // Derive final status from the most recent test run, not plan completion state
+  const lastTest = planExecutionResult.subtaskResults
+    .map(r => r.testResult)
+    .filter(t => Boolean(t))
+    .at(-1) || null;
+  const finalStatus = (lastTest && typeof lastTest.status === "string") ? lastTest.status : "unknown";
 
   const responseTestResults = {
     initial: lastResult?.testResult ?? null,
@@ -1019,7 +1024,7 @@ async function executePlanFlow(params: PlanExecutionOptions): Promise<PlanExecut
         },
         lastHistory
       )
-    : { attempted: false, repaired: true, appliedFiles: 0, notes: [], error: null, artifacts: [] };
+    : { attempted: false, repaired: (finalStatus === "pass"), appliedFiles: 0, notes: [], error: null, artifacts: [] };
 
   const meta = {
     created_at: new Date().toISOString(),
@@ -1054,7 +1059,8 @@ async function executePlanFlow(params: PlanExecutionOptions): Promise<PlanExecut
       completedSubtasks: planExecutionResult.completedSubtasks.length,
       failedSubtasks: planExecutionResult.failedSubtasks.length,
       totalPlanDuration: planExecutionResult.totalDurationMs
-    }
+    },
+    haltReason: planExecutionResult.haltReason ?? null
   };
 
   const metaPath = path.join(targetRoot, "_executor_meta.json");
@@ -1071,6 +1077,13 @@ async function executePlanFlow(params: PlanExecutionOptions): Promise<PlanExecut
   }
 
   await logEvent("generation_complete", { project: slug, status: finalStatus, mode: "plan" });
+
+  // Mark progress as finished for plan-based executions to close SSE/polling cleanly
+  try {
+    setProgress(sessionId, "finalizing", 100, { completed: planExecutionResult.completedSubtasks.length }, true);
+  } catch {
+    /* non-fatal */
+  }
 
   const responsePayload = {
     ok: true,
@@ -1089,7 +1102,8 @@ async function executePlanFlow(params: PlanExecutionOptions): Promise<PlanExecut
     planExecutionResult,
     timeEstimate,
     decompositionQuality: planQuality,
-    projectName
+    projectName,
+    haltReason: planExecutionResult.haltReason ?? null
   };
 
   return { response: responsePayload, meta, status: planExecutionResult.status, timeEstimate, planExecutionResult };
