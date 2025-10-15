@@ -6,9 +6,8 @@ import morgan from "morgan";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
-import { spawn, execFile } from "node:child_process";
+import { spawn } from "node:child_process";
 import { finished } from "node:stream/promises";
-import { promisify } from "node:util";
 import slugify from "slugify";
 import { ZipFile } from "yazl";
 
@@ -82,9 +81,6 @@ import type {
 import { installProblemDetails, respondWithProblem } from "./middleware/problemDetails.js";
 import { getExecution } from "./orchestrator/executionsStore.js";
 import { maybeInitTelemetry, shutdownTelemetry } from "./telemetry/otel.js";
-import { loadPhaseState, buildWorkflowMetadata, type WorkflowMetadata } from "./state/phaseState.js";
-
-const execFileAsync = promisify(execFile);
 
 const IS_TEST_ENV = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
 
@@ -122,8 +118,6 @@ const PORT = Number(process.env.PORT || 3000);
 const OUTPUT_DIR = path.resolve("output");
 const PUBLIC_DIR = path.resolve("public");
 // In-memory progress sessions for SSE/polling
-type WorkflowCacheEntry = WorkflowMetadata;
-
 type ProgressSnapshot = {
   stage: string;
   progress: number;
@@ -134,7 +128,6 @@ type ProgressSnapshot = {
   paused?: boolean;
   questions?: PendingQuestion[];
   checkpointUpdatedAt?: string;
-  workflowMetadata?: WorkflowMetadata;
 };
 
 interface OrchestrationSession {
@@ -151,48 +144,6 @@ interface OrchestrationSession {
 const progressSessions = new Map<string, ProgressSnapshot>();
 const orchestrationSessions = new Map<string, OrchestrationSession>();
 const PROGRESS_SESSION_TTL_MS = Number(process.env.PROGRESS_SESSION_TTL_MS ?? 15 * 60 * 1000);
-const workflowMetadataCache = new Map<string, WorkflowCacheEntry>();
-
-async function ensureWorkflowMetadataForSession(sessionId: string): Promise<WorkflowCacheEntry> {
-  const existing = workflowMetadataCache.get(sessionId);
-  if (existing) {
-    return existing;
-  }
-
-  const phaseState = await loadPhaseState();
-  const uncommittedChanges: string[] = await readUncommittedChanges();
-  const metadata = buildWorkflowMetadata(phaseState, {
-    validations: null,
-    uncommittedChanges,
-    computedAt: Date.now()
-  });
-  workflowMetadataCache.set(sessionId, metadata);
-  return metadata;
-}
-
-function getWorkflowMetadata(sessionId: string): WorkflowCacheEntry | null {
-  return workflowMetadataCache.get(sessionId) ?? null;
-}
-
-function clearWorkflowMetadata(sessionId: string): void {
-  workflowMetadataCache.delete(sessionId);
-}
-
-async function readUncommittedChanges(): Promise<string[]> {
-  try {
-    const { stdout } = await execFileAsync("git", ["status", "--porcelain"], {
-      cwd: process.cwd(),
-      encoding: "utf-8",
-      maxBuffer: 1024 * 1024
-    });
-    return stdout
-      .split("\n")
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-  } catch {
-    return [];
-  }
-}
 
 function ensureOrchestrationSession(sessionId: string): OrchestrationSession {
   let session = orchestrationSessions.get(sessionId);
@@ -209,7 +160,6 @@ function getOrchestrationSession(sessionId: string): OrchestrationSession | unde
 
 function removeOrchestrationSession(sessionId: string): void {
   orchestrationSessions.delete(sessionId);
-  clearWorkflowMetadata(sessionId);
 }
 
 function mapStageToState(stage: string, done?: boolean): OrchestratorState | null {
@@ -278,7 +228,6 @@ function setProgress(sessionId: string | undefined, stage: string, progress: num
     }
   }
 
-  const workflowMetadata = getWorkflowMetadata(sessionId);
   progressSessions.set(sessionId, {
     stage,
     progress,
@@ -288,8 +237,7 @@ function setProgress(sessionId: string | undefined, stage: string, progress: num
     state: session.machine.state,
     paused: session.paused,
     questions: session.questions,
-    checkpointUpdatedAt: session.checkpointUpdatedAt,
-    ...(workflowMetadata ? { workflowMetadata } : {})
+    checkpointUpdatedAt: session.checkpointUpdatedAt
   });
 }
 
@@ -300,7 +248,6 @@ function getProgress(sessionId: string): ProgressSnapshot | null {
     if (!session) {
       return null;
     }
-    const workflowMetadata = getWorkflowMetadata(sessionId);
     return {
       stage: stateToStage(session.machine.state),
       progress: 0,
@@ -309,8 +256,7 @@ function getProgress(sessionId: string): ProgressSnapshot | null {
       state: session.machine.state,
       paused: session.paused,
       questions: session.questions,
-      checkpointUpdatedAt: session.checkpointUpdatedAt,
-      ...(workflowMetadata ? { workflowMetadata } : {})
+      checkpointUpdatedAt: session.checkpointUpdatedAt
     };
   }
   return snap;
@@ -367,7 +313,6 @@ function snapshotFromSession(sessionId: string, fallback?: ProgressSnapshot | nu
   const session = ensureOrchestrationSession(sessionId);
   const existing = fallback ?? progressSessions.get(sessionId) ?? null;
   const baseStage = existing?.stage ?? stateToStage(session.machine.state);
-  const workflowMetadata = getWorkflowMetadata(sessionId);
   return {
     stage: baseStage,
     progress: existing?.progress ?? 0,
@@ -377,8 +322,7 @@ function snapshotFromSession(sessionId: string, fallback?: ProgressSnapshot | nu
     state: session.machine.state,
     paused: session.paused,
     questions: session.questions,
-    checkpointUpdatedAt: session.checkpointUpdatedAt,
-    ...(workflowMetadata ? { workflowMetadata } : {})
+    checkpointUpdatedAt: session.checkpointUpdatedAt
   };
 }
 
@@ -1609,12 +1553,6 @@ app.post("/api/execute", async (req, res) => {
 
   res.setHeader("x-executor-session", sessionId);
 
-  try {
-    await ensureWorkflowMetadataForSession(sessionId);
-  } catch (error) {
-    console.warn(`[Workflow] Failed to initialize context for session ${sessionId}:`, error);
-  }
-
   // Best-effort: ensure checkpoint root exists to avoid rare ENOENT under concurrency in tests
   try {
     await fs.mkdir(path.resolve(".automation", "checkpoints", "step-workflows"), { recursive: true });
@@ -1976,12 +1914,6 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
       return res.status(409).json({ error: "session already paused" });
     }
 
-    try {
-      await ensureWorkflowMetadataForSession(sessionId);
-    } catch (error) {
-      console.warn(`[Workflow] Failed to refresh context before pausing ${sessionId}:`, error);
-    }
-
     const reasonRaw = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
     const reason = reasonRaw || "Manual pause requested";
 
@@ -2078,12 +2010,6 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     const session = getOrchestrationSession(sessionId);
     if (!session) {
       return res.status(404).json({ error: "session not found" });
-    }
-
-    try {
-      await ensureWorkflowMetadataForSession(sessionId);
-    } catch (error) {
-      console.warn(`[Workflow] Failed to refresh context before resuming ${sessionId}:`, error);
     }
 
     const answers = normalizeResumeAnswers(req.body?.answers);
@@ -2301,23 +2227,6 @@ app.get("/api/progress/stream/:sessionId", (req, res) => {
   openProgressStream(req, res, sessionId);
 });
 
-// Workflow state endpoint (Phase 3: Autonomous Workflow Integration)
-app.get("/api/workflow/status", async (req, res) => {
-  try {
-    const phaseState = await loadPhaseState();
-    const uncommittedChanges = await readUncommittedChanges();
-    const metadata = buildWorkflowMetadata(phaseState, {
-      validations: null,
-      uncommittedChanges,
-      computedAt: Date.now()
-    });
-    return res.json(metadata);
-  } catch (error) {
-    const message = (error as Error).message || "failed to load workflow status";
-    return res.status(500).json({ error: message });
-  }
-});
-
 // File content endpoint with path sanitization
 app.get("/api/files/:project/:path(*)", async (req, res) => {
   try {
@@ -2375,15 +2284,11 @@ export const __progressTest = {
   get(sessionId: string) { return progressSessions.get(sessionId) ?? null; },
   purge(now: number) { purgeExpiredProgressSessions(now); },
   ttl() { return PROGRESS_SESSION_TTL_MS; },
-  async ensureMetadata(sessionId: string) {
-    return ensureWorkflowMetadataForSession(sessionId);
-  },
   snapshot(sessionId: string, fallback?: ProgressSnapshot | null) {
     return snapshotFromSession(sessionId, fallback);
   },
   clear() {
     progressSessions.clear();
-    workflowMetadataCache.clear();
   }
 };
 
