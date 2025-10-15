@@ -89,11 +89,11 @@
           "summary": "Targeted workflow state regression suite passes against relocated module."
         }
       ],
-        "success_criteria": [
-          "Workflow state helpers moved outside src/.",
-          "Legacy imports to src/state/phaseState eliminated.",
-          "Shared workflow module tests execute successfully from new location."
-        ]
+      "success_criteria": [
+        "Workflow state helpers moved outside src/.",
+        "Legacy imports to src/state/phaseState eliminated.",
+        "Shared workflow module tests execute successfully from new location."
+      ]
     },
     {
       "id": "WF5-W53",
@@ -150,6 +150,81 @@
         "Contaminated API test removed",
         "Workflow CLI coverage intact",
         "Test suite reflects new boundaries"
+      ]
+    },
+    {
+      "id": "WF5-GATE",
+      "title": "Workflow remediation validation gate",
+      "actions": [
+        {
+          "cmd": "npm run lint",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd1_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd1_stderr.txt",
+          "summary": "ESLint completed with zero rule violations; only npm env warnings surfaced, confirming a clean lint run post-remediation."
+        },
+        {
+          "cmd": "npm run typecheck",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd2_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd2_stderr.txt",
+          "summary": "TypeScript compiler finished without errors, validating the decoupled runtime and workflow module boundaries."
+        },
+        {
+          "cmd": "npm test",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd3_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd3_stderr.txt",
+          "summary": "Full Vitest suite passed with coverage above thresholds and no workflowMetadata regressions detected."
+        },
+        {
+          "cmd": "npm run contract:check",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd4_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd4_stderr.txt",
+          "summary": "Contract schema validation succeeded, confirming remediation updates remain contract-compliant."
+        },
+        {
+          "cmd": "npm run sbom:all",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd5_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd5_stderr.txt",
+          "summary": "Generated SPDX and CycloneDX SBOM artifacts with the cleaned runtime baseline."
+        },
+        {
+          "cmd": "npm run provenance",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd6_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd6_stderr.txt",
+          "summary": "Produced the SLSA v1.0 provenance statement for the remediated workflow track."
+        },
+        {
+          "cmd": "npm run state:show",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd7_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd7_stderr.txt",
+          "summary": "State snapshot CLI reported workflow progress without referencing product server workflow metadata."
+        },
+        {
+          "cmd": "npm run state:sync",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd8_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd8_stderr.txt",
+          "summary": "Contract sync refreshed validation evidence entries using the isolated workflow tooling."
+        },
+        {
+          "cmd": "npm run state:next:dry",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd9_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd9_stderr.txt",
+          "summary": "Dry-run executor recommended committing pending remediation artifacts, verifying CLI remains decoupled from product runtime."
+        }
+      ],
+      "success_criteria": [
+        "All validations succeed with zero warnings",
+        "No workflow metadata present in product server",
+        "Contract warnings resolved",
+        "Remediation summary recorded in docs"
       ]
     }
   ]

@@ -1,0 +1,18 @@
+
+> executor-mvp@0.1.0 sbom:all
+> npm run sbom && npm run sbom:cyclonedx
+
+
+> executor-mvp@0.1.0 sbom
+> npm sbom --sbom-format=spdx --omit=dev > sbom.spdx.json
+
+
+> executor-mvp@0.1.0 sbom:cyclonedx
+> node scripts/generate-cyclonedx.js
+
+[CycloneDX] Starting SBOM generation...
+[CycloneDX] Generating CycloneDX 1.6 SBOM from package-lock.json...
+[CycloneDX] ✅ SBOM generated successfully: sbom.cdx.json
+[CycloneDX] Format: CycloneDX 1.6
+[CycloneDX] Components: 619
+[CycloneDX] Serial Number: urn:uuid:307603d9-cfb2-4288-8437-5d3444ea15cf

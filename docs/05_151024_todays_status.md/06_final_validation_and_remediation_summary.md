@@ -65,3 +65,9 @@ The workflow track is **not yet complete**. Execution of `05_workflow_phase1-4_r
 - Conduct final validation + audit sign-off before re-opening product roadmap milestones.
 
 **Prepared by:** Governance Reviewer (2025-10-15) — Aligns with CDI standards and auditor recommendations.
+
+## 10. Remediation Validation Gate Results (2025-10-15)
+- **Automated validations:** `npm run lint`, `npm run typecheck`, `npm test`, and `npm run contract:check` all exited 0 with no ESLint rule violations or TypeScript errors, and Vitest coverage held at ≥84% lines / ≥78% branches.
+- **Supply-chain artifacts:** `npm run sbom:all` refreshed both SPDX and CycloneDX manifests and `npm run provenance` emitted an updated SLSA v1.0 provenance statement aligned with the remediated runtime snapshot.
+- **Workflow tooling checks:** `npm run state:show`, `npm run state:sync`, and `npm run state:next:dry` executed successfully using the isolated workflow module, reaffirming that workflow state management now lives entirely outside `src/server.ts` (no `workflowMetadata` references remain per WF5-W51 evidence) and that contract validation_results stay populated.
+- **Gate decision:** All WF5 remediation wins now have evidence captured in `.automation/workflow_phase1-4_remediation_evidence.json`, and the validation gate is marked **PASSED** with supporting trace entries under `.automation/workflow_phase1-4_remediation_trace.jsonl`.

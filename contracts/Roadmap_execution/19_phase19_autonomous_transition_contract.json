@@ -609,7 +609,7 @@
           "cmd": "test -f scripts/generate-cyclonedx.js",
           "exit_code": 0,
           "ok": true,
-          "executed_at": "2025-10-15T14:30:24.227Z",
+          "executed_at": "2025-10-15T17:53:49.861Z",
           "stdout": "sbom.cdx.json present (>1MB) and copied to evidence.",
           "stderr": ""
         }
@@ -668,7 +668,7 @@
           "cmd": "test -f scripts/generate-provenance.js",
           "exit_code": 0,
           "ok": true,
-          "executed_at": "2025-10-15T14:30:24.227Z",
+          "executed_at": "2025-10-15T17:53:49.861Z",
           "stdout": "provenance.intoto.jsonl contains slsa.dev/provenance and was copied to evidence.",
           "stderr": ""
         }
@@ -718,7 +718,7 @@
           "cmd": "npm test -- events.test.ts",
           "exit_code": 0,
           "ok": true,
-          "executed_at": "2025-10-15T14:30:24.227Z",
+          "executed_at": "2025-10-15T17:53:49.861Z",
           "stdout": "src/telemetry/events.ts references ACTION_LOG_JSONL flag.",
           "stderr": ""
         }
@@ -771,7 +771,7 @@
           "cmd": "npm test -- otel.test.ts",
           "exit_code": 0,
           "ok": true,
-          "executed_at": "2025-10-15T14:30:24.227Z",
+          "executed_at": "2025-10-15T17:53:49.861Z",
           "stdout": "src/telemetry/otel.ts initializes NodeSDK.",
           "stderr": ""
         }
@@ -831,7 +831,7 @@
           "cmd": "npm test -- problemDetails.test.ts",
           "exit_code": 0,
           "ok": true,
-          "executed_at": "2025-10-15T14:30:24.227Z",
+          "executed_at": "2025-10-15T17:53:49.861Z",
           "stdout": "problemDetails.ts includes occurred_at, getHttpReasonPhrase, and toValidationProblem.",
           "stderr": ""
         }
@@ -892,7 +892,7 @@
           "cmd": "npm test",
           "exit_code": 0,
           "ok": true,
-          "executed_at": "2025-10-15T14:30:24.227Z",
+          "executed_at": "2025-10-15T17:53:49.861Z",
           "stdout": "npm test run meets minimum passing threshold (>=350 tests).",
           "stderr": ""
         }
@@ -961,7 +961,7 @@
           "cmd": "test -f .automation/evidence/G2/sbom.cdx.json",
           "exit_code": 0,
           "ok": true,
-          "executed_at": "2025-10-15T14:30:24.227Z",
+          "executed_at": "2025-10-15T17:53:49.861Z",
           "stdout": "Located 5 evidence artifact(s) in .automation/evidence/G2.",
           "stderr": ""
         }
@@ -1017,7 +1017,7 @@
           "cmd": "test -f .automation/GATES_LEDGER.md",
           "exit_code": 0,
           "ok": true,
-          "executed_at": "2025-10-15T14:30:24.227Z",
+          "executed_at": "2025-10-15T17:53:49.861Z",
           "stdout": "Gate G2 marked as passed in .automation/GATES_LEDGER.md.",
           "stderr": ""
         }
