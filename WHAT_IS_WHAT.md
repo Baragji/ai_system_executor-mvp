@@ -127,29 +127,29 @@ Evidence:       JSONL logs, SBOM files, test reports
 ### Workflow Phases (META-LEVEL TOOLS)
 **Phase 1 (Complete):** Read-only snapshot system
 **Phase 2 (Complete):** Contract status sync
-**Phase 3 (Pending):** Orchestrator integration (wire state into runtime)
-**Phase 4 (Pending):** Autonomous executor (auto-commit passing tests)
+**Phase 3 (Complete):** Orchestrator integration (wire state into runtime)
+**Phase 4 (Complete):** Autonomous executor (auto-execute safe actions)
 
 ### Current Workflow Status
-- ✅ **Phases 1-2 COMPLETE**
-  - `npm run state:show` works
+- ✅ **Phases 1-4 COMPLETE**
+  - `npm run state:show` shows current workflow state
   - `npm run state:sync` syncs contract statuses
-  - Snapshot shows "where am I?" + "what's next?"
-
-- ⏳ **Phases 3-4 PENDING**
-  - Phase 3: Wire workflow state into product runtime (`src/server.ts`)
-  - Phase 4: Autonomous execution of safe actions (auto-commit tests)
+  - `GET /api/workflow/status` exposes workflow state via API
+  - `npm run state:next` autonomously executes next action (interactive)
+  - `npm run state:next:dry` shows what would be executed (dry-run)
+  - `npm run state:next:auto` executes without confirmation (use with caution)
 
 ### Key Files (WORKFLOW TOOLS)
 ```
-AGENTS.md                         # AI agent instructions
-CLAUDE.md                         # Claude Code guidance
-CDI_INFRASTRUCTURE.md             # Quick reference
-.automation/GATES_LEDGER.md       # Quality gate tracking
-contracts/Roadmap_execution/      # Phase contracts
-scripts/snapshot-state.js         # State snapshot generator
-scripts/sync-contract-status.js   # Contract sync script
-src/state/phaseState.ts           # Shared state library (meta-level)
+AGENTS.md                           # AI agent instructions
+CLAUDE.md                           # Claude Code guidance
+CDI_INFRASTRUCTURE.md               # Quick reference
+.automation/GATES_LEDGER.md         # Quality gate tracking
+contracts/Roadmap_execution/        # Phase contracts
+scripts/snapshot-state.js           # State snapshot generator
+scripts/sync-contract-status.js     # Contract sync script
+scripts/execute-next-action.js      # Autonomous executor
+src/state/phaseState.ts             # Shared state library (meta-level)
 ```
 
 ---
@@ -178,15 +178,15 @@ src/state/phaseState.ts           # Shared state library (meta-level)
 **These are parallel tracks:**
 ```
 PRODUCT TRACK:
-├── Phase 19 T0 (Trust Spine) ✅
-├── Phase 19 M1/G3 (LangGraph Pilot) ⏳
-└── Phase 19 U1/G4 (HITL/MCP) 🔜
+├── Phase 19 T0 (Trust Spine) ✅ COMPLETE
+├── Phase 19 M1/G3 (LangGraph Pilot) ⏳ PARTIAL
+└── Phase 19 U1/G4 (HITL/MCP) 🔜 NOT STARTED
 
 WORKFLOW TRACK:
-├── Phase 1 (Snapshot) ✅
-├── Phase 2 (Sync) ✅
-├── Phase 3 (Integration) ⏳
-└── Phase 4 (Executor) ⏳
+├── Phase 1 (Snapshot) ✅ COMPLETE
+├── Phase 2 (Sync) ✅ COMPLETE
+├── Phase 3 (Integration) ✅ COMPLETE
+└── Phase 4 (Autonomous Executor) ✅ COMPLETE
 ```
 
 ---
@@ -201,25 +201,27 @@ WORKFLOW TRACK:
 
 **Examples:**
 
-| Task | Category | Track |
-|------|----------|-------|
-| Implement LangGraph parity tests | PRODUCT | G3 (Orchestrator Pilot) |
-| Wire state into `/api/progress` endpoint | WORKFLOW | Phase 3 (Integration) |
-| Add autonomous action executor | WORKFLOW | Phase 4 (Executor) |
-| Measure LangGraph p50 overhead | PRODUCT | G3 (Orchestrator Pilot) |
-| Auto-commit passing tests | WORKFLOW | Phase 4 (Executor) |
-| Implement HITL approval UI | PRODUCT | U1/G4 (Future) |
+| Task | Category | Track | Status |
+|------|----------|-------|--------|
+| Implement LangGraph parity tests | PRODUCT | G3 (Orchestrator Pilot) | ⏳ Next |
+| Wire state into `/api/progress` endpoint | WORKFLOW | Phase 3 (Integration) | ✅ Done |
+| Add autonomous action executor | WORKFLOW | Phase 4 (Executor) | ✅ Done |
+| Measure LangGraph p50 overhead | PRODUCT | G3 (Orchestrator Pilot) | ⏳ Next |
+| Auto-commit passing tests | WORKFLOW | Phase 4 (Executor) | ✅ Done |
+| Implement HITL approval UI | PRODUCT | U1/G4 (Future) | 🔜 Future |
 
 ### "What should I work on next?"
 
-**If developer confusion is the main problem:**
-→ Finish WORKFLOW track (Phases 3-4)
+**Current Status (2025-10-15):**
+- ✅ **WORKFLOW track COMPLETE** (Phases 1-4)
+- ⏳ **PRODUCT G3 ready** (Trust Spine complete, workflow automation in place)
 
-**If product features are the priority:**
-→ Advance PRODUCT track (G3 Orchestrator Pilot)
-
-**If both matter:**
-→ Finish WORKFLOW first (cheaper, 3-5 hrs), then PRODUCT (benefits from automation)
+**Recommended Next Step:**
+→ Advance PRODUCT G3 (LangGraph Orchestrator Pilot)
+   - Implement LangGraph parity tests
+   - Measure p50 overhead (target: < 500ms)
+   - Validate coverage ≥ 90%
+   - Update GATES_LEDGER to mark G3 as PASSED
 
 ---
 

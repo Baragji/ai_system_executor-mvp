@@ -2301,6 +2301,23 @@ app.get("/api/progress/stream/:sessionId", (req, res) => {
   openProgressStream(req, res, sessionId);
 });
 
+// Workflow state endpoint (Phase 3: Autonomous Workflow Integration)
+app.get("/api/workflow/status", async (req, res) => {
+  try {
+    const phaseState = await loadPhaseState();
+    const uncommittedChanges = await readUncommittedChanges();
+    const metadata = buildWorkflowMetadata(phaseState, {
+      validations: null,
+      uncommittedChanges,
+      computedAt: Date.now()
+    });
+    return res.json(metadata);
+  } catch (error) {
+    const message = (error as Error).message || "failed to load workflow status";
+    return res.status(500).json({ error: message });
+  }
+});
+
 // File content endpoint with path sanitization
 app.get("/api/files/:project/:path(*)", async (req, res) => {
   try {

@@ -41,6 +41,14 @@ npm run sbom              # Generate SBOM
 npm run validate:all      # Run all checks
 ```
 
+**Workflow State Management (Autonomous System)**
+```bash
+npm run state:show        # Show current workflow state
+npm run state:sync        # Sync contract statuses with evidence
+npm run state:next:dry    # Show suggested next action (dry-run)
+npm run state:next        # Execute next action (interactive)
+```
+
 ## Contract
 - `contracts/executor-output.schema.json`
 - `src/executor/systemPrompt.md`

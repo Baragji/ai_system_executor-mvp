@@ -44,6 +44,15 @@ npm run sbom:all         # Generate both SBOM formats
 npm run provenance       # Generate SLSA v1.0 provenance
 ```
 
+### Workflow State Management (Autonomous System)
+```bash
+npm run state:show        # Show current workflow state (gates, tasks, suggestions)
+npm run state:sync        # Sync contract task statuses based on evidence
+npm run state:next:dry    # Show suggested next action without executing
+npm run state:next        # Execute next action (interactive confirmation)
+npm run state:next:auto   # Execute next action without confirmation (use with caution)
+```
+
 ## Architecture
 
 ### Core Execution Flow

@@ -31,7 +31,10 @@
     "state:snapshot": "node scripts/snapshot-state.js",
     "state:show": "node scripts/snapshot-state.js --print",
     "state:sync": "node scripts/sync-contract-status.js 19",
-    "state:show:validate": "node scripts/snapshot-state.js --print --validate"
+    "state:show:validate": "node scripts/snapshot-state.js --print --validate",
+    "state:next": "tsx scripts/execute-next-action.js --interactive",
+    "state:next:auto": "tsx scripts/execute-next-action.js --auto",
+    "state:next:dry": "tsx scripts/execute-next-action.js --dry-run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.21.1",
