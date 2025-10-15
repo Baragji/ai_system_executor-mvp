@@ -82,14 +82,7 @@ import type {
 import { installProblemDetails, respondWithProblem } from "./middleware/problemDetails.js";
 import { getExecution } from "./orchestrator/executionsStore.js";
 import { maybeInitTelemetry, shutdownTelemetry } from "./telemetry/otel.js";
-import {
-  loadPhaseState,
-  suggestNextAction,
-  formatHumanSummary,
-  type PhaseState,
-  type NextAction,
-  type ValidationSnapshot
-} from "./state/phaseState.js";
+import { loadPhaseState, buildWorkflowMetadata, type WorkflowMetadata } from "./state/phaseState.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -129,14 +122,7 @@ const PORT = Number(process.env.PORT || 3000);
 const OUTPUT_DIR = path.resolve("output");
 const PUBLIC_DIR = path.resolve("public");
 // In-memory progress sessions for SSE/polling
-type WorkflowContext = {
-  phaseState: PhaseState;
-  nextAction: NextAction;
-  humanSummary: string;
-  validations: ValidationSnapshot | null;
-  uncommittedChanges: string[];
-  computedAt: number;
-};
+type WorkflowCacheEntry = WorkflowMetadata;
 
 type ProgressSnapshot = {
   stage: string;
@@ -148,7 +134,7 @@ type ProgressSnapshot = {
   paused?: boolean;
   questions?: PendingQuestion[];
   checkpointUpdatedAt?: string;
-  workflow?: WorkflowContext;
+  workflowMetadata?: WorkflowMetadata;
 };
 
 interface OrchestrationSession {
@@ -165,44 +151,31 @@ interface OrchestrationSession {
 const progressSessions = new Map<string, ProgressSnapshot>();
 const orchestrationSessions = new Map<string, OrchestrationSession>();
 const PROGRESS_SESSION_TTL_MS = Number(process.env.PROGRESS_SESSION_TTL_MS ?? 15 * 60 * 1000);
-const workflowContexts = new Map<string, WorkflowContext>();
+const workflowMetadataCache = new Map<string, WorkflowCacheEntry>();
 
-async function ensureWorkflowContextForSession(sessionId: string): Promise<WorkflowContext> {
-  const existing = workflowContexts.get(sessionId);
+async function ensureWorkflowMetadataForSession(sessionId: string): Promise<WorkflowCacheEntry> {
+  const existing = workflowMetadataCache.get(sessionId);
   if (existing) {
     return existing;
   }
 
   const phaseState = await loadPhaseState();
-  const validations: ValidationSnapshot | null = null;
   const uncommittedChanges: string[] = await readUncommittedChanges();
-  const nextAction = suggestNextAction(phaseState, {
-    validations: validations ?? undefined,
-    uncommittedChanges
-  });
-  const humanSummary = formatHumanSummary(phaseState, nextAction, {
-    validations: validations ?? undefined,
-    uncommittedChanges
-  });
-
-  const context: WorkflowContext = {
-    phaseState,
-    nextAction,
-    humanSummary,
-    validations,
+  const metadata = buildWorkflowMetadata(phaseState, {
+    validations: null,
     uncommittedChanges,
     computedAt: Date.now()
-  };
-  workflowContexts.set(sessionId, context);
-  return context;
+  });
+  workflowMetadataCache.set(sessionId, metadata);
+  return metadata;
 }
 
-function getWorkflowContext(sessionId: string): WorkflowContext | null {
-  return workflowContexts.get(sessionId) ?? null;
+function getWorkflowMetadata(sessionId: string): WorkflowCacheEntry | null {
+  return workflowMetadataCache.get(sessionId) ?? null;
 }
 
-function clearWorkflowContext(sessionId: string): void {
-  workflowContexts.delete(sessionId);
+function clearWorkflowMetadata(sessionId: string): void {
+  workflowMetadataCache.delete(sessionId);
 }
 
 async function readUncommittedChanges(): Promise<string[]> {
@@ -236,7 +209,7 @@ function getOrchestrationSession(sessionId: string): OrchestrationSession | unde
 
 function removeOrchestrationSession(sessionId: string): void {
   orchestrationSessions.delete(sessionId);
-  clearWorkflowContext(sessionId);
+  clearWorkflowMetadata(sessionId);
 }
 
 function mapStageToState(stage: string, done?: boolean): OrchestratorState | null {
@@ -305,7 +278,7 @@ function setProgress(sessionId: string | undefined, stage: string, progress: num
     }
   }
 
-  const workflow = getWorkflowContext(sessionId);
+  const workflowMetadata = getWorkflowMetadata(sessionId);
   progressSessions.set(sessionId, {
     stage,
     progress,
@@ -316,7 +289,7 @@ function setProgress(sessionId: string | undefined, stage: string, progress: num
     paused: session.paused,
     questions: session.questions,
     checkpointUpdatedAt: session.checkpointUpdatedAt,
-    ...(workflow ? { workflow } : {})
+    ...(workflowMetadata ? { workflowMetadata } : {})
   });
 }
 
@@ -327,7 +300,7 @@ function getProgress(sessionId: string): ProgressSnapshot | null {
     if (!session) {
       return null;
     }
-    const workflow = getWorkflowContext(sessionId);
+    const workflowMetadata = getWorkflowMetadata(sessionId);
     return {
       stage: stateToStage(session.machine.state),
       progress: 0,
@@ -337,7 +310,7 @@ function getProgress(sessionId: string): ProgressSnapshot | null {
       paused: session.paused,
       questions: session.questions,
       checkpointUpdatedAt: session.checkpointUpdatedAt,
-      ...(workflow ? { workflow } : {})
+      ...(workflowMetadata ? { workflowMetadata } : {})
     };
   }
   return snap;
@@ -394,7 +367,7 @@ function snapshotFromSession(sessionId: string, fallback?: ProgressSnapshot | nu
   const session = ensureOrchestrationSession(sessionId);
   const existing = fallback ?? progressSessions.get(sessionId) ?? null;
   const baseStage = existing?.stage ?? stateToStage(session.machine.state);
-  const workflow = getWorkflowContext(sessionId);
+  const workflowMetadata = getWorkflowMetadata(sessionId);
   return {
     stage: baseStage,
     progress: existing?.progress ?? 0,
@@ -405,7 +378,7 @@ function snapshotFromSession(sessionId: string, fallback?: ProgressSnapshot | nu
     paused: session.paused,
     questions: session.questions,
     checkpointUpdatedAt: session.checkpointUpdatedAt,
-    ...(workflow ? { workflow } : {})
+    ...(workflowMetadata ? { workflowMetadata } : {})
   };
 }
 
@@ -1637,7 +1610,7 @@ app.post("/api/execute", async (req, res) => {
   res.setHeader("x-executor-session", sessionId);
 
   try {
-    await ensureWorkflowContextForSession(sessionId);
+    await ensureWorkflowMetadataForSession(sessionId);
   } catch (error) {
     console.warn(`[Workflow] Failed to initialize context for session ${sessionId}:`, error);
   }
@@ -2004,7 +1977,7 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
     }
 
     try {
-      await ensureWorkflowContextForSession(sessionId);
+      await ensureWorkflowMetadataForSession(sessionId);
     } catch (error) {
       console.warn(`[Workflow] Failed to refresh context before pausing ${sessionId}:`, error);
     }
@@ -2108,7 +2081,7 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     }
 
     try {
-      await ensureWorkflowContextForSession(sessionId);
+      await ensureWorkflowMetadataForSession(sessionId);
     } catch (error) {
       console.warn(`[Workflow] Failed to refresh context before resuming ${sessionId}:`, error);
     }
@@ -2385,9 +2358,15 @@ export const __progressTest = {
   get(sessionId: string) { return progressSessions.get(sessionId) ?? null; },
   purge(now: number) { purgeExpiredProgressSessions(now); },
   ttl() { return PROGRESS_SESSION_TTL_MS; },
+  async ensureMetadata(sessionId: string) {
+    return ensureWorkflowMetadataForSession(sessionId);
+  },
+  snapshot(sessionId: string, fallback?: ProgressSnapshot | null) {
+    return snapshotFromSession(sessionId, fallback);
+  },
   clear() {
     progressSessions.clear();
-    workflowContexts.clear();
+    workflowMetadataCache.clear();
   }
 };
 

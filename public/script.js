@@ -26,6 +26,18 @@ const currentSubtaskLabel = document.getElementById("currentSubtaskLabel");
 const estimatedCompletionLabel = document.getElementById("estimatedCompletionLabel");
 const debugDisclosure = document.getElementById("debugDisclosure");
 const filePreviewPanel = document.getElementById("filePreviewPanel");
+const workflowSummarySection = document.getElementById("workflowSummary");
+const workflowPhaseLabel = document.getElementById("workflowPhaseLabel");
+const workflowSummaryTimestamp = document.getElementById("workflowSummaryTimestamp");
+const workflowHumanSummary = document.getElementById("workflowHumanSummary");
+const workflowCurrentGate = document.getElementById("workflowCurrentGate");
+const workflowCurrentTask = document.getElementById("workflowCurrentTask");
+const workflowNextTask = document.getElementById("workflowNextTask");
+const workflowNextActionLabel = document.getElementById("workflowNextAction");
+const workflowNextActionReason = document.getElementById("workflowNextActionReason");
+const workflowNextActionCommand = document.getElementById("workflowNextActionCommand");
+const workflowPendingTasksList = document.getElementById("workflowPendingTasks");
+const workflowRepoStatusList = document.getElementById("workflowRepoStatus");
 
 const mainContainer = document.querySelector("main");
 let orchestrationSection = null;
@@ -82,6 +94,106 @@ function revealDebugDisclosure() {
 
 hideDebugDisclosure();
 
+function resetWorkflowSummary() {
+  if (!workflowSummarySection) return;
+  workflowSummarySection.classList.add("hidden");
+  if (workflowPhaseLabel) workflowPhaseLabel.textContent = "Workflow Status";
+  if (workflowSummaryTimestamp) workflowSummaryTimestamp.textContent = "";
+  if (workflowHumanSummary) workflowHumanSummary.textContent = "";
+  if (workflowCurrentGate) workflowCurrentGate.textContent = "—";
+  if (workflowCurrentTask) workflowCurrentTask.textContent = "Current task pending";
+  if (workflowNextTask) workflowNextTask.textContent = "Next task pending";
+  if (workflowNextActionLabel) workflowNextActionLabel.textContent = "—";
+  if (workflowNextActionReason) workflowNextActionReason.textContent = "";
+  if (workflowNextActionCommand) {
+    workflowNextActionCommand.textContent = "";
+    workflowNextActionCommand.classList.add("hidden");
+  }
+  if (workflowPendingTasksList) workflowPendingTasksList.innerHTML = "";
+  if (workflowRepoStatusList) workflowRepoStatusList.innerHTML = "";
+}
+
+function updateWorkflowSummary(metadata) {
+  if (!workflowSummarySection) return;
+  if (!metadata) {
+    resetWorkflowSummary();
+    return;
+  }
+
+  workflowSummarySection.classList.remove("hidden");
+  if (workflowPhaseLabel) {
+    workflowPhaseLabel.textContent = `Phase ${metadata.phase.id} — ${metadata.phase.name}`;
+  }
+  if (workflowSummaryTimestamp) {
+    const computed = new Date(metadata.computedAt);
+    workflowSummaryTimestamp.textContent = Number.isNaN(computed.getTime())
+      ? ""
+      : `Updated ${computed.toLocaleString()}`;
+  }
+  if (workflowHumanSummary) workflowHumanSummary.textContent = metadata.humanSummary;
+  if (workflowCurrentGate) {
+    workflowCurrentGate.textContent = metadata.currentGate
+      ? `${metadata.currentGate.id} — ${metadata.currentGate.status}`
+      : "All gates passed";
+  }
+  if (workflowCurrentTask) {
+    workflowCurrentTask.textContent = metadata.currentTask
+      ? `Current: ${metadata.currentTask.id} — ${metadata.currentTask.title}`
+      : "No active task";
+  }
+  if (workflowNextTask) {
+    workflowNextTask.textContent = metadata.nextTask
+      ? `Next: ${metadata.nextTask.id} — ${metadata.nextTask.title}`
+      : "Next task queued";
+  }
+  if (workflowNextActionLabel) workflowNextActionLabel.textContent = metadata.suggestedNextAction.action;
+  if (workflowNextActionReason) workflowNextActionReason.textContent = metadata.suggestedNextAction.reasoning;
+  if (workflowNextActionCommand) {
+    if (metadata.suggestedNextAction.command) {
+      workflowNextActionCommand.textContent = metadata.suggestedNextAction.command;
+      workflowNextActionCommand.classList.remove("hidden");
+    } else {
+      workflowNextActionCommand.textContent = "";
+      workflowNextActionCommand.classList.add("hidden");
+    }
+  }
+
+  if (workflowPendingTasksList) {
+    workflowPendingTasksList.innerHTML = "";
+    if (metadata.pendingTasks.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "No pending tasks";
+      workflowPendingTasksList.appendChild(li);
+    } else {
+      for (const task of metadata.pendingTasks) {
+        const li = document.createElement("li");
+        const status = task.status ? ` — ${task.status}` : "";
+        li.textContent = `${task.id}: ${task.title}${status}`;
+        workflowPendingTasksList.appendChild(li);
+      }
+    }
+  }
+
+  if (workflowRepoStatusList) {
+    workflowRepoStatusList.innerHTML = "";
+    const uncommittedCount = metadata.uncommittedChanges.length;
+    const uncommittedItem = document.createElement("li");
+    uncommittedItem.textContent =
+      uncommittedCount === 0
+        ? "Working tree clean"
+        : `${uncommittedCount} uncommitted change${uncommittedCount === 1 ? "" : "s"}`;
+    workflowRepoStatusList.appendChild(uncommittedItem);
+
+    const validationsItem = document.createElement("li");
+    if (metadata.validations) {
+      validationsItem.textContent = `Validations: lint=${metadata.validations.lint}, type=${metadata.validations.typecheck}, test=${metadata.validations.test}, contract=${metadata.validations.contract_check}`;
+    } else {
+      validationsItem.textContent = "Validations: not run";
+    }
+    workflowRepoStatusList.appendChild(validationsItem);
+  }
+}
+
 function resetOrchestrationControls() {
   orchestrationQuestions = [];
   activeSessionId = null;
@@ -90,6 +202,7 @@ function resetOrchestrationControls() {
   }
   hideResumeDrawer();
   orchestrationSection?.classList.add("hidden");
+  resetWorkflowSummary();
 }
 
 function hideResumeDrawer() {
@@ -273,6 +386,7 @@ async function handlePausedResponse(sessionId) {
 }
 
 function updateOrchestrationState(snapshot) {
+  updateWorkflowSummary(snapshot?.workflowMetadata ?? null);
   if (!snapshot || !orchestrationSection) return;
   orchestrationSection.classList.remove("hidden");
 

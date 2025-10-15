@@ -45,6 +45,31 @@ export interface NextAction {
   command: string | null;
 }
 
+export interface CurrentGateSummary {
+  id: string;
+  status: GateStatus;
+}
+
+export interface WorkflowMetadata {
+  phase: {
+    id: string;
+    name: string;
+    contractPath: string | null;
+    ledgerPath: string | null;
+  };
+  gates: Record<string, GateStatus>;
+  currentGate: CurrentGateSummary | null;
+  tasks: PhaseTask[];
+  currentTask: PhaseTask | null;
+  nextTask: PhaseTask | null;
+  pendingTasks: PhaseTask[];
+  suggestedNextAction: NextAction;
+  humanSummary: string;
+  validations: ValidationSnapshot | null;
+  uncommittedChanges: string[];
+  computedAt: string;
+}
+
 export function normalizeGateStatus(input?: string): GateStatus {
   const s = (input || "").toUpperCase();
   if (s.includes("PASSED") || s.includes("✅")) return "passed";
@@ -156,6 +181,37 @@ export function canAdvanceToNextTask(state: PhaseState): boolean {
   return determineCurrentTask(state) === null;
 }
 
+function cloneTask(task: PhaseTask): PhaseTask {
+  const copy: PhaseTask = { ...task };
+  if (task.validation_results) {
+    copy.validation_results = task.validation_results.map(result => ({ ...result }));
+  }
+  return copy;
+}
+
+export function determineCurrentGate(gates: Record<string, GateStatus>): CurrentGateSummary | null {
+  const entries = Object.entries(gates ?? {});
+  if (entries.length === 0) {
+    return null;
+  }
+
+  const sorted = entries.sort((a, b) => {
+    const numA = Number.parseInt(a[0].replace(/\D+/g, ""), 10);
+    const numB = Number.parseInt(b[0].replace(/\D+/g, ""), 10);
+    if (!Number.isNaN(numA) && !Number.isNaN(numB) && numA !== numB) {
+      return numA - numB;
+    }
+    return a[0].localeCompare(b[0]);
+  });
+
+  const active = sorted.find(([, status]) => status !== "passed");
+  const target = active ?? sorted[sorted.length - 1];
+  if (!target) {
+    return null;
+  }
+  return { id: target[0], status: target[1] };
+}
+
 export function suggestNextAction(
   state: PhaseState,
   options: { uncommittedChanges?: string[]; validations?: ValidationSnapshot }
@@ -199,4 +255,62 @@ export function formatHumanSummary(
   const v = options.validations;
   const val = v ? `lint=${v.lint}, type=${v.typecheck}, test=${v.test}, contract=${v.contract_check}` : "not_run";
   return `Phase ${state.phaseId} — ${state.phaseName} | Gates: ${gates || "none"} | Validations: ${val} | Uncommitted: ${uncommitted} | Next: ${next.action}`;
+}
+
+export function buildWorkflowMetadata(
+  state: PhaseState,
+  options: {
+    validations?: ValidationSnapshot | null;
+    uncommittedChanges?: string[];
+    computedAt?: number | string | Date;
+  } = {}
+): WorkflowMetadata {
+  const validations = options.validations ?? null;
+  const uncommittedChanges = options.uncommittedChanges ? [...options.uncommittedChanges] : [];
+  const timestamp = options.computedAt;
+  let computedAt: string;
+  if (timestamp instanceof Date) {
+    computedAt = timestamp.toISOString();
+  } else if (typeof timestamp === "number") {
+    computedAt = new Date(timestamp).toISOString();
+  } else if (typeof timestamp === "string") {
+    const parsed = new Date(timestamp);
+    computedAt = Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+  } else {
+    computedAt = new Date().toISOString();
+  }
+
+  const gates = Object.fromEntries(Object.entries(state.gates ?? {}));
+  const tasks = state.tasks.map(cloneTask);
+  const currentTask = determineCurrentTask(state);
+  const nextTask = determineNextTask(state);
+  const pendingTasks = state.tasks.filter(task => task.status !== "complete").map(cloneTask);
+  const suggestedNextAction = suggestNextAction(state, {
+    validations: validations ?? undefined,
+    uncommittedChanges
+  });
+  const humanSummary = formatHumanSummary(state, suggestedNextAction, {
+    validations: validations ?? undefined,
+    uncommittedChanges
+  });
+
+  return {
+    phase: {
+      id: state.phaseId,
+      name: state.phaseName,
+      contractPath: state.contractPath,
+      ledgerPath: state.ledgerPath
+    },
+    gates,
+    currentGate: determineCurrentGate(gates),
+    tasks,
+    currentTask: currentTask ? cloneTask(currentTask) : null,
+    nextTask: nextTask ? cloneTask(nextTask) : null,
+    pendingTasks,
+    suggestedNextAction,
+    humanSummary,
+    validations: validations ? { ...validations } : null,
+    uncommittedChanges,
+    computedAt
+  };
 }

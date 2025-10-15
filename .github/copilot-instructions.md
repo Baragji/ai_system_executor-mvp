@@ -1,7 +1,30 @@
 # UMCA Executor MVP — Repository Instructions for AI Agents
 
-**Last Updated:** 2025-10-08  
+**Last Updated:** 2025-10-13
 **Enforcement:** This file is protected by CODEOWNERS. Changes require approval.
+
+---
+
+## Current Work
+
+- **Active Phase**: Phase 19 (Autonomous Transition) + Phase 20 (Executions Endpoint - Complete)
+- **Contracts**:
+  - `contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json` (Trust Spine + LangGraph)
+  - `contracts/Roadmap_execution/20_phase20_langgraph_executions_contract.json` (Complete)
+- **Strategy**: `docs/Goal_&_Vision_inspirational_only/03_final_decisions/phase19_autonomous_transition_strategy.md`
+- **ADR**: `docs/Goal_&_Vision_inspirational_only/03_final_decisions/RA_Deliveries/ADR-019_LangGraph_TS_Orchestrator_2025-10-12.md`
+
+---
+
+## Quick Status Check
+
+```bash
+npm run state:show  # Generates and displays .automation/WHERE_AM_I.json
+```
+
+- Snapshot is read-only and synthesized from authoritative sources (GATES_LEDGER, contracts, git status).
+- File: `.automation/WHERE_AM_I.json` is auto-generated; do not commit.
+- See `CDI_INFRASTRUCTURE.md` for source mapping and usage.
 
 ---
 
@@ -17,8 +40,44 @@
 ### Forbidden Technology
 - ❌ **No Python** anywhere in this project
 - ❌ **No frontend frameworks** (React, Vue, Angular, etc.) in `/public`
-- ❌ **No new dependencies** without explicit justification
+- ❌ **No new dependencies** without explicit justification (see Phase 19 contract for approved deps)
 - ❌ **No breaking changes** to existing APIs
+
+---
+
+## Feature Flags (Phase 19+)
+
+Phase 19+ work uses feature flags for safe, incremental rollout:
+
+| Flag | Default | Purpose | Docs |
+|------|---------|---------|------|
+| `AGENTS_RUNTIME` | `stepqueue` | Enable LangGraph orchestrator when set to `langgraph` | ADR-019 |
+| `OTEL_ENABLED` | `false` | Enable OpenTelemetry GenAI span tracing | Phase 19 T0 |
+| `ACTION_LOG_JSONL` | `false` | Dual-write JSONL action logs to `.automation/actions.jsonl` | Phase 19 T0 |
+| `PROBLEM_DETAILS_ENABLED` | Auto (on in dev/test, off in prod) | Use RFC 9457 problem details error format | Phase 19 T0 |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4318/v1/traces` | OpenTelemetry collector endpoint | Optional |
+
+**Testing feature flags:**
+```bash
+# Enable LangGraph runtime
+export AGENTS_RUNTIME=langgraph
+npm run dev
+
+# Enable OpenTelemetry tracing
+export OTEL_ENABLED=1
+npm run dev
+
+# Enable action log dual-write
+export ACTION_LOG_JSONL=1
+npm run dev
+```
+
+**Rollback:**
+```bash
+unset AGENTS_RUNTIME  # or set to "stepqueue"
+unset OTEL_ENABLED
+unset ACTION_LOG_JSONL
+```
 
 ---
 
@@ -52,7 +111,10 @@ npm run lint              # ESLint - must exit 0, no warnings
 npm run typecheck         # TypeScript - must exit 0
 npm test                  # Vitest - must exit 0, coverage thresholds met
 npm run contract:check    # Contract schema validation - must exit 0
-npm run sbom              # Generate SBOM artifact
+npm run sbom              # Generate SPDX SBOM artifact
+npm run sbom:cyclonedx    # Generate CycloneDX SBOM (Phase 19+)
+npm run sbom:all          # Generate both SPDX + CycloneDX (Phase 19+)
+npm run provenance        # Generate SLSA v1.0 provenance (Phase 19+)
 ```
 
 ### Build & Run
@@ -82,12 +144,19 @@ Every PR must include:
    - `npm run contract:check` passes
    - Contract JSON validates against schema
 
-4. **SBOM Artifact**
-   - Generated via `npm run sbom`
-   - Uploaded in CI pipeline
-   - Format: SPDX JSON
+4. **SBOM Artifacts** (Phase 19+)
+   - SPDX: Generated via `npm run sbom` → `sbom.spdx.json`
+   - CycloneDX: Generated via `npm run sbom:cyclonedx` → `sbom.cdx.json` (Phase 19 T0)
+   - SLSA Provenance: Generated via `npm run provenance` → `provenance.intoto.jsonl` (Phase 19 T0)
+   - All uploaded in CI pipeline
 
-5. **Stack Compliance**
+5. **Error Handling** (Phase 19+)
+   - Use RFC 9457 problem details via `respondWithProblem()` helper in `src/middleware/problemDetails.ts`
+   - Test with `PROBLEM_DETAILS_ENABLED=1` (default in dev/test)
+   - Documentation: `docs/api/problem_types.md`
+   - RFC: https://www.rfc-editor.org/rfc/rfc9457.html
+
+6. **Stack Compliance**
    - No forbidden file extensions (.py, etc.)
    - Frontend changes only under `/public`
    - No new frameworks introduced

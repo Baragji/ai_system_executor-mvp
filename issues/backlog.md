@@ -237,3 +237,115 @@ Tests to keep:
 2) ISSUE-003 (Retry/telemetry refinements) – solidify resilience and observability.
 
 ---
+
+## Future Evaluation Items (Deferred)
+
+### FUTURE-001: Frontend Framework Evaluation
+
+**Priority:** LOW (Re-evaluate when threshold met)  
+**Status:** Deferred  
+**Trigger Conditions:**
+- [ ] Frontend LOC exceeds 5,000 (current: ~2,382)
+- [ ] Component reuse instances >5
+- [ ] State management complexity becomes high
+- [ ] Team velocity bottleneck identified
+
+**Context:**
+Current vanilla JS frontend is appropriate for MVP scale. Framework overhead (~500KB React + bundler) not justified yet. Phase 19 Strategy explicitly calls for vanilla JS chat UI without frameworks.
+
+**When to Re-evaluate:**
+Use `.automation/frontend_framework_decision_template.md` when 2+ trigger conditions are met.
+
+**References:**
+- Assessment: `.automation/technical_constraint_assessment_2025-10-15.md`
+- Template: `.automation/frontend_framework_decision_template.md`
+- Summary: `.automation/TECH_CONSTRAINTS_SUMMARY.md`
+
+**Estimated Effort (if triggered):** 2-3 weeks (discovery + pilot + decision)
+
+---
+
+### FUTURE-002: Python Microservice for Model Training
+
+**Priority:** LOW (Phase 22+ - out of MVP scope)  
+**Status:** Deferred  
+**Trigger Conditions:**
+- [ ] Model fine-tuning becomes in-scope for executor
+- [ ] Custom ML pipelines required (PyTorch/TensorFlow)
+- [ ] Research prototypes need Python-specific libraries
+
+**Context:**
+Python integration is acceptable ONLY as separate microservice with API contract. Never in executor codebase (violates stack constraints). TypeScript ecosystem covers 95% of orchestration/execution needs.
+
+**Architecture When Triggered:**
+```
+Executor (TypeScript) → HTTP/gRPC API → Training Service (Python)
+                                              ├─ FastAPI
+                                              ├─ PyTorch/TensorFlow
+                                              └─ Model versioning
+```
+
+**Requirements:**
+- Separate repository (`umca-training-service`)
+- OpenAPI 3.1 spec for API contract
+- Same SBOM/SLSA standards as TypeScript executor
+- OpenTelemetry integration
+- Discovery note documenting integration points
+
+**References:**
+- Assessment: `.automation/technical_constraint_assessment_2025-10-15.md` (Section 4)
+- Stack Rules: `ai-stack.json` (forbidden_extensions includes .py)
+
+**Estimated Effort (if triggered):** 4-6 weeks (architecture + implementation + integration)
+
+---
+
+### FUTURE-003: Temporal Workflow Orchestration
+
+**Priority:** MEDIUM (Phase 21+ - if LangGraph insufficient)  
+**Status:** Deferred  
+**Trigger Conditions:**
+- [ ] LangGraph checkpoints cannot handle >1 hour workflow pauses
+- [ ] Need for workflow versioning with live migration
+- [ ] Multi-cluster deployment with global state coordination
+
+**Context:**
+LangGraph provides feature-flagged orchestration (Phase 19). Temporal adds operational complexity (requires Temporal server) but offers stronger durability guarantees for long-running workflows.
+
+**Evaluation Score (preliminary):** 3.92/5.0 (DEFER until triggers met)
+
+**When to Re-evaluate:**
+Use `.automation/dependency_evaluation_template.md` if LangGraph proves insufficient for enterprise workflow requirements.
+
+**References:**
+- Assessment: `.automation/technical_constraint_assessment_2025-10-15.md` (Section 3)
+- ADR-019: `docs/Goal_&_Vision_inspirational_only/03_final_decisions/RA_Deliveries/ADR-019_LangGraph_TS_Orchestrator_2025-10-12.md`
+
+**Estimated Effort (if triggered):** 3-4 weeks (integration + migration + testing)
+
+---
+
+### FUTURE-004: Kafka/Redis Streams for Event Streaming
+
+**Priority:** LOW (Phase 22+ - if BullMQ capacity exceeded)  
+**Status:** Deferred  
+**Trigger Conditions:**
+- [ ] Event throughput >10,000 jobs/minute sustained
+- [ ] Need for event replay/time-travel debugging at scale
+- [ ] Multi-tenant isolation requirements exceed Redis capabilities
+
+**Context:**
+BullMQ + Redis currently handles queue needs. Kafka adds significant operational overhead (cluster management) but provides better scalability for high-throughput event streaming.
+
+**Evaluation Score (preliminary):** 3.31/5.0 (DEFER until scale justifies)
+
+**When to Re-evaluate:**
+Monitor queue metrics. If approaching limits, use dependency evaluation template.
+
+**References:**
+- Assessment: `.automation/technical_constraint_assessment_2025-10-15.md` (Section 3)
+- Current: `src/orchestrator/jobQueue.ts` (BullMQ implementation)
+
+**Estimated Effort (if triggered):** 4-5 weeks (cluster setup + migration + testing)
+
+---

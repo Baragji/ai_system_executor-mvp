@@ -1,15 +1,19 @@
 import { describe, expect, it } from "vitest";
 import path from "node:path";
+import { readFile } from "node:fs/promises";
 
 import {
   canAdvanceToNextTask,
+  buildWorkflowMetadata,
+  determineCurrentGate,
   determineCurrentTask,
   determineNextTask,
   formatHumanSummary,
   loadPhaseState,
   suggestNextAction,
   type PhaseState,
-  type ValidationSnapshot
+  type ValidationSnapshot,
+  type WorkflowMetadata
 } from "../../src/state/phaseState.js";
 
 describe("phaseState shared module", () => {
@@ -77,6 +81,31 @@ describe("phaseState shared module", () => {
     expect(current?.id).toBe("T2");
     expect(next?.id).toBe("T3");
     expect(canAdvanceToNextTask(state)).toBe(false);
+  });
+
+  it("identifies current gate when later gates are incomplete", () => {
+    const gates = { G1: "passed", G2: "partial", G3: "not_started" } as const;
+    const current = determineCurrentGate(gates);
+    expect(current).toEqual({ id: "G2", status: "partial" });
+  });
+
+  it("matches CLI workflow metadata fixture", async () => {
+    const fixtureUrl = new URL("../api/__fixtures__/workflowProgress.json", import.meta.url);
+    const raw = await readFile(fixtureUrl, "utf-8");
+    const fixture = JSON.parse(raw) as {
+      phaseState: PhaseState;
+      validations: ValidationSnapshot;
+      uncommittedChanges: string[];
+      expected: WorkflowMetadata;
+    };
+
+    const runtime = buildWorkflowMetadata(fixture.phaseState, {
+      validations: fixture.validations,
+      uncommittedChanges: fixture.uncommittedChanges,
+      computedAt: fixture.expected.computedAt
+    });
+
+    expect(runtime).toEqual(fixture.expected);
   });
 });
 

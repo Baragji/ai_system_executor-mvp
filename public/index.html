@@ -26,6 +26,36 @@
 
       <button id="runBtn">Execute</button>
 
+      <section id="workflowSummary" class="workflow-summary hidden">
+        <div class="workflow-summary__header">
+          <h2 id="workflowPhaseLabel">Workflow Status</h2>
+          <span id="workflowSummaryTimestamp" class="workflow-summary__timestamp"></span>
+        </div>
+        <p id="workflowHumanSummary" class="workflow-summary__human"></p>
+        <div class="workflow-summary__grid">
+          <div class="workflow-summary__card">
+            <h3>Gate &amp; Tasks</h3>
+            <p id="workflowCurrentGate" class="workflow-summary__value">—</p>
+            <p id="workflowCurrentTask" class="workflow-summary__muted">Current task pending</p>
+            <p id="workflowNextTask" class="workflow-summary__muted">Next task pending</p>
+          </div>
+          <div class="workflow-summary__card">
+            <h3>Suggested Next Action</h3>
+            <p id="workflowNextAction" class="workflow-summary__value">—</p>
+            <p id="workflowNextActionReason" class="workflow-summary__muted"></p>
+            <code id="workflowNextActionCommand" class="workflow-summary__code hidden"></code>
+          </div>
+          <div class="workflow-summary__card">
+            <h3>Pending Tasks</h3>
+            <ul id="workflowPendingTasks" class="workflow-summary__list"></ul>
+          </div>
+          <div class="workflow-summary__card">
+            <h3>Repository</h3>
+            <ul id="workflowRepoStatus" class="workflow-summary__list"></ul>
+          </div>
+        </div>
+      </section>
+
       <section id="clarificationSection" class="clarification hidden">
         <h2>Clarification Needed</h2>
         <p class="clarification-hint">Answer the questions below so the agent can build exactly what you need.</p>
