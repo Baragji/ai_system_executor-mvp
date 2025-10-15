@@ -1,0 +1,80 @@
+{
+  "phaseId": "workflow_phase3",
+  "title": "Workflow Phase 3 — Runtime Integration Discovery (WF3-W31)",
+  "date": "2025-10-14",
+  "integrationPoints": [
+    {
+      "file": "src/server.ts",
+      "line": 1,
+      "symbol": "module imports",
+      "rationale": "Bring shared PhaseState utilities (loadPhaseState, suggestNextAction, formatHumanSummary) into the server runtime."
+    },
+    {
+      "file": "src/server.ts",
+      "line": 210,
+      "symbol": "setProgress(sessionId, stage, progress, data, done)",
+      "rationale": "Augment in-memory progress snapshots with workflow metadata per session."
+    },
+    {
+      "file": "src/server.ts",
+      "line": 280,
+      "symbol": "snapshotFromSession(sessionId, fallback)",
+      "rationale": "Ensure snapshot builder can retrieve memoized workflow context for SSE and polling APIs."
+    },
+    {
+      "file": "src/server.ts",
+      "line": 1505,
+      "symbol": "app.post('/api/execute', …)",
+      "rationale": "Prime workflow context when a new execution session starts."
+    },
+    {
+      "file": "src/server.ts",
+      "line": 1899,
+      "symbol": "app.post('/api/sessions/:id/pause', …)",
+      "rationale": "Guarantee workflow context is available when pausing sessions for HITL gates."
+    },
+    {
+      "file": "src/server.ts",
+      "line": 2002,
+      "symbol": "app.post('/api/sessions/:id/resume', …)",
+      "rationale": "Preserve workflow context when resuming sessions so progress snapshots remain enriched."
+    }
+  ],
+  "stackCompliance": {
+    "language": "TypeScript",
+    "node": ">=20",
+    "backend": "Express",
+    "frontend": "N/A (WF3-W31 touches backend only)",
+    "testing": "Vitest >=80%/75% thresholds",
+    "lint": "ESLint 0 warnings",
+    "notes": [
+      "No code changes yet — discovery only.",
+      "Confirmed no Python or forbidden frameworks introduced."
+    ]
+  },
+  "dependencies": {
+    "new": [],
+    "existing": [
+      {
+        "name": "src/state/phaseState.ts",
+        "reason": "Source of PhaseState utilities that will be consumed in runtime."
+      }
+    ]
+  },
+  "risks": [
+    {
+      "id": "R1",
+      "name": "Circular dependency",
+      "mitigation": "Import utilities only (no runtime side-effects) and keep server.ts as consumer."
+    },
+    {
+      "id": "R2",
+      "name": "Disk read overhead",
+      "mitigation": "Memoize workflow context per session to avoid repeated filesystem access."
+    }
+  ],
+  "evidence": [
+    "src/server.ts:1",
+    "src/state/phaseState.ts:1"
+  ]
+}

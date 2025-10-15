@@ -38,3 +38,7 @@
 {"name":"test_run","timestamp":"2025-10-14T19:23:33.674Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
 {"name":"langgraph_execution_started","timestamp":"2025-10-14T19:55:31.308Z","payload":{"executionId":"graph-14b5508a0b347575","sessionId":"14b5508a0b347575","deterministic":false,"seed":null}}
 {"name":"langgraph_execution_completed","timestamp":"2025-10-14T19:55:31.320Z","payload":{"executionId":"graph-14b5508a0b347575"}}
+{"name":"generation_start","timestamp":"2025-10-15T02:38:59.007Z","payload":{"project":"002test","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-15T02:39:01.860Z","payload":{"project":"002test","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-15T02:39:01.862Z","payload":{"project":"002test","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-15T02:39:01.863Z","payload":{"project":"002test","status":"pass","mode":"single"}}

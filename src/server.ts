@@ -6,8 +6,9 @@ import morgan from "morgan";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
-import { spawn } from "node:child_process";
+import { spawn, execFile } from "node:child_process";
 import { finished } from "node:stream/promises";
+import { promisify } from "node:util";
 import slugify from "slugify";
 import { ZipFile } from "yazl";
 
@@ -81,6 +82,16 @@ import type {
 import { installProblemDetails, respondWithProblem } from "./middleware/problemDetails.js";
 import { getExecution } from "./orchestrator/executionsStore.js";
 import { maybeInitTelemetry, shutdownTelemetry } from "./telemetry/otel.js";
+import {
+  loadPhaseState,
+  suggestNextAction,
+  formatHumanSummary,
+  type PhaseState,
+  type NextAction,
+  type ValidationSnapshot
+} from "./state/phaseState.js";
+
+const execFileAsync = promisify(execFile);
 
 const IS_TEST_ENV = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
 
@@ -118,6 +129,15 @@ const PORT = Number(process.env.PORT || 3000);
 const OUTPUT_DIR = path.resolve("output");
 const PUBLIC_DIR = path.resolve("public");
 // In-memory progress sessions for SSE/polling
+type WorkflowContext = {
+  phaseState: PhaseState;
+  nextAction: NextAction;
+  humanSummary: string;
+  validations: ValidationSnapshot | null;
+  uncommittedChanges: string[];
+  computedAt: number;
+};
+
 type ProgressSnapshot = {
   stage: string;
   progress: number;
@@ -128,6 +148,7 @@ type ProgressSnapshot = {
   paused?: boolean;
   questions?: PendingQuestion[];
   checkpointUpdatedAt?: string;
+  workflow?: WorkflowContext;
 };
 
 interface OrchestrationSession {
@@ -144,6 +165,61 @@ interface OrchestrationSession {
 const progressSessions = new Map<string, ProgressSnapshot>();
 const orchestrationSessions = new Map<string, OrchestrationSession>();
 const PROGRESS_SESSION_TTL_MS = Number(process.env.PROGRESS_SESSION_TTL_MS ?? 15 * 60 * 1000);
+const workflowContexts = new Map<string, WorkflowContext>();
+
+async function ensureWorkflowContextForSession(sessionId: string): Promise<WorkflowContext> {
+  const existing = workflowContexts.get(sessionId);
+  if (existing) {
+    return existing;
+  }
+
+  const phaseState = await loadPhaseState();
+  const validations: ValidationSnapshot | null = null;
+  const uncommittedChanges: string[] = await readUncommittedChanges();
+  const nextAction = suggestNextAction(phaseState, {
+    validations: validations ?? undefined,
+    uncommittedChanges
+  });
+  const humanSummary = formatHumanSummary(phaseState, nextAction, {
+    validations: validations ?? undefined,
+    uncommittedChanges
+  });
+
+  const context: WorkflowContext = {
+    phaseState,
+    nextAction,
+    humanSummary,
+    validations,
+    uncommittedChanges,
+    computedAt: Date.now()
+  };
+  workflowContexts.set(sessionId, context);
+  return context;
+}
+
+function getWorkflowContext(sessionId: string): WorkflowContext | null {
+  return workflowContexts.get(sessionId) ?? null;
+}
+
+function clearWorkflowContext(sessionId: string): void {
+  workflowContexts.delete(sessionId);
+}
+
+async function readUncommittedChanges(): Promise<string[]> {
+  try {
+    const { stdout } = await execFileAsync("git", ["status", "--porcelain"], {
+      cwd: process.cwd(),
+      encoding: "utf-8",
+      maxBuffer: 1024 * 1024
+    });
+    return stdout
+      .split("\n")
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+  } catch {
+    return [];
+  }
+}
 
 function ensureOrchestrationSession(sessionId: string): OrchestrationSession {
   let session = orchestrationSessions.get(sessionId);
@@ -160,6 +236,7 @@ function getOrchestrationSession(sessionId: string): OrchestrationSession | unde
 
 function removeOrchestrationSession(sessionId: string): void {
   orchestrationSessions.delete(sessionId);
+  clearWorkflowContext(sessionId);
 }
 
 function mapStageToState(stage: string, done?: boolean): OrchestratorState | null {
@@ -228,6 +305,7 @@ function setProgress(sessionId: string | undefined, stage: string, progress: num
     }
   }
 
+  const workflow = getWorkflowContext(sessionId);
   progressSessions.set(sessionId, {
     stage,
     progress,
@@ -237,7 +315,8 @@ function setProgress(sessionId: string | undefined, stage: string, progress: num
     state: session.machine.state,
     paused: session.paused,
     questions: session.questions,
-    checkpointUpdatedAt: session.checkpointUpdatedAt
+    checkpointUpdatedAt: session.checkpointUpdatedAt,
+    ...(workflow ? { workflow } : {})
   });
 }
 
@@ -248,6 +327,7 @@ function getProgress(sessionId: string): ProgressSnapshot | null {
     if (!session) {
       return null;
     }
+    const workflow = getWorkflowContext(sessionId);
     return {
       stage: stateToStage(session.machine.state),
       progress: 0,
@@ -256,7 +336,8 @@ function getProgress(sessionId: string): ProgressSnapshot | null {
       state: session.machine.state,
       paused: session.paused,
       questions: session.questions,
-      checkpointUpdatedAt: session.checkpointUpdatedAt
+      checkpointUpdatedAt: session.checkpointUpdatedAt,
+      ...(workflow ? { workflow } : {})
     };
   }
   return snap;
@@ -313,6 +394,7 @@ function snapshotFromSession(sessionId: string, fallback?: ProgressSnapshot | nu
   const session = ensureOrchestrationSession(sessionId);
   const existing = fallback ?? progressSessions.get(sessionId) ?? null;
   const baseStage = existing?.stage ?? stateToStage(session.machine.state);
+  const workflow = getWorkflowContext(sessionId);
   return {
     stage: baseStage,
     progress: existing?.progress ?? 0,
@@ -322,7 +404,8 @@ function snapshotFromSession(sessionId: string, fallback?: ProgressSnapshot | nu
     state: session.machine.state,
     paused: session.paused,
     questions: session.questions,
-    checkpointUpdatedAt: session.checkpointUpdatedAt
+    checkpointUpdatedAt: session.checkpointUpdatedAt,
+    ...(workflow ? { workflow } : {})
   };
 }
 
@@ -1553,6 +1636,12 @@ app.post("/api/execute", async (req, res) => {
 
   res.setHeader("x-executor-session", sessionId);
 
+  try {
+    await ensureWorkflowContextForSession(sessionId);
+  } catch (error) {
+    console.warn(`[Workflow] Failed to initialize context for session ${sessionId}:`, error);
+  }
+
   // Best-effort: ensure checkpoint root exists to avoid rare ENOENT under concurrency in tests
   try {
     await fs.mkdir(path.resolve(".automation", "checkpoints", "step-workflows"), { recursive: true });
@@ -1914,6 +2003,12 @@ app.post("/api/sessions/:id/pause", async (req, res) => {
       return res.status(409).json({ error: "session already paused" });
     }
 
+    try {
+      await ensureWorkflowContextForSession(sessionId);
+    } catch (error) {
+      console.warn(`[Workflow] Failed to refresh context before pausing ${sessionId}:`, error);
+    }
+
     const reasonRaw = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
     const reason = reasonRaw || "Manual pause requested";
 
@@ -2010,6 +2105,12 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     const session = getOrchestrationSession(sessionId);
     if (!session) {
       return res.status(404).json({ error: "session not found" });
+    }
+
+    try {
+      await ensureWorkflowContextForSession(sessionId);
+    } catch (error) {
+      console.warn(`[Workflow] Failed to refresh context before resuming ${sessionId}:`, error);
     }
 
     const answers = normalizeResumeAnswers(req.body?.answers);
@@ -2284,7 +2385,10 @@ export const __progressTest = {
   get(sessionId: string) { return progressSessions.get(sessionId) ?? null; },
   purge(now: number) { purgeExpiredProgressSessions(now); },
   ttl() { return PROGRESS_SESSION_TTL_MS; },
-  clear() { progressSessions.clear(); }
+  clear() {
+    progressSessions.clear();
+    workflowContexts.clear();
+  }
 };
 
 export const __orchestratorTest = {
