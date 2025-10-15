@@ -14,7 +14,7 @@ import {
   type PhaseState,
   type ValidationSnapshot,
   type WorkflowMetadata
-} from "../../src/state/phaseState.js";
+  } from "../../workflow/lib/phaseState.js";
 
 describe("phaseState shared module", () => {
   it("loads basic phase and gate info from the repository", async () => {

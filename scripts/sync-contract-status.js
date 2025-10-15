@@ -16,6 +16,9 @@ import { pathToFileURL } from "node:url";
 
 const DEFAULT_PHASE = "19";
 const MIN_CYCLONEDX_BYTES = 1_000_000;
+const MAX_VALIDATION_OUTPUT = 4_000;
+const ANSI_ESCAPE = String.fromCharCode(27);
+const ANSI_PATTERN = new RegExp(`${ANSI_ESCAPE}\\[[0-9;]*m`, "g");
 
 function parseArgs(argv) {
   let phaseId = DEFAULT_PHASE;
@@ -53,34 +56,93 @@ function runCommand(cmd, cwd) {
   });
 }
 
-async function ensureCycloneDx(rootDir) {
-  runCommand("npm run sbom:cyclonedx", rootDir);
-  const sbomPath = path.join(rootDir, "sbom.cdx.json");
-  try {
-    const stat = await fs.stat(sbomPath);
-    if (stat.size <= MIN_CYCLONEDX_BYTES) return false;
-    const evidenceDir = path.join(rootDir, ".automation", "evidence", "G2");
-    await fs.mkdir(evidenceDir, { recursive: true });
-    await fs.copyFile(sbomPath, path.join(evidenceDir, "sbom.cdx.json"));
-    return true;
-  } catch {
-    return false;
+function normalizeOutput(value) {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (Buffer.isBuffer(value)) return value.toString("utf8");
+  return String(value);
+}
+
+function stripAnsi(value) {
+  return normalizeOutput(value).replace(ANSI_PATTERN, "");
+}
+
+function truncateOutput(value) {
+  const cleaned = stripAnsi(value).replace(/\r\n/g, "\n");
+  if (cleaned.length <= MAX_VALIDATION_OUTPUT) {
+    return cleaned.trimEnd();
   }
+  return `${cleaned.slice(0, MAX_VALIDATION_OUTPUT)}…`;
+}
+
+function mergePreviousResults(results, previousResults = []) {
+  if (!Array.isArray(previousResults) || previousResults.length === 0) {
+    return results;
+  }
+
+  return results.map((result) => {
+    const prior = previousResults.find((entry) => entry?.cmd === result.cmd);
+    if (
+      prior &&
+      prior.exit_code === result.exit_code &&
+      prior.ok === result.ok &&
+      (prior.stdout ?? "") === (result.stdout ?? "") &&
+      (prior.stderr ?? "") === (result.stderr ?? "")
+    ) {
+      return { ...result, executed_at: prior.executed_at ?? result.executed_at };
+    }
+    return result;
+  });
+}
+
+async function ensureCycloneDx(rootDir) {
+  const sbomPath = path.join(rootDir, "sbom.cdx.json");
+
+  async function hasValidSbom() {
+    try {
+      const stat = await fs.stat(sbomPath);
+      return stat.size > MIN_CYCLONEDX_BYTES;
+    } catch {
+      return false;
+    }
+  }
+
+  if (!(await hasValidSbom())) {
+    runCommand("npm run sbom:cyclonedx", rootDir);
+    if (!(await hasValidSbom())) {
+      return false;
+    }
+  }
+
+  const evidenceDir = path.join(rootDir, ".automation", "evidence", "G2");
+  await fs.mkdir(evidenceDir, { recursive: true });
+  await fs.copyFile(sbomPath, path.join(evidenceDir, "sbom.cdx.json"));
+  return true;
 }
 
 async function ensureProvenance(rootDir) {
-  runCommand("npm run provenance", rootDir);
-  try {
-    const provenancePath = path.join(rootDir, "provenance.intoto.jsonl");
-    const content = await fs.readFile(provenancePath, "utf8");
-    if (!content.includes("slsa.dev/provenance")) return false;
-    const evidenceDir = path.join(rootDir, ".automation", "evidence", "G2");
-    await fs.mkdir(evidenceDir, { recursive: true });
-    await fs.copyFile(provenancePath, path.join(evidenceDir, "provenance.intoto.jsonl"));
-    return true;
-  } catch {
-    return false;
+  const provenancePath = path.join(rootDir, "provenance.intoto.jsonl");
+
+  async function hasValidProvenance() {
+    try {
+      const content = await fs.readFile(provenancePath, "utf8");
+      return content.includes("slsa.dev/provenance");
+    } catch {
+      return false;
+    }
   }
+
+  if (!(await hasValidProvenance())) {
+    runCommand("npm run provenance", rootDir);
+    if (!(await hasValidProvenance())) {
+      return false;
+    }
+  }
+
+  const evidenceDir = path.join(rootDir, ".automation", "evidence", "G2");
+  await fs.mkdir(evidenceDir, { recursive: true });
+  await fs.copyFile(provenancePath, path.join(evidenceDir, "provenance.intoto.jsonl"));
+  return true;
 }
 
 async function checkFileContains(rootDir, relativePath, needles) {
@@ -92,19 +154,75 @@ async function checkFileContains(rootDir, relativePath, needles) {
   }
 }
 
-async function runTaskValidations(task, rootDir) {
+async function runTaskValidations(task, rootDir, previousResults = []) {
   if (!Array.isArray(task.validation) || task.validation.length === 0) {
-    return true;
+    return { ok: true, results: [] };
   }
-  try {
-    for (const entry of task.validation) {
-      if (!entry || typeof entry.cmd !== "string" || entry.cmd.length === 0) continue;
-      runCommand(entry.cmd, rootDir);
+
+  const results = [];
+  let allOk = true;
+
+  for (const entry of task.validation) {
+    if (!entry || typeof entry.cmd !== "string" || entry.cmd.length === 0) {
+      continue;
     }
-    return true;
-  } catch {
-    return false;
+
+    const expected = typeof entry.expect_exit_code === "number" ? entry.expect_exit_code : 0;
+    const executedAt = new Date().toISOString();
+
+    try {
+      const stdout = execSync(entry.cmd, {
+        cwd: rootDir,
+        stdio: "pipe",
+        env: process.env,
+        encoding: "utf8",
+      });
+      const ok = expected === 0;
+      results.push({
+        cmd: entry.cmd,
+        exit_code: 0,
+        ok,
+        executed_at: executedAt,
+        stdout: truncateOutput(stdout),
+        stderr: "",
+      });
+      if (!ok) {
+        allOk = false;
+        break;
+      }
+    } catch (error) {
+      const exitCode = typeof error?.status === "number" ? error.status : 1;
+      const stdout = truncateOutput(error?.stdout);
+      const stderr = truncateOutput(error?.stderr ?? error?.message ?? "");
+      const ok = exitCode === expected;
+      results.push({
+        cmd: entry.cmd,
+        exit_code: exitCode,
+        ok,
+        executed_at: executedAt,
+        stdout,
+        stderr,
+      });
+      if (!ok) {
+        allOk = false;
+        break;
+      }
+    }
   }
+
+  const merged = mergePreviousResults(results, previousResults);
+  return { ok: allOk, results: merged };
+}
+
+function createSummaryResult(cmd, ok, message, executedAt) {
+  return {
+    cmd,
+    exit_code: ok ? 0 : 1,
+    ok,
+    executed_at: executedAt,
+    stdout: truncateOutput(message),
+    stderr: "",
+  };
 }
 
 async function checkTests(rootDir) {
@@ -156,46 +274,120 @@ async function ledgerHasGate(rootDir) {
 export async function validateTask(task, context) {
   const now = context.now ?? new Date().toISOString();
   const rootDir = context.rootDir;
+  const isDocTask = /^T0-DOC-/i.test(task.id);
+  if (isDocTask) {
+    const previousValidationResults = Array.isArray(task.validation_results) ? task.validation_results : [];
+    const { ok, results } = await runTaskValidations(task, rootDir, previousValidationResults);
+    return ok
+      ? { status: "complete", completed_at: now, validation_results: results }
+      : { status: "pending", validation_results: results };
+  }
 
   switch (task.id) {
-    case "T0-DOC-1":
-    case "T0-DOC-2":
-    case "T0-DOC-3":
-    case "T0-DOC-4": {
-      const ok = await runTaskValidations(task, rootDir);
-      return ok ? { status: "complete", completed_at: now } : { status: "pending" };
-    }
     case "T0-IMPL-1": {
       const ok = await ensureCycloneDx(rootDir);
-      return ok ? { status: "complete", completed_at: now } : { status: "blocked" };
+      const summary = createSummaryResult(
+        task.validation?.[0]?.cmd ?? "ensureCycloneDx",
+        ok,
+        ok ? "sbom.cdx.json present (>1MB) and copied to evidence." : "sbom.cdx.json missing or below size threshold.",
+        now,
+      );
+      if (ok) {
+        return { status: "complete", completed_at: now, validation_results: [summary] };
+      }
+      return { status: "blocked", validation_results: [summary] };
     }
     case "T0-IMPL-2": {
       const ok = await ensureProvenance(rootDir);
-      return ok ? { status: "complete", completed_at: now } : { status: "blocked" };
+      const summary = createSummaryResult(
+        task.validation?.[0]?.cmd ?? "ensureProvenance",
+        ok,
+        ok ? "provenance.intoto.jsonl contains slsa.dev/provenance and was copied to evidence." : "provenance.intoto.jsonl missing or invalid.",
+        now,
+      );
+      if (ok) {
+        return { status: "complete", completed_at: now, validation_results: [summary] };
+      }
+      return { status: "blocked", validation_results: [summary] };
     }
     case "T0-IMPL-3": {
       const ok = await checkFileContains(rootDir, "src/telemetry/events.ts", ["ACTION_LOG_JSONL"]);
-      return ok ? { status: "complete", completed_at: now } : { status: "pending" };
+      const summary = createSummaryResult(
+        task.validation?.[0]?.cmd ?? "check ACTION_LOG_JSONL flag",
+        ok,
+        ok ? "src/telemetry/events.ts references ACTION_LOG_JSONL flag." : "ACTION_LOG_JSONL flag missing from events telemetry.",
+        now,
+      );
+      if (ok) {
+        return { status: "complete", completed_at: now, validation_results: [summary] };
+      }
+      return { status: "pending", validation_results: [summary] };
     }
     case "T0-IMPL-4": {
       const ok = await checkFileContains(rootDir, "src/telemetry/otel.ts", ["NodeSDK"]);
-      return ok ? { status: "complete", completed_at: now } : { status: "pending" };
+      const summary = createSummaryResult(
+        task.validation?.[0]?.cmd ?? "check OpenTelemetry NodeSDK",
+        ok,
+        ok ? "src/telemetry/otel.ts initializes NodeSDK." : "NodeSDK initialization missing from telemetry setup.",
+        now,
+      );
+      if (ok) {
+        return { status: "complete", completed_at: now, validation_results: [summary] };
+      }
+      return { status: "pending", validation_results: [summary] };
     }
     case "T0-IMPL-5": {
       const ok = await checkFileContains(rootDir, "src/middleware/problemDetails.ts", ["occurred_at", "getHttpReasonPhrase", "toValidationProblem"]);
-      return ok ? { status: "complete", completed_at: now } : { status: "pending" };
+      const summary = createSummaryResult(
+        task.validation?.[0]?.cmd ?? "check problem details helpers",
+        ok,
+        ok ? "problemDetails.ts includes occurred_at, getHttpReasonPhrase, and toValidationProblem." : "problemDetails.ts missing required RFC 9457 helpers.",
+        now,
+      );
+      if (ok) {
+        return { status: "complete", completed_at: now, validation_results: [summary] };
+      }
+      return { status: "pending", validation_results: [summary] };
     }
     case "T0-TEST-1": {
       const ok = await checkTests(rootDir);
-      return ok ? { status: "complete", completed_at: now } : { status: "blocked" };
+      const summary = createSummaryResult(
+        task.validation?.[0]?.cmd ?? "npm test",
+        ok,
+        ok ? "npm test run meets minimum passing threshold (>=350 tests)." : "npm test run did not meet expected passing threshold.",
+        now,
+      );
+      if (ok) {
+        return { status: "complete", completed_at: now, validation_results: [summary] };
+      }
+      return { status: "blocked", validation_results: [summary] };
     }
     case "T0-EVID-1": {
       const count = await countEvidenceFiles(rootDir);
-      return count >= 5 ? { status: "complete", completed_at: now } : { status: "blocked" };
+      const ok = count >= 5;
+      const summary = createSummaryResult(
+        task.validation?.[0]?.cmd ?? "count evidence artifacts",
+        ok,
+        ok ? `Located ${count} evidence artifact(s) in .automation/evidence/G2.` : `Only ${count} evidence artifact(s) present in .automation/evidence/G2.`,
+        now,
+      );
+      if (ok) {
+        return { status: "complete", completed_at: now, validation_results: [summary] };
+      }
+      return { status: "blocked", validation_results: [summary] };
     }
     case "T0-GATE-1": {
       const ok = await ledgerHasGate(rootDir);
-      return ok ? { status: "complete", completed_at: now } : { status: "pending" };
+      const summary = createSummaryResult(
+        task.validation?.[0]?.cmd ?? "check Gate G2 ledger entry",
+        ok,
+        ok ? "Gate G2 marked as passed in .automation/GATES_LEDGER.md." : "Gate G2 not marked as passed in .automation/GATES_LEDGER.md.",
+        now,
+      );
+      if (ok) {
+        return { status: "complete", completed_at: now, validation_results: [summary] };
+      }
+      return { status: "pending", validation_results: [summary] };
     }
     default:
       return { status: task.status ?? "pending" };
@@ -215,6 +407,7 @@ export async function syncContract(options = {}) {
   const contract = JSON.parse(raw);
   const now = new Date().toISOString();
   let updated = 0;
+  let validationUpdates = 0;
 
   log(`Syncing contract ${path.relative(rootDir, filePath)} (${phaseId})...`, silent);
 
@@ -230,6 +423,17 @@ export async function syncContract(options = {}) {
     const nextStatus = result.status;
     const prevStatus = task.status ?? "pending";
 
+    if (Array.isArray(result.validation_results)) {
+      const previousResults = Array.isArray(task.validation_results) ? task.validation_results : [];
+      const prevJson = JSON.stringify(previousResults);
+      const nextJson = JSON.stringify(result.validation_results);
+      if (prevJson !== nextJson) {
+        task.validation_results = result.validation_results;
+        validationUpdates += 1;
+        log(`  📝 ${task.id}: refreshed validation evidence`, silent);
+      }
+    }
+
     if (nextStatus !== prevStatus) {
       task.status = nextStatus;
       if (nextStatus === "complete") {
@@ -244,10 +448,17 @@ export async function syncContract(options = {}) {
     }
   }
 
-  if (updated > 0) {
+  if (updated > 0 || validationUpdates > 0) {
+    const summaryParts = [];
+    if (updated > 0) {
+      summaryParts.push(`${updated} task status${updated === 1 ? "" : "es"}`);
+    }
+    if (validationUpdates > 0) {
+      summaryParts.push(`${validationUpdates} validation evidence set${validationUpdates === 1 ? "" : "s"}`);
+    }
     const updatedJson = `${JSON.stringify(contract, null, 2)}\n`;
     await fs.writeFile(filePath, updatedJson, "utf8");
-    log(`\n✅ Updated ${updated} task(s)`, silent);
+    log(`\n✅ Updated ${summaryParts.join(" + ")}`, silent);
   } else {
     log("\n✅ Contract already in sync", silent);
   }
