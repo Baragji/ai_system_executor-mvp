@@ -1,6 +1,6 @@
 # UMCA Executor MVP — Repository Instructions for AI Agents
 
-**Last Updated:** 2025-10-13
+**Last Updated:** 2025-10-15
 **Enforcement:** This file is protected by CODEOWNERS. Changes require approval.
 
 ---
@@ -25,6 +25,18 @@ npm run state:show  # Generates and displays .automation/WHERE_AM_I.json
 - Snapshot is read-only and synthesized from authoritative sources (GATES_LEDGER, contracts, git status).
 - File: `.automation/WHERE_AM_I.json` is auto-generated; do not commit.
 - See `CDI_INFRASTRUCTURE.md` for source mapping and usage.
+
+### Find Next Task
+
+```bash
+npm run state:show      # Current status + pending actions
+npm run state:next:dry  # Preview the auto-suggested next step
+npm run state:next      # Execute the suggested step (requires confirmation)
+```
+
+- Commands live in `package.json` scripts; they orchestrate gate + contract state.
+- Always review the dry run output before executing the suggested task.
+- Capture any evidence or artifacts the step requests before moving on.
 
 ---
 

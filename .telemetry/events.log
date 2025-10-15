@@ -18,3 +18,17 @@
 {"name":"test_run","timestamp":"2025-10-15T18:11:23.908Z","payload":{"project":"004testartifact","stage":"initial","status":"pass"}}
 {"name":"repair_attempt","timestamp":"2025-10-15T18:11:23.910Z","payload":{"project":"004testartifact","attempts":1,"finalStatus":"pass","successAttempt":1}}
 {"name":"generation_complete","timestamp":"2025-10-15T18:11:23.911Z","payload":{"project":"004testartifact","status":"pass","mode":"single"}}
+{"name":"generation_start","timestamp":"2025-10-15T18:16:43.292Z","payload":{"project":"004testartifact","mode":"plan"}}
+{"name":"plan_snapshot","timestamp":"2025-10-15T18:18:00.368Z","payload":{"project":"004testartifact","completed":1,"failed":0,"percent":12.5}}
+{"name":"plan_progress","timestamp":"2025-10-15T18:18:00.368Z","payload":{"project":"004testartifact","subtask":"project-initialization","status":"completed","percent":12.5}}
+{"name":"plan_snapshot","timestamp":"2025-10-15T18:19:00.615Z","payload":{"project":"004testartifact","completed":2,"failed":0,"percent":25}}
+{"name":"plan_progress","timestamp":"2025-10-15T18:19:00.615Z","payload":{"project":"004testartifact","subtask":"backend-express-setup","status":"completed","percent":25}}
+{"name":"plan_snapshot","timestamp":"2025-10-15T18:20:16.778Z","payload":{"project":"004testartifact","completed":3,"failed":0,"percent":37.5}}
+{"name":"plan_progress","timestamp":"2025-10-15T18:20:16.778Z","payload":{"project":"004testartifact","subtask":"frontend-setup-vite","status":"completed","percent":37.5}}
+{"name":"llm_retry","timestamp":"2025-10-15T18:23:16.779Z","payload":{"attempt":1,"maxRetries":3,"backoffMs":956,"status":0,"code":"","message":"LLM call timed out after 180000ms","isTimeout":true}}
+{"name":"plan_snapshot","timestamp":"2025-10-15T18:25:27.199Z","payload":{"project":"004testartifact","completed":4,"failed":0,"percent":50}}
+{"name":"plan_progress","timestamp":"2025-10-15T18:25:27.199Z","payload":{"project":"004testartifact","subtask":"frontend-confetti-implementation","status":"completed","percent":50}}
+{"name":"plan_snapshot","timestamp":"2025-10-15T18:26:50.719Z","payload":{"project":"004testartifact","completed":5,"failed":0,"percent":62.5}}
+{"name":"plan_progress","timestamp":"2025-10-15T18:26:50.719Z","payload":{"project":"004testartifact","subtask":"dev-workflow-and-scripts","status":"completed","percent":62.5}}
+{"name":"generation_complete","timestamp":"2025-10-15T18:26:50.724Z","payload":{"project":"004testartifact","status":"fail","mode":"plan"}}
+{"name":"test_run","timestamp":"2025-10-15T18:30:56.744Z","payload":{"project":"004testartifact","stage":"manual","status":"pass"}}
