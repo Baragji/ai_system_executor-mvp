@@ -1,0 +1,13 @@
+137:  workflowMetadata?: WorkflowMetadata;
+154:const workflowMetadataCache = new Map<string, WorkflowCacheEntry>();
+157:  const existing = workflowMetadataCache.get(sessionId);
+169:  workflowMetadataCache.set(sessionId, metadata);
+174:  return workflowMetadataCache.get(sessionId) ?? null;
+178:  workflowMetadataCache.delete(sessionId);
+281:  const workflowMetadata = getWorkflowMetadata(sessionId);
+292:    ...(workflowMetadata ? { workflowMetadata } : {})
+303:    const workflowMetadata = getWorkflowMetadata(sessionId);
+313:      ...(workflowMetadata ? { workflowMetadata } : {})
+370:  const workflowMetadata = getWorkflowMetadata(sessionId);
+381:    ...(workflowMetadata ? { workflowMetadata } : {})
+2386:    workflowMetadataCache.clear();

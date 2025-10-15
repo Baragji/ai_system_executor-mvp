@@ -50,6 +50,9 @@ describe("state:sync contract updater", () => {
 
   it("marks Phase 19 tasks complete when evidence checks pass", async () => {
     execSyncMock.mockImplementation((command: string) => {
+      if (command.startsWith("node -e")) {
+        return "";
+      }
       if (command.includes("sbom:cyclonedx")) {
         fsSync.writeFileSync(path.join(tmpDir, "sbom.cdx.json"), "a".repeat(1_000_100));
         return "";
@@ -96,10 +99,54 @@ describe("state:sync contract updater", () => {
         (task: { completed_at?: string }) => typeof task.completed_at === "string" && task.completed_at.length > 0,
       ),
     ).toBe(true);
+
+    updated.tasks
+      .filter((task: { validation?: unknown }) => Array.isArray(task.validation) && task.validation.length > 0)
+      .forEach((task: { id: string; validation_results: unknown }) => {
+        expect(Array.isArray(task.validation_results)).toBe(true);
+        expect((task.validation_results as unknown[]).length).toBeGreaterThan(0);
+      });
+
+    const docTask = updated.tasks.find((task: { id: string }) => task.id === "T0-DOC-1");
+    if (!docTask) {
+      throw new Error("Expected T0-DOC-1 to be present in contract tasks");
+    }
+    expect(Array.isArray(docTask.validation_results)).toBe(true);
+    const validationResults = docTask.validation_results as Array<{
+      cmd: string;
+      exit_code: number;
+      ok: boolean;
+      executed_at: string;
+      stdout: string;
+      stderr: string;
+    }>;
+    expect(validationResults.length).toBeGreaterThan(0);
+    validationResults.forEach(
+      (
+        result: {
+          cmd: string;
+          exit_code: number;
+          ok: boolean;
+          executed_at: string;
+          stdout: string;
+          stderr: string;
+        },
+      ) => {
+        expect(result.cmd).toBe("node -e \"process.exit(0)\"");
+        expect(result.exit_code).toBe(0);
+        expect(result.ok).toBe(true);
+        expect(typeof result.executed_at).toBe("string");
+        expect(typeof result.stdout).toBe("string");
+        expect(typeof result.stderr).toBe("string");
+      },
+    );
   });
 
   it("is idempotent when contract already synced", async () => {
     execSyncMock.mockImplementation((command: string) => {
+      if (command.startsWith("node -e")) {
+        return "";
+      }
       if (command.includes("sbom:cyclonedx")) {
         fsSync.writeFileSync(path.join(tmpDir, "sbom.cdx.json"), "a".repeat(1_000_100));
         return "";
