@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "executor-mvp@0.1.0",
-  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-a040ee22-fcc2-46a1-9bd1-40041992c834",
+  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-1d324dfc-20cf-40be-9b11-d2266f0d5136",
   "creationInfo": {
-    "created": "2025-10-14T01:39:48.344Z",
+    "created": "2025-10-15T03:50:54.850Z",
     "creators": [
       "Tool: npm/cli-10.9.3"
     ]
@@ -1685,6 +1685,30 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "1d5404dc001bfe9c45f1f400a22aa9be0f62ddebeaba0de1a22c1a90ec99030266fbabd97a16e46176749782714be23743133deefe5a6913618fcbf9a0185e93"
+        }
+      ]
+    },
+    {
+      "name": "detect-libc",
+      "SPDXID": "SPDXRef-Package-detect-libc-2.1.2",
+      "versionInfo": "2.1.2",
+      "packageFileName": "node_modules/detect-libc",
+      "description": "Node.js module to detect the C standard library (libc) implementation family and version",
+      "downloadLocation": "https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/lovell/detect-libc#readme",
+      "licenseDeclared": "Apache-2.0",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/detect-libc@2.1.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "06d8f604e38ef37a375b21f9f5ef0c817b3111055c6ab9143a9118aee6c1d2eaf09cdd74c90dfae2bb22072535d67665a966199b4e62fe87fb8a8e26ce2841b5"
         }
       ]
     },
@@ -3706,6 +3730,11 @@
       "spdxElementId": "SPDXRef-Package-msgpackr-extract.msgpackr-extract-darwin-arm64-3.0.3",
       "relatedSpdxElement": "SPDXRef-Package-msgpackr-extract-3.0.3",
       "relationshipType": "OPTIONAL_DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-detect-libc-2.1.2",
+      "relatedSpdxElement": "SPDXRef-Package-node-gyp-build-optional-packages-5.2.2",
+      "relationshipType": "DEPENDENCY_OF"
     },
     {
       "spdxElementId": "SPDXRef-Package-types.node-18.19.130",
