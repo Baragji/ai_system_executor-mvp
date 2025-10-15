@@ -1,5 +1,67 @@
 import request from "supertest";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("../../src/llm/index.js", () => ({
+  generateJSON: vi.fn(async () =>
+    JSON.stringify({
+      project_name: "hello-world",
+      hasTests: true,
+      files: [
+        { path: "package.json", contents: JSON.stringify({ name: "demo", version: "1.0.0" }) },
+        { path: "src/index.ts", contents: "export const greet = () => 'hi';" },
+        {
+          path: "tests/index.test.ts",
+          contents: "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { greet } from '../src/index.js';\ntest('greets', () => { assert.equal(greet(), 'hi'); });"
+        }
+      ],
+      notes: []
+    })
+  )
+}));
+
+vi.mock("../../src/runner/runInSandbox.js", () => ({
+  runInSandbox: vi.fn(async () => ({
+    status: "pass",
+    passCount: 1,
+    failCount: 0,
+    durationMs: 200,
+    logsPath: "logs/pass.log",
+    timestamp: new Date().toISOString()
+  }))
+}));
+
+vi.mock("../../src/repair/multiTurnRepair.js", () => ({
+  multiTurnRepair: vi.fn(async () => ({
+    attempts: [
+      {
+        number: 1,
+        status: "pass",
+        startedAt: new Date().toISOString(),
+        finishedAt: new Date().toISOString(),
+        changedFiles: [],
+        summary: "Initial run passed",
+        testResult: {
+          status: "pass",
+          passCount: 1,
+          failCount: 0,
+          durationMs: 200,
+          logsPath: "logs/pass.log"
+        },
+        durationMs: 200,
+        cumulativeTime: 200
+      }
+    ],
+    finalStatus: "pass",
+    totalAttempts: 1,
+    successAttemptNumber: 1
+  }))
+}));
+
+vi.mock("../../src/planning/decomposeTask.js", () => ({
+  decomposeTask: vi.fn(async () => {
+    throw new Error("Skip planning in executions tests");
+  })
+}));
 
 import { app } from "../../src/server.js";
 import { __test as execStoreTest } from "../../src/orchestrator/executionsStore.js";

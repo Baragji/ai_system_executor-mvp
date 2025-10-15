@@ -22,9 +22,41 @@ export async function waitForPaused(api: APIRequestContext, sessionId: string, t
 }
 
 export async function postExecute(api: APIRequestContext, payload: Record<string, unknown>) {
-  const r = await api.post('/api/execute', { data: payload });
-  const body = await r.json().catch(() => ({} as unknown));
-  return { status: r.status(), body };
+  const response = await api.post('/api/execute', { data: payload });
+  const status = response.status();
+
+  if (status !== 202) {
+    const body = await response.json().catch(() => ({} as unknown));
+    return { status, body };
+  }
+
+  const location = response.headers()['location'];
+  if (!location) {
+    throw new Error('Missing Location header for async execution');
+  }
+
+  const deadline = Date.now() + 5000;
+  let lastRecord: unknown = null;
+
+  while (Date.now() <= deadline) {
+    const poll = await api.get(location);
+    if (!poll.ok()) {
+      throw new Error(`Polling ${location} failed with status ${poll.status()}`);
+    }
+
+    const record = await poll.json().catch(() => null);
+    lastRecord = record;
+    if (record && record.status === 'completed') {
+      return { status: 200, body: record.result };
+    }
+    if (record && record.status === 'failed') {
+      throw new Error(`Execution failed: ${record.error ?? 'unknown error'}`);
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+
+  throw new Error(`Execution did not complete in time: ${JSON.stringify(lastRecord)}`);
 }
 
 export async function postPause(api: APIRequestContext, sessionId: string) {

@@ -87,6 +87,8 @@ vi.mock("../../src/planning/decomposeTask.js", () => ({
 }));
 
 import { app } from "../../src/server.js";
+import type { ExecutorSuccessResponse } from "../../src/orchestrator/executionTypes.js";
+import { postExecuteAndWait } from "../helpers/execute.js";
 
 const OUTPUT_DIR = path.resolve("output");
 const PHASE1_PROJECT_DIR = path.join(OUTPUT_DIR, "phase1-demo");
@@ -104,17 +106,21 @@ describe("phase1 e2e flow", () => {
   });
 
   it("runs execute endpoint with repair timeline", async () => {
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build demo", projectName: "phase1-demo" });
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build demo",
+      projectName: "phase1-demo"
+    });
 
-    expect(res.status).toBe(200);
-    expect(res.body.testResults.initial.status).toBe("fail");
-    expect(res.body.testResults.afterRepair.status).toBe("pass");
-    expect(res.body.repair.attempted).toBe(true);
-    expect(res.body.repair.repaired).toBe(true);
-    expect(res.body.repairHistory.totalAttempts).toBe(2);
-    expect(res.body.repairHistory.successAttemptNumber).toBe(2);
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
+    const payload = result.payload;
+
+    expect(payload.testResults.initial?.status).toBe("fail");
+    expect(payload.testResults.afterRepair?.status).toBe("pass");
+    expect(payload.repair.attempted).toBe(true);
+    expect(payload.repair.repaired).toBe(true);
+    expect(payload.repairHistory.totalAttempts).toBe(2);
+    expect(payload.repairHistory.successAttemptNumber).toBe(2);
 
     const metaPath = path.join(OUTPUT_DIR, "phase1-demo", "_executor_meta.json");
     const metaRaw = await fs.readFile(metaPath, "utf-8");

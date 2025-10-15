@@ -53,7 +53,7 @@ import {
   PausedError
 } from "./orchestrator/abortSignal.js";
 import { writeFixture, listFixtures, readFixture } from "./fixtures/index.js";
-import { executeAdapter as executeAdapterLanggraph } from "./orchestrator/adapter.js";
+import { buildExecutionId } from "./orchestrator/graph.js";
 import type { MultiTurnContext } from "./repair/multiTurnRepair.js";
 import {
   type CheckpointPayload,
@@ -79,7 +79,12 @@ import type {
   SingleExecutionResult
 } from "./orchestrator/executionTypes.js";
 import { installProblemDetails, respondWithProblem } from "./middleware/problemDetails.js";
-import { getExecution } from "./orchestrator/executionsStore.js";
+import {
+  completeExecution,
+  createExecution,
+  failExecution,
+  getExecution
+} from "./orchestrator/executionsStore.js";
 import { maybeInitTelemetry, shutdownTelemetry } from "./telemetry/otel.js";
 
 const IS_TEST_ENV = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
@@ -1535,21 +1540,13 @@ app.post("/api/clarify", (req, res) => {
 
 app.post("/api/execute", async (req, res) => {
   const instance = req.originalUrl || req.url || "/api/execute";
-  // Feature-flagged orchestrator adapter: if AGENTS_RUNTIME=langgraph, delegate and return
-  if ((process.env.AGENTS_RUNTIME || "").toLowerCase() === "langgraph") {
-    try {
-      await executeAdapterLanggraph(req, res);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "internal error";
-      respondWithProblem(res, 500, "InternalServerError", message, instance);
-      return;
-    }
-    return; // do not continue into default StepQueue pipeline
-  }
+  const runtime = (process.env.AGENTS_RUNTIME || "").toLowerCase();
+  const useLangGraph = runtime === "langgraph";
   const providedSessionId = typeof req.body?.sessionId === "string" ? req.body.sessionId.trim() : "";
   const sessionId = providedSessionId || randomUUID();
-  const wantsSse = typeof req.headers.accept === "string" && req.headers.accept.includes("text/event-stream");
+  const wantsSse = !useLangGraph && typeof req.headers.accept === "string" && req.headers.accept.includes("text/event-stream");
   let sseStarted = false;
+  let executionId: string | null = null;
 
   res.setHeader("x-executor-session", sessionId);
 
@@ -1602,6 +1599,10 @@ app.post("/api/execute", async (req, res) => {
       return;
     }
 
+    if (useLangGraph) {
+      executionId = buildExecutionId(sessionId || undefined);
+    }
+
     let clarificationsUsed = false;
     let clarifications: ClarificationResponse | undefined;
 
@@ -1623,6 +1624,10 @@ app.post("/api/execute", async (req, res) => {
         clarificationsUsed = true;
         effectivePrompt = augmented;
       }
+    }
+
+    if (useLangGraph && executionId) {
+      createExecution(executionId, { status: "started" });
     }
 
     await captureFixture(
@@ -1714,6 +1719,18 @@ app.post("/api/execute", async (req, res) => {
       throw new Error("Execution pipeline did not produce a response payload");
     }
 
+    if (useLangGraph && executionId) {
+      const location = `/api/executions/${executionId}`;
+      res
+        .status(202)
+        .setHeader("Location", location)
+        .json({ executionId, status: "started" });
+      setImmediate(() => {
+        completeExecution(executionId!, responsePayload);
+      });
+      return;
+    }
+
     if (wantsSse) {
       sendSse("completed", { sessionId, response: responsePayload });
       closeSse();
@@ -1722,6 +1739,9 @@ app.post("/api/execute", async (req, res) => {
 
     return res.json(responsePayload);
   } catch (err: unknown) {
+    if (useLangGraph && executionId) {
+      failExecution(executionId, err);
+    }
     if (err instanceof PausedError) {
       console.log(`Execution paused for session ${err.sessionId} during ${err.phase}`);
       const workflowSteps = sessionId ? await stepQueue.getWorkflow(sessionId) : null;

@@ -41,6 +41,8 @@ import { runInSandbox } from "../../src/runner/runInSandbox.js";
 import { multiTurnRepair } from "../../src/repair/multiTurnRepair.js";
 import type { RunResult } from "../../src/contracts/validators.js";
 import type { RepairHistory } from "../../src/contracts/repairHistoryValidator.js";
+import type { ExecutorSuccessResponse } from "../../src/orchestrator/executionTypes.js";
+import { postExecuteAndWait } from "../helpers/execute.js";
 
 const runInSandboxMock = vi.mocked(runInSandbox);
 const multiTurnRepairMock = vi.mocked(multiTurnRepair);
@@ -134,11 +136,13 @@ describe("repair metrics telemetry", () => {
 
     multiTurnRepairMock.mockResolvedValueOnce(history);
 
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build demo", projectName: "metrics-demo" });
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build demo",
+      projectName: "metrics-demo"
+    });
 
-    expect(res.status).toBe(200);
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
 
     const metaRaw = await fs.readFile(writeMetaPath("metrics-demo"), "utf-8");
     const meta = JSON.parse(metaRaw);
@@ -165,11 +169,13 @@ describe("repair metrics telemetry", () => {
 
     multiTurnRepairMock.mockResolvedValueOnce(history);
 
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build demo", projectName: "metrics-demo" });
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build demo",
+      projectName: "metrics-demo"
+    });
 
-    expect(res.status).toBe(200);
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
 
     const metaRaw = await fs.readFile(writeMetaPath("metrics-demo"), "utf-8");
     const meta = JSON.parse(metaRaw);
@@ -210,11 +216,13 @@ describe("repair metrics telemetry", () => {
 
     multiTurnRepairMock.mockResolvedValueOnce(history);
 
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build demo", projectName: "metrics-demo" });
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build demo",
+      projectName: "metrics-demo"
+    });
 
-    expect(res.status).toBe(200);
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
 
     const metaRaw = await fs.readFile(writeMetaPath("metrics-demo"), "utf-8");
     const meta = JSON.parse(metaRaw);

@@ -17,7 +17,7 @@ export type GraphRunResult = {
   result?: unknown;
 };
 
-function buildExecutionId(sessionId?: string): string {
+export function buildExecutionId(sessionId?: string): string {
   if (sessionId && sessionId.trim()) {
     return `graph-${sessionId.trim()}`;
   }
