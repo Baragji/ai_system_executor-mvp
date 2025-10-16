@@ -1,0 +1,36 @@
+{
+  "phase": "5.1",
+  "title": "Evidence Detection Discovery",
+  "objective": "Implement a read-only detector that maps workflow action logs to gate evidence without mutating the ledger.",
+  "integration_points": [
+    {
+      "file": "src/telemetry/events.ts",
+      "reason": "Defines ACTION_LOG_FILE dual-write target (.automation/actions.jsonl). Detection must read this format and handle the feature flag being disabled."
+    },
+    {
+      "file": "scripts/execute-next-action.js",
+      "reason": "Future hook location after workflow actions complete. No changes in Phase 5.1, but detection must be compatible with its output."
+    },
+    {
+      "file": "package.json",
+      "reason": "Expose a manual npm script (evidence:detect) so humans/agents can run the detector during validation."
+    }
+  ],
+  "planned_artifacts": [
+    "scripts/detect-evidence.js",
+    "tests/workflow/detectEvidence.test.ts"
+  ],
+  "constraints": [
+    "No new dependencies",
+    "ESM-compatible Node.js scripts",
+    "Graceful handling of missing or malformed logs"
+  ],
+  "risks": [
+    "Malformed JSONL entries should not crash detection",
+    "ACTION_LOG_JSONL flag may be off; script must fallback to execution_trace.jsonl"
+  ],
+  "validation": [
+    "Unit tests for command-to-gate mapping",
+    "Manual run of npm run evidence:detect"
+  ]
+}

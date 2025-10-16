@@ -16,12 +16,16 @@
  */
 
 import { exec } from 'node:child_process';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { promisify } from 'node:util';
 import { stdin, stdout } from 'node:process';
 import * as readline from 'node:readline';
+import { detectEvidenceForEntry, normalizeActionEntry } from './detect-evidence.js';
 import { loadPhaseState, buildWorkflowMetadata } from '../workflow/lib/phaseState.js';
 
 const execAsync = promisify(exec);
+const ACTION_LOG_PATH = path.resolve('.automation/actions.jsonl');
 
 function parseArgs(argv) {
   const options = {
@@ -124,7 +128,7 @@ function isSafeCommand(command) {
 async function executeCommand(command, dryRun = false) {
   if (dryRun) {
     console.log('[DRY RUN] Would execute:', command);
-    return { success: true, stdout: '', stderr: '' };
+    return { success: true, stdout: '', stderr: '', exitCode: 0, dryRun: true };
   }
 
   console.log('Executing:', command);
@@ -139,12 +143,27 @@ async function executeCommand(command, dryRun = false) {
     if (stdout) console.log(stdout);
     if (stderr) console.error(stderr);
 
-    return { success: true, stdout, stderr };
+    return { success: true, stdout, stderr, exitCode: 0 };
   } catch (error) {
     console.error('Command failed:', error.message);
     if (error.stdout) console.log(error.stdout);
     if (error.stderr) console.error(error.stderr);
-    return { success: false, stdout: error.stdout || '', stderr: error.stderr || error.message };
+    const exitCode = typeof error.code === 'number' ? error.code : 1;
+    return {
+      success: false,
+      stdout: error.stdout || '',
+      stderr: error.stderr || error.message,
+      exitCode
+    };
+  }
+}
+
+async function appendActionLog(record) {
+  try {
+    await fs.mkdir(path.dirname(ACTION_LOG_PATH), { recursive: true });
+    await fs.appendFile(ACTION_LOG_PATH, `${JSON.stringify(record)}\n`, 'utf-8');
+  } catch (error) {
+    console.warn('Failed to write workflow action log entry', error);
   }
 }
 
@@ -221,6 +240,32 @@ async function main() {
   // Execute
   console.log('\n⚙️  Executing action...\n');
   const result = await executeCommand(action.command, false);
+
+  const logRecord = {
+    timestamp: new Date().toISOString(),
+    cmd: action.command,
+    exit_code: result.exitCode ?? (result.success ? 0 : 1),
+    status: result.success ? 'completed' : 'failed',
+    action: action.action,
+    reasoning: action.reasoning,
+    gate: metadata.currentGate ? metadata.currentGate.id : null,
+    task: metadata.currentTask ? metadata.currentTask.id : null,
+    mode: options.auto ? 'auto' : options.interactive ? 'interactive' : 'unknown'
+  };
+
+  await appendActionLog(logRecord);
+
+  const normalizedLogEntry = normalizeActionEntry(logRecord, 'state:next');
+  const evidenceMatches = detectEvidenceForEntry(normalizedLogEntry);
+
+  if (evidenceMatches.length > 0) {
+    console.log('\n🔍 Evidence detected from this action:');
+    for (const match of evidenceMatches) {
+      console.log(`  • ${match.gate} — ${match.criterion}`);
+    }
+  } else {
+    console.log('\nℹ️  No gate evidence detected from this action.');
+  }
 
   if (result.success) {
     console.log('\n✅ Action completed successfully!');
