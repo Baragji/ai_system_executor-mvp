@@ -347,6 +347,15 @@ npm run state:next  # Auto-updates by default
 - Update CDI_INFRASTRUCTURE.md
 - **Goal:** Ship complete workflow automation
 
+### Phase 5 Rollout Status
+
+| Phase  | Status | Evidence |
+|--------|--------|----------|
+| 5.1 – Detection Only | ✅ Complete | `scripts/detect-evidence.js` CLI + `tests/scripts/detect-evidence.test.ts` cover the rule set. |
+| 5.2 – Safe Updates   | ✅ Complete | `scripts/update-gate.js` with duplicate safeguards validated by `tests/scripts/update-gate.test.ts`. |
+| 5.3 – Integration    | ✅ Complete | `scripts/execute-next-action.js` auto-updates ledger when `GATE_AUTO_UPDATE=1`, verified by new vitest coverage. |
+| 5.4 – Default On     | ⏳ Pending | Requires flipping the feature flag and updating CDI docs. |
+
 ---
 
 ## Success Metrics
@@ -387,9 +396,10 @@ npm run state:next  # Auto-updates by default
 
 **Next Steps:**
 1. ✅ Approve Phase 5 plan (this document)
-2. ⏳ Implement Phase 5.1 (detection)
-3. ⏳ Test with your assistant on a real G3→G4 transition
-4. ⏳ Ship Phase 5.4 (default on)
-5. ✅ Resume G3 work with fully automated workflow
+2. ✅ Implement Phase 5.1 (detection) — `scripts/detect-evidence.js` + automated tests
+3. ✅ Implement Phase 5.2 (safe updates) — `scripts/update-gate.js` + regression tests
+4. ✅ Integrate Phase 5.3 (state:next auto-update behind `GATE_AUTO_UPDATE`)
+5. ⏳ Ship Phase 5.4 (default on)
+6. ✅ Resume G3 work with fully automated workflow
 
 ---

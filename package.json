@@ -35,17 +35,8 @@
     "state:next": "tsx scripts/execute-next-action.js --interactive",
     "state:next:auto": "tsx scripts/execute-next-action.js --auto",
     "state:next:dry": "tsx scripts/execute-next-action.js --dry-run",
-<<<<<<< ours
-<<<<<<< ours
-    "evidence:detect": "node scripts/detect-evidence.js"
-=======
     "evidence:detect": "node scripts/detect-evidence.js",
     "gate:update": "node scripts/update-gate.js"
->>>>>>> theirs
-=======
-    "evidence:detect": "node scripts/detect-evidence.js",
-    "gate:update": "node scripts/update-gate.js"
->>>>>>> theirs
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.21.1",

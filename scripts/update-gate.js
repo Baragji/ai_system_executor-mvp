@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Phase 5.2 — Safe Gate Updates (Feature-Flagged)
+ * Phase 5.3 — Safe Gate Updates (Feature-Flagged)
  *
  * Applies structured updates to `.automation/GATES_LEDGER.md` after
  * validation evidence has been confirmed. All writes are guarded by the
@@ -17,6 +17,87 @@ const LEDGER_PATH = path.resolve(".automation/GATES_LEDGER.md");
 
 const STATUS_COMPLETE = "✅ PASSED";
 const STATUS_PARTIAL = "🟡 PARTIAL";
+
+function parseGateSections(content) {
+  const lines = content.split(/\r?\n/);
+  const sections = new Map();
+  const order = [];
+
+  let currentGate = null;
+  let buffer = [];
+
+  for (const line of lines) {
+    const match = line.match(/^##\s+Gate\s+(G\d+)\b/);
+    if (match) {
+      if (currentGate) {
+        sections.set(currentGate, buffer.join("\n"));
+        order.push(currentGate);
+      }
+      currentGate = match[1];
+      buffer = [line];
+    } else if (currentGate) {
+      buffer.push(line);
+    }
+  }
+
+  if (currentGate) {
+    sections.set(currentGate, buffer.join("\n"));
+    order.push(currentGate);
+  }
+
+  return { sections, order };
+}
+
+export function validateLedgerUpdate(originalContent, updatedContent, targetGate) {
+  const original = parseGateSections(originalContent);
+  const updated = parseGateSections(updatedContent);
+
+  if (original.order.length !== updated.order.length) {
+    throw new Error("Gate ledger integrity check failed: gate count mismatch");
+  }
+
+  for (let index = 0; index < original.order.length; index++) {
+    if (original.order[index] !== updated.order[index]) {
+      throw new Error("Gate ledger integrity check failed: gate order changed");
+    }
+  }
+
+  const targetOriginal = original.sections.get(targetGate);
+  if (!targetOriginal) {
+    throw new Error(`Gate ${targetGate} not found in ledger`);
+  }
+
+  const targetUpdated = updated.sections.get(targetGate);
+  if (!targetUpdated) {
+    throw new Error(`Gate ${targetGate} missing after update`);
+  }
+
+  for (const gate of original.order) {
+    if (!updated.sections.has(gate)) {
+      throw new Error(`Gate ledger integrity check failed: missing gate ${gate}`);
+    }
+  }
+
+  for (const gate of updated.order) {
+    if (!original.sections.has(gate)) {
+      throw new Error(`Gate ledger integrity check failed: unexpected gate ${gate}`);
+    }
+  }
+
+  for (const gate of original.order) {
+    if (gate === targetGate) continue;
+    const before = original.sections.get(gate);
+    const after = updated.sections.get(gate);
+    if (before !== after) {
+      throw new Error(`Unexpected modifications detected in ${gate}`);
+    }
+  }
+
+  return {
+    targetGate,
+    changed: targetOriginal !== targetUpdated
+  };
+}
 
 function normalizeBooleanFlag(value) {
   if (!value) return false;
@@ -107,6 +188,21 @@ function buildEvidenceLine({ timestamp, command, evidencePath, note }) {
 
   const prefix = timestamp ? `${timestamp} — ` : "";
   return `- ${prefix}${parts.join("; ")}`;
+}
+
+function evidenceSignature(line) {
+  if (!line) return undefined;
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("-")) return undefined;
+
+  const withoutMarker = trimmed.slice(1).trim();
+  const separatorIndex = withoutMarker.indexOf("—");
+  const payload =
+    separatorIndex === -1
+      ? withoutMarker
+      : withoutMarker.slice(separatorIndex + 1).trim();
+
+  return payload;
 }
 
 function findGateSection(lines, gateId) {
@@ -231,12 +327,24 @@ function appendEvidenceLine(lines, section, evidenceLine) {
   let insertIndex = absoluteEvidenceIndex + 1;
   let lastEvidenceLineIndex = null;
 
+  const targetSignature = evidenceSignature(evidenceLine);
+
   for (let i = insertIndex; i < section.endIndex; i++) {
     const line = lines[i];
     if (/^###\s+/.test(line) || /^##\s+/.test(line)) break;
     if (line.trim().startsWith("- ")) {
+      if (targetSignature && evidenceSignature(line) === targetSignature) {
+        return { appended: false, alreadyPresent: true };
+      }
+
       lastEvidenceLineIndex = i;
-      if (line.trim() === evidenceLine.trim()) {
+    }
+  }
+
+  if (targetSignature) {
+    for (let i = section.startIndex; i < section.endIndex; i++) {
+      const line = lines[i];
+      if (line.trim().startsWith("- ") && evidenceSignature(line) === targetSignature) {
         return { appended: false, alreadyPresent: true };
       }
     }
@@ -329,7 +437,7 @@ export function updateGateMarkdown(content, {
 }
 
 function printHelp() {
-  console.log(`Gate Updater (Phase 5.2)\n\n` +
+  console.log(`Gate Updater (Phase 5.3)\n\n` +
     "Usage:\n" +
     "  npm run gate:update <GATE_ID> <CRITERION> [options]\n\n" +
     "Options:\n" +
@@ -365,6 +473,13 @@ async function runCli() {
 
   if (!result.changes.criterionUpdated) {
     console.log("No changes required.");
+    return;
+  }
+
+  const validation = validateLedgerUpdate(originalContent, result.content, options.gateId);
+
+  if (!validation.changed) {
+    console.log("No ledger differences detected after update attempt.");
     return;
   }
 

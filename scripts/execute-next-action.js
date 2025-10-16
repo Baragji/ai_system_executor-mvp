@@ -21,7 +21,9 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { stdin, stdout } from 'node:process';
 import * as readline from 'node:readline';
+import { pathToFileURL } from 'node:url';
 import { detectEvidenceForEntry, normalizeActionEntry } from './detect-evidence.js';
+import { autoUpdateLedgerWithEvidence } from './gate-auto-update.js';
 import { loadPhaseState, buildWorkflowMetadata } from '../workflow/lib/phaseState.js';
 
 const execAsync = promisify(exec);
@@ -167,6 +169,7 @@ async function appendActionLog(record) {
   }
 }
 
+
 async function main() {
   const options = parseArgs(process.argv);
 
@@ -268,6 +271,10 @@ async function main() {
   }
 
   if (result.success) {
+    if (evidenceMatches.length > 0) {
+      await autoUpdateLedgerWithEvidence(evidenceMatches, normalizedLogEntry);
+    }
+
     console.log('\n✅ Action completed successfully!');
     console.log('\nNext: Run `npm run state:show` to see updated status.');
     process.exit(0);
@@ -277,7 +284,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error('Fatal error:', error);
+    process.exit(1);
+  });
+}
