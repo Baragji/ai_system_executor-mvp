@@ -40,6 +40,7 @@ npm run contract:check    # Validate contracts
 npm run sbom              # Generate SBOM
 npm run validate:all      # Run all checks
 ```
+- **New:** [Technical Validation Checklist template](.github/ISSUE_TEMPLATE/technical_validation_checklist.md) for running the full workflow + executor review.
 
 **Workflow State Management (Autonomous System)**
 ```bash
