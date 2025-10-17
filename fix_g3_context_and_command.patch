@@ -1,0 +1,218 @@
+# from repo root (venv active is fine)
+cat > /tmp/fix_g3_context_and_command.patch <<'EOF'
+diff --git a/scripts/detect-evidence.js b/scripts/detect-evidence.js
+--- a/scripts/detect-evidence.js
++++ b/scripts/detect-evidence.js
+@@ -1,6 +1,7 @@
+ #!/usr/bin/env node
+ /**
+  * Phase 5.1 — Evidence Detection (Read-Only)
++ * (Fix A/B) context-aware per-entry detection + preserve real command in G3 aggregate
+  */
+ 
+ import fs from "node:fs/promises";
+@@
+ const SUCCESS_STATUSES = new Set(["pass", "passed", "success", "completed"]);
+ 
++// --- Fix A (support context-aware per-entry aggregation) ---
++// We keep a tiny cache of the last loaded entries during this process run to avoid redundant I/O.
++let __recentEntriesCache = null;
++
++async function loadRecentEntries(limit = 200) {
++  if (__recentEntriesCache && Array.isArray(__recentEntriesCache.entries)) {
++    return __recentEntriesCache.entries.slice(0, limit);
++  }
++  const entries = await loadActionEntries(limit);
++  __recentEntriesCache = { entries };
++  return entries;
++}
++
+@@
+-  CRITERIA.langgraphIntegration && {
++  CRITERIA.langgraphIntegration && {
+     gate: "G3",
+-    criterion: "__HINT_LANGGRAPH_EXECUTE__",
++    criterion: "__HINT_LANGGRAPH_EXECUTE__",
+     matches: entry =>
+       entry.success &&
+       commandContainsAll(entry.command, ["/api/execute"])
+   }
+ ].filter(Boolean);
+@@
+ function isExecutionsTestCommand(command) {
+   if (!command) return false;
+   const normalized = normalizeCommand(command);
+   const patterns = [
+     /(?:^|\s)npm\s+test(?:\s+--)?\s+[^\n]*tests\/api\/executions\.test\.ts/,
+     /(?:^|\s)npx\s+vitest\s+run\b[^\n]*tests\/api\/executions\.test\.ts/
+   ];
+   return patterns.some(pattern => pattern.test(normalized));
+ }
+@@
+ export function detectEvidence(entries, { latestPerCriterion = true } = {}) {
+   const matches = [];
+@@
+-  if (CRITERIA.langgraphIntegration) {
++  if (CRITERIA.langgraphIntegration) {
+     const executeEntries = entries.filter(entry =>
+       entry?.success && commandContainsAll(entry.command, ["/api/execute"])
+     );
+     const testsEntries = entries.filter(entry => entry?.success && isExecutionsTestCommand(entry.command));
+-    const usedExecute = matches.some(match => match.criterion === "__HINT_LANGGRAPH_EXECUTE__");
++    const usedExecute = matches.some(match => match.criterion === "__HINT_LANGGRAPH_EXECUTE__");
+     const testsGreen = testsEntries.length > 0;
+ 
+     if (usedExecute && testsGreen) {
+-      const combinedTimestamps = [...executeEntries, ...testsEntries]
+-        .map(entry => entry?.timestamp)
+-        .filter(Boolean)
+-        .sort((a, b) => compareTimestamps(a, b));
+-      const timestamp = combinedTimestamps.at(-1);
++      // Pick real command from the latest /api/execute entry (Fix B: preserve real command)
++      const latestExec = executeEntries
++        .slice()
++        .sort((a, b) => compareTimestamps(a.timestamp, b.timestamp))
++        .at(-1);
++      const combinedTimestamps = [...executeEntries, ...testsEntries]
++        .map(entry => entry?.timestamp)
++        .filter(Boolean)
++        .sort((a, b) => compareTimestamps(a, b));
++      const timestamp = combinedTimestamps.at(-1);
+       matches.push({
+         gate: "G3",
+         criterion: CRITERIA.langgraphIntegration,
+-        command: "(/api/execute + executions.test.ts both succeeded)",
++        command: latestExec?.command, // may be undefined; updater will fall back to logEntry.command
+         timestamp,
+         source: "aggregated",
+         exitCode: 0
+       });
+     }
+ 
+@@
+ export function detectEvidenceForEntry(entry) {
+   if (!entry) return [];
+   return detectEvidence([entry], { latestPerCriterion: false });
+ }
+ 
++// --- Fix A: context-aware per-entry detector for state:next / auto-update path ---
++export async function detectEvidenceForEntryWithContext(entry, { recentLimit = 200 } = {}) {
++  // Merge the current entry with the recent history, then run the standard detector.
++  const history = await loadRecentEntries(recentLimit);
++  const merged = [];
++  const seen = new Set();
++  function pushUnique(e) {
++    if (!e) return;
++    const k = `${e.timestamp ?? ""}|${e.source ?? ""}|${normalizeCommand(e.command ?? "")}`;
++    if (seen.has(k)) return;
++    seen.add(k);
++    merged.push(e);
++  }
++  for (const h of history) pushUnique(h);
++  pushUnique(entry);
++  return detectEvidence(merged, { latestPerCriterion: true });
++}
++
+@@
+ async function runCli() {
+   const options = parseCliArgs(process.argv.slice(2));
+   const { entries, warnings, source, missing } = await gatherEntries(options);
+ 
+   if (options.json) {
+     const evidence = detectEvidence(entries);
+     console.log(JSON.stringify({ source, evidence, warnings }, null, 2));
+     return;
+   }
+diff --git a/scripts/execute-next-action.js b/scripts/execute-next-action.js
+--- a/scripts/execute-next-action.js
++++ b/scripts/execute-next-action.js
+@@ -241,11 +241,13 @@ import { pathToFileURL } from "node:url";
+ // … other imports above
+-import { detectEvidenceForEntry, normalizeActionEntry } from "./detect-evidence.js";
++// Use context-aware detector so split /api/execute + test runs still aggregate (Fix A).
++import {
++  detectEvidenceForEntryWithContext,
++  normalizeActionEntry
++} from "./detect-evidence.js";
+ 
+ // ... inside main flow where we examine the just-executed command:
+-// const matches = detectEvidenceForEntry(normalized);
+-// autoUpdateLedgerWithEvidence(matches, normalized, { logger });
++// Use context-aware path:
++// const matches = await detectEvidenceForEntryWithContext(normalized);
++// await autoUpdateLedgerWithEvidence(matches, normalized, { logger });
+ 
+ // NOTE: We only change the import and the call sites below.
+@@ -257,12 +259,12 @@ async function maybeAutoUpdate(plainLogEntry, logger) {
+   try {
+     const normalized = normalizeActionEntry(plainLogEntry, "state:next");
+-    const matches = detectEvidenceForEntry(normalized);
++    const matches = await detectEvidenceForEntryWithContext(normalized);
+     const result = await autoUpdateLedgerWithEvidence(matches, normalized, { logger });
+     return result;
+   } catch (err) {
+     logger?.log?.(`⚠️  auto-update failed: ${err?.message ?? err}`);
+     return { updated: false, operations: [], error: err?.message ?? String(err) };
+   }
+ }
+diff --git a/tests/scripts/detect-evidence.test.ts b/tests/scripts/detect-evidence.test.ts
+--- a/tests/scripts/detect-evidence.test.ts
++++ b/tests/scripts/detect-evidence.test.ts
+@@ -1,9 +1,11 @@
+ import { describe, it, expect } from "vitest";
+ import {
+   detectEvidence,
+   detectEvidenceForEntry,
++  detectEvidenceForEntryWithContext,
+   normalizeActionEntry
+ } from "../../scripts/detect-evidence.js";
+@@
+   it("requires both /api/execute call and executions parity test", () => {
+@@
+   });
++
++  it("aggregates G3 across separate entries and preserves the real /api/execute command", async () => {
++    const execCmd = "curl -sfS -X POST http://localhost:3000/api/execute -H 'content-type: application/json' -d '{\"input\":\"ping\"}'";
++    const executeEntry = normalizeActionEntry({ timestamp: "2025-10-15T00:00:00Z", cmd: execCmd, exit_code: 0 }, "unit-test");
++    const testEntry = normalizeActionEntry({ timestamp: "2025-10-15T00:01:00Z", cmd: "npm test tests/api/executions.test.ts", exit_code: 0 }, "unit-test");
++    // Per-entry (no context) on either alone -> no G3 match
++    expect(detectEvidenceForEntry(executeEntry)).toHaveLength(0);
++    expect(detectEvidenceForEntry(testEntry)).toHaveLength(0);
++    // With context: pass one in, load the other from recent set
++    const matches = await detectEvidenceForEntryWithContext(testEntry, { recentLimit: 50 });
++    const g3 = matches.find(m => m.gate === "G3");
++    expect(g3).toBeDefined();
++    expect(g3?.command).toBe(execCmd);
++  });
+diff --git a/tests/workflow/detectEvidence.test.ts b/tests/workflow/detectEvidence.test.ts
+--- a/tests/workflow/detectEvidence.test.ts
++++ b/tests/workflow/detectEvidence.test.ts
+@@ -1,5 +1,6 @@
+ import { describe, expect, it } from 'vitest';
+-import { detectEvidence, normalizeActionEntry } from '../../scripts/detect-evidence.js';
++import { detectEvidence, normalizeActionEntry, detectEvidenceForEntryWithContext } from '../../scripts/detect-evidence.js';
+@@
+   it('detects LangGraph integration evidence only when API and tests succeed', () => {
+@@
+   });
++
++  it('context-aware per-entry detector finds G3 when /api/execute and tests are separate', async () => {
++    const execCmd = "curl -sfS -X POST http://localhost:3000/api/execute -H 'content-type: application/json' -d '{\"input\":\"ping\"}'";
++    const executeEntry = makeEntry({ cmd: execCmd, exit_code: 0, timestamp: '2025-10-15T00:00:00.000Z' });
++    const testEntry = makeEntry({ cmd: 'npm test tests/api/executions.test.ts', exit_code: 0, timestamp: '2025-10-15T00:01:00.000Z' });
++    const matches = await detectEvidenceForEntryWithContext(executeEntry, { recentLimit: 50 });
++    const g3 = matches.find(m => m.gate === 'G3');
++    expect(g3).toBeDefined();
++    expect(g3?.command).toBe(execCmd);
++  });
+diff --git a/tests/scripts/update-gate.test.ts b/tests/scripts/update-gate.test.ts
+--- a/tests/scripts/update-gate.test.ts
++++ b/tests/scripts/update-gate.test.ts
+@@ -170,7 +170,7 @@ describe("autoUpdateLedgerWithEvidence", () => {
+     const updated = await fs.readFile(ledgerPath, "utf-8");
+-    expect(updated).toMatch(/Command: `AGENTS_RUNTIME=langgraph npm test tests\/api\/executions\.test\.ts`/);
++    // Now preserves the real /api/execute command captured from logs
++    expect(updated).toMatch(/Command: `curl -sfS -X POST http:\/\/localhost:3000\/api\/execute[^\n]*`/);
+   });
+ EOF
+git apply --3way /tmp/fix_g3_context_and_command.patch
