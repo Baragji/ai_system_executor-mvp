@@ -1,0 +1,21 @@
+{
+    "session": "WF5S3-C",
+    "date": "2025-10-16",
+    "evaluation": [
+      {
+        "dimension": "correctness",
+        "status": "pass",
+        "notes": "Detector pulled canonical G3 text from ledger and auto-update marked criterion complete with recorded evidence."
+      },
+      {
+        "dimension": "completeness",
+        "status": "pass",
+        "notes": "Trace, evidence, and evaluation artifacts recorded; state:next → ledger diff → state:show sequence captured."
+      },
+      {
+        "dimension": "safety",
+        "status": "pass",
+        "notes": "Auto-update remains opt-out via GATE_AUTO_UPDATE=0; documentation updated to describe default-on behaviour."
+      }
+    ]
+  }

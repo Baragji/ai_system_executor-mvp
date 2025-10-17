@@ -1,0 +1,84 @@
+{
+    "session": "WF5S3-C",
+    "date": "2025-10-16",
+    "artifacts": [
+      {
+        "type": "command",
+        "name": "state:next",
+        "timestamp": "2025-10-16T16:23:01.199Z",
+        "command": "node -e \"console.log('POST /api/execute LangGraph integration smoke')\"",
+        "outcome": "auto-update applied G3 canonical criterion",
+        "related_files": [
+          ".automation/GATES_LEDGER.md"
+        ]
+      },
+      {
+        "type": "command",
+        "name": "state:show",
+        "timestamp": "2025-10-16T16:23:26.718Z",
+        "command": "npm run state:show",
+        "outcome": "snapshot reflects COMMIT_PENDING_TESTS suggestion after ledger update",
+        "related_files": [
+          ".automation/phase5_auto_update_trace.jsonl"
+        ]
+      },
+      {
+        "type": "command",
+        "name": "evidence:detect",
+        "timestamp": "2025-10-16T16:23:34.000Z",
+        "command": "npm run evidence:detect",
+        "outcome": "detector reports 3/3 rules enabled with canonical G3 match",
+        "related_files": [
+          ".automation/actions.jsonl"
+        ]
+      },
+      {
+        "type": "command",
+        "name": "npm run lint",
+        "timestamp": "2025-10-16T16:34:57.108Z",
+        "command": "npm run lint",
+        "outcome": "ESLint succeeded after updating G3 rule.",
+        "related_files": [
+          "scripts/detect-evidence.js",
+          "tests/scripts/detect-evidence.test.ts",
+          "tests/workflow/detectEvidence.test.ts"
+        ]
+      },
+      {
+        "type": "command",
+        "name": "npm run typecheck",
+        "timestamp": "2025-10-16T16:34:56.108Z",
+        "command": "npm run typecheck",
+        "outcome": "TypeScript compile passes with canonical lookup tweak.",
+        "related_files": [
+          "scripts/detect-evidence.js",
+          "tests/scripts/detect-evidence.test.ts",
+          "tests/workflow/detectEvidence.test.ts"
+        ]
+      },
+      {
+        "type": "command",
+        "name": "npm test",
+        "timestamp": "2025-10-16T16:34:55.108Z",
+        "command": "npm test",
+        "outcome": "Full vitest suite green, confirming relaxed /api/execute rule.",
+        "related_files": [
+          "scripts/detect-evidence.js",
+          "tests/scripts/detect-evidence.test.ts",
+          "tests/workflow/detectEvidence.test.ts"
+        ]
+      },
+      {
+        "type": "command",
+        "name": "npm run contract:check",
+        "timestamp": "2025-10-16T16:34:54.108Z",
+        "command": "npm run contract:check",
+        "outcome": "CDI contract validation passed post-update.",
+        "related_files": [
+          "scripts/detect-evidence.js",
+          "tests/scripts/detect-evidence.test.ts",
+          "tests/workflow/detectEvidence.test.ts"
+        ]
+      }
+    ]
+  }

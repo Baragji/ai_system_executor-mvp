@@ -66,6 +66,7 @@ Phase 19+ work uses feature flags for safe, incremental rollout:
 | `AGENTS_RUNTIME` | `stepqueue` | Enable LangGraph orchestrator when set to `langgraph` | ADR-019 |
 | `OTEL_ENABLED` | `false` | Enable OpenTelemetry GenAI span tracing | Phase 19 T0 |
 | `ACTION_LOG_JSONL` | `false` | Dual-write JSONL action logs to `.automation/actions.jsonl` | Phase 19 T0 |
+| `GATE_AUTO_UPDATE` | `enabled` (set `0` to opt out) | Allow workflow tooling to write `.automation/GATES_LEDGER.md`; dry-runs always permitted | Phase 5 Auto-Update |
 | `PROBLEM_DETAILS_ENABLED` | Auto (on in dev/test, off in prod) | Use RFC 9457 problem details error format | Phase 19 T0 |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4318/v1/traces` | OpenTelemetry collector endpoint | Optional |
 
@@ -82,13 +83,17 @@ npm run dev
 # Enable action log dual-write
 export ACTION_LOG_JSONL=1
 npm run dev
+
+# Opt out of gate auto-update writes (default: enabled)
+export GATE_AUTO_UPDATE=0
 ```
 
-**Rollback:**
+**Opt-out / Rollback:**
 ```bash
 unset AGENTS_RUNTIME  # or set to "stepqueue"
 unset OTEL_ENABLED
 unset ACTION_LOG_JSONL
+export GATE_AUTO_UPDATE=0  # Keep gate updates read-only (dry runs still available)
 ```
 
 ---

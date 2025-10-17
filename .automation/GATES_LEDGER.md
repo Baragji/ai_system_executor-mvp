@@ -149,6 +149,7 @@ All evidence files located in `.automation/evidence/G2/`:
 - `src/orchestrator/graph.ts`
 - `tests/api/executions.test.ts`
 - `.automation/phase20_langgraph_exec_discovery.json`
+<!-- evidence will be appended automatically when a real /api/execute + executions parity test run is detected -->
 
 ### Next Steps
 With G2 Trust Spine complete, Gate G3 can now advance to:
