@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   detectEvidence,
   detectEvidenceForEntry,
-  detectEvidenceForEntryWithContext,
   normalizeActionEntry
 } from "../../scripts/detect-evidence.js";
 

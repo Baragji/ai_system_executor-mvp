@@ -255,21 +255,28 @@ export function detectEvidence(entries, { latestPerCriterion = true } = {}) {
 
     // If both exist (even as separate entries), emit aggregated G3 evidence
     if (apiExecuteEntries.length > 0 && parityTestEntries.length > 0) {
-      // Get the latest /api/execute entry for command preservation
-      const latestApiExecute = apiExecuteEntries.sort((a, b) => compareTimestamps(b.timestamp, a.timestamp))[0];
-      const latestParityTest = parityTestEntries.sort((a, b) => compareTimestamps(b.timestamp, a.timestamp))[0];
+      // Get the latest entries for each signal
+      const latestApiExecute = apiExecuteEntries
+        .slice()
+        .sort((a, b) => compareTimestamps(a.timestamp, b.timestamp))
+        .at(-1);
+      const latestParityTest = parityTestEntries
+        .slice()
+        .sort((a, b) => compareTimestamps(a.timestamp, b.timestamp))
+        .at(-1);
 
       // Use the later of the two timestamps
-      const aggregatedTimestamp = compareTimestamps(latestApiExecute.timestamp, latestParityTest.timestamp) > 0
-        ? latestApiExecute.timestamp
-        : latestParityTest.timestamp;
+      const timestamp = [latestApiExecute?.timestamp, latestParityTest?.timestamp]
+        .filter(Boolean)
+        .sort((a, b) => compareTimestamps(a, b))
+        .at(-1);
 
       matches.push({
         gate: "G3",
         criterion: CRITERIA.langgraph,
-        command: latestApiExecute.command, // Preserve the real /api/execute command
-        timestamp: aggregatedTimestamp,
-        source: latestParityTest.source,
+        command: latestApiExecute?.command ?? undefined, // Prefer real /api/execute curl; undefined => fallback
+        timestamp,
+        source: "aggregated",
         exitCode: 0
       });
     }
