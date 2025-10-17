@@ -238,6 +238,43 @@ export function detectEvidence(entries, { latestPerCriterion = true } = {}) {
     }
   }
 
+  // G3 Aggregation: Detect when /api/execute and executions parity test run in separate entries
+  if (CRITERIA.langgraph) {
+    const apiExecuteEntries = entries.filter(entry =>
+      entry?.success &&
+      entry.command &&
+      commandContainsAll(entry.command, ["/api/execute"]) &&
+      (commandContainsAll(entry.command, ["curl"]) || commandContainsAll(entry.command, ["POST"]))
+    );
+
+    const parityTestEntries = entries.filter(entry =>
+      entry?.success &&
+      entry.command &&
+      commandContainsAll(entry.command, ["npm test", "tests/api/executions.test.ts"])
+    );
+
+    // If both exist (even as separate entries), emit aggregated G3 evidence
+    if (apiExecuteEntries.length > 0 && parityTestEntries.length > 0) {
+      // Get the latest /api/execute entry for command preservation
+      const latestApiExecute = apiExecuteEntries.sort((a, b) => compareTimestamps(b.timestamp, a.timestamp))[0];
+      const latestParityTest = parityTestEntries.sort((a, b) => compareTimestamps(b.timestamp, a.timestamp))[0];
+
+      // Use the later of the two timestamps
+      const aggregatedTimestamp = compareTimestamps(latestApiExecute.timestamp, latestParityTest.timestamp) > 0
+        ? latestApiExecute.timestamp
+        : latestParityTest.timestamp;
+
+      matches.push({
+        gate: "G3",
+        criterion: CRITERIA.langgraph,
+        command: latestApiExecute.command, // Preserve the real /api/execute command
+        timestamp: aggregatedTimestamp,
+        source: latestParityTest.source,
+        exitCode: 0
+      });
+    }
+  }
+
   if (!latestPerCriterion) {
     return matches;
   }
@@ -258,6 +295,21 @@ export function detectEvidence(entries, { latestPerCriterion = true } = {}) {
 export function detectEvidenceForEntry(entry) {
   if (!entry) return [];
   return detectEvidence([entry], { latestPerCriterion: false });
+}
+
+/**
+ * Context-aware evidence detection for a single entry with recent history.
+ * Loads recent action log entries to enable aggregation across separate commands.
+ * @param {object} entry - The primary entry to detect evidence for
+ * @param {object} options - Options
+ * @param {number} options.recentLimit - Number of recent entries to load for context (default: 50)
+ * @returns {Promise<Array>} Evidence matches
+ */
+export async function detectEvidenceForEntryWithContext(entry, { recentLimit = 50 } = {}) {
+  if (!entry) return [];
+  const recent = await loadActionEntries(recentLimit);
+  // Use detectEvidence over the union of current entry + recent context
+  return detectEvidence([entry, ...recent], { latestPerCriterion: true });
 }
 
 export async function loadActionEntries(limit = 500) {

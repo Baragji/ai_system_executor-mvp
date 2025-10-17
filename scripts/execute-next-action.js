@@ -22,7 +22,7 @@ import { promisify } from 'node:util';
 import { stdin, stdout } from 'node:process';
 import * as readline from 'node:readline';
 import { pathToFileURL } from 'node:url';
-import { detectEvidenceForEntry, normalizeActionEntry } from './detect-evidence.js';
+import { detectEvidenceForEntryWithContext, normalizeActionEntry } from './detect-evidence.js';
 import { autoUpdateLedgerWithEvidence } from './gate-auto-update.js';
 import { loadPhaseState, buildWorkflowMetadata } from '../workflow/lib/phaseState.js';
 
@@ -259,7 +259,7 @@ async function main() {
   await appendActionLog(logRecord);
 
   const normalizedLogEntry = normalizeActionEntry(logRecord, 'state:next');
-  const evidenceMatches = detectEvidenceForEntry(normalizedLogEntry);
+  const evidenceMatches = await detectEvidenceForEntryWithContext(normalizedLogEntry, { recentLimit: 50 });
 
   if (evidenceMatches.length > 0) {
     console.log('\n🔍 Evidence detected from this action:');
