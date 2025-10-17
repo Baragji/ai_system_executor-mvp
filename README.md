@@ -49,6 +49,12 @@ npm run state:next:dry    # Show suggested next action (dry-run)
 npm run state:next        # Execute next action (interactive)
 ```
 
+**Working on evidence detection or gates?**
+- **[docs/detector_behavior_changes.md](docs/detector_behavior_changes.md)** - Recent detector changes & migration guide
+- `.automation/GATES_LEDGER.md` - Gate definitions (canonical source)
+- `scripts/detect-evidence.js` - Evidence detection logic
+- `scripts/check-detector-constants.js` - Guard against hard-coded criteria
+
 ## Contract
 - `contracts/executor-output.schema.json`
 - `src/executor/systemPrompt.md`

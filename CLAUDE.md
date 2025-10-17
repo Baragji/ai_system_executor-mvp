@@ -304,6 +304,7 @@ Captures execution artifacts for replay/debugging:
 - **AI Instructions**: `.github/copilot-instructions.md` - Full AI agent rules
 - **Stack Lock**: `ai-stack.json` - Technology constraints
 - **Roadmap**: `docs/Planning_roadmap_signature/02_trust_engine_roadmap.md` - Trust Engine phases A-E
+- **Detector Behavior**: `docs/detector_behavior_changes.md` - Evidence detection changes & migration guide
 
 ## Error Handling Protocol
 
