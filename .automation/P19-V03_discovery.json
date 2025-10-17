@@ -1,0 +1,41 @@
+{
+  "date": "2025-10-25",
+  "task": "P19-V03",
+  "scope": "Replace orchestrator stub with LangGraph runner behind AGENTS_RUNTIME=langgraph",
+  "integration_points": [
+    {
+      "file": "src/orchestrator/graph.ts",
+      "note": "LangGraph StateGraph implementation invokes StepQueue workflow and updates execution store"
+    },
+    {
+      "file": "src/server.ts",
+      "note": "Feature-flag branch creates execution records and delegates to runWithLangGraph"
+    },
+    {
+      "file": "src/orchestrator/executionsStore.ts",
+      "note": "Lifecycle helpers used by runtime for status/log updates"
+    },
+    {
+      "file": "tests/orchestrator/parity.test.ts",
+      "note": "End-to-end parity polling of LangGraph executions"
+    },
+    {
+      "file": "tests/orchestrator/perf-overhead.test.ts",
+      "note": "Performance guardrail for LangGraph runtime"
+    }
+  ],
+  "observations": [
+    "runWithLangGraph already updates execution status to running before invoking StepQueue",
+    "Vitest uses a StateGraph stub to avoid heavy LangGraph runtime requirements",
+    "Failure handling happens both in runWithLangGraph and the /api/execute route"
+  ],
+  "risks": [
+    "Potential duplicate failure writes to the execution store",
+    "Detached async invocation could mask runtime exceptions if not surfaced in logs"
+  ],
+  "next_steps": [
+    "Add focused tests covering successful and failing LangGraph runs",
+    "Capture execution logs in assertions to guarantee serialization format",
+    "Update progress tracking and evidence after validations"
+  ]
+}

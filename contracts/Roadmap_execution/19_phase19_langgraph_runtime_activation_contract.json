@@ -79,7 +79,7 @@
       "title": "Verify executions store and StepQueue parity artifacts",
       "type": "verification",
       "description": "Confirm Phase 20 executions store endpoints and StepQueue workflow remain healthy before enabling LangGraph runtime.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 30,
       "actions": [
         "Inspect GET /api/executions/:id handler to confirm completion polling remains unchanged",
@@ -108,7 +108,7 @@
       "title": "Install LangGraph runtime dependencies and update package metadata",
       "type": "implementation",
       "description": "Add @langchain/langgraph and @langchain/core packages with justification, ensuring lockfile alignment and no forbidden deps.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 30,
       "actions": [
         "Run npm install @langchain/langgraph @langchain/core",
@@ -137,7 +137,7 @@
       "title": "Replace orchestrator stub with LangGraph runner",
       "type": "implementation",
       "description": "Update src/orchestrator/graph.ts to compile a StateGraph that invokes the existing StepQueue workflow and writes execution status transitions.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 40,
       "actions": [
         "Replace runGraph stub with runWithLangGraph implementation from plan",

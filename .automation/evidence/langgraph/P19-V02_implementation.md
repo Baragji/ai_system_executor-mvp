@@ -1,11 +1,10 @@
 # P19-V02 Implementation Evidence
 
 ## Summary
-- Replaced the LangGraph stub with a real `StateGraph` runner that wraps the existing `StepQueue` workflow and records execution lifecycle updates.
-- Updated the `/api/execute` LangGraph branch to persist execution metadata, respond immediately, and run the graph asynchronously while keeping the StepQueue path unchanged when the flag is disabled.
-- Extended the in-memory execution store with richer fields (`output`, `logs`, `route`, etc.) and timestamp normalization to reflect runtime transitions.
-- Adjusted Vitest configuration with lightweight stubs for LangGraph and other Node-only modules to keep tests green without spinning up external services.
+- Added `@langchain/core@0.3.78` and `@langchain/langgraph@0.4.9` as exact runtime dependencies to unlock the LangGraph orchestrator workstream. 【F:package.json†L41-L45】
+- Captured the resolved dependency graph in `package-lock.json`, verifying integrity hashes and Node 18+ compatibility for new packages. 【F:package-lock.json†L1395-L1488】
+- Recorded dependency rationale in `.automation/evidence/langgraph/P19-V02_dependencies.md` and updated the phase progress tracker with validation metadata. 【F:.automation/evidence/langgraph/P19-V02_dependencies.md†L1-L20】【F:.automation/progress_phase19_langgraph_runtime.json†L18-L36】
 
 ## Validations
-- `AGENTS_RUNTIME=langgraph npm test -- tests/api/executions.test.ts`
-- `npm test -- tests/orchestrator/executionsStore.test.ts tests/orchestrator/replay.test.ts`
+- `npm install --save-exact @langchain/langgraph @langchain/core`
+- `test -f package-lock.json`
