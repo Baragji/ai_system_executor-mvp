@@ -1,0 +1,18 @@
+[
+  {
+    "task_id": "P19-V01",
+    "status": "complete",
+    "started_at": "2025-02-15T19:40:00Z",
+    "completed_at": "2025-02-15T19:52:00Z",
+    "validation_results": [
+      {
+        "cmd": "npm test -- tests/api/executions.test.ts",
+        "exit_code": 0,
+        "output_chunk": "70dd70"
+      }
+    ],
+    "evidence_paths": [
+      ".automation/evidence/langgraph/P19-V01_verification.md"
+    ]
+  }
+]

@@ -21,7 +21,9 @@ env.NODE_OPTIONS = env.NODE_OPTIONS
   ? `${env.NODE_OPTIONS} ${extraOption}`
   : extraOption;
 
-const child = spawn(process.execPath, [vitestEntry, 'run', '--coverage'], {
+const extraArgs = process.argv.slice(2);
+
+const child = spawn(process.execPath, [vitestEntry, 'run', '--coverage', ...extraArgs], {
   stdio: 'inherit',
   env
 });
