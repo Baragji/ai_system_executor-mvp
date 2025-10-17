@@ -54,6 +54,9 @@ describe("execute-next-action script", () => {
     // Should contain one of the known action types
     const hasAction = [
       "NO_ACTION",
+      "RUN_DETERMINISTIC_REPLAY_TESTS",
+      "RUN_PARITY_TESTS",
+      "RUN_PERFORMANCE_BENCHMARKS",
       "COMMIT_PENDING_CHANGES",
       "COMMIT_PENDING_TESTS",
       "FIX_VALIDATION_ERRORS",

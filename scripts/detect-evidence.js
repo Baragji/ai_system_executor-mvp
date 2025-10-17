@@ -34,7 +34,10 @@ const SUCCESS_STATUSES = new Set(["pass", "passed", "success", "completed"]);
 const CRITERIA = {
   sbom: tryRequireCriterionText({ gateId: "G2", includes: ["npm run sbom:cyclonedx"] }),
   provenance: tryRequireCriterionText({ gateId: "G2", includes: ["npm run provenance"] }),
-  langgraph: tryRequireCriterionText({ gateId: "G3", includes: ["/api/execute", "LangGraph integration"] })
+  langgraph: tryRequireCriterionText({ gateId: "G3", includes: ["/api/execute", "LangGraph integration"] }),
+  langgraphReplay: tryRequireCriterionText({ gateId: "G3", includes: ["Deterministic replay validation"] }),
+  langgraphParity: tryRequireCriterionText({ gateId: "G3", includes: ["Parity tests"] }),
+  langgraphPerformance: tryRequireCriterionText({ gateId: "G3", includes: ["Performance benchmarks"] })
 };
 
 // Build detection rules only from non-null canonical criteria
@@ -77,6 +80,48 @@ if (CRITERIA.langgraph) {
   });
 }
 
+if (CRITERIA.langgraphReplay) {
+  DETECTION_RULES.push({
+    gate: "G3",
+    criterion: CRITERIA.langgraphReplay,
+    matches: entry =>
+      entry.success &&
+      commandContainsAll(entry.command, [
+        "AGENTS_RUNTIME=langgraph",
+        "npm test",
+        "tests/orchestrator/replay.test.ts"
+      ])
+  });
+}
+
+if (CRITERIA.langgraphParity) {
+  DETECTION_RULES.push({
+    gate: "G3",
+    criterion: CRITERIA.langgraphParity,
+    matches: entry =>
+      entry.success &&
+      commandContainsAll(entry.command, [
+        "AGENTS_RUNTIME=langgraph",
+        "npm test",
+        "tests/orchestrator/parity.test.ts"
+      ])
+  });
+}
+
+if (CRITERIA.langgraphPerformance) {
+  DETECTION_RULES.push({
+    gate: "G3",
+    criterion: CRITERIA.langgraphPerformance,
+    matches: entry =>
+      entry.success &&
+      commandContainsAll(entry.command, [
+        "AGENTS_RUNTIME=langgraph",
+        "npm test",
+        "tests/benchmarks/perf-overhead.test.ts"
+      ])
+  });
+}
+
 // Log warning for any missing canonical criteria (one-time)
 if (!CRITERIA.sbom) {
   console.warn("Warning: G2 SBOM criterion not found in ledger; skipping detection rule");
@@ -86,6 +131,15 @@ if (!CRITERIA.provenance) {
 }
 if (!CRITERIA.langgraph) {
   console.warn("Warning: G3 LangGraph criterion not found in ledger; skipping detection rule");
+}
+if (!CRITERIA.langgraphReplay) {
+  console.warn("Warning: G3 Deterministic replay criterion not found in ledger; skipping detection rule");
+}
+if (!CRITERIA.langgraphParity) {
+  console.warn("Warning: G3 Parity tests criterion not found in ledger; skipping detection rule");
+}
+if (!CRITERIA.langgraphPerformance) {
+  console.warn("Warning: G3 Performance benchmarks criterion not found in ledger; skipping detection rule");
 }
 
 function normalizeCommand(command) {

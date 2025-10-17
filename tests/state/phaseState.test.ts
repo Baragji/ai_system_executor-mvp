@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import path from "node:path";
-import { readFile } from "node:fs/promises";
+import os from "node:os";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 
 import {
   canAdvanceToNextTask,
@@ -15,6 +16,7 @@ import {
   type ValidationSnapshot,
   type WorkflowMetadata
   } from "../../workflow/lib/phaseState.js";
+import { refreshGateCriteria } from "../../workflow/lib/gateCriteria.js";
 
 describe("phaseState shared module", () => {
   it("loads basic phase and gate info from the repository", async () => {
@@ -106,6 +108,51 @@ describe("phaseState shared module", () => {
     });
 
     expect(runtime).toEqual(fixture.expected);
+  });
+
+  it("prioritizes pending G3 validation commands when criteria are incomplete", async () => {
+    const tmpDir = await mkdtemp(path.join(os.tmpdir(), "phase-state-"));
+    try {
+      const automationDir = path.join(tmpDir, ".automation");
+      const testsDir = path.join(tmpDir, "tests");
+      await mkdir(path.join(testsDir, "orchestrator"), { recursive: true });
+      await mkdir(path.join(testsDir, "benchmarks"), { recursive: true });
+      await writeFile(path.join(testsDir, "orchestrator", "replay.test.ts"), "// stub\n");
+      await writeFile(path.join(testsDir, "orchestrator", "parity.test.ts"), "// stub\n");
+      await writeFile(path.join(testsDir, "benchmarks", "perf-overhead.test.ts"), "// stub\n");
+      await mkdir(automationDir, { recursive: true });
+      const ledgerPath = path.join(automationDir, "GATES_LEDGER.md");
+
+      const writeLedger = async (replayStatus: string, parityStatus: string, perfStatus: string) => {
+        const content = `## Gate G3: Test Gate\n\n**Status:** 🟡 PARTIAL\n\n### Acceptance Criteria\n- ✅ POST \`/api/execute\` LangGraph integration (awaits G2 Trust Spine completion)\n- ${replayStatus} Deterministic replay validation\n- ${perfStatus} Performance benchmarks (overhead < 500ms/transition)\n- ${parityStatus} Parity tests (StepQueue fallback validation)\n`;
+        await writeFile(ledgerPath, content);
+        refreshGateCriteria({ ledgerPath });
+      };
+
+      await writeLedger("⏳", "⏳", "⏳");
+
+      const state: PhaseState = {
+        phaseId: "19",
+        phaseName: "Test Phase",
+        contractPath: null,
+        ledgerPath,
+        tasks: [],
+        gates: { G2: "passed", G3: "partial" }
+      };
+
+      const first = suggestNextAction(state, { uncommittedChanges: [] });
+      expect(first.action).toBe("RUN_DETERMINISTIC_REPLAY_TESTS");
+
+      await writeLedger("✅", "⏳", "⏳");
+      const second = suggestNextAction(state, { uncommittedChanges: [] });
+      expect(second.action).toBe("RUN_PARITY_TESTS");
+
+      await writeLedger("✅", "✅", "⏳");
+      const third = suggestNextAction(state, { uncommittedChanges: [] });
+      expect(third.action).toBe("RUN_PERFORMANCE_BENCHMARKS");
+    } finally {
+      await rm(tmpDir, { recursive: true, force: true });
+    }
   });
 });
 

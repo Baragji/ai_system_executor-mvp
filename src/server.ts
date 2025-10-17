@@ -1557,6 +1557,10 @@ app.post("/api/execute", async (req, res) => {
   const instance = req.originalUrl || req.url || "/api/execute";
   const runtime = (process.env.AGENTS_RUNTIME || "").toLowerCase();
   const useLangGraph = runtime === "langgraph";
+  
+  // DIAGNOSTIC: Log which runtime path is chosen
+  console.log(`[/api/execute] AGENTS_RUNTIME=${process.env.AGENTS_RUNTIME}, useLangGraph=${useLangGraph}`);
+  
   const providedSessionId = typeof req.body?.sessionId === "string" ? req.body.sessionId.trim() : "";
   const deterministic = req.body?.deterministic === true;
   const seedRaw = typeof req.body?.seed === "string" ? req.body.seed.trim() : "";
@@ -1719,6 +1723,9 @@ app.post("/api/execute", async (req, res) => {
     const singlePayload: SingleStepPayload = { singleOptions };
     steps.push({ type: "single", payload: singlePayload, stopOnSuccess: true });
 
+    // DIAGNOSTIC: Log which execution path is being used
+    console.log(`[/api/execute] Executing via StepQueue workflow (${steps.length} steps)`);
+
     const workflow = await stepQueue.runWorkflow(sessionId, steps, {
       onStep: step => {
         sendSse("step", {
@@ -1740,6 +1747,8 @@ app.post("/api/execute", async (req, res) => {
     }
 
     if (useLangGraph && executionId) {
+      // DIAGNOSTIC: Log LangGraph path execution
+      console.log(`[/api/execute] LangGraph path: Completing execution ${executionId} with StepQueue result`);
       const location = `/api/executions/${executionId}`;
       res
         .status(202)

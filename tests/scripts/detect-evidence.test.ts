@@ -71,6 +71,57 @@ describe("detect-evidence utilities", () => {
     expect(g3Match?.criterion).toBe("POST `/api/execute` LangGraph integration (awaits G2 Trust Spine completion)");
   });
 
+  it("detects deterministic replay validation evidence", () => {
+    const normalized = normalizeActionEntry(
+      {
+        timestamp: "2025-10-17T00:00:00Z",
+        cmd: "AGENTS_RUNTIME=langgraph npm test tests/orchestrator/replay.test.ts",
+        exit_code: 0
+      },
+      "unit-test"
+    );
+
+    const matches = detectEvidenceForEntry(normalized);
+    const replayMatch = matches.find(match => match.criterion?.includes("Deterministic replay validation"));
+    expect(replayMatch).toBeDefined();
+    expect(replayMatch?.gate).toBe("G3");
+    expect(replayMatch?.command).toContain("tests/orchestrator/replay.test.ts");
+  });
+
+  it("detects parity validation evidence", () => {
+    const normalized = normalizeActionEntry(
+      {
+        timestamp: "2025-10-17T00:01:00Z",
+        cmd: "AGENTS_RUNTIME=langgraph npm test tests/orchestrator/parity.test.ts",
+        exit_code: 0
+      },
+      "unit-test"
+    );
+
+    const matches = detectEvidenceForEntry(normalized);
+    const parityMatch = matches.find(match => match.criterion?.includes("Parity tests"));
+    expect(parityMatch).toBeDefined();
+    expect(parityMatch?.gate).toBe("G3");
+    expect(parityMatch?.command).toContain("tests/orchestrator/parity.test.ts");
+  });
+
+  it("detects performance benchmark evidence", () => {
+    const normalized = normalizeActionEntry(
+      {
+        timestamp: "2025-10-17T00:02:00Z",
+        cmd: "AGENTS_RUNTIME=langgraph npm test tests/benchmarks/perf-overhead.test.ts",
+        exit_code: 0
+      },
+      "unit-test"
+    );
+
+    const matches = detectEvidenceForEntry(normalized);
+    const perfMatch = matches.find(match => match.criterion?.includes("Performance benchmarks"));
+    expect(perfMatch).toBeDefined();
+    expect(perfMatch?.gate).toBe("G3");
+    expect(perfMatch?.command).toContain("tests/benchmarks/perf-overhead.test.ts");
+  });
+
   it("aggregates G3 evidence from separate /api/execute and parity test entries", () => {
     const apiExecuteEntry = normalizeActionEntry(
       {

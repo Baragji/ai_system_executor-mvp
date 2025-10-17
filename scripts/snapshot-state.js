@@ -15,12 +15,41 @@ import path from 'node:path';
 // no file URL helpers needed
 import { exec } from 'node:child_process';
 
+import { loadGateCriteria } from '../workflow/lib/gateCriteria.js';
+
 
 const ROOT = process.cwd();
 const AUTOMATION_DIR = path.join(ROOT, '.automation');
 const LEDGER_PATH = path.join(AUTOMATION_DIR, 'GATES_LEDGER.md');
 const OUTPUT_PATH = path.join(AUTOMATION_DIR, 'WHERE_AM_I.json');
 const CONTRACTS_DIR = path.join(ROOT, 'contracts', 'Roadmap_execution');
+
+const G3_VALIDATION_RULES = [
+  {
+    includes: ['Deterministic replay validation'],
+    action: 'RUN_DETERMINISTIC_REPLAY_TESTS',
+    command: 'AGENTS_RUNTIME=langgraph npm test tests/orchestrator/replay.test.ts',
+    reasoning:
+      'Deterministic replay validation remains unchecked for Gate G3. Run the LangGraph replay tests to capture evidence.',
+    relativePath: 'tests/orchestrator/replay.test.ts'
+  },
+  {
+    includes: ['Parity tests'],
+    action: 'RUN_PARITY_TESTS',
+    command: 'AGENTS_RUNTIME=langgraph npm test tests/orchestrator/parity.test.ts',
+    reasoning:
+      'Parity tests are still pending for Gate G3. Execute the LangGraph parity suite to confirm StepQueue fallback behaviour.',
+    relativePath: 'tests/orchestrator/parity.test.ts'
+  },
+  {
+    includes: ['Performance benchmarks'],
+    action: 'RUN_PERFORMANCE_BENCHMARKS',
+    command: 'AGENTS_RUNTIME=langgraph npm test tests/benchmarks/perf-overhead.test.ts',
+    reasoning:
+      'Performance benchmarks remain incomplete for Gate G3. Measure LangGraph overhead to gather required evidence.',
+    relativePath: 'tests/benchmarks/perf-overhead.test.ts'
+  }
+];
 
 function parseArgs(argv) {
   const args = new Set();
@@ -145,7 +174,38 @@ async function getValidationSummary(shouldValidate) {
   };
 }
 
-function suggestNextAction({ gates, validations, uncommitted }) {
+function isCriterionComplete(status) {
+  return status === '✅';
+}
+
+async function resolvePendingG3Validations({ gates, gateCriteriaIndex }) {
+  const pending = [];
+  const g2 = gates['G2'];
+  const g3 = gates['G3'];
+  const eligible = g2 === 'passed' && (!g3 || g3 === 'partial' || g3 === 'not_started' || g3 === 'unknown');
+  if (!eligible) {
+    return pending;
+  }
+
+  const criteria = gateCriteriaIndex?.G3 ?? [];
+  for (const rule of G3_VALIDATION_RULES) {
+    const criterion = criteria.find(entry => rule.includes.every(token => entry.text.includes(token)));
+    if (criterion && !isCriterionComplete(criterion.status)) {
+      pending.push({
+        action: rule.action,
+        command: rule.command,
+        reasoning: rule.reasoning
+      });
+    }
+  }
+
+  return pending;
+}
+
+function suggestNextAction({ gates, validations, uncommitted, pendingValidations }) {
+  if (pendingValidations && pendingValidations.length > 0) {
+    return pendingValidations[0];
+  }
   // Basic heuristics
   const g2 = gates['G2'];
   const g3 = gates['G3'];
@@ -187,6 +247,7 @@ async function main() {
 
   const ledgerText = await safeRead(LEDGER_PATH);
   const gates = parseGatesLedger(ledgerText || '');
+  const gateCriteriaIndex = loadGateCriteria({ ledgerPath: LEDGER_PATH });
 
   const contractPath = await findPhase19Contract();
   const contract = contractPath ? await loadJson(contractPath) : null;
@@ -198,6 +259,7 @@ async function main() {
   const validations = await getValidationSummary(args.validate);
   const tasks = Array.isArray(contract?.tasks) ? contract.tasks : [];
   const pendingTasks = tasks.filter((task) => task && task.status !== 'complete');
+  const pendingValidations = await resolvePendingG3Validations({ gates, gateCriteriaIndex });
 
   const snapshot = {
     generated_at: new Date().toISOString(),
@@ -221,7 +283,13 @@ async function main() {
     },
   };
 
-  snapshot.suggested_next_action = suggestNextAction({ gates, validations, uncommitted });
+  snapshot.pending_validations = pendingValidations;
+  snapshot.suggested_next_action = suggestNextAction({
+    gates,
+    validations,
+    uncommitted,
+    pendingValidations
+  });
 
   if (tasks.length > 0) {
     snapshot.tasks = tasks.map((task) => ({

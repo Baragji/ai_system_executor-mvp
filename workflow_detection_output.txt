@@ -20,3 +20,27 @@ Command: git add -A && git commit -m 'chore: persist progress'
 ⚙️  Executing action...
 
 Executing: git add -A && git commit -m 'chore: persist progress'
+[fix/wf5-g3-context-and-evidence a07fa04] chore: persist progress
+ 20 files changed, 2613 insertions(+), 2989 deletions(-)
+ create mode 100644 .automation/phase20_deterministic_replay_discovery.md
+ create mode 100644 docs/07_171025_todays_status/07_dev_workflow_run_report.md
+ create mode 100644 docs/07_171025_todays_status/08_entire_log.md
+ create mode 100644 src/orchestrator/replay.ts
+ create mode 100644 tests/orchestrator/adapter.test.ts
+ create mode 100644 tests/orchestrator/executionsStore.test.ts
+ create mode 100644 tests/orchestrator/parity.test.ts
+ create mode 100644 tests/orchestrator/perf-overhead.test.ts
+ create mode 100644 tests/orchestrator/replay.test.ts
+ create mode 100644 workflow_detection_output.txt
+
+
+🔍 Evidence detected from this action:
+  • G3 — POST `/api/execute` LangGraph integration (awaits G2 Trust Spine completion)
+  • G2 — SLSA v1.0 provenance emitted via `npm run provenance`
+  • G2 — CycloneDX 1.6 SBOM generated via `npm run sbom:cyclonedx`
+
+ℹ️  Gate ledger already up to date.
+
+✅ Action completed successfully!
+
+Next: Run `npm run state:show` to see updated status.

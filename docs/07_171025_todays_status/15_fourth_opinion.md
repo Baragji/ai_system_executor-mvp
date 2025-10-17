@@ -1,0 +1,13 @@
+Assessment
+
+✅ The current src/orchestrator/graph.ts file is still a stub: it emits the message “LangGraph runtime stub invoked. Replace with real graph implementation.” and simply completes the execution after a setTimeout, so there is no StateGraph wiring or node logic yet.
+✅ ADR‑019 explicitly requires adopting @langchain/langgraph@0.6.10, constructing a LangGraph StateGraph with Clarify → Plan → Generate → Test → Repair → Deliver nodes, and routing /api/execute through the LangGraph adapter when AGENTS_RUNTIME=langgraph; these acceptance criteria remain unmet.
+✅ The Phase 19 contract echoes the same gate requirement (“POST /api/execute uses LangGraph when AGENTS_RUNTIME=langgraph”) and adds parity/perf targets that also depend on a real graph implementation.
+❌ /api/execute is not wired to LangGraph today: even when AGENTS_RUNTIME=langgraph, the handler still runs the legacy StepQueue workflow, then back-fills the executions store and returns 202—there is no call into a LangGraph adapter or graph runtime.
+❌ package.json has no dependency on @langchain/langgraph, confirming the real library has not been installed yet.
+✅ The existing LangGraph HTTP tests only verify the stubbed behavior (wait 20 ms and expect the execution to complete), so they cannot serve as true parity/performance coverage until a real graph exists.
+❌ I found no tests/benchmarks/perf-overhead.test.ts (or similar) in the repository; a find across tests/ for *perf* returns nothing, so the claimed perf test timeout cannot be reproduced with the current codebase.
+❌ Likewise, there is no evidence in the checked-in tests of a StepQueue 500 error specific to a “parity test”; the API integration tests exercise StepQueue successfully in both flagged and unflagged modes.
+Conclusion
+
+I agree with the high-level direction in “Option A” (ship the real LangGraph integration) because the repository artifacts clearly call for it, and the current stub cannot satisfy the ADR or Phase 19 gate requirements. However, several supporting claims in the plan (existing wiring to the adapter, current test failures/timeouts) do not match the actual repository state. Before investing in the full Option A implementation, we should update the plan to reflect the real starting point: install the LangGraph dependency, replace the stubbed runGraph with a genuine StateGraph that invokes the existing clarify/plan/execute/test/repair modules, and then extend the test suite to cover parity, determinism, and performance once the graph is functional.

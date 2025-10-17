@@ -1,0 +1,42 @@
+{
+  "phase": "19",
+  "title": "G3 evidence detection and workflow suggestions",
+  "goal": "Detect LangGraph validation test runs as Gate G3 evidence and recommend running them before committing changes.",
+  "integration_points": [
+    {
+      "file": "scripts/detect-evidence.js",
+      "function": "Detection rule assembly",
+      "snippet": "if (CRITERIA.langgraph) {\n  DETECTION_RULES.push({\n    gate: \"G3\",\n    criterion: CRITERIA.langgraph,\n    matches: entry =>\n      entry.success &&\n      commandContainsAll(entry.command, [\n        \"AGENTS_RUNTIME=langgraph\",\n        \"npm test\",\n        \"tests/api/executions.test.ts\"\n      ])\n  });\n}"
+    },
+    {
+      "file": "scripts/snapshot-state.js",
+      "function": "suggestNextAction heuristics",
+      "snippet": "if (uncommitted.length > 0) {\n  const testChanges = uncommitted.some((l) => /\\stests\\//.test(l));\n  return {\n    action: testChanges ? 'COMMIT_PENDING_TESTS' : 'COMMIT_PENDING_CHANGES',\n    reasoning: 'Uncommitted changes detected. Commit to persist progress.',\n    command: \"git add -A && git commit -m 'chore: persist progress'\",\n  };\n}"
+    },
+    {
+      "file": "tests/scripts/detect-evidence.test.ts",
+      "function": "G3 evidence assertions",
+      "snippet": "const matches = detectEvidenceForEntry(normalized);\nexpect(matches.some(match => match.gate === \"G3\")).toBe(true);"
+    },
+    {
+      "file": "tests/state/execute-next-action.test.ts",
+      "function": "CLI action catalogue",
+      "snippet": "const hasAction = [\n  \"NO_ACTION\",\n  \"COMMIT_PENDING_CHANGES\",\n  \"COMMIT_PENDING_TESTS\",\n  \"FIX_VALIDATION_ERRORS\",\n  \"ADVANCE_ORCHESTRATOR_PILOT\"\n].some(action => stdout.includes(action));"
+    }
+  ],
+  "dependencies": [
+    ".automation/GATES_LEDGER.md via workflow/lib/gateCriteria.js"
+  ],
+  "impacts": [
+    "LangGraph validation work recorded as evidence",
+    "Workflow assistant guides developers to run new tests before committing",
+    "Unit tests updated to reflect new behaviours"
+  ],
+  "stack_compliance": {
+    "language": "JavaScript",
+    "backend": "Node.js tooling",
+    "frontend": "unchanged",
+    "testing": "Vitest",
+    "lint": "ESLint applies"
+  }
+}

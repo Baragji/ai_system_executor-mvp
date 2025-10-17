@@ -72,11 +72,11 @@
       { "id": "WF3-W33", "title": "Parity testing", "status": "pending" }
     ],
     "suggestedNextAction": {
-      "action": "COMMIT_PENDING_CHANGES",
-      "reasoning": "Uncommitted changes detected. Commit to persist progress.",
-      "command": "git add -A && git commit -m 'chore: persist progress'"
+      "action": "RUN_DETERMINISTIC_REPLAY_TESTS",
+      "reasoning": "Deterministic replay validation remains unchecked for Gate G3. Run the LangGraph replay tests to capture evidence.",
+      "command": "AGENTS_RUNTIME=langgraph npm test tests/orchestrator/replay.test.ts"
     },
-    "humanSummary": "Phase 19 — Autonomous Transition | Gates: G1=passed, G2=passed, G3=partial | Validations: lint=pass, type=pass, test=pass, contract=pass | Uncommitted: 1 | Next: COMMIT_PENDING_CHANGES",
+    "humanSummary": "Phase 19 — Autonomous Transition | Gates: G1=passed, G2=passed, G3=partial | Validations: lint=pass, type=pass, test=pass, contract=pass | Uncommitted: 1 | Next: RUN_DETERMINISTIC_REPLAY_TESTS",
     "validations": {
       "last_run": "2025-10-14T22:00:00.000Z",
       "lint": "pass",

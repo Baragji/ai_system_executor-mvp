@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { loadGateCriteria, type GateCriteriaIndex } from "./gateCriteria.js";
 
 export type GateStatus = "passed" | "failed" | "partial" | "not_started" | "unknown";
 
@@ -36,6 +37,9 @@ export interface ValidationSnapshot {
 
 export interface NextAction {
   action:
+    | "RUN_DETERMINISTIC_REPLAY_TESTS"
+    | "RUN_PARITY_TESTS"
+    | "RUN_PERFORMANCE_BENCHMARKS"
     | "COMMIT_PENDING_TESTS"
     | "COMMIT_PENDING_CHANGES"
     | "FIX_VALIDATION_ERRORS"
@@ -212,12 +216,73 @@ export function determineCurrentGate(gates: Record<string, GateStatus>): Current
   return { id: target[0], status: target[1] };
 }
 
+const G3_VALIDATION_ACTIONS = [
+  {
+    includes: ["Deterministic replay validation"],
+    action: "RUN_DETERMINISTIC_REPLAY_TESTS" as const,
+    command: "AGENTS_RUNTIME=langgraph npm test tests/orchestrator/replay.test.ts",
+    reasoning:
+      "Deterministic replay validation remains unchecked for Gate G3. Run the LangGraph replay tests to capture evidence."
+  },
+  {
+    includes: ["Parity tests"],
+    action: "RUN_PARITY_TESTS" as const,
+    command: "AGENTS_RUNTIME=langgraph npm test tests/orchestrator/parity.test.ts",
+    reasoning:
+      "Parity tests are still pending for Gate G3. Execute the LangGraph parity suite to confirm StepQueue fallback behaviour."
+  },
+  {
+    includes: ["Performance benchmarks"],
+    action: "RUN_PERFORMANCE_BENCHMARKS" as const,
+    command: "AGENTS_RUNTIME=langgraph npm test tests/benchmarks/perf-overhead.test.ts",
+    reasoning:
+      "Performance benchmarks remain incomplete for Gate G3. Measure LangGraph overhead to gather required evidence."
+  }
+];
+
+function getGateCriteriaIndex(state: PhaseState, provided?: GateCriteriaIndex): GateCriteriaIndex {
+  if (provided) {
+    return provided;
+  }
+  if (state.ledgerPath) {
+    return loadGateCriteria({ ledgerPath: state.ledgerPath });
+  }
+  return loadGateCriteria();
+}
+
+function isCriterionComplete(status: string | undefined): boolean {
+  return status === "✅";
+}
+
 export function suggestNextAction(
   state: PhaseState,
-  options: { uncommittedChanges?: string[]; validations?: ValidationSnapshot }
+  options: {
+    uncommittedChanges?: string[];
+    validations?: ValidationSnapshot;
+    gateCriteriaIndex?: GateCriteriaIndex;
+  } = {}
 ): NextAction {
   const uncommitted = options.uncommittedChanges ?? [];
   const validations = options.validations;
+  const gateCriteriaIndex = getGateCriteriaIndex(state, options.gateCriteriaIndex);
+
+  const g2 = state.gates["G2"];
+  const g3 = state.gates["G3"];
+  const g3Eligible = g2 === "passed" && (!g3 || g3 === "partial" || g3 === "not_started" || g3 === "unknown");
+
+  if (g3Eligible) {
+    const g3Criteria = gateCriteriaIndex["G3"] ?? [];
+    for (const validation of G3_VALIDATION_ACTIONS) {
+      const criterion = g3Criteria.find(entry => validation.includes.every(token => entry.text.includes(token)));
+      if (criterion && !isCriterionComplete(criterion.status)) {
+        return {
+          action: validation.action,
+          reasoning: validation.reasoning,
+          command: validation.command
+        };
+      }
+    }
+  }
 
   if (uncommitted.length > 0) {
     const containsTests = uncommitted.some(line => /\btests\//.test(line));
@@ -227,6 +292,7 @@ export function suggestNextAction(
       command: "git add -A && git commit -m 'chore: persist progress'"
     };
   }
+
   if (validations && [validations.lint, validations.typecheck, validations.test, validations.contract_check].some(v => v === "fail")) {
     return {
       action: "FIX_VALIDATION_ERRORS",
@@ -234,7 +300,7 @@ export function suggestNextAction(
       command: "npm run validate:all"
     };
   }
-  const g2 = state.gates["G2"]; const g3 = state.gates["G3"];
+
   if (g2 === "passed" && (g3 === "partial" || g3 === "not_started" || !g3)) {
     return {
       action: "ADVANCE_ORCHESTRATOR_PILOT",
@@ -242,6 +308,7 @@ export function suggestNextAction(
       command: "AGENTS_RUNTIME=langgraph npm test tests/api/executions.test.ts"
     };
   }
+
   return { action: "NO_ACTION", reasoning: "Repository is clean and validations are not flagged.", command: null };
 }
 
@@ -285,9 +352,11 @@ export function buildWorkflowMetadata(
   const currentTask = determineCurrentTask(state);
   const nextTask = determineNextTask(state);
   const pendingTasks = state.tasks.filter(task => task.status !== "complete").map(cloneTask);
+  const gateCriteriaIndex = getGateCriteriaIndex(state);
   const suggestedNextAction = suggestNextAction(state, {
     validations: validations ?? undefined,
-    uncommittedChanges
+    uncommittedChanges,
+    gateCriteriaIndex
   });
   const humanSummary = formatHumanSummary(state, suggestedNextAction, {
     validations: validations ?? undefined,
