@@ -54,6 +54,7 @@ import {
 } from "./orchestrator/abortSignal.js";
 import { writeFixture, listFixtures, readFixture } from "./fixtures/index.js";
 import { buildExecutionId } from "./orchestrator/graph.js";
+import { deriveDeterministicSessionId } from "./orchestrator/replay.js";
 import type { MultiTurnContext } from "./repair/multiTurnRepair.js";
 import {
   type CheckpointPayload,
@@ -1557,7 +1558,10 @@ app.post("/api/execute", async (req, res) => {
   const runtime = (process.env.AGENTS_RUNTIME || "").toLowerCase();
   const useLangGraph = runtime === "langgraph";
   const providedSessionId = typeof req.body?.sessionId === "string" ? req.body.sessionId.trim() : "";
-  const sessionId = providedSessionId || randomUUID();
+  const deterministic = req.body?.deterministic === true;
+  const seedRaw = typeof req.body?.seed === "string" ? req.body.seed.trim() : "";
+  const seed = seedRaw || (deterministic ? "default" : "");
+  const sessionId = providedSessionId || (deterministic ? deriveDeterministicSessionId(String(req.body?.prompt ?? ""), seed) : randomUUID());
   const wantsSse = !useLangGraph && typeof req.headers.accept === "string" && req.headers.accept.includes("text/event-stream");
   let sseStarted = false;
   let executionId: string | null = null;
@@ -1651,7 +1655,9 @@ app.post("/api/execute", async (req, res) => {
       {
         originalPrompt,
         effectivePrompt,
-        clarifications
+        clarifications,
+        deterministic: Boolean(deterministic),
+        seed: seed || undefined
       }
     );
 

@@ -1,0 +1,22 @@
+
+> executor-mvp@0.1.0 state:next:auto
+> tsx scripts/execute-next-action.js --auto
+
+🤖 Autonomous Next Action Executor
+
+Loading workflow state...
+
+📊 Current State:
+Phase: Autonomous Transition — Trust Spine & LangGraph Foundation
+Current Gate: G3 (partial)
+Current Task: None
+Uncommitted Changes: 20
+
+🎯 Suggested Next Action:
+Action: COMMIT_PENDING_TESTS
+Reasoning: Uncommitted changes detected. Commit to persist progress.
+Command: git add -A && git commit -m 'chore: persist progress'
+
+⚙️  Executing action...
+
+Executing: git add -A && git commit -m 'chore: persist progress'

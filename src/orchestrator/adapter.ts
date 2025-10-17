@@ -25,6 +25,9 @@ function isLangGraphRuntime(): boolean {
 
 async function tryRunGraph(args: GraphRunArgs): Promise<RunResult> {
   try {
+    if ((process.env.AGENTS_GRAPH_SIMULATE_FAILURE || "").trim() === "1") {
+      return { executionId: "unavailable", status: "failed", result: { error: "simulated graph failure" } };
+    }
     // Dynamic import via variable to avoid type resolution when file is absent
     const modPath = "./graph.js";
     const mod = (await import(modPath as string)) as { runGraph?: (input: GraphRunArgs) => Promise<GraphRunResult> };
