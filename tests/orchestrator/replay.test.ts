@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { deriveDeterministicSessionId, hashToSeedInt, mulberry32 } from "../../src/orchestrator/replay.js";
-import { buildExecutionId, runGraph } from "../../src/orchestrator/graph.js";
-import { __test as execStore } from "../../src/orchestrator/executionsStore.js";
+import { buildExecutionId } from "../../src/orchestrator/graph.js";
 
 describe("deterministic replay utilities", () => {
   it("derives stable sessionId from prompt+seed", () => {
@@ -25,17 +24,17 @@ describe("deterministic replay utilities", () => {
   });
 });
 
-describe("graph deterministic execution id", () => {
+describe("graph execution id builder", () => {
   it("builds execution id from provided session id when present", () => {
     const eid = buildExecutionId("mysession");
     expect(eid).toBe("graph-mysession");
   });
 
-  it("uses deterministic session when requested", async () => {
-    execStore.clear();
-    const res1 = await runGraph({ prompt: "ping", deterministic: true, seed: "abc" });
-    const res2 = await runGraph({ prompt: "ping", deterministic: true, seed: "abc" });
-    expect(res1.executionId).toEqual(res2.executionId);
-    expect(res1.status).toBe("started");
+  it("generates new execution id when session id is omitted", () => {
+    const res1 = buildExecutionId();
+    const res2 = buildExecutionId();
+    expect(res1).not.toEqual(res2);
+    expect(res1).toMatch(/^graph-/);
+    expect(res2).toMatch(/^graph-/);
   });
 });

@@ -1,0 +1,44 @@
+{
+  "date": "2025-10-17",
+  "task": "P19-V02",
+  "scope": "Install LangGraph runtime dependencies and update package metadata",
+  "integration_points": [
+    {
+      "file": "package.json",
+      "lines": [1, 120],
+      "note": "Add @langchain/langgraph and @langchain/core as exact runtime dependencies"
+    },
+    {
+      "file": "package-lock.json",
+      "note": "Ensure lockfile captures resolved versions and integrity hashes for new packages"
+    },
+    {
+      "file": ".automation/evidence/langgraph/",
+      "note": "Store dependency rationale and validation output per contract"
+    },
+    {
+      "file": ".automation/progress_phase19_langgraph_runtime.json",
+      "note": "Record task progress, validation results, and evidence reference"
+    }
+  ],
+  "commands_run": [
+    {
+      "command": "npm view @langchain/langgraph version",
+      "result": "0.4.9"
+    },
+    {
+      "command": "npm view @langchain/core version",
+      "result": "1.0.0"
+    }
+  ],
+  "risks": [
+    "New transitive dependencies must not violate stack constraints or introduce forbidden tooling",
+    "Ensure npm install uses --save-exact so success criteria for exact versions is met"
+  ],
+  "next_steps": [
+    "Install dependencies with npm install --save-exact",
+    "Verify package.json and package-lock.json diff for exact versions",
+    "Capture evidence note with rationale and validation",
+    "Update progress tracker with P19-V02 completion data"
+  ]
+}
