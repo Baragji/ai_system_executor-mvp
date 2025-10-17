@@ -190,6 +190,31 @@ describe("autoUpdateLedgerWithEvidence", () => {
     expect(second).toBe(first);
     expect(occurrenceCount).toBe(1);
   });
+
+  it("records real /api/execute curl command for aggregated G3 evidence", async () => {
+    const match = {
+      gate: "G3",
+      criterion: "LangGraph parity tests passing",
+      timestamp: "2025-10-15T10:05:00.000Z",
+      command: "curl -sfS -X POST http://localhost:3000/api/execute -H 'content-type: application/json' -d '{\"input\":\"test\"}'",
+      source: "aggregated"
+    };
+
+    const logger = { log: vi.fn(), warn: vi.fn() };
+    const result = await autoUpdateLedgerWithEvidence([match], match, {
+      ledgerPath,
+      logger
+    });
+
+    expect(result.updated).toBe(true);
+
+    const updated = await fs.readFile(ledgerPath, "utf-8");
+    expect(updated).toContain("- ✅ LangGraph parity tests passing");
+    // Verify the real curl command is recorded, not a placeholder or test command
+    expect(updated).toMatch(/Command: `curl -sfS -X POST http:\/\/localhost:3000\/api\/execute[^\n]*`/);
+    expect(updated).not.toContain("both succeeded"); // No placeholder
+    expect(updated).not.toContain("npm test tests/api/executions.test.ts"); // Not the test command
+  });
 });
 
 describe("isAutoUpdateEnabled", () => {
