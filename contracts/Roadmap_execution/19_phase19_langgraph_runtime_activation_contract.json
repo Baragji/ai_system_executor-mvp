@@ -1,0 +1,313 @@
+{
+  "contract_version": "19.1.0",
+  "contract_meta": {
+    "created": "2025-10-25",
+    "phase": "19",
+    "phase_name": "Autonomous Transition — LangGraph Runtime Activation",
+    "prerequisite_phase": "Phase 19 G2 (Trust Spine) and Phase 20 (LangGraph Executions Endpoint)",
+    "enhancement": "Replace the stubbed LangGraph implementation with the feature-flagged runtime backed by StepQueue parity",
+    "rationale": "Phase 19 cannot close Gate G3 until the LangGraph runtime actually orchestrates executions behind the AGENTS_RUNTIME feature flag; this phase wires the real graph, ensures store updates, and proves parity with the existing StepQueue pipeline while respecting rollback safety.",
+    "references": [
+      "docs/00_tech-assessment-framework/Todays_work/12_Claudes_Langgraph_plan.md",
+      "docs/07_171025_todays_status/18_tiebreak_resolution.md",
+      "docs/Goal_&_Vision_inspirational_only/03_final_decisions/RA_Deliveries/ADR-019_LangGraph_TS_Orchestrator_2025-10-12.md",
+      "contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json"
+    ]
+  },
+  "project": {
+    "name": "executor-mvp",
+    "current_phase": "19",
+    "goal": "Deliver a LangGraph-backed execution path behind AGENTS_RUNTIME=langgraph that updates the executions store and preserves deterministic StepQueue parity.",
+    "scope": "Update orchestrator graph runtime, server wiring, and package dependencies so LangGraph runs for flagged executions while maintaining existing API behavior.",
+    "estimated_time": "1-2 engineering days",
+    "work_profile": "backend_orchestration",
+    "out_of_scope": [
+      "Front-end UI or design changes",
+      "New workflow nodes beyond StepQueue parity",
+      "Production rollout without feature flag"
+    ]
+  },
+  "execution_model": {
+    "type": "discovery_then_autonomous",
+    "verification_strategy": "observe_evaluate_proceed",
+    "description": "Validate prerequisites from Phase 20, then implement LangGraph runtime updates with incremental testing and evidence capture after each win.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "AGENTS.md (Phase 19)",
+    "language": "TypeScript (Node.js 20.x)",
+    "frameworks": [
+      "Express"
+    ],
+    "test_command": "npm test",
+    "constraints": [
+      "No Python files introduced",
+      "No frontend frameworks added",
+      "Node.js runtime must be >=20.10",
+      "New dependencies require justification and lockfile update"
+    ],
+    "validation": "npm run contract:check"
+  },
+  "observability": {
+    "trace_file": ".automation/execution_trace.jsonl",
+    "monitoring": {
+      "discovery_phase_tracking": true,
+      "milestone_status": ["P19-V01", "P19-V02", "P19-V03", "P19-V04", "P19-V05"],
+      "evidence_collection_tracking": true
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": ["timestamp", "task_id", "action", "status", "cmd", "exit_code", "stdout_excerpt", "stderr_excerpt"]
+    },
+    "evaluation": {
+      "continuous": true,
+      "quality_dimensions": ["correctness", "completeness", "safety"]
+    }
+  },
+  "high_level_stages": [
+    "Prerequisite verification",
+    "LangGraph runtime implementation",
+    "Server integration and orchestration wiring",
+    "Validation and evidence"
+  ],
+  "tasks": [
+    {
+      "id": "P19-V01",
+      "stage": "Prerequisite verification",
+      "title": "Verify executions store and StepQueue parity artifacts",
+      "type": "verification",
+      "description": "Confirm Phase 20 executions store endpoints and StepQueue workflow remain healthy before enabling LangGraph runtime.",
+      "status": "pending",
+      "time_estimate_minutes": 45,
+      "actions": [
+        "Inspect GET /api/executions/:id handler to confirm completion polling remains unchanged",
+        "Check StepQueue implementation in src/orchestrator/stepQueue.ts for deterministic options"
+      ],
+      "validation": [
+        {
+          "cmd": "npm test -- tests/api/executions.test.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Existing executions tests pass",
+        "StepQueue deterministic parameters confirmed",
+        "No regressions detected prior to runtime swap"
+      ],
+      "trace_context": {
+        "decision_point": "phase19_langgraph_prereq_verified",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "P19-V02",
+      "stage": "LangGraph runtime implementation",
+      "title": "Install LangGraph runtime dependencies and update package metadata",
+      "type": "implementation",
+      "description": "Add @langchain/langgraph and @langchain/core packages with justification, ensuring lockfile alignment and no forbidden deps.",
+      "status": "pending",
+      "time_estimate_minutes": 30,
+      "actions": [
+        "Run npm install @langchain/langgraph @langchain/core",
+        "Document dependency rationale in commit message and evidence notes"
+      ],
+      "validation": [
+        {
+          "cmd": "test -f package-lock.json",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Dependencies added to package.json with exact versions",
+        "Lockfile updated",
+        "No additional transitive violations"
+      ],
+      "trace_context": {
+        "decision_point": "langgraph_dependencies_installed",
+        "reasoning_required": true,
+        "critical": false
+      }
+    },
+    {
+      "id": "P19-V03",
+      "stage": "LangGraph runtime implementation",
+      "title": "Replace orchestrator stub with LangGraph runner",
+      "type": "implementation",
+      "description": "Update src/orchestrator/graph.ts to compile a StateGraph that invokes the existing StepQueue workflow and writes execution status transitions.",
+      "status": "pending",
+      "time_estimate_minutes": 90,
+      "actions": [
+        "Replace runGraph stub with runWithLangGraph implementation from plan",
+        "Ensure buildExecutionId retains backwards compatibility"
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'StateGraph' src/orchestrator/graph.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'runWithLangGraph' src/orchestrator/graph.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Graph uses StateGraph START/END nodes",
+        "Execution store transitions written via update/complete/fail helpers",
+        "StepQueue invoked within graph node"
+      ],
+      "trace_context": {
+        "decision_point": "langgraph_runner_replaced",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "P19-V04",
+      "stage": "Server integration and orchestration wiring",
+      "title": "Wire /api/execute flag path to LangGraph runtime",
+      "type": "implementation",
+      "description": "Update src/server.ts to import runWithLangGraph, persist execution state, and fire-and-forget LangGraph execution when AGENTS_RUNTIME=langgraph.",
+      "status": "pending",
+      "time_estimate_minutes": 75,
+      "actions": [
+        "Add runWithLangGraph import next to buildExecutionId",
+        "Replace useLangGraph branch with execution creation and async LangGraph invocation",
+        "Add runtime selector log statement"
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'runWithLangGraph' src/server.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'status: \"started\"' src/server.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "POST /api/execute returns 202 with executionId when flag enabled",
+        "Execution store records started → running → completed transitions",
+        "Fallback StepQueue path untouched when flag disabled"
+      ],
+      "trace_context": {
+        "decision_point": "server_langgraph_branch_updated",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "P19-V05",
+      "stage": "Validation and evidence",
+      "title": "Run tests and capture LangGraph parity evidence",
+      "type": "validation",
+      "description": "Execute automated tests under AGENTS_RUNTIME=langgraph and gather logs showing execution lifecycle transitions.",
+      "status": "pending",
+      "time_estimate_minutes": 60,
+      "actions": [
+        "Run AGENTS_RUNTIME=langgraph npm test -- -t 'execute'",
+        "Capture console log snippet showing runtime selection",
+        "Record evidence entries in .automation/evidence"
+      ],
+      "validation": [
+        {
+          "cmd": "AGENTS_RUNTIME=langgraph npm test -- -t execute",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "LangGraph execution completes successfully in tests",
+        "Lint and typecheck remain green",
+        "Evidence artifacts recorded for G3 gate"
+      ],
+      "trace_context": {
+        "decision_point": "langgraph_validation_complete",
+        "reasoning_required": true,
+        "critical": true
+      }
+    }
+  ],
+  "execution_order": [
+    "P19-V01",
+    "P19-V02",
+    "P19-V03",
+    "P19-V04",
+    "P19-V05"
+  ],
+  "execution_semantics": {
+    "discovery_first": {
+      "required": true,
+      "notes": "Reuse discovery artifacts from plan and verify prerequisites before code changes"
+    },
+    "win_isolation": {
+      "enforced": true,
+      "notes": "Complete each task and validations before moving to the next"
+    },
+    "evidence_backed": {
+      "required": true,
+      "notes": "No task marked complete without stored evidence references"
+    },
+    "gate_enforcement": {
+      "required": true,
+      "notes": "G3 cannot be closed until all tasks validated"
+    }
+  },
+  "completion_criteria": {
+    "all_tests_pass": true,
+    "lint_passes": true,
+    "typecheck_passes": true,
+    "evidence_recorded": true
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Updated LangGraph orchestrator",
+      "path": "src/orchestrator/graph.ts",
+      "must_exist": true,
+      "must_include_regex": "runWithLangGraph"
+    },
+    {
+      "name": "Server LangGraph wiring",
+      "path": "src/server.ts",
+      "must_exist": true,
+      "must_include_regex": "runtime=langgraph"
+    },
+    {
+      "name": "Test evidence",
+      "path": ".automation/evidence/langgraph/",
+      "must_exist": true
+    }
+  ],
+  "reporting": {
+    "progress_file": ".automation/progress_phase19_langgraph_runtime.json",
+    "fields": [
+      "task_id",
+      "status",
+      "started_at",
+      "completed_at",
+      "validation_results",
+      "evidence_paths"
+    ],
+    "status_values": ["pending", "in_progress", "complete", "blocked"]
+  },
+  "fallback_policies": {
+    "runtime": "Unset AGENTS_RUNTIME or set to stepqueue to revert to legacy execution path",
+    "telemetry": "Disable OTEL_ENABLED to eliminate tracing overhead during rollback"
+  },
+  "ai_executor_guidelines": {
+    "observability_first": "Log runtime selection and execution transitions for every flagged run.",
+    "win_isolation": "Do not mix StepQueue and LangGraph code changes in the same commit.",
+    "test_driven": "Run targeted execute tests after each major edit.",
+    "fail_fast": "If LangGraph execution fails, halt and inspect execution store entries before retrying.",
+    "gate_enforcement": "Document evidence for G3 prior to requesting closure."
+  }
+}
