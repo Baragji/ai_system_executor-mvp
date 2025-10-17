@@ -1,7 +1,7 @@
-# user
+# 1 user
 1. [07_automating_gates_ledger_updates.md](docs/05_151024_todays_status.md/07_automating_gates_ledger_updates.md) this entire plan has been executed except for 5.4 2. [phase5_validation_report.md](.automation/phase5_validation_report.md) is a validation report from github ai agent 3. I dont trust his judgement, and you need to validate any claims. he wrote "Phase 5 implementation is production-ready" production ready is only to be used if all is testet, validated, executed, thoroghly assest  4. I need you to thoroughly validate that all has been correcly executed, and that the assistant has not done the same shit as was done in phase 3. read a) [WHAT_IS_WHAT.md](WHAT_IS_WHAT.md) to understand the difference b) [01_current_assesment.md](docs/05_151024_todays_status.md/01_current_assesment.md) (old file, but gives context) to understand what went wrong c). then validate by first reading ALL files that have been created/edited/modifed since we started phase 5, do that by checking git status d). If all seems ok, run the commands, to validate that phase 5 has been correclty executed and the workflow now is fully autonomous. e) so in short; validate the validators validation report [phase5_validation_report.md](.automation/phase5_validation_report.md) f) read ALL files to their full completion, and provide evidence for all your claims. also read all files that are mentioned the phase5_validation_report.
 
-# assistant 2
+# 2 assistant 
 Summary
 Phase 5 workflow automation code is still confined to the tooling layer—execute-next-action only imports workflow helpers, the new evidence detector, and the gate auto-updater—so no fresh contamination of product code was found. 
 The automation cannot advance Gate G3 today: the detector looks for the literal criterion “LangGraph parity tests passing,” while the ledger only lists “POST /api/execute LangGraph integration” / “Parity tests (StepQueue fallback validation),” causing updateGateMarkdown to throw when asked to mark the detector’s criterion complete. 
@@ -14,9 +14,10 @@ Testing
 ✅ npm run evidence:detect 
 ⚠️ node scripts/update-gate.js G3 "LangGraph parity tests passing" --dry-run (fails as expected because the criterion text is missing from the ledger) 
 
-# user
+# 3 user
 I need this thoroughly solved, and I need it fucking solved NOW! 1. we have wasted fucking days on trying to implement a fucking workflow for all developers to autonomously understand and find their next task 2. this has fucking derailed us from the actual product/code the "executor:_mvp" track. 3. read @what_is_what.md again 4. read all relevant files 5. fucking create a step by step solution to fucking solve this in three fucking sessions. no more fuckshit.
-Kopiér
+
+#  4 assistant
 Findings
 Gate auto-update cannot succeed today. The evidence detector hard-codes placeholder criterion strings such as “Lint passing” and “LangGraph parity tests passing,” none of which exist in the authoritative ledger, so updateGateMarkdown throws “Criterion not found” whenever the auto-updater runs.
 Foreslået opgave
