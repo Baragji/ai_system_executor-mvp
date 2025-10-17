@@ -54,7 +54,7 @@ import {
 } from "./orchestrator/abortSignal.js";
 import { writeFixture, listFixtures, readFixture } from "./fixtures/index.js";
 import { buildExecutionId } from "./orchestrator/graph.js";
-import { deriveDeterministicSessionId } from "./orchestrator/replay.js";
+import { deriveDeterministicSessionId, hashToSeedInt } from "./orchestrator/replay.js";
 import type { MultiTurnContext } from "./repair/multiTurnRepair.js";
 import {
   type CheckpointPayload,
@@ -79,13 +79,9 @@ import type {
   SingleExecutionOptions,
   SingleExecutionResult
 } from "./orchestrator/executionTypes.js";
+import { runWithLangGraph } from "./orchestrator/graph.js";
 import { installProblemDetails, respondWithProblem } from "./middleware/problemDetails.js";
-import {
-  completeExecution,
-  createExecution,
-  failExecution,
-  getExecution
-} from "./orchestrator/executionsStore.js";
+import { createExecution, failExecution, getExecution } from "./orchestrator/executionsStore.js";
 import { maybeInitTelemetry, shutdownTelemetry } from "./telemetry/otel.js";
 
 const IS_TEST_ENV = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
@@ -1559,16 +1555,20 @@ app.post("/api/execute", async (req, res) => {
   const useLangGraph = runtime === "langgraph";
   
   // DIAGNOSTIC: Log which runtime path is chosen
-  console.log(`[/api/execute] AGENTS_RUNTIME=${process.env.AGENTS_RUNTIME}, useLangGraph=${useLangGraph}`);
+  console.log(`[/api/execute] runtime=${useLangGraph ? "langgraph" : "stepqueue"}`);
   
   const providedSessionId = typeof req.body?.sessionId === "string" ? req.body.sessionId.trim() : "";
   const deterministic = req.body?.deterministic === true;
   const seedRaw = typeof req.body?.seed === "string" ? req.body.seed.trim() : "";
   const seed = seedRaw || (deterministic ? "default" : "");
   const sessionId = providedSessionId || (deterministic ? deriveDeterministicSessionId(String(req.body?.prompt ?? ""), seed) : randomUUID());
+  const numericSeed = deterministic
+    ? hashToSeedInt(String(req.body?.prompt ?? ""), seed)
+    : Math.floor((Date.now() % 100000) / 10);
   const wantsSse = !useLangGraph && typeof req.headers.accept === "string" && req.headers.accept.includes("text/event-stream");
   let sseStarted = false;
   let executionId: string | null = null;
+  let delegatedToLangGraph = false;
 
   res.setHeader("x-executor-session", sessionId);
 
@@ -1648,10 +1648,6 @@ app.post("/api/execute", async (req, res) => {
       }
     }
 
-    if (useLangGraph && executionId) {
-      createExecution(executionId, { status: "started" });
-    }
-
     await captureFixture(
       sessionId,
       slugify(projectNameRaw || "session", { lower: true, strict: true }) || "session",
@@ -1723,6 +1719,51 @@ app.post("/api/execute", async (req, res) => {
     const singlePayload: SingleStepPayload = { singleOptions };
     steps.push({ type: "single", payload: singlePayload, stopOnSuccess: true });
 
+    if (useLangGraph && executionId) {
+      const createdAt = new Date();
+      const location = `/api/executions/${executionId}`;
+      createExecution(executionId, {
+        status: "started",
+        route: "execute",
+        input: {
+          prompt: originalPrompt,
+          effectivePrompt,
+          sessionId,
+          deterministic,
+          seed,
+          numericSeed,
+          clarificationsUsed,
+        },
+        logs: [],
+        createdAt,
+        updatedAt: createdAt,
+      });
+
+      res
+        .status(202)
+        .setHeader("Location", location)
+        .json({ executionId, status: "started" });
+
+      delegatedToLangGraph = true;
+
+      (async () => {
+        try {
+          await runWithLangGraph({
+            executionId,
+            sessionId,
+            steps,
+            stepQueue,
+            deterministic,
+            seed: numericSeed,
+          });
+        } catch (err) {
+          console.error("[/api/execute] LangGraph failure:", err);
+        }
+      })();
+
+      return;
+    }
+
     // DIAGNOSTIC: Log which execution path is being used
     console.log(`[/api/execute] Executing via StepQueue workflow (${steps.length} steps)`);
 
@@ -1746,20 +1787,6 @@ app.post("/api/execute", async (req, res) => {
       throw new Error("Execution pipeline did not produce a response payload");
     }
 
-    if (useLangGraph && executionId) {
-      // DIAGNOSTIC: Log LangGraph path execution
-      console.log(`[/api/execute] LangGraph path: Completing execution ${executionId} with StepQueue result`);
-      const location = `/api/executions/${executionId}`;
-      res
-        .status(202)
-        .setHeader("Location", location)
-        .json({ executionId, status: "started" });
-      setImmediate(() => {
-        completeExecution(executionId!, responsePayload);
-      });
-      return;
-    }
-
     if (wantsSse) {
       sendSse("completed", { sessionId, response: responsePayload });
       closeSse();
@@ -1768,7 +1795,7 @@ app.post("/api/execute", async (req, res) => {
 
     return res.json(responsePayload);
   } catch (err: unknown) {
-    if (useLangGraph && executionId) {
+    if (useLangGraph && executionId && !delegatedToLangGraph) {
       failExecution(executionId, err);
     }
     if (err instanceof PausedError) {
@@ -1812,7 +1839,7 @@ app.post("/api/execute", async (req, res) => {
     respondWithProblem(res, 500, "InternalServerError", message, instance);
     return;
   } finally {
-    if (sessionId) {
+    if (sessionId && !delegatedToLangGraph) {
       cleanupAbortSignal(sessionId);
     }
   }

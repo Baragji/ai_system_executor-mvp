@@ -90,14 +90,23 @@ describe("LangGraph executions endpoint", () => {
     expect(location).toMatch(/^\/api\/executions\//);
 
     const firstPoll = await request(app).get(location).expect(200);
-    expect(["started", "completed"]).toContain(firstPoll.body.status);
+    expect(["started", "running", "completed"]).toContain(firstPoll.body.status);
 
-    // Wait briefly for stub to complete
-    await new Promise(r => setTimeout(r, 20));
+    let finalExecution: { status?: string; output?: unknown; logs?: unknown } | null = null;
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      const poll = await request(app).get(location).expect(200);
+      finalExecution = poll.body;
+      if (poll.body.status === "completed") {
+        break;
+      }
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(r => setTimeout(r, 25));
+    }
 
-    const secondPoll = await request(app).get(location).expect(200);
-    expect(secondPoll.body).toMatchObject({ status: "completed" });
-    expect(secondPoll.body).toHaveProperty("result");
+    expect(finalExecution?.status).toBe("completed");
+    expect(finalExecution).toHaveProperty("output");
+    expect(finalExecution?.logs).toBeInstanceOf(Array);
   });
 
   it("returns 404 for unknown execution id", async () => {

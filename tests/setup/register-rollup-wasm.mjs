@@ -10,11 +10,7 @@ if (!Reflect.get(globalThis, marker)) {
   try {
     wasmTarget = require.resolve('@rollup/wasm-node/dist/native.js');
   } catch {
-    try {
-      wasmTarget = require.resolve('rollup/dist/rollup.js');
-    } catch {
-      wasmTarget = undefined;
-    }
+    wasmTarget = undefined;
   }
 
   Module._resolveFilename = function patchedResolveFilename(

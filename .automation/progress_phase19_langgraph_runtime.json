@@ -25,10 +25,21 @@
         "cmd": "test -f package-lock.json",
         "exit_code": 0,
         "output_chunk": "7cfde8"
+      },
+      {
+        "cmd": "AGENTS_RUNTIME=langgraph npm test -- tests/api/executions.test.ts",
+        "exit_code": 0,
+        "output_chunk": "96e790"
+      },
+      {
+        "cmd": "npm test -- tests/orchestrator/executionsStore.test.ts tests/orchestrator/replay.test.ts",
+        "exit_code": 0,
+        "output_chunk": "29c5f8"
       }
     ],
     "evidence_paths": [
-      ".automation/evidence/langgraph/P19-V02_dependencies.md"
+      ".automation/evidence/langgraph/P19-V02_dependencies.md",
+      ".automation/evidence/langgraph/P19-V02_implementation.md"
     ]
   }
 ]

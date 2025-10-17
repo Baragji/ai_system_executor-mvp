@@ -10,7 +10,6 @@
 import type { Request, Response } from "express";
 
 import { respondWithProblem } from "../middleware/problemDetails.js";
-import type { GraphRunArgs, GraphRunResult } from "./graph.js";
 
 type RunResult = {
   executionId: string;
@@ -23,27 +22,11 @@ function isLangGraphRuntime(): boolean {
   return (process.env.AGENTS_RUNTIME || "").toLowerCase() === "langgraph";
 }
 
-async function tryRunGraph(args: GraphRunArgs): Promise<RunResult> {
-  try {
-    if ((process.env.AGENTS_GRAPH_SIMULATE_FAILURE || "").trim() === "1") {
-      return { executionId: "unavailable", status: "failed", result: { error: "simulated graph failure" } };
-    }
-    // Dynamic import via variable to avoid type resolution when file is absent
-    const modPath = "./graph.js";
-    const mod = (await import(modPath as string)) as { runGraph?: (input: GraphRunArgs) => Promise<GraphRunResult> };
-    if (typeof mod.runGraph !== "function") {
-      return { executionId: "unavailable", status: "failed", result: { error: "runGraph not implemented" } };
-    }
-    const result = await mod.runGraph(args);
-    return {
-      executionId: result.executionId,
-      status: result.status,
-      location: result.location,
-      result: result.result
-    } satisfies RunResult;
-  } catch {
-    return { executionId: "unavailable", status: "failed", result: { error: "graph.js not present" } };
+async function tryRunGraph(_args: unknown): Promise<RunResult> {
+  if ((process.env.AGENTS_GRAPH_SIMULATE_FAILURE || "").trim() === "1") {
+    return { executionId: "unavailable", status: "failed", result: { error: "simulated graph failure" } };
   }
+  return { executionId: "unavailable", status: "failed", result: { error: "LangGraph runtime not wired" } };
 }
 
 /**
