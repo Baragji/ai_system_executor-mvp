@@ -11,6 +11,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
+import { tryRequireCriterionText } from "../workflow/lib/gateCriteria.js";
 
 const ACTION_LOG_SOURCES = [
   {
@@ -29,48 +30,43 @@ const ACTION_LOG_SOURCES = [
 
 const SUCCESS_STATUSES = new Set(["pass", "passed", "success", "completed"]);
 
-const DETECTION_RULES = [
-  {
-    gate: "G0",
-    criterion: "Lint passing",
-    matches: entry =>
-      entry.success &&
-      commandContainsAny(entry.command, [["npm run lint"], ["eslint"]])
-  },
-  {
-    gate: "G0",
-    criterion: "TypeScript typecheck passing",
-    matches: entry =>
-      entry.success &&
-      commandContainsAny(entry.command, [["npm run typecheck"], ["tsc -p"]])
-  },
-  {
-    gate: "G0",
-    criterion: "Test suite passing",
-    matches: entry =>
-      entry.success &&
-      commandContainsAny(entry.command, [["npm test"], ["vitest run"], ["node scripts/run-vitest-with-rollup-shim.mjs"]]) &&
-      !commandContainsAll(entry.command, ["tests/api/"])
-  },
-  {
-    gate: "G1",
-    criterion: "Contracts validated",
-    matches: entry =>
-      entry.success &&
-      commandContainsAny(entry.command, [["npm run contract:check"], ["scripts/validate-contract.js"]])
-  },
-  {
+// Canonical criteria from .automation/GATES_LEDGER.md via gateCriteria
+const CRITERIA = {
+  sbom: tryRequireCriterionText({ gateId: "G2", includes: ["npm run sbom:cyclonedx"] }),
+  provenance: tryRequireCriterionText({ gateId: "G2", includes: ["npm run provenance"] }),
+  langgraph: tryRequireCriterionText({ gateId: "G3", includes: ["/api/execute", "LangGraph integration"] })
+};
+
+// Build detection rules only from non-null canonical criteria
+const DETECTION_RULES = [];
+
+// G2: SBOM (only if canonical criterion exists)
+if (CRITERIA.sbom) {
+  DETECTION_RULES.push({
     gate: "G2",
-    criterion: "Trust Spine artifacts generated (SBOM + provenance)",
+    criterion: CRITERIA.sbom,
     matches: entry =>
       entry.success &&
-      (commandContainsAll(entry.command, ["npm run sbom", "npm run provenance"]) ||
-        commandContainsAll(entry.command, ["npm run sbom:all"]) ||
-        commandContainsAll(entry.command, ["scripts/generate-provenance.js", "scripts/generate-cyclonedx.js"]))
-  },
-  {
+      commandContainsAny(entry.command, [["npm run sbom"], ["npm run sbom:cyclonedx"], ["scripts/generate-cyclonedx.js"]])
+  });
+}
+
+// G2: Provenance (only if canonical criterion exists)
+if (CRITERIA.provenance) {
+  DETECTION_RULES.push({
+    gate: "G2",
+    criterion: CRITERIA.provenance,
+    matches: entry =>
+      entry.success &&
+      commandContainsAny(entry.command, [["npm run provenance"], ["scripts/generate-provenance.js"]])
+  });
+}
+
+// G3: LangGraph parity tests (only if canonical criterion exists)
+if (CRITERIA.langgraph) {
+  DETECTION_RULES.push({
     gate: "G3",
-    criterion: "LangGraph parity tests passing",
+    criterion: CRITERIA.langgraph,
     matches: entry =>
       entry.success &&
       commandContainsAll(entry.command, [
@@ -78,8 +74,19 @@ const DETECTION_RULES = [
         "npm test",
         "tests/api/executions.test.ts"
       ])
-  }
-];
+  });
+}
+
+// Log warning for any missing canonical criteria (one-time)
+if (!CRITERIA.sbom) {
+  console.warn("Warning: G2 SBOM criterion not found in ledger; skipping detection rule");
+}
+if (!CRITERIA.provenance) {
+  console.warn("Warning: G2 Provenance criterion not found in ledger; skipping detection rule");
+}
+if (!CRITERIA.langgraph) {
+  console.warn("Warning: G3 LangGraph criterion not found in ledger; skipping detection rule");
+}
 
 function normalizeCommand(command) {
   return command.replace(/\s+/g, " ").trim();
@@ -209,71 +216,8 @@ function compareTimestamps(a, b) {
   return a.localeCompare(b);
 }
 
-function buildEvidence(entry, gate, criterion, details = {}) {
-  return {
-    gate,
-    criterion,
-    timestamp: entry?.timestamp,
-    command: entry?.command,
-    source: entry?.source,
-    details
-  };
-}
-
-function detectTrustSpineArtifacts(entries) {
-  const combined = entries.find(entry =>
-    entry.success &&
-    entry.command &&
-    (commandContainsAll(entry.command, ["npm run sbom", "npm run provenance"]) ||
-      commandContainsAll(entry.command, ["npm run sbom:all"]))
-  );
-
-  if (combined) {
-    return buildEvidence(combined, "G2", "Trust Spine artifacts generated (SBOM + provenance)", {
-      exitCode: combined.exitCode
-    });
-  }
-
-  const sbomEntries = entries.filter(entry =>
-    entry.success && entry.command && commandContainsAny(entry.command, [["npm run sbom"], ["npm run sbom:cyclonedx"]])
-  );
-
-  const provenanceEntries = entries.filter(entry =>
-    entry.success && entry.command && commandContainsAny(entry.command, [["npm run provenance"], ["scripts/generate-provenance.js"]])
-  );
-
-  if (sbomEntries.length === 0 || provenanceEntries.length === 0) {
-    return null;
-  }
-
-  const latestTimestamp = selectLatestTimestamp([
-    ...sbomEntries.map(entry => entry.timestamp),
-    ...provenanceEntries.map(entry => entry.timestamp)
-  ]);
-
-  const latestSbom = sbomEntries.sort((a, b) => compareTimestamps(a.timestamp, b.timestamp)).at(-1);
-  const latestProvenance = provenanceEntries.sort((a, b) => compareTimestamps(a.timestamp, b.timestamp)).at(-1);
-
-  return {
-    gate: "G2",
-    criterion: "Trust Spine artifacts generated (SBOM + provenance)",
-    timestamp: latestTimestamp,
-    command: latestProvenance?.command ?? latestSbom?.command,
-    source: latestProvenance?.source ?? latestSbom?.source,
-    details: {
-      sbomCommand: latestSbom?.command,
-      provenanceCommand: latestProvenance?.command,
-      sbomExitCode: latestSbom?.exitCode,
-      provenanceExitCode: latestProvenance?.exitCode
-    }
-  };
-}
-
-function selectLatestTimestamp(timestamps) {
-  const valid = timestamps.filter(value => typeof value === "string");
-  if (valid.length === 0) return undefined;
-  return valid.sort().at(-1);
-}
+// Removed buildEvidence, detectTrustSpineArtifacts, and selectLatestTimestamp
+// SBOM and Provenance now handled as separate criteria via DETECTION_RULES
 
 export function detectEvidence(entries, { latestPerCriterion = true } = {}) {
   const matches = [];
@@ -292,11 +236,6 @@ export function detectEvidence(entries, { latestPerCriterion = true } = {}) {
         });
       }
     }
-  }
-
-  const trustSpine = detectTrustSpineArtifacts(entries);
-  if (trustSpine) {
-    matches.push(trustSpine);
   }
 
   if (!latestPerCriterion) {
