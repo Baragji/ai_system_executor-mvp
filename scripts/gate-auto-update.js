@@ -22,7 +22,7 @@ export async function autoUpdateLedgerWithEvidence(
   }
 
   if (!isAutoUpdateEnabled()) {
-    logger?.log?.('\nℹ️  Gate auto-update is disabled (set GATE_AUTO_UPDATE=1 to enable).');
+    logger?.log?.('\nℹ️  Gate auto-update opt-out detected (GATE_AUTO_UPDATE=false/off/no). Remove or change the flag to re-enable.');
     return { updated: false, operations: [] };
   }
 

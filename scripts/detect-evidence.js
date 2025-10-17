@@ -216,6 +216,23 @@ function compareTimestamps(a, b) {
   return a.localeCompare(b);
 }
 
+function shouldSelectCandidate(candidate, current) {
+  if (!candidate) return false;
+  if (!current) return true;
+
+  const candidateAggregated = candidate.source === "aggregated";
+  const currentAggregated = current.source === "aggregated";
+
+  if (candidateAggregated && !currentAggregated) {
+    return true;
+  }
+  if (!candidateAggregated && currentAggregated) {
+    return false;
+  }
+
+  return isNewer(candidate.timestamp, current.timestamp);
+}
+
 // Removed buildEvidence, detectTrustSpineArtifacts, and selectLatestTimestamp
 // SBOM and Provenance now handled as separate criteria via DETECTION_RULES
 
@@ -291,7 +308,7 @@ export function detectEvidence(entries, { latestPerCriterion = true } = {}) {
   for (const match of matches) {
     const key = `${match.gate}|${match.criterion}`;
     const current = latest.get(key);
-    if (!current || isNewer(match.timestamp, current.timestamp)) {
+    if (shouldSelectCandidate(match, current)) {
       latest.set(key, match);
     }
   }

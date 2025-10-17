@@ -151,7 +151,7 @@ describe("autoUpdateLedgerWithEvidence", () => {
   });
 
   it("skips updates when flag disabled", async () => {
-    process.env.GATE_AUTO_UPDATE = "";
+    process.env.GATE_AUTO_UPDATE = "false";
     const match = {
       gate: "G3",
       criterion: "LangGraph parity tests passing",
@@ -228,13 +228,18 @@ describe("isAutoUpdateEnabled", () => {
     }
   });
 
-  it("returns true for truthy flag values", () => {
-    process.env.GATE_AUTO_UPDATE = "true";
+  it("defaults to enabled when unset", () => {
+    delete process.env.GATE_AUTO_UPDATE;
     expect(isAutoUpdateEnabled()).toBe(true);
   });
 
-  it("returns false when flag is unset", () => {
-    delete process.env.GATE_AUTO_UPDATE;
+  it.each(["", "   ", "1", "true", "TRUE", "on", "yes"])('treats %j as enabled', value => {
+    process.env.GATE_AUTO_UPDATE = value;
+    expect(isAutoUpdateEnabled()).toBe(true);
+  });
+
+  it.each(["0", "false", "FALSE", "off", "OFF", "no", "No"])('treats %j as disabled', value => {
+    process.env.GATE_AUTO_UPDATE = value;
     expect(isAutoUpdateEnabled()).toBe(false);
   });
 });

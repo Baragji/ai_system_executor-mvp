@@ -84,7 +84,7 @@ describe("detect-evidence utilities", () => {
     const parityTestEntry = normalizeActionEntry(
       {
         timestamp: "2025-10-15T10:05:00Z",
-        cmd: "npm test tests/api/executions.test.ts",
+        cmd: "AGENTS_RUNTIME=langgraph npm test tests/api/executions.test.ts",
         exit_code: 0
       },
       "manual-test"
@@ -102,6 +102,97 @@ describe("detect-evidence utilities", () => {
     expect(g3Match.command).toContain("curl");
     expect(g3Match.command).toContain("/api/execute");
     expect(g3Match.command).not.toContain("both succeeded"); // No placeholder
+  });
+
+  it("keeps parity command when only the test ran", () => {
+    const parityTestEntry = normalizeActionEntry(
+      {
+        timestamp: "2025-10-15T11:00:00Z",
+        cmd: "AGENTS_RUNTIME=langgraph npm test tests/api/executions.test.ts",
+        exit_code: 0
+      },
+      "manual-test"
+    );
+
+    const evidence = detectEvidence([parityTestEntry!]);
+    const g3Match = evidence.find(match => match.gate === "G3");
+    expect(g3Match?.command).toBe("AGENTS_RUNTIME=langgraph npm test tests/api/executions.test.ts");
+  });
+
+  it("prefers aggregated curl when curl runs before parity test", () => {
+    const apiExecuteEntry = normalizeActionEntry(
+      {
+        timestamp: "2025-10-17T09:13:30.000Z",
+        cmd: "curl -sfS -X POST http://localhost:3000/api/execute -H 'content-type: application/json' -d '{\"input\":\"ping\"}'",
+        exit_code: 0
+      },
+      "manual-test"
+    );
+
+    const parityTestEntry = normalizeActionEntry(
+      {
+        timestamp: "2025-10-17T09:13:41.000Z",
+        cmd: "AGENTS_RUNTIME=langgraph npm test tests/api/executions.test.ts",
+        exit_code: 0
+      },
+      "manual-test"
+    );
+
+    const evidence = detectEvidence([apiExecuteEntry!, parityTestEntry!], { latestPerCriterion: true });
+    const g3Match = evidence.find(match => match.gate === "G3");
+    expect(g3Match?.command).toContain("curl -sfS -X POST http://localhost:3000/api/execute");
+    expect(g3Match?.source).toBe("aggregated");
+  });
+
+  it("prefers aggregated curl even when parity test logged first", () => {
+    const parityTestEntry = normalizeActionEntry(
+      {
+        timestamp: "2025-10-17T09:13:30.000Z",
+        cmd: "AGENTS_RUNTIME=langgraph npm test tests/api/executions.test.ts",
+        exit_code: 0
+      },
+      "manual-test"
+    );
+
+    const apiExecuteEntry = normalizeActionEntry(
+      {
+        timestamp: "2025-10-17T09:13:41.000Z",
+        cmd: "curl -sfS -X POST http://localhost:3000/api/execute -H 'content-type: application/json' -d '{\"input\":\"ping\"}'",
+        exit_code: 0
+      },
+      "manual-test"
+    );
+
+    const evidence = detectEvidence([parityTestEntry!, apiExecuteEntry!], { latestPerCriterion: true });
+    const g3Match = evidence.find(match => match.gate === "G3");
+    expect(g3Match?.command).toContain("curl -sfS -X POST http://localhost:3000/api/execute");
+    expect(g3Match?.source).toBe("aggregated");
+  });
+
+  it("prefers aggregated curl when timestamps tie", () => {
+    const timestamp = "2025-10-17T09:13:41.000Z";
+    const parityTestEntry = normalizeActionEntry(
+      {
+        timestamp,
+        cmd: "AGENTS_RUNTIME=langgraph npm test tests/api/executions.test.ts",
+        exit_code: 0
+      },
+      "manual-test"
+    );
+
+    const apiExecuteEntry = normalizeActionEntry(
+      {
+        timestamp,
+        cmd: "curl -sfS -X POST http://localhost:3000/api/execute -H 'content-type: application/json' -d '{\"input\":\"ping\"}'",
+        exit_code: 0
+      },
+      "manual-test"
+    );
+
+    const evidence = detectEvidence([parityTestEntry!, apiExecuteEntry!], { latestPerCriterion: true });
+    const g3Match = evidence.find(match => match.gate === "G3");
+    expect(g3Match?.command).toContain("curl -sfS -X POST http://localhost:3000/api/execute");
+    expect(g3Match?.source).toBe("aggregated");
   });
 
   it("returns latest evidence when aggregating entries", () => {

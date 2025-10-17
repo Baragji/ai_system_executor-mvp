@@ -138,7 +138,7 @@ All evidence files located in `.automation/evidence/G2/`:
 - ✅ Executions store implemented (`src/orchestrator/executionsStore.ts`)
 - ✅ GET `/api/executions/:id` endpoint functional
 - ✅ Tests passing (`tests/api/executions.test.ts`)
-- ⏳ POST `/api/execute` LangGraph integration (awaits G2 Trust Spine completion)
+- ✅ POST `/api/execute` LangGraph integration (awaits G2 Trust Spine completion)
 - ⏳ Deterministic replay validation
 - ⏳ Performance benchmarks (overhead < 500ms/transition)
 - ⏳ Parity tests (StepQueue fallback validation)
@@ -149,6 +149,7 @@ All evidence files located in `.automation/evidence/G2/`:
 - `src/orchestrator/graph.ts`
 - `tests/api/executions.test.ts`
 - `.automation/phase20_langgraph_exec_discovery.json`
+- 2025-10-17T09:27:19.529Z — Command: `curl -sfS -X POST http://localhost:3000/api/execute -H 'content-type: application/json' -d '{"prompt":"ping"}'`; Detected via aggregated
 <!-- evidence will be appended automatically when a real /api/execute + executions parity test run is detected -->
 
 ### Next Steps

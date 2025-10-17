@@ -99,14 +99,16 @@ export function validateLedgerUpdate(originalContent, updatedContent, targetGate
   };
 }
 
-function normalizeBooleanFlag(value) {
-  if (!value) return false;
-  const normalized = String(value).trim().toLowerCase();
-  return ["1", "true", "yes", "on"].includes(normalized);
+function isExplicitOptOut(value) {
+  if (value == null) return false;
+  const trimmed = String(value).trim();
+  if (trimmed === "") return false;
+  return /^(0|false|off|no)$/i.test(trimmed);
 }
 
 export function isAutoUpdateEnabled(env = process.env) {
-  return normalizeBooleanFlag(env.GATE_AUTO_UPDATE);
+  const raw = env.GATE_AUTO_UPDATE;
+  return !isExplicitOptOut(raw);
 }
 
 function parseArgs(argv) {
@@ -449,7 +451,7 @@ function printHelp() {
     "  --completed <date>      Override completed date when gate passes\n" +
     "  --help, -h              Show this message\n\n" +
     "Environment:\n" +
-    "  Set GATE_AUTO_UPDATE=true to enable writes. Dry runs are always allowed.\n");
+    "  Gate auto-update is enabled by default. Set GATE_AUTO_UPDATE=false (or 0/off/no) to disable writes. Dry runs are always allowed.\n");
 }
 
 async function runCli() {
@@ -490,7 +492,7 @@ async function runCli() {
   }
 
   if (!isAutoUpdateEnabled()) {
-    throw new Error("GATE_AUTO_UPDATE flag is not enabled. Refusing to modify ledger.");
+    throw new Error("GATE_AUTO_UPDATE opt-out is active. Refusing to modify ledger.");
   }
 
   await fs.writeFile(LEDGER_PATH, result.content, "utf-8");
