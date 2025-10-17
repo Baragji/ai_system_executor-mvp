@@ -1,0 +1,393 @@
+{
+  "contract_version": "3.0.0",
+  "contract_meta": {
+    "created": "2025-10-14",
+    "phase": "3",
+    "phase_name": "Workflow Phase 3 — Runtime Integration of PhaseState",
+    "prerequisite_phase": "Workflow Phase 2 (Contract Sync)",
+    "enhancement": "Connect the autonomous workflow state engine to the product runtime so developers and agents get a single, authoritative view of gates, tasks, and recommendations while a session executes.",
+    "rationale": "Phases 1-2 delivered CLI tooling that synthesizes roadmap contracts into actionable workflow guidance, but the runtime and UI still operate on a separate, truncated progress model. This contract finishes the originally-scoped Phase 3 work by wiring the shared PhaseState module into server-side progress endpoints, eliminating drift, surfacing governance context to developers in real time, and unlocking Phase 4 autonomous execution.",
+    "references": [
+      "docs/04_141024_todays_status.md/06_confusion_analysis.md",
+      "docs/04_141024_todays_status.md/08_phase3_integration_rationale.md",
+      "WHAT_IS_WHAT.md",
+      "src/state/phaseState.ts",
+      "scripts/snapshot-state.js"
+    ]
+  },
+  "project": {
+    "name": "Autonomous Workflow System",
+    "current_phase": "Workflow Phase 3 — Runtime Integration",
+    "goal": "Expose the workflow PhaseState (gates, contract tasks, suggested actions, human summary) through the Executor runtime so `/api/progress` and SSE consumers report the same guidance as `npm run state:show`, preventing decision drift before autonomous execution begins.",
+    "scope": "Import shared PhaseState utilities into server runtime, enrich snapshot + SSE payloads with workflow metadata, add coverage to guarantee parity with CLI outputs, and document the integration for future phases.",
+    "estimated_time": "2-3 hours of TypeScript integration and validation",
+    "work_profile": "TypeScript backend integration, SSE payload design, Vitest updates, documentation",
+    "out_of_scope": [
+      "Automated action execution (Workflow Phase 4)",
+      "LangGraph product orchestration changes",
+      "Frontend redesign beyond surfacing additional fields",
+      "Changes to roadmap contract schemas"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "Confirm Phases 1-2 tooling is healthy, then integrate PhaseState into runtime endpoints with incremental validation",
+    "description": "Reuse completed discovery artifacts for Phase 3 (shared PhaseState module scaffold). Verify workflow tooling health, wire shared state into server progress endpoints, enrich SSE snapshots, and validate parity via tests and manual inspection.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "ai-stack.json + AGENTS.md",
+    "language": "TypeScript/JavaScript",
+    "frameworks": [
+      "Express",
+      "Vitest"
+    ],
+    "test_command": "npm test -- src/state/phaseState.test.ts src/server.test.ts",
+    "constraints": [
+      "No Python files",
+      "No new frontend frameworks (vanilla JS only)",
+      "Maintain coverage ≥ 80% line / 75% branch",
+      "ESLint warnings forbidden",
+      "Do not modify contract schemas"
+    ],
+    "validation": "npm run contract:check"
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "macos|linux",
+      "verify_commands": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test -- src/state/phaseState.test.ts src/server.test.ts",
+        "npm run contract:check"
+      ]
+    }
+  },
+  "observability": {
+    "description": "Track progress of wiring PhaseState into runtime endpoints and ensure parity with CLI workflow outputs.",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "discovery_file": ".automation/phase3_workflow_integration_discovery.json",
+    "evidence_file": ".automation/phase3_workflow_integration_evidence.json",
+    "evaluation_file": ".automation/phase3_workflow_integration_evaluation.json",
+    "monitoring": {
+      "discovery_phase_tracking": true,
+      "integration_point_validation": true,
+      "runtime_snapshot_enriched": false,
+      "sse_payload_enriched": false
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": [
+        "timestamp",
+        "task_id",
+        "action",
+        "status",
+        "command",
+        "exit_code",
+        "stdout_excerpt",
+        "stderr_excerpt"
+      ]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_each_win": true,
+      "quality_dimensions": [
+        "correctness",
+        "completeness",
+        "safety"
+      ]
+    }
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npm run lint",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "must_pass": true
+    },
+    "tests": {
+      "command": "npm test",
+      "expected": {
+        "exit_code": 0,
+        "no_failed_suites": true
+      },
+      "coverage": {
+        "min_line_pct": 80,
+        "min_branch_pct": 75
+      }
+    },
+    "contract_schema": {
+      "command": "npm run contract:check",
+      "must_pass": true
+    }
+  },
+  "high_level_stages": [
+    "phase2_verification",
+    "shared_state_alignment",
+    "runtime_enrichment",
+    "validation_gate"
+  ],
+  "tasks": [
+    {
+      "id": "WF3-V01",
+      "stage": "phase2_verification",
+      "title": "Verify Phase 1-2 workflow tooling is healthy",
+      "type": "verification",
+      "description": "Ensure snapshot and sync commands exist and pass before wiring them into the runtime.",
+      "actions": [
+        {
+          "type": "run",
+          "cmd": "npm run state:show"
+        },
+        {
+          "type": "run",
+          "cmd": "npm run state:show:validate"
+        },
+        {
+          "type": "run",
+          "cmd": "npm run state:sync"
+        }
+      ],
+      "evaluation": {
+        "intent": "Prevent integration work if foundational workflow tooling regressed",
+        "success_criteria": "All commands exit 0 and snapshot output contains suggested_next_action"
+      },
+      "trace_context": {
+        "decision_point": "phase2_verification",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "WF3-W31",
+      "stage": "shared_state_alignment",
+      "title": "Import PhaseState utilities into server runtime",
+      "type": "win",
+      "description": "Use loadPhaseState, suggestNextAction, and formatHumanSummary from src/state/phaseState.ts inside src/server.ts to generate workflow metadata for active sessions.",
+      "time_estimate_minutes": 60,
+      "actions": [
+        {
+          "type": "edit",
+          "file": "src/server.ts",
+          "description": "Add imports from src/state/phaseState.ts and initialize workflow context alongside orchestrator snapshots."
+        },
+        {
+          "type": "edit",
+          "file": "src/server.ts",
+          "description": "Ensure workflow context is memoized per session to avoid redundant filesystem reads."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "npm run lint"
+        },
+        {
+          "cmd": "npm run typecheck"
+        }
+      ],
+      "success_criteria": [
+        "Server imports shared PhaseState utilities without circular dependency",
+        "Workflow context available inside progress snapshot builder",
+        "No lint or type errors introduced"
+      ],
+      "trace_context": {
+        "decision_point": "wf3_runtime_imports",
+        "win_number": "31"
+      }
+    },
+    {
+      "id": "WF3-W32",
+      "stage": "runtime_enrichment",
+      "title": "Enrich progress snapshot and SSE payloads",
+      "type": "win",
+      "description": "Attach workflow metadata (current gate, pending tasks, suggested next action, human summary) to /api/progress, /api/progress/snapshot, and progress SSE responses.",
+      "time_estimate_minutes": 45,
+      "actions": [
+        {
+          "type": "edit",
+          "file": "src/server.ts",
+          "description": "Extend snapshot builder to include phaseState.current, phaseState.tasks, and phaseState.suggestedNextAction fields."
+        },
+        {
+          "type": "edit",
+          "file": "public/script.js",
+          "description": "Render new workflow fields in progress UI (e.g., tooltips or sidebar) without altering orchestration controls."
+        },
+        {
+          "type": "edit",
+          "file": "tests/api/progress.test.ts",
+          "description": "Add assertions that workflow metadata is present in API responses."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "npm test -- tests/api/progress.test.ts"
+        }
+      ],
+      "success_criteria": [
+        "API and SSE payloads include workflow metadata",
+        "UI displays workflow summary without layout regressions",
+        "Tests cover new fields"
+      ],
+      "trace_context": {
+        "decision_point": "wf3_runtime_enrichment",
+        "win_number": "32"
+      }
+    },
+    {
+      "id": "WF3-W33",
+      "stage": "runtime_enrichment",
+      "title": "Parity test between CLI snapshot and runtime payload",
+      "type": "win",
+      "description": "Add regression tests ensuring runtime workflow data matches CLI PhaseState output for identical fixtures.",
+      "time_estimate_minutes": 30,
+      "actions": [
+        {
+          "type": "edit",
+          "file": "tests/state/phaseState.test.ts",
+          "description": "Add fixture representing an in-progress session and assert parity with runtime serializer."
+        },
+        {
+          "type": "create_file",
+          "file": "tests/api/__fixtures__/workflowProgress.json",
+          "content_spec": "Shared fixture consumed by CLI and runtime tests."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "npm test -- tests/state/phaseState.test.ts"
+        }
+      ],
+      "success_criteria": [
+        "Fixture-driven test compares CLI and runtime outputs",
+        "Coverage for new workflow fields is ≥ 80%",
+        "Parity test fails if runtime omits workflow metadata"
+      ],
+      "trace_context": {
+        "decision_point": "wf3_parity_tests",
+        "win_number": "33"
+      }
+    },
+    {
+      "id": "WF3-GATE",
+      "stage": "validation_gate",
+      "title": "Workflow Phase 3 validation gate",
+      "type": "validation",
+      "description": "Confirm runtime workflow integration is stable and documented before starting autonomous execution work.",
+      "actions": [
+        {
+          "type": "validate",
+          "cmd": "npm run lint"
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run typecheck"
+        },
+        {
+          "type": "validate",
+          "cmd": "npm test"
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run contract:check"
+        },
+        {
+          "type": "manual_test",
+          "description": "Run npm run dev, initiate a sample session, and verify progress UI surfaces gate/task summary and suggested action in real time."
+        }
+      ],
+      "evaluation": {
+        "intent": "Ensure runtime + UI reflect workflow metadata with no regressions",
+        "success_criteria": "All automated validations pass and manual run confirms workflow summary display"
+      },
+      "trace_context": {
+        "decision_point": "wf3_gate",
+        "reasoning_required": true,
+        "critical": true,
+        "gate_type": "go_no_go"
+      }
+    }
+  ],
+  "execution_order": [
+    "WF3-V01",
+    "WF3-W31",
+    "WF3-W32",
+    "WF3-W33",
+    "WF3-GATE"
+  ],
+  "execution_semantics": {
+    "win_isolation": {
+      "description": "Complete and validate each integration step before enriching payloads further.",
+      "implementation": "Run lint and targeted tests after every win; halt on failure."
+    },
+    "gate_enforcement": {
+      "WF3-GATE": {
+        "required": true,
+        "on_fail": "Halt and remediate before beginning Workflow Phase 4.",
+        "report": "Document failing validations and remediation plan in .automation/phase3_workflow_integration_evaluation.json"
+      }
+    },
+    "phase_specific_constraints": {
+      "no_new_dependencies": "Use existing stack only; raise ADR before adding libraries.",
+      "ui_scope_guard": "Only augment existing progress UI. No new framework or layout overhaul."
+    }
+  },
+  "completion_criteria": {
+    "phase2_verified": true,
+    "runtime_imports_added": true,
+    "workflow_metadata_exposed": true,
+    "parity_tests_passing": true,
+    "all_tests_pass": true,
+    "coverage_maintained": true
+  },
+  "fallback_policies": {
+    "phase2_verification_fails": "Stop immediately, restore Phase 1-2 tooling, rerun commands before continuing.",
+    "runtime_integration_breaks": "Revert server.ts changes, re-run tests, and reattempt with smaller increments.",
+    "ui_regression_detected": "Rollback UI tweaks and coordinate with UX owner before reapplying."
+  },
+  "reporting": {
+    "progress_file": ".automation/workflow_phase3_progress.json",
+    "fields": [
+      "task_id",
+      "status",
+      "started_at",
+      "completed_at",
+      "elapsed_ms",
+      "notes"
+    ],
+    "status_values": [
+      "pending",
+      "running",
+      "succeeded",
+      "blocked"
+    ],
+    "phase_report": {
+      "file": ".automation/workflow_phase3_completion_report.json",
+      "fields": [
+        "wins_completed",
+        "gate_passed",
+        "timestamp",
+        "handoff_notes"
+      ]
+    }
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Server workflow snapshot payload",
+      "path": "src/server.ts",
+      "must_include_regex": "phaseState"
+    },
+    {
+      "name": "Progress API test",
+      "path": "tests/api/progress.test.ts",
+      "must_include_regex": "workflowMetadata"
+    }
+  ]
+}

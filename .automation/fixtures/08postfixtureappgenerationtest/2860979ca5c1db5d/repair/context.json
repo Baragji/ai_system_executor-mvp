@@ -1,0 +1,32 @@
+{
+  "projectPath": "/Users/Yousef_1/Downloads/ai_system_executor-mvp/output/08postfixtureappgenerationtest",
+  "projectSlug": "08postfixtureappgenerationtest",
+  "originalPrompt": "Framework: Express, Port: 7995, Styling: Tailwind CSS\n\nOriginal request: Create a simple flash card app, using only red, black, and white colors. Make it minimal, and simple. add the function to add/delete/modify. frontend + backend needed\n",
+  "generatedFiles": [
+    "package.json",
+    "server.js",
+    "app.js",
+    "routes/cards.js",
+    "lib/flashcard.js",
+    "lib/storage.js",
+    "lib/cardsService.js",
+    "public/index.html",
+    "public/app.js",
+    "data/cards.json",
+    "tests/server.test.js",
+    "tests/api.test.js",
+    "README.md"
+  ],
+  "initialTestResult": {
+    "status": "fail",
+    "passCount": 10,
+    "failCount": 5,
+    "durationMs": 703,
+    "logsPath": "logs/08postfixtureappgenerationtest_last_test_run_64890350-5745-479d-80b4-9921882ff271.log",
+    "timestamp": "2025-10-10T08:50:58.528Z",
+    "command": "npm test",
+    "exitCode": 1,
+    "startedAt": "2025-10-10T08:50:57.825Z",
+    "finishedAt": "2025-10-10T08:50:58.528Z"
+  }
+}

@@ -1,0 +1,269 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+[90mstderr[2m | tests/runner/installDeps.test.ts[2m > [22m[2mensureDependencies[2m > [22m[2mruns npm ci with --ignore-scripts when modules missing
+[22m[39m[ensureDependencies] registry unavailable, continuing without remote validation [ [32m'express@^4.0.0'[39m ]
+
+[90mstderr[2m | tests/api/sessions-pause-resume.test.ts[2m > [22m[2msession pause/resume APIs[2m > [22m[2mresumes a paused session when answers provided
+[22m[39m[Resume] No LLM provider configured; skipping automatic resume for session-002
+
+[90mstderr[2m | tests/api/execute-with-clarifications.test.ts[2m > [22m[2mPOST /api/execute with clarifications[2m > [22m[2mworks without clarifications
+[22m[39mPlanning execution failed, falling back to single execution Error: Skip planning in clarification tests
+    at Proxy.<anonymous> [90m(/workspace/ai_system_executor-mvp/[39mtests/api/execute-with-clarifications.test.ts:31:11[90m)[39m
+    at Proxy.mockCall [90m(file:///workspace/ai_system_executor-mvp/[39mnode_modules/[4m@vitest[24m/spy/dist/index.js:61:17[90m)[39m
+    at Proxy.spy [90m(file:///workspace/ai_system_executor-mvp/[39mnode_modules/[4mtinyspy[24m/dist/index.js:45:80[90m)[39m
+    at [90m/workspace/ai_system_executor-mvp/[39msrc/server.ts:1393:7
+[90m    at AsyncLocalStorage.run (node:async_hooks:346:14)[39m
+    at Module.withTraceContext [90m(/workspace/ai_system_executor-mvp/[39msrc/llm/trace.ts:13:18[90m)[39m
+    at planStepHandler [90m(/workspace/ai_system_executor-mvp/[39msrc/server.ts:1392:24[90m)[39m
+    at StepQueue.handle [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:275:28[90m)[39m
+    at InlineExecutionQueue.handler [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:96:22[90m)[39m
+    at StepQueue.enqueueStep [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:239:20[90m)[39m
+
+[90mstderr[2m | tests/api/execute-with-clarifications.test.ts[2m > [22m[2mPOST /api/execute with clarifications[2m > [22m[2muses augmented prompt when clarifications provided
+[22m[39mPlanning execution failed, falling back to single execution Error: Skip planning in clarification tests
+    at Proxy.<anonymous> [90m(/workspace/ai_system_executor-mvp/[39mtests/api/execute-with-clarifications.test.ts:31:11[90m)[39m
+    at Proxy.mockCall [90m(file:///workspace/ai_system_executor-mvp/[39mnode_modules/[4m@vitest[24m/spy/dist/index.js:61:17[90m)[39m
+    at Proxy.spy [90m(file:///workspace/ai_system_executor-mvp/[39mnode_modules/[4mtinyspy[24m/dist/index.js:45:80[90m)[39m
+    at [90m/workspace/ai_system_executor-mvp/[39msrc/server.ts:1393:7
+[90m    at AsyncLocalStorage.run (node:async_hooks:346:14)[39m
+    at Module.withTraceContext [90m(/workspace/ai_system_executor-mvp/[39msrc/llm/trace.ts:13:18[90m)[39m
+    at planStepHandler [90m(/workspace/ai_system_executor-mvp/[39msrc/server.ts:1392:24[90m)[39m
+    at StepQueue.handle [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:275:28[90m)[39m
+    at InlineExecutionQueue.handler [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:96:22[90m)[39m
+    at StepQueue.enqueueStep [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:239:20[90m)[39m
+
+[90mstderr[2m | tests/meta/clarification-telemetry.test.ts[2m > [22m[2mclarification telemetry meta[2m > [22m[2mmeta file includes clarification data when clarifications used
+[22m[39mPlanning execution failed, falling back to single execution TaskPlanValidationError: /subtasks must NOT have fewer than 2 items; /totalSubtasks must be >= 2
+    at Module.decomposeTask [90m(/workspace/ai_system_executor-mvp/[39msrc/planning/decomposeTask.ts:237:19[90m)[39m
+    at planStepHandler [90m(/workspace/ai_system_executor-mvp/[39msrc/server.ts:1392:18[90m)[39m
+    at StepQueue.handle [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:275:22[90m)[39m
+    at InlineExecutionQueue.handler [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:96:22[90m)[39m
+    at StepQueue.enqueueStep [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:239:20[90m)[39m
+    at StepQueue.runWorkflow [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:178:24[90m)[39m
+    at [90m/workspace/ai_system_executor-mvp/[39msrc/server.ts:1697:22 {
+  issues: []
+}
+
+[90mstderr[2m | tests/meta/clarification-telemetry.test.ts[2m > [22m[2mclarification telemetry meta[2m > [22m[2msets improvedSuccess false when tests fail
+[22m[39mPlanning execution failed, falling back to single execution TaskPlanValidationError: /subtasks must NOT have fewer than 2 items; /totalSubtasks must be >= 2
+    at Module.decomposeTask [90m(/workspace/ai_system_executor-mvp/[39msrc/planning/decomposeTask.ts:237:19[90m)[39m
+    at planStepHandler [90m(/workspace/ai_system_executor-mvp/[39msrc/server.ts:1392:18[90m)[39m
+    at StepQueue.handle [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:275:22[90m)[39m
+    at InlineExecutionQueue.handler [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:96:22[90m)[39m
+    at StepQueue.enqueueStep [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:239:20[90m)[39m
+    at StepQueue.runWorkflow [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:178:24[90m)[39m
+    at [90m/workspace/ai_system_executor-mvp/[39msrc/server.ts:1697:22 {
+  issues: []
+}
+
+[90mstderr[2m | tests/meta/clarification-telemetry.test.ts[2m > [22m[2mclarification telemetry meta[2m > [22m[2mmarks clarification asked when user skips answers
+[22m[39mPlanning execution failed, falling back to single execution TaskPlanValidationError: /subtasks must NOT have fewer than 2 items; /totalSubtasks must be >= 2
+    at Module.decomposeTask [90m(/workspace/ai_system_executor-mvp/[39msrc/planning/decomposeTask.ts:237:19[90m)[39m
+    at planStepHandler [90m(/workspace/ai_system_executor-mvp/[39msrc/server.ts:1392:18[90m)[39m
+    at StepQueue.handle [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:275:22[90m)[39m
+    at InlineExecutionQueue.handler [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:96:22[90m)[39m
+    at StepQueue.enqueueStep [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:239:20[90m)[39m
+    at StepQueue.runWorkflow [90m(/workspace/ai_system_executor-mvp/[39msrc/orchestrator/stepQueue.ts:178:24[90m)[39m
+    at [90m/workspace/ai_system_executor-mvp/[39msrc/server.ts:1697:22 {
+  issues: []
+}
+
+[90mstderr[2m | tests/planning/executeTaskPlan.duration.test.ts[2m > [22m[2mexecuteTaskPlan duration limit[2m > [22m[2mhalts quickly when PLAN_MAX_DURATION_MS is small
+[22m[39mPlan execution halted after 0s to avoid browser timeout. Completed 0/2 subtasks.
+
+[90mstderr[2m | tests/runner/logStream-error.test.ts[2m > [22m[2mrunInSandbox log stream error handling[2m > [22m[2mreturns results even if log stream fails
+[22m[39mLog stream error for /tmp/sandbox-log-NtzzYp/logs/demo_last_test_run_603a7756-a6ca-40c2-b2c5-3734647107cf.log: disk full
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 11 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/api/workflow-status.test.ts[2m > [22mGET /api/workflow/status[2m > [22mreturns workflow metadata with phase information
+[31m[1mError[22m: expected 200 "OK", got 404 "Not Found"[39m
+[36m [2m❯[22m tests/api/workflow-status.test.ts:[2m14:8[22m[39m
+    [90m 12| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mrequest[39m(app)
+    [90m 13| [39m      [33m.[39m[35mget[39m([32m"/api/workflow/status"[39m)
+    [90m 14| [39m      [33m.[39m[34mexpect[39m([34m200[39m)[33m;[39m
+    [90m   | [39m       [31m^[39m
+    [90m 15| [39m
+    [90m 16| [39m    [35mconst[39m metadata [33m=[39m res[33m.[39mbody [35mas[39m [33mWorkflowMetadata[39m[33m;[39m
+[90m [2m❯[22m Test._assertStatus node_modules/supertest/lib/test.js:[2m309:14[22m[39m
+[90m [2m❯[22m node_modules/supertest/lib/test.js:[2m365:13[22m[39m
+[90m [2m❯[22m Test._assertFunction node_modules/supertest/lib/test.js:[2m342:13[22m[39m
+[90m [2m❯[22m Test.assert node_modules/supertest/lib/test.js:[2m195:23[22m[39m
+[90m [2m❯[22m localAssert node_modules/supertest/lib/test.js:[2m138:14[22m[39m
+[90m [2m❯[22m Server.<anonymous> node_modules/supertest/lib/test.js:[2m152:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/api/workflow-status.test.ts[2m > [22mGET /api/workflow/status[2m > [22mincludes gates summary with status
+[31m[1mError[22m: expected 200 "OK", got 404 "Not Found"[39m
+[36m [2m❯[22m tests/api/workflow-status.test.ts:[2m29:8[22m[39m
+    [90m 27| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mrequest[39m(app)
+    [90m 28| [39m      [33m.[39m[35mget[39m([32m"/api/workflow/status"[39m)
+    [90m 29| [39m      [33m.[39m[34mexpect[39m([34m200[39m)[33m;[39m
+    [90m   | [39m       [31m^[39m
+    [90m 30| [39m
+    [90m 31| [39m    [35mconst[39m metadata [33m=[39m res[33m.[39mbody [35mas[39m [33mWorkflowMetadata[39m[33m;[39m
+[90m [2m❯[22m Test._assertStatus node_modules/supertest/lib/test.js:[2m309:14[22m[39m
+[90m [2m❯[22m node_modules/supertest/lib/test.js:[2m365:13[22m[39m
+[90m [2m❯[22m Test._assertFunction node_modules/supertest/lib/test.js:[2m342:13[22m[39m
+[90m [2m❯[22m Test.assert node_modules/supertest/lib/test.js:[2m195:23[22m[39m
+[90m [2m❯[22m localAssert node_modules/supertest/lib/test.js:[2m138:14[22m[39m
+[90m [2m❯[22m Server.<anonymous> node_modules/supertest/lib/test.js:[2m152:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/api/workflow-status.test.ts[2m > [22mGET /api/workflow/status[2m > [22mincludes currentGate identification
+[31m[1mError[22m: expected 200 "OK", got 404 "Not Found"[39m
+[36m [2m❯[22m tests/api/workflow-status.test.ts:[2m49:8[22m[39m
+    [90m 47| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mrequest[39m(app)
+    [90m 48| [39m      [33m.[39m[35mget[39m([32m"/api/workflow/status"[39m)
+    [90m 49| [39m      [33m.[39m[34mexpect[39m([34m200[39m)[33m;[39m
+    [90m   | [39m       [31m^[39m
+    [90m 50| [39m
+    [90m 51| [39m    [35mconst[39m metadata [33m=[39m res[33m.[39mbody [35mas[39m [33mWorkflowMetadata[39m[33m;[39m
+[90m [2m❯[22m Test._assertStatus node_modules/supertest/lib/test.js:[2m309:14[22m[39m
+[90m [2m❯[22m node_modules/supertest/lib/test.js:[2m365:13[22m[39m
+[90m [2m❯[22m Test._assertFunction node_modules/supertest/lib/test.js:[2m342:13[22m[39m
+[90m [2m❯[22m Test.assert node_modules/supertest/lib/test.js:[2m195:23[22m[39m
+[90m [2m❯[22m localAssert node_modules/supertest/lib/test.js:[2m138:14[22m[39m
+[90m [2m❯[22m Server.<anonymous> node_modules/supertest/lib/test.js:[2m152:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/api/workflow-status.test.ts[2m > [22mGET /api/workflow/status[2m > [22mincludes tasks array with status
+[31m[1mError[22m: expected 200 "OK", got 404 "Not Found"[39m
+[36m [2m❯[22m tests/api/workflow-status.test.ts:[2m64:8[22m[39m
+    [90m 62| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mrequest[39m(app)
+    [90m 63| [39m      [33m.[39m[35mget[39m([32m"/api/workflow/status"[39m)
+    [90m 64| [39m      [33m.[39m[34mexpect[39m([34m200[39m)[33m;[39m
+    [90m   | [39m       [31m^[39m
+    [90m 65| [39m
+    [90m 66| [39m    [35mconst[39m metadata [33m=[39m res[33m.[39mbody [35mas[39m [33mWorkflowMetadata[39m[33m;[39m
+[90m [2m❯[22m Test._assertStatus node_modules/supertest/lib/test.js:[2m309:14[22m[39m
+[90m [2m❯[22m node_modules/supertest/lib/test.js:[2m365:13[22m[39m
+[90m [2m❯[22m Test._assertFunction node_modules/supertest/lib/test.js:[2m342:13[22m[39m
+[90m [2m❯[22m Test.assert node_modules/supertest/lib/test.js:[2m195:23[22m[39m
+[90m [2m❯[22m localAssert node_modules/supertest/lib/test.js:[2m138:14[22m[39m
+[90m [2m❯[22m Server.<anonymous> node_modules/supertest/lib/test.js:[2m152:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/11]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/api/workflow-status.test.ts[2m > [22mGET /api/workflow/status[2m > [22mincludes current and next task identification
+[31m[1mError[22m: expected 200 "OK", got 404 "Not Found"[39m
+[36m [2m❯[22m tests/api/workflow-status.test.ts:[2m85:8[22m[39m
+    [90m 83| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mrequest[39m(app)
+    [90m 84| [39m      [33m.[39m[35mget[39m([32m"/api/workflow/status"[39m)
+    [90m 85| [39m      [33m.[39m[34mexpect[39m([34m200[39m)[33m;[39m
+    [90m   | [39m       [31m^[39m
+    [90m 86| [39m
+    [90m 87| [39m    [35mconst[39m metadata [33m=[39m res[33m.[39mbody [35mas[39m [33mWorkflowMetadata[39m[33m;[39m
+[90m [2m❯[22m Test._assertStatus node_modules/supertest/lib/test.js:[2m309:14[22m[39m
+[90m [2m❯[22m node_modules/supertest/lib/test.js:[2m365:13[22m[39m
+[90m [2m❯[22m Test._assertFunction node_modules/supertest/lib/test.js:[2m342:13[22m[39m
+[90m [2m❯[22m Test.assert node_modules/supertest/lib/test.js:[2m195:23[22m[39m
+[90m [2m❯[22m localAssert node_modules/supertest/lib/test.js:[2m138:14[22m[39m
+[90m [2m❯[22m Server.<anonymous> node_modules/supertest/lib/test.js:[2m152:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/11]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/api/workflow-status.test.ts[2m > [22mGET /api/workflow/status[2m > [22mincludes suggested next action
+[31m[1mError[22m: expected 200 "OK", got 404 "Not Found"[39m
+[36m [2m❯[22m tests/api/workflow-status.test.ts:[2m107:8[22m[39m
+    [90m105| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mrequest[39m(app)
+    [90m106| [39m      [33m.[39m[35mget[39m([32m"/api/workflow/status"[39m)
+    [90m107| [39m      [33m.[39m[34mexpect[39m([34m200[39m)[33m;[39m
+    [90m   | [39m       [31m^[39m
+    [90m108| [39m
+    [90m109| [39m    [35mconst[39m metadata [33m=[39m res[33m.[39mbody [35mas[39m [33mWorkflowMetadata[39m[33m;[39m
+[90m [2m❯[22m Test._assertStatus node_modules/supertest/lib/test.js:[2m309:14[22m[39m
+[90m [2m❯[22m node_modules/supertest/lib/test.js:[2m365:13[22m[39m
+[90m [2m❯[22m Test._assertFunction node_modules/supertest/lib/test.js:[2m342:13[22m[39m
+[90m [2m❯[22m Test.assert node_modules/supertest/lib/test.js:[2m195:23[22m[39m
+[90m [2m❯[22m localAssert node_modules/supertest/lib/test.js:[2m138:14[22m[39m
+[90m [2m❯[22m Server.<anonymous> node_modules/supertest/lib/test.js:[2m152:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/11]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/api/workflow-status.test.ts[2m > [22mGET /api/workflow/status[2m > [22mincludes human-readable summary
+[31m[1mError[22m: expected 200 "OK", got 404 "Not Found"[39m
+[36m [2m❯[22m tests/api/workflow-status.test.ts:[2m133:8[22m[39m
+    [90m131| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mrequest[39m(app)
+    [90m132| [39m      [33m.[39m[35mget[39m([32m"/api/workflow/status"[39m)
+    [90m133| [39m      [33m.[39m[34mexpect[39m([34m200[39m)[33m;[39m
+    [90m   | [39m       [31m^[39m
+    [90m134| [39m
+    [90m135| [39m    [35mconst[39m metadata [33m=[39m res[33m.[39mbody [35mas[39m [33mWorkflowMetadata[39m[33m;[39m
+[90m [2m❯[22m Test._assertStatus node_modules/supertest/lib/test.js:[2m309:14[22m[39m
+[90m [2m❯[22m node_modules/supertest/lib/test.js:[2m365:13[22m[39m
+[90m [2m❯[22m Test._assertFunction node_modules/supertest/lib/test.js:[2m342:13[22m[39m
+[90m [2m❯[22m Test.assert node_modules/supertest/lib/test.js:[2m195:23[22m[39m
+[90m [2m❯[22m localAssert node_modules/supertest/lib/test.js:[2m138:14[22m[39m
+[90m [2m❯[22m Server.<anonymous> node_modules/supertest/lib/test.js:[2m152:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/11]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/api/workflow-status.test.ts[2m > [22mGET /api/workflow/status[2m > [22mincludes validations snapshot (may be null)
+[31m[1mError[22m: expected 200 "OK", got 404 "Not Found"[39m
+[36m [2m❯[22m tests/api/workflow-status.test.ts:[2m146:8[22m[39m
+    [90m144| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mrequest[39m(app)
+    [90m145| [39m      [33m.[39m[35mget[39m([32m"/api/workflow/status"[39m)
+    [90m146| [39m      [33m.[39m[34mexpect[39m([34m200[39m)[33m;[39m
+    [90m   | [39m       [31m^[39m
+    [90m147| [39m
+    [90m148| [39m    [35mconst[39m metadata [33m=[39m res[33m.[39mbody [35mas[39m [33mWorkflowMetadata[39m[33m;[39m
+[90m [2m❯[22m Test._assertStatus node_modules/supertest/lib/test.js:[2m309:14[22m[39m
+[90m [2m❯[22m node_modules/supertest/lib/test.js:[2m365:13[22m[39m
+[90m [2m❯[22m Test._assertFunction node_modules/supertest/lib/test.js:[2m342:13[22m[39m
+[90m [2m❯[22m Test.assert node_modules/supertest/lib/test.js:[2m195:23[22m[39m
+[90m [2m❯[22m localAssert node_modules/supertest/lib/test.js:[2m138:14[22m[39m
+[90m [2m❯[22m Server.<anonymous> node_modules/supertest/lib/test.js:[2m152:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/11]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/api/workflow-status.test.ts[2m > [22mGET /api/workflow/status[2m > [22mincludes uncommitted changes array
+[31m[1mError[22m: expected 200 "OK", got 404 "Not Found"[39m
+[36m [2m❯[22m tests/api/workflow-status.test.ts:[2m168:8[22m[39m
+    [90m166| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mrequest[39m(app)
+    [90m167| [39m      [33m.[39m[35mget[39m([32m"/api/workflow/status"[39m)
+    [90m168| [39m      [33m.[39m[34mexpect[39m([34m200[39m)[33m;[39m
+    [90m   | [39m       [31m^[39m
+    [90m169| [39m
+    [90m170| [39m    [35mconst[39m metadata [33m=[39m res[33m.[39mbody [35mas[39m [33mWorkflowMetadata[39m[33m;[39m
+[90m [2m❯[22m Test._assertStatus node_modules/supertest/lib/test.js:[2m309:14[22m[39m
+[90m [2m❯[22m node_modules/supertest/lib/test.js:[2m365:13[22m[39m
+[90m [2m❯[22m Test._assertFunction node_modules/supertest/lib/test.js:[2m342:13[22m[39m
+[90m [2m❯[22m Test.assert node_modules/supertest/lib/test.js:[2m195:23[22m[39m
+[90m [2m❯[22m localAssert node_modules/supertest/lib/test.js:[2m138:14[22m[39m
+[90m [2m❯[22m Server.<anonymous> node_modules/supertest/lib/test.js:[2m152:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/11]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/api/workflow-status.test.ts[2m > [22mGET /api/workflow/status[2m > [22mincludes computed timestamp
+[31m[1mError[22m: expected 200 "OK", got 404 "Not Found"[39m
+[36m [2m❯[22m tests/api/workflow-status.test.ts:[2m178:8[22m[39m
+    [90m176| [39m    [35mconst[39m res [33m=[39m [35mawait[39m [34mrequest[39m(app)
+    [90m177| [39m      [33m.[39m[35mget[39m([32m"/api/workflow/status"[39m)
+    [90m178| [39m      [33m.[39m[34mexpect[39m([34m200[39m)[33m;[39m
+    [90m   | [39m       [31m^[39m
+    [90m179| [39m
+    [90m180| [39m    [35mconst[39m metadata [33m=[39m res[33m.[39mbody [35mas[39m [33mWorkflowMetadata[39m[33m;[39m
+[90m [2m❯[22m Test._assertStatus node_modules/supertest/lib/test.js:[2m309:14[22m[39m
+[90m [2m❯[22m node_modules/supertest/lib/test.js:[2m365:13[22m[39m
+[90m [2m❯[22m Test._assertFunction node_modules/supertest/lib/test.js:[2m342:13[22m[39m
+[90m [2m❯[22m Test.assert node_modules/supertest/lib/test.js:[2m195:23[22m[39m
+[90m [2m❯[22m localAssert node_modules/supertest/lib/test.js:[2m138:14[22m[39m
+[90m [2m❯[22m Server.<anonymous> node_modules/supertest/lib/test.js:[2m152:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/11]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/api/workflow-status.test.ts[2m > [22mGET /api/workflow/status[2m > [22mhandles errors gracefully
+[31m[1mAssertionError[22m: expected [ 200, 500 ] to include 404[39m
+[36m [2m❯[22m tests/api/workflow-status.test.ts:[2m197:24[22m[39m
+    [90m195| [39m
+    [90m196| [39m    [90m// Should either succeed (200) or fail gracefully (500)[39m
+    [90m197| [39m    [34mexpect[39m([[34m200[39m[33m,[39m [34m500[39m])[33m.[39m[34mtoContain[39m(res[33m.[39mstatus)[33m;[39m
+    [90m   | [39m                       [31m^[39m
+    [90m198| [39m
+    [90m199| [39m    [35mif[39m (res[33m.[39mstatus [33m===[39m [34m500[39m) {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/11]⎯[22m[39m
+

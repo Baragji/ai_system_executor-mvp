@@ -6,6 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { app } from "../../src/server.js";
 import type { RunResult } from "../../src/contracts/validators.js";
+import type { ExecutorSuccessResponse } from "../../src/orchestrator/executionTypes.js";
+import { postExecuteAndWait } from "../helpers/execute.js";
 
 const OUTPUT_DIR = path.resolve("output");
 const PROJECT_DIR = path.join(OUTPUT_DIR, "clarify-demo");
@@ -72,14 +74,18 @@ describe("POST /api/execute with clarifications", () => {
 
   it("works without clarifications", async () => {
     const prompt = "Build a Node API";
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt, projectName: "clarify-demo" });
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt,
+      projectName: "clarify-demo"
+    });
 
-    expect(res.status).toBe(200);
-    expect(res.body.ok).toBe(true);
-    expect(res.body.generated).toBe(prompt);
-    expect(res.body.clarificationsUsed).toBe(false);
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
+    const payload = result.payload;
+
+    expect(payload.ok).toBe(true);
+    expect(payload.generated).toBe(prompt);
+    expect(payload.clarificationsUsed).toBe(false);
 
     const messages = lastMessages as { role: string; content: string }[] | null;
     expect(messages?.[1]?.content).toBe(prompt);
@@ -104,24 +110,28 @@ describe("POST /api/execute with clarifications", () => {
       ]
     };
 
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt, clarifications });
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt,
+      clarifications
+    });
 
-    expect(res.status).toBe(200);
-    expect(res.body.clarificationsUsed).toBe(true);
-    expect(res.body.generated).toContain("Framework: FastAPI");
-    expect(res.body.generated).toContain("Port: 5050");
-    expect(res.body.generated).toContain(`Original request: ${prompt}`);
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
+    const payload = result.payload;
+
+    expect(payload.clarificationsUsed).toBe(true);
+    expect(payload.generated).toContain("Framework: FastAPI");
+    expect(payload.generated).toContain("Port: 5050");
+    expect(payload.generated).toContain(`Original request: ${prompt}`);
 
     const messages = lastMessages as { role: string; content: string }[] | null;
-    expect(messages?.[1]?.content).toBe(res.body.generated);
+    expect(messages?.[1]?.content).toBe(payload.generated);
 
-    const projectSlug = res.body.project;
+    const projectSlug = payload.project;
     const metaPath = path.join(OUTPUT_DIR, projectSlug, "_executor_meta.json");
     const meta = JSON.parse(await fs.readFile(metaPath, "utf-8"));
     expect(meta.original_prompt).toBe(prompt);
-    expect(meta.source_prompt).toBe(res.body.generated);
+    expect(meta.source_prompt).toBe(payload.generated);
     expect(meta.clarification.asked).toBe(true);
     expect(meta.clarification.answers.length).toBe(2);
     expect(meta.clarification.improvedSuccess).toBe(true);
@@ -136,6 +146,13 @@ describe("POST /api/execute with clarifications", () => {
       .send({ prompt: "Generate something", clarifications: { answers: [{}] } });
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toBe("invalid clarifications");
+    expect(res.headers["content-type"]).toContain("application/problem+json");
+    expect(res.body).toMatchObject({
+      status: 400,
+      title: "Bad Request",
+      detail: "invalid clarifications",
+      instance: "/api/execute"
+    });
+    expect(res.body).not.toHaveProperty("error");
   });
 });

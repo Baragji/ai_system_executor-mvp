@@ -1,0 +1,170 @@
+{
+  "contract_version": "B.1.0",
+  "contract_meta": {
+    "created": "2025-10-09",
+    "phase": "B",
+    "phase_name": "Trust Engine v1",
+    "prerequisite_phase": "A",
+    "enhancement": "Verification-first enforcement with minimal confidence surface",
+    "rationale": "Establish a minimal verification spine by ensuring generated projects include at least one executable Vitest spec and a consistent test command. Then surface actual run results and a basic advisory signal to increase trust. Keep scope small, non-breaking, and fully evidence-backed.",
+    "references": [
+      "ai-stack.json",
+      "contracts/schemas/roadmap_phase.schema.json",
+      "src/server.ts",
+      "src/utils/seedTests.ts",
+      "src/runner/detectTestCommand.ts",
+      ".automation/phase12B_WA1_discovery_note.md"
+    ]
+  },
+  "project": {
+    "name": "UMCA Executor MVP",
+    "current_phase": "B - Trust Engine v1",
+    "goal": "Increase trust by guaranteeing test presence and displaying verifiable run outcomes with minimal, non-intrusive UI changes.",
+    "scope": "Backend enforcement and evidence surfaces; no frontend frameworks; no API changes.",
+    "estimated_time": "2-3 days",
+    "work_profile": "Small, isolated wins with discovery-first and gated validation",
+    "out_of_scope": [
+      "Adding new dependencies to the root project",
+      "Introducing frontend frameworks",
+      "Schema-breaking API changes"
+    ]
+  },
+  "execution_model": {
+    "type": "discovery_then_autonomous",
+    "verification_strategy": "Seed tests + enforce presence; run sandbox tests; record telemetry",
+    "description": "Each win begins with discovery artifacts, followed by surgical implementation and validation gates.",
+    "failure_mode": "HALT on validation failure and document in trace",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "ai-stack.json",
+    "language": "TypeScript/JavaScript",
+    "frameworks": ["Express"],
+    "test_command": "vitest run --reporter=default",
+    "constraints": [
+      "No Python",
+      "No frontend frameworks under /public",
+      "No new dependencies without justification",
+      "No breaking API changes"
+    ],
+    "validation": "All validation commands must pass"
+  },
+  "environments": {
+    "local": {
+      "node_version": ">=20",
+      "package_manager": "npm",
+      "os": "macOS/Linux",
+      "env_vars_required": [],
+      "optional_env_vars": [],
+      "verify_commands": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test",
+        "npm run contract:check",
+        "npm run sbom"
+      ]
+    }
+  },
+  "observability": {
+    "description": "Record key events and test results for auditability",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "discovery_file": ".automation/phase12B_WA1_discovery_note.md",
+    "evidence_file": ".automation/evaluation_results.json",
+    "evaluation_file": ".automation/validation_report_2025-10-09.md",
+    "monitoring": {},
+    "logging": {},
+    "evaluation": {}
+  },
+  "high_level_stages": [
+    "Discovery",
+    "Win Implementation",
+    "Evidence & Validation"
+  ],
+  "tasks": [
+    {
+      "id": "WA1",
+      "stage": "Win Implementation",
+      "title": "Seed minimal Vitest spec and enforce presence",
+      "type": "win",
+      "description": "Ensure every generation includes a minimal Vitest spec and a test script. Enforce presence during generation and seed tests in both plan and single-execution paths.",
+      "time_estimate_minutes": 90,
+      "actions": [
+        "Create discovery note with integration points",
+        "Verify existing seed hooks in server.ts (plan + single)",
+        "Add/confirm unit tests for seeding utils",
+        "Run validations: lint, typecheck, unit, contract:check, sbom"
+      ],
+      "validation": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test",
+        "npm run contract:check"
+      ],
+      "success_criteria": [
+        "At least one spec seeded into generated outputs",
+        "Test script present in package.json",
+        "No regressions in existing tests",
+        "Contract schema validation passes"
+      ],
+      "evidence_requirements": {
+        "discovery": ".automation/phase12B_WA1_discovery_note.md",
+        "schema_validation": "npm run contract:check output",
+        "tests": "Vitest run summary"
+      }
+    },
+    {
+      "id": "WA2",
+      "stage": "Win Implementation",
+      "title": "Confidence summary from run results + advisory vuln signal",
+      "type": "win",
+      "description": "Surface counts (pass/fail) and a simple advisory vulnerability signal in the outcome card (CI-only advisory, no new deps).",
+      "time_estimate_minutes": 120,
+      "actions": ["Compute summary from RunResult", "Plumb advisory flag via CI artifact", "Render in minimal UI section"],
+      "validation": ["npm run lint", "npm run typecheck", "npm test"],
+      "success_criteria": ["Summary displays accurately", "No UI regressions"],
+      "evidence_requirements": {"screenshots": ".automation/phase_b_screenshots/*"}
+    },
+    {
+      "id": "WA3",
+      "stage": "Validation",
+      "title": "Documentation of required checks & CI wiring (non-breaking)",
+      "type": "validation",
+      "description": "Document required checks (lint, typecheck, unit, contract:check, sbom) and verify they run locally. CI enforcement can be handled via repository settings without code changes.",
+      "time_estimate_minutes": 45,
+      "actions": ["Document checks", "Demonstrate local run"],
+      "validation": ["npm run lint", "npm run typecheck", "npm test", "npm run contract:check"],
+      "success_criteria": ["All checks documented and reproducible"],
+      "evidence_requirements": {"doc": "docs/Trust_Engine_v1_checks.md"}
+    }
+  ],
+  "execution_order": ["WA1", "WA2", "WA3"],
+  "execution_semantics": {
+    "win_isolation": {"no_cross_cutting_changes": true},
+    "gate_enforcement": {"halt_on_failure": true},
+    "evidence_backed": {"required": true},
+    "discovery_first": {"required": true}
+  },
+  "completion_criteria": {
+    "all_tests_pass": true,
+    "lint_passes": true,
+    "contract_schema_passes": true,
+    "sbom_generated": true
+  },
+  "final_artifacts_verification": [
+    { "name": "Contract file present", "path": "contracts/Roadmap_execution/12B_trust_engine_contract.json", "must_exist": true },
+    { "name": "Discovery note present", "path": ".automation/phase12B_WA1_discovery_note.md", "must_exist": true },
+    { "name": "SBOM", "path": "sbom.spdx.json", "must_exist": true }
+  ],
+  "release_actions": [
+    { "cmd": "npm run sbom", "expect_exit_code": 0 }
+  ],
+  "ai_executor_guidelines": {
+    "small_wins": "Keep changes surgical and focused",
+    "no_new_deps": "Avoid adding dependencies unless approved",
+    "tests_first": "Always ensure tests and evidence"
+  },
+  "governance_note": {
+    "for_human": "This contract adopts CDI schema and focuses Phase B on minimal verification improvements."
+  }
+}

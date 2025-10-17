@@ -1,0 +1,73 @@
+{
+  "originalPrompt": "Create a small library with one function and a unit test.",
+  "subtasks": [
+    {
+      "id": "define-function-spec",
+      "title": "Define function behavior and API",
+      "description": "Write a clear specification: function name, inputs, outputs, edge cases, error handling, and example usage.",
+      "status": "pending",
+      "estimatedComplexity": "low",
+      "successCriteria": "A one-paragraph spec plus 2-3 example calls are documented and agreed; spec covers normal and edge cases."
+    },
+    {
+      "id": "setup-project-structure",
+      "title": "Set up minimal project scaffold",
+      "description": "Create repository layout, language/runtime config, package manifest, source and test folders, and a simple build/test script.",
+      "status": "pending",
+      "dependencies": [
+        "define-function-spec"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Repository contains src/ and tests/ (or language equivalent), a package manifest, and a script to run tests locally."
+    },
+    {
+      "id": "implement-function",
+      "title": "Implement the single function",
+      "description": "Write the function code according to the spec with inline comments and basic input validation where required.",
+      "status": "pending",
+      "dependencies": [
+        "define-function-spec",
+        "setup-project-structure"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Function exists in the source folder, compiles (if applicable), and returns expected outputs for provided example inputs."
+    },
+    {
+      "id": "write-unit-test",
+      "title": "Create unit test for the function",
+      "description": "Write one or more unit tests covering normal cases and at least one edge case; use the project's test framework and assert expected outputs.",
+      "status": "pending",
+      "dependencies": [
+        "implement-function",
+        "setup-project-structure"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Test file(s) run under the test script and include assertions for normal and edge cases; tests fail if function is incorrect."
+    },
+    {
+      "id": "run-tests-and-fix",
+      "title": "Execute tests and resolve issues",
+      "description": "Run the test suite, diagnose failing tests, fix implementation or tests, and repeat until all tests pass reliably.",
+      "status": "pending",
+      "dependencies": [
+        "write-unit-test",
+        "implement-function"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "All tests pass consistently on a clean environment and CI/test script exits with success."
+    },
+    {
+      "id": "prepare-readme-and-package",
+      "title": "Add README and package/publish artifacts",
+      "description": "Write a short README with usage examples and build a distributable package or artifact; include instructions to run tests.",
+      "status": "pending",
+      "dependencies": [
+        "run-tests-and-fix"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "README documents usage and test instructions; package/build step succeeds and artifact is producible for distribution."
+    }
+  ],
+  "totalSubtasks": 6,
+  "decompositionStrategy": "Top-down iterative decomposition: specify the function behavior, create a minimal project scaffold, implement the function, create tests, run and fix until green, then add minimal packaging/docs. Each step depends on completion of earlier steps to avoid rework."
+}

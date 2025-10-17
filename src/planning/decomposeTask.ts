@@ -1,8 +1,12 @@
 import { generateJSON } from "../llm/index.js";
+import type { LLMMessage } from "../llm/index.js";
 import type { ClarificationResponse } from "../clarification/types.js";
 import { validateTaskPlan } from "../contracts/taskPlanValidator.js";
 import type { TaskPlan, Subtask, DecompositionIssue } from "./types.js";
 import { TaskPlanValidationError } from "./types.js";
+import { logEvent } from "../telemetry/events.js";
+import { getTraceContext } from "../llm/trace.js";
+import { throwIfAborted } from "../orchestrator/abortSignal.js";
 
 class ClarificationRequiredError extends Error {
   public readonly code = "clarification_required";
@@ -149,10 +153,43 @@ async function requestPlan(
   previousIssues?: DecompositionIssue[]
 ): Promise<string> {
   const systemPrompt = buildPrompt(prompt, clarifications, previousIssues);
-  return generateJSON([
+  const trace = getTraceContext();
+  const sessionId = trace?.sessionId;
+  const messages: LLMMessage[] = [
     { role: "system", content: "You output JSON for task plans." },
     { role: "user", content: systemPrompt }
-  ]);
+  ];
+
+  if (sessionId) {
+    return generateJSON(messages, { sessionId });
+  }
+
+  return generateJSON(messages);
+}
+
+function ms(n: number, fallback: number): number {
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+const DECOMPOSE_TIMEOUT_MS = ms(Number(process.env.DECOMPOSE_TIMEOUT_MS ?? 60000), 60000);
+const DECOMPOSE_MAX_ATTEMPTS = ms(Number(process.env.DECOMPOSE_MAX_ATTEMPTS ?? 2), 2);
+const DECOMPOSE_BACKOFF_BASE_MS = ms(Number(process.env.DECOMPOSE_BACKOFF_BASE_MS ?? 800), 800);
+const DECOMPOSE_BACKOFF_MAX_MS = ms(Number(process.env.DECOMPOSE_BACKOFF_MAX_MS ?? 4000), 4000);
+
+async function raceWithAbort<T>(work: () => Promise<T>, timeoutMs: number, label: string): Promise<T> {
+  const signal = AbortSignal.timeout(timeoutMs);
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => {
+      const err: Error & { code?: string } = new Error(`${label} aborted after ${timeoutMs}ms`);
+      err.code = "ABORT_ERR";
+      reject(err);
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    work().then(
+      v => { signal.removeEventListener("abort", onAbort); resolve(v); },
+      e => { signal.removeEventListener("abort", onAbort); reject(e); }
+    );
+  });
 }
 
 export async function decomposeTask(
@@ -168,9 +205,27 @@ export async function decomposeTask(
   let previousIssues: DecompositionIssue[] | undefined;
   let lastError: Error | undefined;
 
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  for (let attempt = 0; attempt < DECOMPOSE_MAX_ATTEMPTS; attempt += 1) {
     try {
-      const response = await requestPlan(prompt, clarifications, previousIssues);
+      const response = await raceWithAbort(
+        () => requestPlan(prompt, clarifications, previousIssues),
+        DECOMPOSE_TIMEOUT_MS,
+        "decomposeTask"
+      ).catch(async (err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        if ((err as { code?: string }).code === "ABORT_ERR") {
+          await logEvent("plan_abort", { phase: "decompose", reason: message });
+        }
+        throw err;
+      });
+      
+      // Check if execution was paused immediately after LLM call completes
+      // This catches pause requests that occurred during the LLM call
+      const ctx = getTraceContext();
+      if (ctx?.sessionId) {
+        throwIfAborted(ctx.sessionId, "post_decompose_llm");
+      }
+      
       const normalizedPlan = parsePlan(response, prompt);
       const validation = validateTaskPlan(normalizedPlan);
 
@@ -189,6 +244,13 @@ export async function decomposeTask(
       } else {
         lastError = error as Error;
       }
+    }
+    if (attempt + 1 < DECOMPOSE_MAX_ATTEMPTS) {
+      const base = Math.min(DECOMPOSE_BACKOFF_BASE_MS * Math.pow(2, attempt), DECOMPOSE_BACKOFF_MAX_MS);
+      const jitter = 0.8 + Math.random() * 0.4; // 20% jitter
+      const backoff = Math.floor(base * jitter);
+      await logEvent("plan_retry", { phase: "decompose", attempt: attempt + 1, backoffMs: backoff });
+      await new Promise(res => setTimeout(res, backoff));
     }
   }
 

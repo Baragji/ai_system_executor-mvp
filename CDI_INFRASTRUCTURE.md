@@ -1,8 +1,9 @@
 # CDI Infrastructure - Quick Reference
 
-> **What is this?** Contract-Driven Integration (CDI) files added for Phase A and beyond.  
-> **When added:** 2025-10-08  
-> **Current Phase:** A (UI Baseline Fixes)
+> **What is this?** Contract-Driven Integration (CDI) files added for Phase A and beyond.
+> **When added:** 2025-10-08
+> **Last Updated:** 2025-10-13
+> **Current Phase:** Phase 19/20 (Autonomous Transition - Trust Spine + LangGraph Foundation)
 
 ---
 
@@ -13,6 +14,16 @@
 |------|--------------|----------------|
 | `ai-stack.json` | Defines allowed languages, frameworks, constraints | Prevents Python, enforces TypeScript-only |
 | `.nvmrc` | Locks Node version to 20 | Prevents dependency drift across Node versions |
+
+### Trust Spine (Phase 19 T0)
+| File | What It Does | Why It Matters |
+|------|--------------|----------------|
+| `src/middleware/problemDetails.ts` | RFC 9457 problem details error responses | Standardized HTTP error format for observability |
+| `src/telemetry/otel.ts` | OpenTelemetry bootstrap (env-gated) | GenAI span tracing for LLM/tool calls (when `OTEL_ENABLED=1`) |
+| `src/telemetry/events.ts` | JSONL action log dual-write | SIEM-friendly audit logs (when `ACTION_LOG_JSONL=1`) |
+| `scripts/generate-cyclonedx.js` | CycloneDX 1.6 SBOM generation | Supply chain compliance per ADR-019 |
+| `scripts/generate-provenance.js` | SLSA v1.0 provenance | Build attestation per ADR-019 |
+| `.automation/evidence/G2/` | Trust Spine evidence bundle | Stores SBOM, provenance, traces, logs, errors for Gate G2 |
 
 ### Anti-Drift Guardrails
 | File | What It Does | Why It Matters |
@@ -35,7 +46,10 @@
 ### Contracts
 | File | What It Does | Why It Matters |
 |------|--------------|----------------|
+| `contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json` | **Phase 19 (Active)**: Trust Spine + LangGraph foundation | Governs CycloneDX/SLSA, OTel, RFC 9457, orchestrator infrastructure, Gate G2 |
+| `contracts/Roadmap_execution/20_phase20_langgraph_executions_contract.json` | **Phase 20 (Complete)**: Executions endpoint | LangGraph async execution tracking via GET /api/executions/:id |
 | `contracts/Roadmap_execution/11_phaseA_contract_enhanced.json` | Phase A contract with CDI discovery phase | Detailed instructions for UI baseline wins (WA1-WA3) |
+| `contracts/Roadmap_execution/16_phaseA_accessibility_pause_contract.json` | Phase A win set for accessibility + pause clarifications | Governs fixes for link contrast, shared clarification helper, multi-cycle pause handling, and snapshot refresh |
 
 ---
 
@@ -53,11 +67,69 @@
 **Need to validate a contract?**  
 → `npm run contract:check` (uses `scripts/validate-contract.js`)
 
-**Need to see Phase A implementation plan?**  
-→ `contracts/Roadmap_execution/11_phaseA_contract_enhanced.json`
+**Need to see current phase contract?**
+→ `contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json`
 
-**Need to understand CI validation?**  
+**Need to understand CI validation?**
 → `.github/workflows/cdi-validation.yml`
+
+**Need problem details error types?**
+→ `docs/api/problem_types.md`
+
+---
+
+## 🚩 Feature Flag Workflow (Phase 19+)
+
+Phase 19 introduces feature-flagged capabilities for safe rollout:
+
+### Testing LangGraph Runtime
+```bash
+# Enable LangGraph orchestrator
+export AGENTS_RUNTIME=langgraph
+npm run dev
+
+# Test executions endpoint
+curl -X POST http://localhost:3000/api/execute \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"Build hello world"}' \
+  -v  # Check for 202 + Location header
+
+# Poll execution status
+curl http://localhost:3000/api/executions/{id}
+```
+
+### Testing OpenTelemetry
+```bash
+# Enable OTel tracing (requires collector running)
+export OTEL_ENABLED=1
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces
+npm run dev
+```
+
+### Testing Action Logs
+```bash
+# Enable JSONL action log dual-write
+export ACTION_LOG_JSONL=1
+npm run dev
+# Check: .automation/actions.jsonl should be created
+```
+
+### Testing RFC 9457 Errors
+```bash
+# Enabled by default in dev/test
+npm run dev
+# Or force-enable in prod:
+export PROBLEM_DETAILS_ENABLED=1
+```
+
+### Rollback
+```bash
+unset AGENTS_RUNTIME  # Returns to StepQueue
+unset OTEL_ENABLED    # Disables telemetry
+unset ACTION_LOG_JSONL  # Disables action logs
+# Or set to explicit defaults:
+export AGENTS_RUNTIME=stepqueue
+```
 
 ---
 
@@ -85,11 +157,22 @@
 
 ---
 
-## 📦 New npm Scripts
+## 📦 npm Scripts
 
 ```bash
-npm run contract:check    # Validate contracts against schema
-npm run sbom              # Generate SBOM (Software Bill of Materials)
+# Validation (Required before merge)
+npm run lint              # ESLint - must exit 0, no warnings
+npm run typecheck         # TypeScript - must exit 0
+npm test                  # Vitest - must exit 0, coverage thresholds met
+npm run contract:check    # Contract schema validation - must exit 0
+
+# SBOM & Provenance (Phase 19+)
+npm run sbom              # Generate SPDX SBOM → sbom.spdx.json
+npm run sbom:cyclonedx    # Generate CycloneDX SBOM → sbom.cdx.json
+npm run sbom:all          # Generate both SPDX + CycloneDX
+npm run provenance        # Generate SLSA v1.0 provenance → provenance.intoto.jsonl
+
+# Combined Validation
 npm run validate:all      # Run lint + typecheck + test + contract:check
 ```
 
@@ -108,36 +191,71 @@ All must pass ✅ before merge is allowed.
 
 ---
 
-## 🗂️ Directory Structure (New Files Only)
+## 🗂️ Directory Structure (Phase 19+ CDI Files)
 
 ```
 repo-root/
-├── ai-stack.json                          # Stack lock file
-├── .nvmrc                                 # Node version (20)
-├── CDI_INFRASTRUCTURE.md                  # This file
+├── ai-stack.json                                       # Stack lock file
+├── .nvmrc                                              # Node version (20)
+├── CDI_INFRASTRUCTURE.md                               # This file
+├── AGENTS.md                                           # AI agent instructions (Phase 19 updated)
 │
 ├── .github/
-│   ├── CODEOWNERS                         # Protected files list
-│   ├── copilot-instructions.md            # AI agent instructions
-│   ├── pull_request_template.md           # PR template with evidence checklist
+│   ├── CODEOWNERS                                      # Protected files list
+│   ├── copilot-instructions.md                         # AI agent instructions
+│   ├── pull_request_template.md                        # PR template with evidence checklist
 │   └── workflows/
-│       └── cdi-validation.yml             # CDI CI checks
+│       └── cdi-validation.yml                          # CDI CI checks
 │
 ├── contracts/
+│   ├── README.md                                       # Contract naming standard (Phase 19)
 │   ├── schemas/
-│   │   └── roadmap_phase.schema.json      # Contract JSON Schema
+│   │   └── roadmap_phase.schema.json                   # Contract JSON Schema
 │   └── Roadmap_execution/
-│       └── 11_phaseA_contract_enhanced.json  # Phase A contract (CDI)
+│       ├── 19_phase19_autonomous_transition_contract.json  # ⭐ Phase 19 (Active)
+│       ├── 20_phase20_langgraph_executions_contract.json   # ⭐ Phase 20 (Complete)
+│       └── [01-18 legacy contracts...]                 # Historical contracts
 │
-└── scripts/
-    └── validate-contract.js               # Contract validator
+├── docs/
+│   └── api/
+│       └── problem_types.md                            # RFC 9457 error types (Phase 19)
+│
+├── src/
+│   ├── middleware/
+│   │   └── problemDetails.ts                           # ⭐ RFC 9457 helpers (Phase 19 T0)
+│   ├── telemetry/
+│   │   ├── otel.ts                                     # ⭐ OTel bootstrap (Phase 19 T0)
+│   │   └── events.ts                                   # ⭐ Event logging + JSONL dual-write (Phase 19 T0)
+│   └── orchestrator/
+│       ├── adapter.ts                                  # Feature-flagged LangGraph adapter
+│       ├── graph.ts                                    # LangGraph stub runtime
+│       └── executionsStore.ts                          # Executions tracking (Phase 20 complete)
+│
+├── scripts/
+│   ├── validate-contract.js                            # Contract validator
+│   ├── generate-cyclonedx.js                           # ⭐ CycloneDX SBOM generator (Phase 19 T0)
+│   └── generate-provenance.js                          # ⭐ SLSA provenance generator (Phase 19 T0)
+│
+└── .automation/
+    ├── GATES_LEDGER.md                                 # ⭐ Gate ledger (Phase 19 T0)
+    ├── evidence/
+    │   └── G2/                                         # ⭐ Gate G2 evidence bundle (Phase 19 T0)
+    │       ├── sbom.cdx.json                           # CycloneDX SBOM
+    │       ├── provenance.intoto.jsonl                 # SLSA provenance
+    │       ├── otel_trace_export.json                  # OTel trace sample
+    │       ├── actions.jsonl                           # JSONL action log sample
+    │       └── errors_rfc9457.jsonl                    # RFC 9457 error samples
+    └── phase19_20_implementation_summary.md            # ⭐ Trust Spine implementation guide
+
+⭐ = Implemented in Phase 19 T0
+⏳ = Pending implementation (future work)
 ```
 
 ---
 
-## ⚡ Quick Start
+## ⚡ Quick Start (Phase 19)
 
-**To validate everything is working:**
+**To validate current state:**
 
 ```bash
 # 1. Switch to Node 20
@@ -146,44 +264,80 @@ nvm use 20
 # 2. Install dependencies (if not done)
 npm install
 
-# 3. Test contract validation
+# 3. Validate contracts (Phase 19/20 contracts exist)
 npm run contract:check
 # Expected: ✅ All contracts are valid!
 
-# 4. Test SBOM generation
-npm run sbom
-# Expected: Creates sbom.spdx.json
+# 4. Generate Trust Spine artifacts
+npm run sbom:all
+# Expected: Creates sbom.spdx.json + sbom.cdx.json
+npm run provenance
+# Expected: Creates provenance.intoto.jsonl with attestations
 
 # 5. Run all validation
 npm run validate:all
-# Expected: All checks pass
+# Expected: All checks pass (lint, typecheck, tests, contract check)
 ```
 
-**Note:** If you see "10 vulnerabilities (4 low, 6 moderate)" after `npm install`, this is from dev dependencies (Playwright, etc.) and doesn't affect Phase A execution. Can be addressed later with `npm audit fix`.
+**To begin Phase 19 Trust Spine implementation:**
 
-**To start Phase A execution:**
+→ See: `.automation/phase19_20_implementation_summary.md` (step-by-step guide)
+→ Contract: `contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json`
 
-→ See: `contracts/Roadmap_execution/11_phaseA_contract_enhanced.json`
+**To test Phase 20 executions endpoint:**
+
+```bash
+# Start server with LangGraph runtime
+export AGENTS_RUNTIME=langgraph
+npm run dev
+
+# In another terminal:
+curl -X POST http://localhost:3000/api/execute \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"test"}' \
+  -v  # Check for 202 + Location header
+```
 
 ---
 
 ## 🔗 Related Documentation
 
+### Phase 19+ (Current)
+- **Phase 19 Contract:** `contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json`
+- **Phase 20 Contract:** `contracts/Roadmap_execution/20_phase20_langgraph_executions_contract.json`
+- **Implementation Guide:** `.automation/phase19_20_implementation_summary.md`
+- **Strategy:** `docs/Goal_&_Vision_inspirational_only/03_final_decisions/phase19_autonomous_transition_strategy.md`
+- **ADR-019:** `docs/Goal_&_Vision_inspirational_only/03_final_decisions/RA_Deliveries/ADR-019_LangGraph_TS_Orchestrator_2025-10-12.md`
+- **Contract Naming:** `contracts/README.md`
+- **Problem Types:** `docs/api/problem_types.md`
+
+### Historical
+- **Phase A Contracts:** `contracts/Roadmap_execution/11_*.json`, `16_*.json`
 - **Research Findings:** `docs/Planning_roadmap_signature/04_ai_integration_pattern.md`
 - **Trust Engine Roadmap:** `docs/Planning_roadmap_signature/02_trust_engine_roadmap.md`
-- **Session Summary:** See uploaded documents for full context
 
 ---
 
-## 📝 Notes
+## 📝 Current Status
 
-- **Execution History:** Contracts 01-10 already complete (Phases 0-4)
-- **Current Phase:** A (UI Baseline Fixes) - Contract 11
-- **Next Phase:** B (Trust Engine - auto-test generation, security scanning, confidence scores)
+- **Active Phase:** Phase 19 (Trust Spine + LangGraph Foundation) + Phase 20 (Complete)
+- **Completed This Session:**
+  - ✅ Phase 19/20 contracts created and validated
+  - ✅ Trust Spine scripts + telemetry shipped (SBOM, provenance, OTel, JSONL)
+  - ✅ Governance docs updated (AGENTS.md, CDI_INFRASTRUCTURE.md)
+  - ✅ RFC 9457 API documentation and helpers live
+  - ✅ Gate G2 evidence bundle refreshed
+
+- **Next Milestone:** Phase 19 Gate G3 (LangGraph pilot)
+  - ⏳ LangGraph adapter rollout
+  - ⏳ Deterministic replay harness
+  - ⏳ Performance + parity validation
+
+- **Execution History:** Contracts 01-18 complete (Phases 0-4, 4B1-4B4, A, B, E)
 - **CDI Pattern:** Discovery → Implementation → Evidence → Gates
 - **Philosophy:** Quality over speed. Ship perfect or never.
 
 ---
 
-**Last Updated:** 2025-10-08  
-**Status:** Ready for Phase A execution
+**Last Updated:** 2025-10-13 (Phase 19 T0 refresh)
+**Status:** Phase 19 Trust Spine live; preparing for LangGraph pilot (see `.automation/phase19_20_implementation_summary.md`)

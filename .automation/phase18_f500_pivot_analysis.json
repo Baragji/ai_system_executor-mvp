@@ -1,0 +1,119 @@
+{
+  "title": "Strategic Pivot – Fortune 500 Autonomous Coding System",
+  "date": "2025-10-12",
+  "principle": "Quality over speed. Ship perfect or never.",
+  "framework": "Contract-CDI",
+  "sources_reviewed": [
+    "docs/Goal_&_Vision_inspirational_only/Agent_framework/08_master_coordinator_agent_MCA.md",
+    "docs/Goal_&_Vision_inspirational_only/Atomic_Phased_Systemgap_plan.md",
+    "docs/Goal_&_Vision_inspirational_only/autonomous_ai_coding_system_taxonomy_ssot_1.1.md",
+    "docs/Goal_&_Vision_inspirational_only/autonomous_ai_coding_system_taxonomy_ssot_1.2.md",
+    "docs/Goal_&_Vision_inspirational_only/autonomous_coding_taxonomy-2.md",
+    "docs/Goal_&_Vision_inspirational_only/spec_for_autonomy.md",
+    "contracts/Roadmap_execution/16_phaseA_accessibility_pause_contract.json",
+    ".zencoder/rules/repo.md"
+  ],
+  "key_conflicts": [
+    {
+      "topic": "Language/Stack",
+      "roadmap_position": "Python/LangGraph and Python linters in SSOT v1.1 and Atomic_Phased_Systemgap_plan",
+      "cdi_constraint": "ai-stack.json enforces TypeScript/Node, no Python",
+      "resolution": "Implement multi-agent orchestration and quality gates in Node; map Python-centric tools to Node equivalents"
+    },
+    {
+      "topic": "Frontend Framework",
+      "roadmap_position": "React/Next.js UI in spec_for_autonomy and taxonomy-2",
+      "cdi_constraint": "Frontend must be vanilla JS/CSS under /public",
+      "resolution": "Deliver chat and progress UI in vanilla JS; defer React until a stack change proposal is approved"
+    },
+    {
+      "topic": "Event Bus & MQ",
+      "roadmap_position": "Kafka/RabbitMQ in advanced phases",
+      "cdi_constraint": "No new dependencies without explicit justification",
+      "resolution": "Introduce queue abstraction behind existing StepQueue; allow BullMQ backend when justified; keep default inline"
+    },
+    {
+      "topic": "Compliance & Evidence",
+      "roadmap_position": "CycloneDX, SLSA, SIEM, ASVS, EU AI Act mappings",
+      "cdi_constraint": "Contracts/evidence required; current MVP partial",
+      "resolution": "Add minimal, testable evidence tracks (SBOM exists), plan SLSA provenance and SIEM logs as incremental wins"
+    }
+  ],
+  "gap_summary": {
+    "f500_requirements": [
+      "Separation of duties (multi-agent)",
+      "Auditability (SIEM, action logs, approvals)",
+      "Supply-chain evidence (SBOM CycloneDX 1.6, SLSA provenance)",
+      "Security baselines (ASVS, secrets scan, policy-as-code)",
+      "Operational SLOs/SLAs and rollback",
+      "User interaction loop (chat/pause/clarify)"
+    ],
+    "mvp_has": [
+      "Clarify → Plan → Generate → Test → Repair",
+      "Vitest with coverage thresholds",
+      "Telemetry and plan/repair traces",
+      "SBOM generation (spdx)"
+    ],
+    "missing": [
+      "Formal multi-agent orchestration layer",
+      "Chat interaction during execution",
+      "SLSA provenance and SIEM integration",
+      "Policy-as-code scanning and secrets gates",
+      "Compliance mappings and Go/No-Go gates"
+    ]
+  },
+  "options_assessed": [
+    {"id": 1, "name": "Continue current contracts", "viability": "Low to Medium", "notes": "Steady but too slow for F500 bar"},
+    {"id": 2, "name": "Adopt research roadmaps as-is", "viability": "Low", "notes": "Stack conflicts (Python/React) with CDI"},
+    {"id": 3, "name": "Reactive fix-as-you-go", "viability": "Low", "notes": "Unpredictable, risks drift"},
+    {"id": 4, "name": "Evidence-based hybrid", "viability": "High", "notes": "Reconcile roadmaps with CDI; incremental, testable wins"},
+    {"id": 5, "name": "Alternative proposal", "viability": "N/A", "notes": "Superseded by Option 4"}
+  ],
+  "recommendation": {
+    "option": 4,
+    "summary": "Adopt an evidence-based hybrid: implement multi-agent seams inside current Node CDI, add chat interaction, strengthen trust & compliance spine (SBOM→SLSA, SIEM), and keep UI vanilla.
+    ",
+    "why": [
+      "Aligns with ai-stack.json and protects current contracts",
+      "Delivers measurable risk reduction and auditability",
+      "Prepares for scale without big-bang rewrites"
+    ]
+  },
+  "phased_plan": [
+    {
+      "phase": "Trust Spine vNext",
+      "wins": [
+        "Convert SBOM to CycloneDX 1.6 or produce both",
+        "Add RFC 9457 error envelopes in API responses",
+        "Introduce action logs → .telemetry and SIEM-friendly JSONL"
+      ]
+    },
+    {
+      "phase": "Multi-Agent Seams",
+      "wins": [
+        "Model RA/AA/SA/IA/QA/DBA/DA as StepQueue step types",
+        "Add plan payloads and evidence outputs per step"
+      ]
+    },
+    {
+      "phase": "Chat Interaction",
+      "wins": [
+        "Vanilla JS chat under /public with SSE",
+        "POST /api/chat events wired to clarify/pause/resume"
+      ]
+    },
+    {
+      "phase": "Compliance & Policy",
+      "wins": [
+        "Semgrep/gitleaks optional gates",
+        "Compliance mapping scaffolds (ASVS, AI Act)"
+      ]
+    }
+  ],
+  "risks": [
+    {"risk": "Scope creep from research docs", "mitigation": "Gate with CDI contracts and per-win evidence"},
+    {"risk": "UI pressure to adopt React", "mitigation": "Vanilla JS chat now; RFC to change stack later"},
+    {"risk": "Operational overhead", "mitigation": "Keep defaults inline; make MQ/queue optional backend"}
+  ]
+}
+

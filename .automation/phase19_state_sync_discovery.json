@@ -1,0 +1,44 @@
+{
+  "phase": "19",
+  "title": "Phase 19 – Contract Sync & Evidence Regeneration (Phase 2B)",
+  "date": "2025-10-14",
+  "integration_points": [
+    {
+      "file": "scripts/sync-contract-status.js",
+      "purpose": "Regenerate ephemeral evidence and align contract task statuses",
+      "notes": "ESM module exporting syncContract + CLI entrypoint; supports optional --root override"
+    },
+    {
+      "file": "package.json",
+      "purpose": "Add npm run state:sync command alongside existing state utilities",
+      "snippet": "\"state:sync\": \"node scripts/sync-contract-status.js 19\""
+    },
+    {
+      "file": "scripts/snapshot-state.js",
+      "purpose": "Expose sync_status metadata derived from contract mtime and pending tasks",
+      "snippet": "snapshot.sync_status = { last_sync: contractStat?.mtime.toISOString() ?? null, contract_stale: pendingTasks.length > 0, stale_tasks: pendingTasks.map(t => t.id) };"
+    },
+    {
+      "file": "tests/state/sync.test.ts",
+      "purpose": "Vitest coverage for sync logic (happy path + idempotency)",
+      "notes": "Creates tmp workspace, spies on execSync, validates statuses"
+    }
+  ],
+  "dependencies": [],
+  "feature_flags": [],
+  "impacts": {
+    "apis": "none",
+    "runtime": "npm script + snapshot metadata",
+    "ci": "state:sync leverages existing sbom/provenance scripts",
+    "contracts": "Updates 19_phase19_autonomous_transition_contract.json"
+  },
+  "compliance_check": {
+    "language": "JavaScript/TypeScript only",
+    "backend": "Node.js 20",
+    "testing": "Vitest",
+    "lint": "ESLint (no new warnings)",
+    "no_new_dependencies": true
+  },
+  "justification": "Resolves contract drift by regenerating evidence and recording sync metadata for the autonomous workflow",
+  "rollback": "Remove sync script + npm command, delete tests, drop snapshot sync_status field"
+}

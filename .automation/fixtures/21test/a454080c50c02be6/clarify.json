@@ -1,0 +1,20 @@
+{
+  "originalPrompt": "Create a minimal hello world app where i can change colors of the text. frontend + backend. ",
+  "effectivePrompt": "Framework: Express, Port: 2552, Styling: Tailwind CSS\n\nOriginal request: Create a minimal hello world app where i can change colors of the text. frontend + backend. ",
+  "clarifications": {
+    "answers": [
+      {
+        "questionId": "framework",
+        "value": "Express"
+      },
+      {
+        "questionId": "port",
+        "value": 2552
+      },
+      {
+        "questionId": "styling",
+        "value": "Tailwind CSS"
+      }
+    ]
+  }
+}

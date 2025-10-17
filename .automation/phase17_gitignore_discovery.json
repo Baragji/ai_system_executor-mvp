@@ -1,0 +1,30 @@
+{
+  "title": "Phase 17 – Ignore Volatile Automation Artifacts",
+  "date": "2025-10-12",
+  "summary": "Reduce repo noise by ignoring ephemeral .automation outputs while keeping curated evidence files tracked.",
+  "integration_points": [
+    {
+      "file": ".gitignore",
+      "snippet": ".automation/checkpoints/\n.automation/fixtures/\n.automation/manifests/\n.automation/execution_trace.jsonl\n.automation/evaluation_results.json\n.automation/playwright-results.json\n.telemetry/",
+      "reason": "These paths are generated per test run and code generation; they are not stable artifacts and need not be versioned."
+    }
+  ],
+  "impacts": {
+    "positive": [
+      "Cleaner diffs and commits",
+      "Lower risk of committing large, noisy artifacts",
+      "No effect on runtime behavior"
+    ],
+    "neutral": [
+      "Does not ignore curated discovery/evidence notes under .automation/phase* files"
+    ]
+  },
+  "compliance": {
+    "language": "TypeScript/Node",
+    "dependencies": "None",
+    "frontend": "No changes",
+    "contracts": "No changes",
+    "protected_files": "Not touching protected files per CODEOWNERS"
+  }
+}
+

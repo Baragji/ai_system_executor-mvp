@@ -1,0 +1,14 @@
+{
+  "projectPath": "/Users/Yousef_1/Downloads/ai_system_executor-mvp/output/passing",
+  "projectSlug": "passing",
+  "originalPrompt": "test",
+  "generatedFiles": [],
+  "initialTestResult": {
+    "status": "fail",
+    "passCount": 0,
+    "failCount": 1,
+    "durationMs": 0,
+    "logsPath": "",
+    "timestamp": "2025-10-09T22:18:13.163Z"
+  }
+}

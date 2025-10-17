@@ -1,0 +1,51 @@
+{
+  "project_name": "express-tailwind-starter",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"express-tailwind-starter\",\n  \"version\": \"0.1.0\",\n  \"private\": true,\n  \"scripts\": {\n    \"dev\": \"ts-node-dev --respawn --transpile-only src/server.ts\",\n    \"dev:css\": \"tailwindcss -c tailwind.config.js -i ./src/public/styles.css -o ./src/public/tailwind.css --watch\",\n    \"dev:all\": \"concurrently -k -n server,css -c blue,magenta \\\"npm:dev\\\" \\\"npm:dev:css\\\"\",\n    \"build\": \"tsc\",\n    \"postbuild\": \"copyfiles -u 1 src/public/** dist/public\",\n    \"build:css\": \"tailwindcss -c tailwind.config.js -i ./src/public/styles.css -o ./dist/public/tailwind.css\",\n    \"build:all\": \"npm run build && npm run build:css\",\n    \"start\": \"node dist/server.js\",\n    \"test\": \"jest\"\n  },\n  \"dependencies\": {\n    \"express\": \"^4.19.2\"\n  },\n  \"devDependencies\": {\n    \"@types/express\": \"^4.17.21\",\n    \"@types/jest\": \"^29.5.14\",\n    \"@types/node\": \"^20.12.12\",\n    \"@types/supertest\": \"^2.0.16\",\n    \"autoprefixer\": \"^10.4.19\",\n    \"concurrently\": \"^9.0.1\",\n    \"copyfiles\": \"^2.4.1\",\n    \"jest\": \"^29.7.0\",\n    \"postcss\": \"^8.4.41\",\n    \"supertest\": \"^7.0.0\",\n    \"tailwindcss\": \"^3.4.10\",\n    \"ts-jest\": \"^29.2.5\",\n    \"ts-node-dev\": \"^2.0.0\",\n    \"typescript\": \"^5.6.2\"\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2020\",\n    \"module\": \"CommonJS\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"rootDir\": \"src\",\n    \"outDir\": \"dist\"\n  },\n  \"include\": [\"src/**/*.ts\", \"tests/**/*.ts\"]\n}\n"
+    },
+    {
+      "path": "jest.config.cjs",
+      "contents": "module.exports = {\n  preset: 'ts-jest',\n  testEnvironment: 'node',\n  testMatch: ['**/tests/**/*.test.ts'],\n  moduleFileExtensions: ['ts', 'js', 'json'],\n  verbose: true\n};\n"
+    },
+    {
+      "path": "tailwind.config.js",
+      "contents": "/** @type {import('tailwindcss').Config} */\nmodule.exports = {\n  content: ['./src/public/**/*.{html,js,ts}'],\n  theme: {\n    extend: {}\n  },\n  plugins: []\n};\n"
+    },
+    {
+      "path": "postcss.config.js",
+      "contents": "module.exports = {\n  plugins: {\n    tailwindcss: {},\n    autoprefixer: {}\n  }\n};\n"
+    },
+    {
+      "path": "src/server.ts",
+      "contents": "import express from 'express';\nimport path from 'path';\nimport fs from 'fs';\n\nexport const app = express();\n\nfunction resolveStaticDir(): string {\n  const distPublic = path.join(__dirname, 'public');\n  const srcPublic = path.join(process.cwd(), 'src', 'public');\n  return fs.existsSync(distPublic) ? distPublic : srcPublic;\n}\n\nconst staticDir = resolveStaticDir();\napp.use(express.static(staticDir));\n\nconst PORT = Number(process.env.PORT) || 4445;\n\nexport function start(port: number = PORT) {\n  const server = app.listen(port, () => {\n    console.log(`Server listening on http://localhost:${port}`);\n  });\n  return server;\n}\n\nif (require.main === module) {\n  start();\n}\n"
+    },
+    {
+      "path": "src/public/index.html",
+      "contents": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <title>Hello World</title>\n    <link rel=\"stylesheet\" href=\"./tailwind.css\" />\n  </head>\n  <body class=\"min-h-screen bg-gray-50 text-gray-900\">\n    <div class=\"max-w-xl mx-auto p-6\">\n      <h1 class=\"text-3xl font-bold mb-4\">Hello World</h1>\n      <p class=\"text-gray-700\">Express server with Tailwind CSS served from /public on port 4445.</p>\n    </div>\n  </body>\n</html>\n"
+    },
+    {
+      "path": "src/public/styles.css",
+      "contents": "@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n/* Add any custom styles below */\n"
+    },
+    {
+      "path": "tests/server.test.ts",
+      "contents": "import request from 'supertest';\nimport { app } from '../src/server';\n\ndescribe('Express server', () => {\n  it('serves index.html at root', async () => {\n    const res = await request(app).get('/');\n    expect(res.status).toBe(200);\n    expect(res.headers['content-type']).toMatch(/html/);\n    expect(res.text).toContain('Hello World');\n  });\n});\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# Express + Tailwind Starter (Port 4445)\n\nThis project provides a minimal Express server serving static files from `src/public` with Tailwind CSS.\n\n- Framework: Express\n- Port: 4445 (default)\n- Styling: Tailwind CSS (CLI)\n\n## Scripts\n- `npm run dev` — Run the Express server with ts-node-dev\n- `npm run dev:css` — Watch and build Tailwind CSS into `src/public/tailwind.css`\n- `npm run dev:all` — Run both the server and Tailwind watcher concurrently\n- `npm run build` — Compile TypeScript to `dist`\n- `npm run build:css` — Build Tailwind CSS to `dist/public/tailwind.css`\n- `npm run build:all` — Build TS and CSS for production\n- `npm start` — Start compiled server from `dist`\n- `npm test` — Run automated tests\n\n## Getting Started\n1. Install dependencies:\n   - `npm install`\n2. Start development server and Tailwind watcher:\n   - `npm run dev:all`\n3. Open http://localhost:4445\n\n## Production Build\n1. Build everything:\n   - `npm run build:all`\n2. Start the server:\n   - `npm start`\n\n## Notes\n- Static files are served from `src/public` during development and from `dist/public` after build.\n- The server listens on port `4445` by default. You can override with `PORT` env var if needed.\n"
+    }
+  ],
+  "notes": [
+    "Run npm run dev:all to start the server on http://localhost:4445 and watch Tailwind CSS.",
+    "Tests can be run with npm test.",
+    "After building with npm run build:all, run npm start to serve from dist."
+  ],
+  "hasTests": true
+}

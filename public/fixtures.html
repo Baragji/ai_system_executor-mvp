@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Executor Fixtures</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .fixtures-panel { max-width: 900px; margin: 24px auto; padding: 16px; border: 1px solid #222; border-radius: 8px; }
+    .row { display: flex; gap: 8px; margin-bottom: 8px; }
+    input[type=text] { flex: 1; padding: 6px 8px; }
+    button { padding: 6px 10px; }
+    pre { background: #0b0b0b; color: #cfcfcf; padding: 8px; border-radius: 6px; overflow: auto; }
+  </style>
+  <script defer src="/fixtures.js"></script>
+  <script>
+    // no-op if script fails to load
+  </script>
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <div class="fixtures-panel" id="fixtures-root">
+    <h2>Fixtures & Replay</h2>
+    <div class="row">
+      <input id="project" type="text" placeholder="Project slug (e.g., 03harden)">
+      <button id="load">Load Fixtures</button>
+    </div>
+    <div id="sessions"></div>
+    <hr>
+    <h3>Subtask Replay</h3>
+    <div class="row">
+      <input id="sessionId" type="text" placeholder="Session ID">
+      <input id="subtaskId" type="text" placeholder="Subtask ID">
+      <button id="replaySubtask">Replay Subtask</button>
+    </div>
+    <pre id="output" aria-live="polite"></pre>
+  </div>
+</body>
+</html>
+

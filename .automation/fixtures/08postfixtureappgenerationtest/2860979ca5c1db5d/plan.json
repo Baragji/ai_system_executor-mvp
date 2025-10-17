@@ -1,0 +1,93 @@
+{
+  "originalPrompt": "Framework: Express, Port: 7995, Styling: Tailwind CSS",
+  "subtasks": [
+    {
+      "id": "initialize-project-and-config",
+      "title": "Initialize project and base Express config",
+      "description": "Set up a Node.js project and basic Express server. Steps: npm init -y; install express and nodemon; add scripts { start: \"node server.js\", dev: \"nodemon server.js\" }; create server.js to listen on port 7995; enable express.json(); serve static files from ./public; verify GET /health returns 200.",
+      "status": "pending",
+      "estimatedComplexity": "low",
+      "successCriteria": "Running npm run dev starts Express on http://localhost:7995 and /health returns 200; public/ is served."
+    },
+    {
+      "id": "implement-storage-and-model",
+      "title": "Implement flashcard model and JSON storage",
+      "description": "Create a simple Flashcard model { id, front, back }. Implement ./lib/storage.js using fs to read and write ./data/cards.json atomically. Provide functions: getAllCards(), addCard({front,back}), updateCard(id,{front,back}), deleteCard(id). Ensure validation for non-empty strings.",
+      "status": "pending",
+      "dependencies": [
+        "initialize-project-and-config"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "data/cards.json is created on first write; storage functions perform CRUD and reject invalid payloads with clear errors."
+    },
+    {
+      "id": "build-express-crud-api",
+      "title": "Build Express CRUD API endpoints",
+      "description": "Expose REST endpoints: GET /api/cards, POST /api/cards, PUT /api/cards/:id, DELETE /api/cards/:id. Use storage functions, return appropriate HTTP codes (201 on create, 200 on update/delete, 400 on validation errors, 404 when id not found). Add basic error handler middleware.",
+      "status": "pending",
+      "dependencies": [
+        "implement-storage-and-model"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "All endpoints respond correctly with JSON; CRUD operations persist to cards.json; invalid data and missing ids are handled with proper status codes."
+    },
+    {
+      "id": "add-sample-seed-on-boot",
+      "title": "Add sample seed data on server boot",
+      "description": "On server start, check if cards.json is missing or empty. If empty, insert 2–3 sample flashcards (e.g., basic Q/A). Implement as a small async init routine called before app.listen. Ensure seeding runs only once and does not duplicate.",
+      "status": "pending",
+      "dependencies": [
+        "build-express-crud-api"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "First run creates sample cards; subsequent runs do not duplicate; GET /api/cards returns samples when file was empty."
+    },
+    {
+      "id": "setup-frontend-and-tailwind",
+      "title": "Set up frontend scaffold and Tailwind CSS",
+      "description": "Create public/index.html and public/app.js. Include Tailwind via Play CDN in index.html. Define a minimal layout container. Constrain UI to only red, black, and white using Tailwind utility classes (text-black, bg-white, border-black, text-red-600, bg-red-600).",
+      "status": "pending",
+      "dependencies": [
+        "initialize-project-and-config"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "Opening http://localhost:7995 serves index.html with Tailwind styles applied; only red, black, and white colors are used."
+    },
+    {
+      "id": "implement-minimal-ui",
+      "title": "Implement minimal flashcard UI",
+      "description": "Build a clean interface: header, list of cards, and an add/edit form. Show each card with front/back text and Edit/Delete buttons. Use a simple modal or inline form for editing. Apply minimal Tailwind styles with red accents and black/white surfaces.",
+      "status": "pending",
+      "dependencies": [
+        "setup-frontend-and-tailwind"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "UI displays existing cards, provides inputs for front/back, and shows clearly labeled Edit and Delete controls with minimal styling."
+    },
+    {
+      "id": "connect-frontend-to-api",
+      "title": "Wire frontend to Express API for CRUD",
+      "description": "In public/app.js, implement fetch calls to the API: load cards on page load, submit new cards via POST, update via PUT, and delete via DELETE. Render updates without full reload, handle errors gracefully, and disable buttons during requests.",
+      "status": "pending",
+      "dependencies": [
+        "build-express-crud-api",
+        "implement-minimal-ui"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Users can add, edit, and delete cards from the UI and changes persist; network failures show simple error messages; no page reload is required."
+    },
+    {
+      "id": "test-and-document-run",
+      "title": "Test flows and document run instructions",
+      "description": "Manually test end-to-end on port 7995: load, create, edit, delete, and refresh to confirm persistence. Verify only red, black, and white are used. Add a brief README with setup, scripts, and curl examples for API usage.",
+      "status": "pending",
+      "dependencies": [
+        "connect-frontend-to-api"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "All CRUD flows work reliably; app runs via npm run dev on http://localhost:7995; README includes clear steps and example API calls."
+    }
+  ],
+  "totalSubtasks": 8,
+  "decompositionStrategy": "Backend-first Express API with JSON-file storage, serving a minimal static frontend using Tailwind (Play CDN). Incremental layering: storage -> API -> frontend -> wiring -> test."
+}

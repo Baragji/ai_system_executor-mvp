@@ -78,6 +78,8 @@ import { estimateCompletion } from "../../src/planning/estimateCompletion.js";
 import { generateJSON } from "../../src/llm/index.js";
 import { runInSandbox } from "../../src/runner/runInSandbox.js";
 import { multiTurnRepair } from "../../src/repair/multiTurnRepair.js";
+import type { ExecutorSuccessResponse } from "../../src/orchestrator/executionTypes.js";
+import { postExecuteAndWait } from "../helpers/execute.js";
 
 const decomposeTaskMock = vi.mocked(decomposeTask);
 const validateDecompositionMock = vi.mocked(validateDecomposition);
@@ -154,15 +156,18 @@ function createTimeEstimate(): TimeEstimate {
 
 describe("POST /api/execute with planning", () => {
   it("keeps existing flow for simple prompts", async () => {
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build flask hello world" })
-      .expect(200);
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build flask hello world"
+    });
+
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
+    const payload = result.payload;
 
     expect(decomposeTaskMock).not.toHaveBeenCalled();
-    expect(res.body.taskPlanUsed).toBe(false);
-    expect(res.body.taskPlan).toBeNull();
-    expect(res.body.planExecutionResult).toBeNull();
+    expect(payload.taskPlanUsed).toBe(false);
+    expect(payload.taskPlan).toBeNull();
+    expect(payload.planExecutionResult).toBeNull();
   });
 
   it("executes plan for complex prompt", async () => {
@@ -183,21 +188,24 @@ describe("POST /api/execute with planning", () => {
     executeTaskPlanMock.mockResolvedValueOnce(createPlanExecutionResult("completed"));
     estimateCompletionMock.mockReturnValueOnce(createTimeEstimate());
 
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build todo app with auth and database" })
-      .expect(200);
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build todo app with auth and database"
+    });
+
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
+    const payload = result.payload;
 
     expect(decomposeTaskMock).toHaveBeenCalled();
     expect(validateDecompositionMock).toHaveBeenCalled();
     expect(executeTaskPlanMock).toHaveBeenCalled();
     expect(estimateCompletionMock).toHaveBeenCalled();
-    expect(res.body.taskPlanUsed).toBe(true);
-    expect(res.body.taskPlan.subtasks).toHaveLength(2);
-    expect(res.body.planExecutionResult.status).toBe("completed");
-    expect(res.body.timeEstimate).toBeTruthy();
+    expect(payload.taskPlanUsed).toBe(true);
+    expect(payload.taskPlan?.subtasks).toHaveLength(2);
+    expect(payload.planExecutionResult?.status).toBe("completed");
+    expect(payload.timeEstimate).toBeTruthy();
 
-    const slug = res.body.project;
+    const slug = payload.project;
     const metaPath = path.join(OUTPUT_DIR, slug, "_executor_meta.json");
     const metaRaw = await fs.readFile(metaPath, "utf-8");
     const meta = JSON.parse(metaRaw);
@@ -219,12 +227,15 @@ describe("POST /api/execute with planning", () => {
       requiresHumanReview: false
     });
 
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build analytics dashboard with charts and filters" })
-      .expect(200);
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build analytics dashboard with charts and filters"
+    });
 
-    expect(res.body.taskPlanUsed).toBe(false);
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
+    const payload = result.payload;
+
+    expect(payload.taskPlanUsed).toBe(false);
     expect(generateJSONMock).toHaveBeenCalled();
     expect(runInSandboxMock).toHaveBeenCalled();
     expect(multiTurnRepairMock).toHaveBeenCalled();
@@ -248,12 +259,15 @@ describe("POST /api/execute with planning", () => {
     executeTaskPlanMock.mockResolvedValueOnce(createPlanExecutionResult("partial"));
     estimateCompletionMock.mockReturnValueOnce(createTimeEstimate());
 
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build ecommerce platform with auth and payments" })
-      .expect(200);
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build ecommerce platform with auth and payments"
+    });
 
-    expect(res.body.planExecutionResult.status).toBe("partial");
-    expect(res.body.taskPlanUsed).toBe(true);
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
+    const payload = result.payload;
+
+    expect(payload.planExecutionResult?.status).toBe("partial");
+    expect(payload.taskPlanUsed).toBe(true);
   });
 });

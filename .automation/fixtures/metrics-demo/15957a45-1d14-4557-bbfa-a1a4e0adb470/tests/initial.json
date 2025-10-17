@@ -1,0 +1,8 @@
+{
+  "status": "pass",
+  "passCount": 2,
+  "failCount": 0,
+  "durationMs": 500,
+  "logsPath": "logs/pass.log",
+  "timestamp": "2025-10-12T05:04:57.983Z"
+}

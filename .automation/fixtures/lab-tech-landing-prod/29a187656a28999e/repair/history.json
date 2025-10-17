@@ -1,0 +1,150 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "fail",
+      "startedAt": "2025-10-10T10:45:10.072Z",
+      "finishedAt": "2025-10-10T10:45:58.381Z",
+      "changedFiles": [],
+      "summary": "Attempt 1 failed without file changes. Remaining failure category: assertion",
+      "strategy": "assertion_focus",
+      "testResult": {
+        "status": "fail",
+        "passCount": 5,
+        "failCount": 1,
+        "durationMs": 1968,
+        "logsPath": "logs/lab-tech-landing-prod_last_test_run_2b986836-d0c8-42c1-83d6-4df2304fda5d.log"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Health endpoint › GET /health returns 200 and {status:\"ok\"}",
+            "message": "expected \"Content-Type\" matching /json/, got \"text/plain; charset=utf-8\"\n7 |       .get('/health')\n8 |       .expect(200)\n>  9 |       .expect('Content-Type', /json/);\n|        ^\n10 |     expect(res.body).toEqual({ status: 'ok' });\n11 |   });\n12 | });\n----\nPASS tests/index.test.js\nPASS tests/server.test.js\nPASS tests/hero.test.js\nTest Suites: 1 failed, 3 passed, 4 total\nTests:       1 failed, 5 passed, 6 total\nSnapshots:   0 total\nTime:        1.157 s\nRan all test suites.",
+            "stackSnippet": [
+              "at Object.expect (tests/health.test.js:9:8)",
+              "at Test._assertHeader (node_modules/supertest/lib/test.js:232:16)",
+              "at node_modules/supertest/lib/test.js:308:13",
+              "at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)",
+              "at Test.assert (node_modules/supertest/lib/test.js:164:23)"
+            ],
+            "type": "assertion"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "assertion"
+      },
+      "durationMs": 48309,
+      "cumulativeTime": 48309
+    },
+    {
+      "number": 2,
+      "status": "fail",
+      "startedAt": "2025-10-10T10:45:58.382Z",
+      "finishedAt": "2025-10-10T10:46:38.619Z",
+      "changedFiles": [],
+      "summary": "Attempt 2 failed without file changes. Remaining failure category: assertion",
+      "strategy": "assertion_focus",
+      "testResult": {
+        "status": "fail",
+        "passCount": 5,
+        "failCount": 1,
+        "durationMs": 2132,
+        "logsPath": "logs/lab-tech-landing-prod_last_test_run_8adbc2bd-44e0-4ff3-bee9-de00a04f0248.log"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Health endpoint › GET /health returns 200 and {status:\"ok\"}",
+            "message": "expected \"Content-Type\" matching /json/, got \"text/plain; charset=utf-8\"\n7 |       .get('/health')\n8 |       .expect(200)\n>  9 |       .expect('Content-Type', /json/);\n|        ^\n10 |     expect(res.body).toEqual({ status: 'ok' });\n11 |   });\n12 | });\n----\nPASS tests/index.test.js\nPASS tests/hero.test.js\nPASS tests/server.test.js\nTest Suites: 1 failed, 3 passed, 4 total\nTests:       1 failed, 5 passed, 6 total\nSnapshots:   0 total\nTime:        1.158 s\nRan all test suites.",
+            "stackSnippet": [
+              "at Object.expect (tests/health.test.js:9:8)",
+              "at Test._assertHeader (node_modules/supertest/lib/test.js:232:16)",
+              "at node_modules/supertest/lib/test.js:308:13",
+              "at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)",
+              "at Test.assert (node_modules/supertest/lib/test.js:164:23)"
+            ],
+            "type": "assertion"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "assertion"
+      },
+      "durationMs": 40237,
+      "cumulativeTime": 88546
+    },
+    {
+      "number": 3,
+      "status": "fail",
+      "startedAt": "2025-10-10T10:46:38.619Z",
+      "finishedAt": "2025-10-10T10:47:41.533Z",
+      "changedFiles": [],
+      "summary": "Attempt 3 failed without file changes. Remaining failure category: assertion",
+      "strategy": "multiple_prioritize",
+      "testResult": {
+        "status": "fail",
+        "passCount": 5,
+        "failCount": 1,
+        "durationMs": 3516,
+        "logsPath": "logs/lab-tech-landing-prod_last_test_run_4daf1131-85a4-4d44-be5e-edd9581fe33a.log"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Health endpoint › GET /health returns 200 and {status:\"ok\"}",
+            "message": "expected \"Content-Type\" matching /json/, got \"text/plain; charset=utf-8\"\n7 |       .get('/health')\n8 |       .expect(200)\n>  9 |       .expect('Content-Type', /json/);\n|        ^\n10 |     expect(res.body).toEqual({ status: 'ok' });\n11 |   });\n12 | });\n----\nPASS tests/index.test.js\nPASS tests/hero.test.js\nPASS tests/server.test.js\nTest Suites: 1 failed, 3 passed, 4 total\nTests:       1 failed, 5 passed, 6 total\nSnapshots:   0 total\nTime:        2.94 s\nRan all test suites.",
+            "stackSnippet": [
+              "at Object.expect (tests/health.test.js:9:8)",
+              "at Test._assertHeader (node_modules/supertest/lib/test.js:232:16)",
+              "at node_modules/supertest/lib/test.js:308:13",
+              "at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)",
+              "at Test.assert (node_modules/supertest/lib/test.js:164:23)"
+            ],
+            "type": "assertion"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "assertion"
+      },
+      "durationMs": 62914,
+      "cumulativeTime": 151460
+    },
+    {
+      "number": 4,
+      "status": "fail",
+      "startedAt": "2025-10-10T10:47:41.533Z",
+      "finishedAt": "2025-10-10T10:48:35.757Z",
+      "changedFiles": [],
+      "summary": "Attempt 4 failed without file changes. Remaining failure category: assertion",
+      "strategy": "multiple_prioritize",
+      "testResult": {
+        "status": "fail",
+        "passCount": 5,
+        "failCount": 1,
+        "durationMs": 1315,
+        "logsPath": "logs/lab-tech-landing-prod_last_test_run_a98125ae-0d1d-4a67-a107-9cc99e171b50.log"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Health endpoint › GET /health returns 200 and {status:\"ok\"}",
+            "message": "expected \"Content-Type\" matching /json/, got \"text/plain; charset=utf-8\"\n7 |       .get('/health')\n8 |       .expect(200)\n>  9 |       .expect('Content-Type', /json/);\n|        ^\n10 |     expect(res.body).toEqual({ status: 'ok' });\n11 |   });\n12 | });\n----\nPASS tests/hero.test.js\nPASS tests/index.test.js\nTest Suites: 1 failed, 3 passed, 4 total\nTests:       1 failed, 5 passed, 6 total\nSnapshots:   0 total\nTime:        0.83 s, estimated 2 s\nRan all test suites.",
+            "stackSnippet": [
+              "at Object.expect (tests/health.test.js:9:8)",
+              "at Test._assertHeader (node_modules/supertest/lib/test.js:232:16)",
+              "at node_modules/supertest/lib/test.js:308:13",
+              "at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)",
+              "at Test.assert (node_modules/supertest/lib/test.js:164:23)"
+            ],
+            "type": "assertion"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "assertion"
+      },
+      "durationMs": 54224,
+      "cumulativeTime": 205684
+    }
+  ],
+  "finalStatus": "exhausted",
+  "totalAttempts": 4
+}

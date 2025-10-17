@@ -1,0 +1,51 @@
+
+> executor-mvp@0.1.0 contract:check
+> node scripts/validate-contract.js
+
+[1m═══════════════════════════════════════════[0m
+[1m  CONTRACT SCHEMA VALIDATION[0m
+[1m═══════════════════════════════════════════
+[0m
+[34m📖 Loading schema: contracts/schemas/roadmap_phase.schema.json[0m
+[32m✅ Schema loaded[0m
+[34m
+📚 Found 8 contract(s) to validate[0m
+[34m(Skipping legacy-numbered contracts)
+[0m
+[34m
+📋 Validating: contracts/Roadmap_execution/11_phaseA_contract.json[0m
+[32m✅ Valid - 11_phaseA_contract.json[0m
+[34m
+📋 Validating: contracts/Roadmap_execution/11_phaseA_contract_enhanced.json[0m
+[32m✅ Valid - 11_phaseA_contract_enhanced.json[0m
+[34m
+📋 Validating: contracts/Roadmap_execution/12B_trust_engine_contract.json[0m
+[32m✅ Valid - 12B_trust_engine_contract.json[0m
+[34m
+📋 Validating: contracts/Roadmap_execution/13_runner_process_group_timeout_contract.json[0m
+[32m✅ Valid - 13_runner_process_group_timeout_contract.json[0m
+[34m
+📋 Validating: contracts/Roadmap_execution/14_phase5_orchestration_contract.json[0m
+[32m✅ Valid - 14_phase5_orchestration_contract.json[0m
+[34m
+📋 Validating: contracts/Roadmap_execution/14b_PA-FIX2_dependency_preflight.json[0m
+[32m✅ Valid - 14b_PA-FIX2_dependency_preflight.json[0m
+[34m
+📋 Validating: contracts/Roadmap_execution/15_Phase_E_Hardening.json[0m
+[32m✅ Valid - 15_Phase_E_Hardening.json[0m
+[34m
+📋 Validating: contracts/Roadmap_execution/16_phaseA_accessibility_pause_contract.json[0m
+[32m✅ Valid - 16_phaseA_accessibility_pause_contract.json[0m
+[34m
+📋 Analyzing status metadata (Phase 19 pilot): contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json[0m
+[32m  ✅ Status metadata check passed (no issues detected)[0m
+[1m
+═══════════════════════════════════════════[0m
+[1m  VALIDATION SUMMARY[0m
+[1m═══════════════════════════════════════════[0m
+[0mTotal:   8[0m
+[32mValid:   8[0m
+[0mInvalid: 0[0m
+[32m
+✅ All CDI contracts are valid!
+[0m

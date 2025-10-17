@@ -1,0 +1,4 @@
+{"timestamp":"2025-10-13T22:00:00.000Z","task_id":"test-task-1","action":"task_started","status":"in_progress"}
+{"timestamp":"2025-10-13T22:00:01.000Z","task_id":"test-task-1","action":"command_executed","status":"success","cmd":"npm run lint","exit_code":0}
+{"timestamp":"2025-10-13T22:00:02.000Z","task_id":"test-task-1","action":"command_executed","status":"success","cmd":"npm run typecheck","exit_code":0}
+{"timestamp":"2025-10-13T22:00:05.000Z","task_id":"test-task-1","action":"task_completed","status":"complete","progress_pct":100}

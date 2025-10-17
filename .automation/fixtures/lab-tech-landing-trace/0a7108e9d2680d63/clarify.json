@@ -1,0 +1,6 @@
+{
+  "originalPrompt": "Create a minimal single-page landing site for a lab technician. Requirements: single HTML page, responsive, hero with title/subtitle, brief services list, contact form (no backend; form just shows an alert). Use only red, black, and white. Include a simple README and one basic Jest test to check index.html contains the hero title.",
+  "effectivePrompt": "Create a minimal single-page landing site for a lab technician. Requirements: single HTML page, responsive, hero with title/subtitle, brief services list, contact form (no backend; form just shows an alert). Use only red, black, and white. Include a simple README and one basic Jest test to check index.html contains the hero title.",
+  "clarificationQuestions": [],
+  "clarificationsAsked": false
+}

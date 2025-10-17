@@ -1,0 +1,40 @@
+schema_version: "2025-08-29"
+name: "Executor_AI Session Plan - Universal Template"
+
+# This plan defines the high-level objectives and the small, atomic work items (slices)
+# for the Executor AI. It is the primary source of truth for WHAT the AI needs to do.
+
+objectives:
+  - id: "OBJ-1"
+    title: "Foundation & Setup"
+    description: "Bootstrap the project with core dependencies, configuration, and security baselines."
+    slices:
+      - { id: "S1-INIT", title: "Initialize project structure and install dependencies", type: "code" }
+      - { id: "S1-CONFIG", title: "Implement environment-based configuration loading", type: "code" }
+      - { id: "S1-SECURITY", title: "Add baseline security headers to web service", type: "security" }
+
+  - id: "OBJ-2"
+    title: "Implement Core API Features"
+    description: "Build out the primary endpoints for the main resource (e.g., 'items')."
+    slices:
+      - { id: "S2-CRUD", title: "Create CRUD endpoints for the 'items' resource", type: "code" }
+      - { id: "S2-VALIDATE", title: "Add input validation and error handling to API", type: "code" }
+      - { id: "S2-DOCS", title: "Generate OpenAPI 3.1 specification for the API", type: "docs" }
+
+  - id: "OBJ-3"
+    title: "Infrastructure & Deployment"
+    description: "Prepare the application for deployment."
+    slices:
+      - { id: "S3-DOCKER", title: "Create Dockerfile for production builds", type: "infra" }
+      - { id: "S3-CI", title: "Set up basic CI pipeline for linting and testing", type: "infra" }
+
+constraints:
+  - "Adhere strictly to the `platform_policy.md` for the target environment."
+  - "No secrets are to be present in code; configuration must be loaded from the environment."
+  - "All code changes must maintain a green build (lint, tests)."
+  - "All commits must follow the Conventional Commits standard."
+
+acceptance_criteria:
+  - "All endpoints defined in the plan are functional and return correct responses."
+  - "The application can be successfully built and containerized using the Dockerfile."
+  - "The CI pipeline passes for all commits to the main branch."

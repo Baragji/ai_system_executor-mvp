@@ -1,0 +1,24 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "pass",
+      "startedAt": "2025-10-11T19:55:47.012Z",
+      "finishedAt": "2025-10-11T19:55:47.288Z",
+      "changedFiles": [],
+      "summary": "Initial test run passed - no repair needed.",
+      "testResult": {
+        "status": "pass",
+        "passCount": 2,
+        "failCount": 0,
+        "durationMs": 276,
+        "logsPath": "logs/tiny-js-file_last_test_run_aeed3d82-7100-49c5-8fea-58c8ed30edca.log"
+      },
+      "durationMs": 276,
+      "cumulativeTime": 276
+    }
+  ],
+  "finalStatus": "pass",
+  "totalAttempts": 1,
+  "successAttemptNumber": 1
+}

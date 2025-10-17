@@ -1,0 +1,12 @@
+{
+  "status": "fail",
+  "passCount": 0,
+  "failCount": 0,
+  "durationMs": 179,
+  "logsPath": "logs/create-a-small-library-with-one-function-and-a-unit-test_last_test_run_2c7318b7-373a-45ed-b592-766f11b71836.log",
+  "timestamp": "2025-10-11T19:56:54.725Z",
+  "command": "npm test",
+  "exitCode": 1,
+  "startedAt": "2025-10-11T19:56:54.546Z",
+  "finishedAt": "2025-10-11T19:56:54.725Z"
+}

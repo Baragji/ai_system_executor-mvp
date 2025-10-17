@@ -42,6 +42,8 @@ import { runInSandbox } from "../../src/runner/runInSandbox.js";
 import { multiTurnRepair } from "../../src/repair/multiTurnRepair.js";
 import type { RunResult } from "../../src/contracts/validators.js";
 import type { RepairHistory } from "../../src/contracts/repairHistoryValidator.js";
+import type { ExecutorSuccessResponse } from "../../src/orchestrator/executionTypes.js";
+import { postExecuteAndWait } from "../helpers/execute.js";
 
 const generateJSONMock = vi.mocked(generateJSON);
 const runInSandboxMock = vi.mocked(runInSandbox);
@@ -122,16 +124,20 @@ describe("/api/execute multi-turn integration", () => {
 
     multiTurnRepairMock.mockResolvedValueOnce(history);
 
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build demo", projectName: "multi-turn-demo" });
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build demo",
+      projectName: "multi-turn-demo"
+    });
 
-    expect(res.status).toBe(200);
-    expect(res.body.repairHistory.totalAttempts).toBe(1);
-    expect(res.body.repairHistory.finalStatus).toBe("pass");
-    expect(res.body.repair.attempted).toBe(false);
-    expect(res.body.repair.repaired).toBe(true);
-    expect(res.body.testResults.afterRepair).toBeNull();
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
+    const payload = result.payload;
+
+    expect(payload.repairHistory.totalAttempts).toBe(1);
+    expect(payload.repairHistory.finalStatus).toBe("pass");
+    expect(payload.repair.attempted).toBe(false);
+    expect(payload.repair.repaired).toBe(true);
+    expect(payload.testResults.afterRepair).toBeNull();
   });
 
   it("execute with single repair success - repairHistory has 1 attempt", async () => {
@@ -166,14 +172,18 @@ describe("/api/execute multi-turn integration", () => {
 
     multiTurnRepairMock.mockResolvedValueOnce(history);
 
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build demo", projectName: "multi-turn-demo" });
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build demo",
+      projectName: "multi-turn-demo"
+    });
 
-    expect(res.status).toBe(200);
-    expect(res.body.repairHistory.totalAttempts).toBe(1);
-    expect(res.body.repairHistory.successAttemptNumber).toBe(1);
-    expect(res.body.testResults.afterRepair.status).toBe("pass");
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
+    const payload = result.payload;
+
+    expect(payload.repairHistory.totalAttempts).toBe(1);
+    expect(payload.repairHistory.successAttemptNumber).toBe(1);
+    expect(payload.testResults.afterRepair?.status).toBe("pass");
   });
 
   it("execute with multi-turn success - repairHistory shows progression", async () => {
@@ -240,15 +250,19 @@ describe("/api/execute multi-turn integration", () => {
 
     multiTurnRepairMock.mockResolvedValueOnce(history);
 
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build demo", projectName: "multi-turn-demo" });
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build demo",
+      projectName: "multi-turn-demo"
+    });
 
-    expect(res.status).toBe(200);
-    expect(res.body.repairHistory.totalAttempts).toBe(3);
-    expect(res.body.repairHistory.successAttemptNumber).toBe(3);
-    expect(res.body.testResults.afterRepair.status).toBe("pass");
-    expect(res.body.repairHistory.attempts[0].status).toBe("fail");
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
+    const payload = result.payload;
+
+    expect(payload.repairHistory.totalAttempts).toBe(3);
+    expect(payload.repairHistory.successAttemptNumber).toBe(3);
+    expect(payload.testResults.afterRepair?.status).toBe("pass");
+    expect(payload.repairHistory.attempts[0].status).toBe("fail");
   });
 
   it("execute with all attempts exhausted - repairHistory shows 4 attempts", async () => {
@@ -279,14 +293,18 @@ describe("/api/execute multi-turn integration", () => {
     const history = buildHistory(attempts, "exhausted");
     multiTurnRepairMock.mockResolvedValueOnce(history);
 
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build demo", projectName: "multi-turn-demo" });
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build demo",
+      projectName: "multi-turn-demo"
+    });
 
-    expect(res.status).toBe(200);
-    expect(res.body.repairHistory.totalAttempts).toBe(4);
-    expect(res.body.repairHistory.finalStatus).toBe("exhausted");
-    expect(res.body.repair.repaired).toBe(false);
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
+    const payload = result.payload;
+
+    expect(payload.repairHistory.totalAttempts).toBe(4);
+    expect(payload.repairHistory.finalStatus).toBe("exhausted");
+    expect(payload.repair.repaired).toBe(false);
   });
 
   it("response includes both testResults and repairHistory", async () => {
@@ -319,15 +337,19 @@ describe("/api/execute multi-turn integration", () => {
 
     multiTurnRepairMock.mockResolvedValueOnce(history);
 
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build demo", projectName: "multi-turn-demo" });
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build demo",
+      projectName: "multi-turn-demo"
+    });
 
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty("testResults");
-    expect(res.body).toHaveProperty("repairHistory");
-    expect(res.body.testResults.initial.status).toBe("fail");
-    expect(res.body.testResults.afterRepair.status).toBe("pass");
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
+    const payload = result.payload;
+
+    expect(payload).toHaveProperty("testResults");
+    expect(payload).toHaveProperty("repairHistory");
+    expect(payload.testResults.initial?.status).toBe("fail");
+    expect(payload.testResults.afterRepair?.status).toBe("pass");
   });
 
   it("backward compatibility - maintains legacy fields", async () => {
@@ -360,13 +382,17 @@ describe("/api/execute multi-turn integration", () => {
 
     multiTurnRepairMock.mockResolvedValueOnce(history);
 
-    const res = await request(app)
-      .post("/api/execute")
-      .send({ prompt: "build demo", projectName: "multi-turn-demo" });
+    const result = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt: "build demo",
+      projectName: "multi-turn-demo"
+    });
 
-    expect(res.status).toBe(200);
-    expect(res.body.repair.attempted).toBe(true);
-    expect(res.body.repair.repaired).toBe(true);
-    expect(res.body.testResults.afterRepair.status).toBe("pass");
+    expect(result.finalStatus).toBe(200);
+    expect([200, 202]).toContain(result.initialStatus);
+    const payload = result.payload;
+
+    expect(payload.repair.attempted).toBe(true);
+    expect(payload.repair.repaired).toBe(true);
+    expect(payload.testResults.afterRepair?.status).toBe("pass");
   });
 });

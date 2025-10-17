@@ -1,0 +1,42 @@
+{
+  "project_name": "lab-tech-landing",
+  "files": [
+    {
+      "path": "index.html",
+      "contents": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  <title>Lab Technician</title>\n  <link rel=\"stylesheet\" href=\"styles.css\" />\n</head>\n<body>\n  <header class=\"hero\">\n    <div class=\"container\">\n      <h1 id=\"hero-title\">Precise Lab Services</h1>\n      <p class=\"subtitle\">Reliable diagnostics and sample handling</p>\n      <a href=\"#contact\" class=\"btn\">Contact</a>\n    </div>\n  </header>\n\n  <main>\n    <section class=\"services\" id=\"services\">\n      <div class=\"container\">\n        <h2>Services</h2>\n        <ul class=\"service-list\">\n          <li>Sample collection and processing</li>\n          <li>Laboratory diagnostics support</li>\n          <li>Quality control and reporting</li>\n        </ul>\n      </div>\n    </section>\n\n    <section class=\"contact\" id=\"contact\">\n      <div class=\"container\">\n        <h2>Contact</h2>\n        <form id=\"contact-form\" novalidate>\n          <div class=\"form-row\">\n            <label for=\"name\">Name</label>\n            <input type=\"text\" id=\"name\" name=\"name\" required />\n          </div>\n          <div class=\"form-row\">\n            <label for=\"email\">Email</label>\n            <input type=\"email\" id=\"email\" name=\"email\" required />\n          </div>\n          <div class=\"form-row\">\n            <label for=\"message\">Message</label>\n            <textarea id=\"message\" name=\"message\" rows=\"4\" required></textarea>\n          </div>\n          <button type=\"submit\" class=\"btn\">Send</button>\n        </form>\n      </div>\n    </section>\n  </main>\n\n  <footer class=\"footer\">\n    <div class=\"container\">\n      <p>&copy; <span id=\"year\"></span> Lab Technician</p>\n    </div>\n  </footer>\n\n  <script src=\"script.js\"></script>\n</body>\n</html>\n"
+    },
+    {
+      "path": "styles.css",
+      "contents": ":root {\n  --red: #ff0000;\n  --black: #000000;\n  --white: #ffffff;\n}\n\n* { box-sizing: border-box; }\n\nhtml, body { height: 100%; }\n\nbody {\n  margin: 0;\n  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, \"Helvetica Neue\", Arial, \"Apple Color Emoji\", \"Segoe UI Emoji\";\n  color: var(--black);\n  background-color: var(--white);\n  line-height: 1.5;\n}\n\n.container {\n  max-width: 960px;\n  margin: 0 auto;\n  padding: 0 1rem;\n}\n\n.hero {\n  background: var(--black);\n  color: var(--white);\n  padding: 4rem 0 3rem;\n  text-align: center;\n}\n\n.hero .subtitle {\n  margin-top: 0.5rem;\n  color: var(--white);\n  opacity: 0.85;\n}\n\nh1, h2 {\n  margin: 0 0 0.5rem 0;\n}\n\n.btn {\n  display: inline-block;\n  margin-top: 1rem;\n  padding: 0.6rem 1.2rem;\n  background: var(--red);\n  color: var(--white);\n  text-decoration: none;\n  border: none;\n  border-radius: 4px;\n  cursor: pointer;\n}\n\n.services {\n  padding: 2rem 0;\n  background: var(--white);\n  color: var(--black);\n}\n\n.service-list {\n  list-style: none;\n  padding: 0;\n  margin: 1rem 0 0 0;\n}\n\n.service-list li {\n  padding: 0.5rem 0;\n  border-bottom: 1px solid var(--black);\n}\n\n.contact {\n  padding: 2rem 0 3rem;\n  background: var(--white);\n  color: var(--black);\n}\n\n.form-row {\n  display: flex;\n  flex-direction: column;\n  margin-bottom: 1rem;\n}\n\nlabel {\n  font-weight: 600;\n  margin-bottom: 0.25rem;\n}\n\ninput, textarea {\n  width: 100%;\n  padding: 0.6rem;\n  border: 1px solid var(--black);\n  border-radius: 4px;\n  background: var(--white);\n  color: var(--black);\n}\n\n.footer {\n  background: var(--black);\n  color: var(--white);\n  padding: 1rem 0;\n  text-align: center;\n}\n\n@media (min-width: 640px) {\n  .hero { padding: 6rem 0 4rem; }\n}\n"
+    },
+    {
+      "path": "script.js",
+      "contents": "document.addEventListener('DOMContentLoaded', function () {\n  var form = document.getElementById('contact-form');\n  var yearEl = document.getElementById('year');\n\n  if (yearEl) {\n    yearEl.textContent = String(new Date().getFullYear());\n  }\n\n  if (form) {\n    form.addEventListener('submit', function (e) {\n      e.preventDefault();\n      alert('Thank you! Your message has been noted.');\n      if (typeof form.reset === 'function') {\n        form.reset();\n      }\n    });\n  }\n});\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# Lab Technician Landing Page\n\nA minimal single-page landing site for a lab technician. It includes a hero section with title and subtitle, a services list, and a contact form that shows an alert (no backend).\n\nColors used: red, black, and white only.\n\n## Getting Started\n\n- Prerequisites: Node.js (LTS) and npm\n\n### Install dependencies\n\n```bash\nnpm install\n```\n\n### Run locally\n\nThis is a static site. Open `index.html` directly in your browser, or use any static file server.\n\nExample (optional):\n\n```bash\nnpx http-server .\n```\n\nThen visit the served URL and ensure no console errors appear.\n\n### Run tests\n\n```bash\nnpm test\n```\n\nThe Jest test asserts that the hero title element is present in `index.html`.\n"
+    },
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"lab-tech-landing\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"description\": \"Minimal single-page landing site for a lab technician with Jest test.\",\n  \"scripts\": {\n    \"test\": \"jest\"\n  },\n  \"devDependencies\": {\n    \"@types/jest\": \"^29.5.12\",\n    \"jest\": \"^29.7.0\",\n    \"jest-environment-jsdom\": \"^29.7.0\",\n    \"ts-jest\": \"^29.1.1\",\n    \"typescript\": \"^5.6.3\"\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2019\",\n    \"module\": \"CommonJS\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"types\": [\"jest\", \"node\"],\n    \"outDir\": \"dist\"\n  },\n  \"include\": [\"tests/**/*.ts\"]\n}\n"
+    },
+    {
+      "path": "jest.config.cjs",
+      "contents": "/** @type {import('jest').Config} */\nmodule.exports = {\n  preset: 'ts-jest',\n  testEnvironment: 'jsdom',\n  roots: ['<rootDir>/tests'],\n  moduleFileExtensions: ['ts', 'js', 'json']\n};\n"
+    },
+    {
+      "path": "tests/hero.test.ts",
+      "contents": "import fs from 'fs';\nimport path from 'path';\n\ndescribe('Landing page', () => {\n  it('includes a hero title element', () => {\n    const filePath = path.join(__dirname, '..', 'index.html');\n    const html = fs.readFileSync(filePath, 'utf8');\n\n    // Use the DOMParser provided by jsdom environment\n    const doc = new DOMParser().parseFromString(html, 'text/html');\n    const hero = doc.getElementById('hero-title');\n\n    expect(hero).not.toBeNull();\n    expect(hero?.textContent?.trim()).not.toBe('');\n  });\n});\n"
+    }
+  ],
+  "notes": [
+    "Open index.html directly in a browser to view the page.",
+    "Run tests with npm test. Jest uses jsdom to parse index.html and assert the hero title exists."
+  ],
+  "hasTests": true
+}

@@ -1,0 +1,106 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "error",
+      "startedAt": "2025-10-10T07:44:05.668Z",
+      "finishedAt": "2025-10-10T07:45:19.922Z",
+      "changedFiles": [],
+      "summary": "Attempt 1 encountered an error before tests could pass. Error: Missing contents for src/server.js",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for src/server.js",
+        "errorMessage": "Missing contents for src/server.js"
+      },
+      "failureAnalysis": {
+        "failedTests": [],
+        "totalFailed": 0,
+        "category": "exception"
+      },
+      "durationMs": 74254,
+      "cumulativeTime": 74254
+    },
+    {
+      "number": 2,
+      "status": "error",
+      "startedAt": "2025-10-10T07:45:19.922Z",
+      "finishedAt": "2025-10-10T07:46:33.744Z",
+      "changedFiles": [],
+      "summary": "Attempt 2 encountered an error before tests could pass. Error: Missing contents for src/server.js",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for src/server.js",
+        "errorMessage": "Missing contents for src/server.js"
+      },
+      "failureAnalysis": {
+        "failedTests": [],
+        "totalFailed": 0,
+        "category": "exception"
+      },
+      "durationMs": 73822,
+      "cumulativeTime": 148076
+    },
+    {
+      "number": 3,
+      "status": "error",
+      "startedAt": "2025-10-10T07:46:33.744Z",
+      "finishedAt": "2025-10-10T07:47:51.914Z",
+      "changedFiles": [],
+      "summary": "Attempt 3 encountered an error before tests could pass. Error: Missing contents for src/server.js",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for src/server.js",
+        "errorMessage": "Missing contents for src/server.js"
+      },
+      "failureAnalysis": {
+        "failedTests": [],
+        "totalFailed": 0,
+        "category": "exception"
+      },
+      "durationMs": 78170,
+      "cumulativeTime": 226246
+    },
+    {
+      "number": 4,
+      "status": "error",
+      "startedAt": "2025-10-10T07:47:51.915Z",
+      "finishedAt": "2025-10-10T07:49:04.138Z",
+      "changedFiles": [],
+      "summary": "Attempt 4 encountered an error before tests could pass. Error: Missing contents for src/server.js",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for src/server.js",
+        "errorMessage": "Missing contents for src/server.js"
+      },
+      "failureAnalysis": {
+        "failedTests": [],
+        "totalFailed": 0,
+        "category": "exception"
+      },
+      "durationMs": 72223,
+      "cumulativeTime": 298469
+    }
+  ],
+  "finalStatus": "exhausted",
+  "totalAttempts": 4
+}

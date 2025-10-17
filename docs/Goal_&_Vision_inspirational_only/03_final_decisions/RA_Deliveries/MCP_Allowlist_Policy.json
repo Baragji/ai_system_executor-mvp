@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "tools": {
+    "fs.readFile": {
+      "root": ".",
+      "mode": "ro",
+      "maxBytes": 262144
+    },
+    "git.status": {
+      "args": {}
+    },
+    "git.diff": {
+      "args": {
+        "staged": false
+      }
+    },
+    "git.commit": {
+      "args": {
+        "messagePrefix": "AGENT:"
+      },
+      "requireApproval": true
+    },
+    "http.fetch": {
+      "allow": [
+        "https://api.github.com",
+        "https://docs.*",
+        "https://registry.npmjs.org"
+      ],
+      "timeoutMs": 5000,
+      "maxBytes": 1048576
+    }
+  },
+  "audit": {
+    "jsonl": "logs/mcp-tools.jsonl",
+    "otlp": true
+  }
+}

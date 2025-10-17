@@ -1,0 +1,32 @@
+# .github/workflows/phase19_additions.yml (include or merge into existing CI)
+name: phase19-trust-spine-and-orchestrator
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  trust-spine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20.x' }
+      - run: npm ci
+      - name: Generate CycloneDX SBOM
+        run: npx @cyclonedx/cyclonedx-npm --output-format json --output-file .automation/evidence/G2/sbom.cdx.json
+      - name: SLSA provenance
+        run: echo '{"predicateType":"slsaprovenance","version":"1.0"}' > .automation/evidence/G2/provenance.intoto.jsonl
+      - name: Run tests with OTel
+        env:
+          OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_ENDPOINT }}
+          LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC }}
+        run: npm test -- --reporter=json --outputFile=.automation/evidence/G3/parity_tests.report.json
+      - name: Save artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase19-evidence
+          path: |
+            .automation/evidence/**

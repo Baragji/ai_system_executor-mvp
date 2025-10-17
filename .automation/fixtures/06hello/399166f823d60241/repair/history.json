@@ -1,0 +1,134 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "error",
+      "startedAt": "2025-10-10T06:41:49.806Z",
+      "finishedAt": "2025-10-10T06:42:35.008Z",
+      "changedFiles": [],
+      "summary": "Attempt 1 encountered an error before tests could pass. Error: Missing contents for src/server.ts",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for src/server.ts",
+        "errorMessage": "Missing contents for src/server.ts"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Test suite failed to run",
+            "message": "tests/server.test.ts:2:10 - error TS2459: Module '\"../src/server\"' declares 'app' locally, but it is not exported.\n2 import { app } from '../src/server';\n~~~\nsrc/server.ts:1:8\n1 import app from './app';\n~~~\n'app' is declared here.\nPASS tests/app.test.ts\nExpress server with Tailwind\n✓ serves index.html with Tailwind link and test element (13 ms)\nTest Suites: 1 failed, 1 passed, 2 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        1.841 s, estimated 3 s\nRan all test suites.",
+            "stackSnippet": [],
+            "type": "exception"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "exception"
+      },
+      "durationMs": 45202,
+      "cumulativeTime": 45202
+    },
+    {
+      "number": 2,
+      "status": "error",
+      "startedAt": "2025-10-10T06:42:35.008Z",
+      "finishedAt": "2025-10-10T06:43:22.353Z",
+      "changedFiles": [],
+      "summary": "Attempt 2 encountered an error before tests could pass. Error: Missing contents for src/server.ts",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for src/server.ts",
+        "errorMessage": "Missing contents for src/server.ts"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Test suite failed to run",
+            "message": "tests/server.test.ts:2:10 - error TS2459: Module '\"../src/server\"' declares 'app' locally, but it is not exported.\n2 import { app } from '../src/server';\n~~~\nsrc/server.ts:1:8\n1 import app from './app';\n~~~\n'app' is declared here.\nPASS tests/app.test.ts\nExpress server with Tailwind\n✓ serves index.html with Tailwind link and test element (13 ms)\nTest Suites: 1 failed, 1 passed, 2 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        1.841 s, estimated 3 s\nRan all test suites.",
+            "stackSnippet": [],
+            "type": "exception"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "exception"
+      },
+      "durationMs": 47345,
+      "cumulativeTime": 92547
+    },
+    {
+      "number": 3,
+      "status": "error",
+      "startedAt": "2025-10-10T06:43:22.353Z",
+      "finishedAt": "2025-10-10T06:44:05.157Z",
+      "changedFiles": [],
+      "summary": "Attempt 3 encountered an error before tests could pass. Error: Missing contents for src/server.ts",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for src/server.ts",
+        "errorMessage": "Missing contents for src/server.ts"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Test suite failed to run",
+            "message": "tests/server.test.ts:2:10 - error TS2459: Module '\"../src/server\"' declares 'app' locally, but it is not exported.\n2 import { app } from '../src/server';\n~~~\nsrc/server.ts:1:8\n1 import app from './app';\n~~~\n'app' is declared here.\nPASS tests/app.test.ts\nExpress server with Tailwind\n✓ serves index.html with Tailwind link and test element (13 ms)\nTest Suites: 1 failed, 1 passed, 2 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        1.841 s, estimated 3 s\nRan all test suites.",
+            "stackSnippet": [],
+            "type": "exception"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "exception"
+      },
+      "durationMs": 42804,
+      "cumulativeTime": 135351
+    },
+    {
+      "number": 4,
+      "status": "error",
+      "startedAt": "2025-10-10T06:44:05.157Z",
+      "finishedAt": "2025-10-10T06:44:50.061Z",
+      "changedFiles": [],
+      "summary": "Attempt 4 encountered an error before tests could pass. Error: Missing contents for src/server.ts",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "error",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 0,
+        "logsPath": "",
+        "summary": "Missing contents for src/server.ts",
+        "errorMessage": "Missing contents for src/server.ts"
+      },
+      "failureAnalysis": {
+        "failedTests": [
+          {
+            "name": "Test suite failed to run",
+            "message": "tests/server.test.ts:2:10 - error TS2459: Module '\"../src/server\"' declares 'app' locally, but it is not exported.\n2 import { app } from '../src/server';\n~~~\nsrc/server.ts:1:8\n1 import app from './app';\n~~~\n'app' is declared here.\nPASS tests/app.test.ts\nExpress server with Tailwind\n✓ serves index.html with Tailwind link and test element (13 ms)\nTest Suites: 1 failed, 1 passed, 2 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        1.841 s, estimated 3 s\nRan all test suites.",
+            "stackSnippet": [],
+            "type": "exception"
+          }
+        ],
+        "totalFailed": 1,
+        "category": "exception"
+      },
+      "durationMs": 44904,
+      "cumulativeTime": 180255
+    }
+  ],
+  "finalStatus": "exhausted",
+  "totalAttempts": 4
+}

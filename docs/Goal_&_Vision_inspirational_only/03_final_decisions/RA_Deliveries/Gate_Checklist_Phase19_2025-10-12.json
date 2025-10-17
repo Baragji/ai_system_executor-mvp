@@ -1,0 +1,90 @@
+{
+  "adr": "ADR-019_LangGraph_TS_Orchestrator_2025-10-12.md",
+  "phase": 19,
+  "date": "2025-10-12",
+  "feature_flag": "AGENTS_RUNTIME",
+  "flags": {
+    "default": "stepqueue",
+    "candidate": "langgraph"
+  },
+  "gates": [
+    {
+      "id": "G0",
+      "name": "Inception/Constraints",
+      "acceptance": [
+        "Constraints file updated: TS-only, Node 20, no Python",
+        "Decision window & budget recorded (if available)",
+        "Source log (>=3 authoritative per option) attached"
+      ],
+      "evidence": [
+        ".automation/evidence/G0/sources.json",
+        ".automation/evidence/G0/constraints.md"
+      ]
+    },
+    {
+      "id": "G1",
+      "name": "Architecture ADR",
+      "acceptance": [
+        "ADR-019 approved by MCA",
+        "Graph diagram attached (Mermaid/PNG)",
+        "Alternatives & risk memo included"
+      ],
+      "evidence": [
+        ".automation/evidence/G1/ADR-019.md",
+        ".automation/evidence/G1/graph.png",
+        ".automation/evidence/G1/risk_memo.md"
+      ]
+    },
+    {
+      "id": "G2",
+      "name": "Trust-Spine Baseline",
+      "acceptance": [
+        "CycloneDX 1.6 SBOM generated",
+        "SLSA v1.0 provenance emitted",
+        "OTel GenAI traces visible in Langfuse",
+        "JSONL action logs stored",
+        "RFC 9457 error envelopes present"
+      ],
+      "evidence": [
+        ".automation/evidence/G2/sbom.cdx.json",
+        ".automation/evidence/G2/provenance.intoto.jsonl",
+        ".automation/evidence/G2/otel_trace_export.json",
+        ".automation/evidence/G2/actions.jsonl",
+        ".automation/evidence/G2/errors_rfc9457.jsonl"
+      ]
+    },
+    {
+      "id": "G3",
+      "name": "Orchestrator Pilot (Feature-flagged)",
+      "acceptance": [
+        "POST /api/execute uses LangGraph when AGENTS_RUNTIME=langgraph",
+        "Deterministic replay (seeded) proven",
+        "Coverage >= 90% (orchestrator), branch >= 75%",
+        "Overhead < 500 ms/transition (p50)",
+        "Parity tests passing; StepQueue remains fallback"
+      ],
+      "evidence": [
+        ".automation/evidence/G3/parity_tests.report.json",
+        ".automation/evidence/G3/perf_budget.csv",
+        ".automation/evidence/G3/coverage_orchestrator.json",
+        ".automation/evidence/G3/deterministic_sequence.json"
+      ]
+    },
+    {
+      "id": "G4",
+      "name": "HITL + MCP",
+      "acceptance": [
+        "HITL approvals enforced in UI/WS stream",
+        "MCP tools audited with allow-list policy",
+        "Tool calls present in SIEM feed (IDs, inputs, results)",
+        "Zero HIGH-risk policy findings (ASVS/LLM-Top10)"
+      ],
+      "evidence": [
+        ".automation/evidence/G4/hitl_transcript.jsonl",
+        ".automation/evidence/G4/mcp_policy.json",
+        ".automation/evidence/G4/tool_audit.jsonl",
+        ".automation/evidence/G4/security_scan.report.json"
+      ]
+    }
+  ]
+}

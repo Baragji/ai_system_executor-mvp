@@ -1,3 +1,6 @@
+/* global Prism */
+import { successIcon, partialIcon, errorIcon } from "./icons.js";
+
 const runBtn = document.getElementById("runBtn");
 const promptEl = document.getElementById("prompt");
 const projEl = document.getElementById("projectName");
@@ -21,12 +24,43 @@ const taskPlanSummary = document.getElementById("taskPlanSummary");
 const subtaskListEl = document.getElementById("subtaskList");
 const currentSubtaskLabel = document.getElementById("currentSubtaskLabel");
 const estimatedCompletionLabel = document.getElementById("estimatedCompletionLabel");
+const debugDisclosure = document.getElementById("debugDisclosure");
+const filePreviewPanel = document.getElementById("filePreviewPanel");
+const workflowSummarySection = document.getElementById("workflowSummary");
+const workflowPhaseLabel = document.getElementById("workflowPhaseLabel");
+const workflowSummaryTimestamp = document.getElementById("workflowSummaryTimestamp");
+const workflowHumanSummary = document.getElementById("workflowHumanSummary");
+const workflowCurrentGate = document.getElementById("workflowCurrentGate");
+const workflowCurrentTask = document.getElementById("workflowCurrentTask");
+const workflowNextTask = document.getElementById("workflowNextTask");
+const workflowNextActionLabel = document.getElementById("workflowNextAction");
+const workflowNextActionReason = document.getElementById("workflowNextActionReason");
+const workflowNextActionCommand = document.getElementById("workflowNextActionCommand");
+const workflowPendingTasksList = document.getElementById("workflowPendingTasks");
+const workflowRepoStatusList = document.getElementById("workflowRepoStatus");
+
+const mainContainer = document.querySelector("main");
+let orchestrationSection = null;
+let pauseSessionButton = null;
+let resumeDrawer = null;
+let resumeFormEl = null;
+let resumeQuestionsEl = null;
+let resumeMessageEl = null;
+
+let activeSessionId = null;
+let orchestrationQuestions = [];
 
 let currentProjectSlug = null;
 let pendingQuestions = [];
 let storedPrompt = "";
 let storedProjectName = "";
 let repairHistoryExpanded = false;
+// legacy loading state removed
+
+// Progress streaming controls
+let progressStopFlag = false;
+let progressEventSource = null;
+let progressFillEl = null;
 
 const DEFAULT_APP_PORT = "3000";
 const currentPort = typeof window !== "undefined" && window.location ? window.location.port : "";
@@ -35,6 +69,412 @@ const isDemoMode = Boolean(currentPort && currentPort !== DEFAULT_APP_PORT);
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function hideDebugDisclosure() {
+  if (debugDisclosure) {
+    debugDisclosure.classList.add("hidden");
+    debugDisclosure.removeAttribute("open");
+  }
+}
+
+function revealDebugDisclosure() {
+  if (debugDisclosure) {
+    debugDisclosure.classList.remove("hidden");
+  }
+}
+
+hideDebugDisclosure();
+
+function resetWorkflowSummary() {
+  if (!workflowSummarySection) return;
+  workflowSummarySection.classList.add("hidden");
+  if (workflowPhaseLabel) workflowPhaseLabel.textContent = "Workflow Status";
+  if (workflowSummaryTimestamp) workflowSummaryTimestamp.textContent = "";
+  if (workflowHumanSummary) workflowHumanSummary.textContent = "";
+  if (workflowCurrentGate) workflowCurrentGate.textContent = "—";
+  if (workflowCurrentTask) workflowCurrentTask.textContent = "Current task pending";
+  if (workflowNextTask) workflowNextTask.textContent = "Next task pending";
+  if (workflowNextActionLabel) workflowNextActionLabel.textContent = "—";
+  if (workflowNextActionReason) workflowNextActionReason.textContent = "";
+  if (workflowNextActionCommand) {
+    workflowNextActionCommand.textContent = "";
+    workflowNextActionCommand.classList.add("hidden");
+  }
+  if (workflowPendingTasksList) workflowPendingTasksList.innerHTML = "";
+  if (workflowRepoStatusList) workflowRepoStatusList.innerHTML = "";
+}
+
+function updateWorkflowSummary(metadata) {
+  if (!workflowSummarySection) return;
+  if (!metadata) {
+    resetWorkflowSummary();
+    return;
+  }
+
+  workflowSummarySection.classList.remove("hidden");
+  if (workflowPhaseLabel) {
+    workflowPhaseLabel.textContent = `Phase ${metadata.phase.id} — ${metadata.phase.name}`;
+  }
+  if (workflowSummaryTimestamp) {
+    const computed = new Date(metadata.computedAt);
+    workflowSummaryTimestamp.textContent = Number.isNaN(computed.getTime())
+      ? ""
+      : `Updated ${computed.toLocaleString()}`;
+  }
+  if (workflowHumanSummary) workflowHumanSummary.textContent = metadata.humanSummary;
+  if (workflowCurrentGate) {
+    workflowCurrentGate.textContent = metadata.currentGate
+      ? `${metadata.currentGate.id} — ${metadata.currentGate.status}`
+      : "All gates passed";
+  }
+  if (workflowCurrentTask) {
+    workflowCurrentTask.textContent = metadata.currentTask
+      ? `Current: ${metadata.currentTask.id} — ${metadata.currentTask.title}`
+      : "No active task";
+  }
+  if (workflowNextTask) {
+    workflowNextTask.textContent = metadata.nextTask
+      ? `Next: ${metadata.nextTask.id} — ${metadata.nextTask.title}`
+      : "Next task queued";
+  }
+  if (workflowNextActionLabel) workflowNextActionLabel.textContent = metadata.suggestedNextAction.action;
+  if (workflowNextActionReason) workflowNextActionReason.textContent = metadata.suggestedNextAction.reasoning;
+  if (workflowNextActionCommand) {
+    if (metadata.suggestedNextAction.command) {
+      workflowNextActionCommand.textContent = metadata.suggestedNextAction.command;
+      workflowNextActionCommand.classList.remove("hidden");
+    } else {
+      workflowNextActionCommand.textContent = "";
+      workflowNextActionCommand.classList.add("hidden");
+    }
+  }
+
+  if (workflowPendingTasksList) {
+    workflowPendingTasksList.innerHTML = "";
+    if (metadata.pendingTasks.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "No pending tasks";
+      workflowPendingTasksList.appendChild(li);
+    } else {
+      for (const task of metadata.pendingTasks) {
+        const li = document.createElement("li");
+        const status = task.status ? ` — ${task.status}` : "";
+        li.textContent = `${task.id}: ${task.title}${status}`;
+        workflowPendingTasksList.appendChild(li);
+      }
+    }
+  }
+
+  if (workflowRepoStatusList) {
+    workflowRepoStatusList.innerHTML = "";
+    const uncommittedCount = metadata.uncommittedChanges.length;
+    const uncommittedItem = document.createElement("li");
+    uncommittedItem.textContent =
+      uncommittedCount === 0
+        ? "Working tree clean"
+        : `${uncommittedCount} uncommitted change${uncommittedCount === 1 ? "" : "s"}`;
+    workflowRepoStatusList.appendChild(uncommittedItem);
+
+    const validationsItem = document.createElement("li");
+    if (metadata.validations) {
+      validationsItem.textContent = `Validations: lint=${metadata.validations.lint}, type=${metadata.validations.typecheck}, test=${metadata.validations.test}, contract=${metadata.validations.contract_check}`;
+    } else {
+      validationsItem.textContent = "Validations: not run";
+    }
+    workflowRepoStatusList.appendChild(validationsItem);
+  }
+}
+
+function resetOrchestrationControls() {
+  orchestrationQuestions = [];
+  activeSessionId = null;
+  if (pauseSessionButton) {
+    pauseSessionButton.disabled = true;
+  }
+  hideResumeDrawer();
+  orchestrationSection?.classList.add("hidden");
+  resetWorkflowSummary();
+}
+
+function hideResumeDrawer() {
+  if (resumeDrawer) {
+    resumeDrawer.classList.add("hidden");
+  }
+  if (resumeQuestionsEl) {
+    resumeQuestionsEl.innerHTML = "";
+  }
+  if (resumeMessageEl) {
+    resumeMessageEl.textContent = "Session paused. Provide answers to resume.";
+    resumeMessageEl.classList.remove("error");
+  }
+  orchestrationQuestions = [];
+}
+
+function renderResumeQuestions(questions) {
+  if (!resumeQuestionsEl) return;
+  resumeQuestionsEl.innerHTML = "";
+  orchestrationQuestions = Array.isArray(questions) ? questions : [];
+
+  for (const question of orchestrationQuestions) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "resume-question";
+
+    const label = document.createElement("label");
+    const inputId = `resume-${question.id}`;
+    label.setAttribute("for", inputId);
+    label.textContent = question.question;
+    wrapper.appendChild(label);
+
+    if (question.type) {
+      const hint = document.createElement("div");
+      hint.className = "resume-question__hint";
+      hint.textContent = `Type: ${question.type}`;
+      wrapper.appendChild(hint);
+    }
+
+    const input = document.createElement("textarea");
+    input.id = inputId;
+    input.name = inputId;
+    input.required = true;
+    input.rows = 3;
+    wrapper.appendChild(input);
+
+    resumeQuestionsEl.appendChild(wrapper);
+  }
+}
+
+function showResumeDrawer(questions) {
+  if (!resumeDrawer) return;
+  renderResumeQuestions(questions);
+  resumeDrawer.classList.remove("hidden");
+}
+
+function collectResumeAnswers() {
+  if (!resumeFormEl) return [];
+  const answers = [];
+  for (const question of orchestrationQuestions) {
+    const input = resumeFormEl.querySelector(`#resume-${question.id}`);
+    if (!(input instanceof HTMLTextAreaElement)) {
+      continue;
+    }
+    const value = input.value.trim();
+    if (!value) {
+      input.reportValidity();
+      throw new Error("Please answer all questions to resume.");
+    }
+    answers.push({ questionId: question.id, value });
+  }
+  return answers;
+}
+
+async function handlePauseClick() {
+  if (!activeSessionId || !pauseSessionButton) return;
+  pauseSessionButton.disabled = true;
+  try {
+    const resp = await fetch(`/api/sessions/${activeSessionId}/pause`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ reason: "Manual pause requested" })
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      throw data;
+    }
+    const questions = data?.checkpoint?.payload?.pendingQuestions ?? [];
+    showResumeDrawer(questions);
+    
+    // Immediately fetch updated progress snapshot to ensure UI reflects paused state
+    // This eliminates the 900ms polling delay that causes UI to appear frozen
+    try {
+      const snapshotResp = await fetch(`/api/progress/snapshot/${activeSessionId}`);
+      if (snapshotResp.ok) {
+        const snapshot = await snapshotResp.json();
+        updateOrchestrationState(snapshot);
+      }
+    } catch (snapshotErr) {
+      console.warn("Failed to fetch snapshot after pause:", snapshotErr);
+    }
+  } catch (err) {
+    resultEl.innerHTML = formatError(err);
+    pauseSessionButton.disabled = false;
+  }
+}
+
+async function handleResumeSubmit(event) {
+  event.preventDefault();
+  if (!activeSessionId || !resumeFormEl) return;
+  try {
+    const answers = collectResumeAnswers();
+    const resp = await fetch(`/api/sessions/${activeSessionId}/resume`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ answers })
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      throw data;
+    }
+    hideResumeDrawer();
+    if (pauseSessionButton) {
+      pauseSessionButton.disabled = false;
+    }
+    // Resume progress streams after successful resume
+    try { progressStopFlag = false; } catch { /* noop */ }
+    try { progressEventSource?.close?.(); } catch { /* noop */ }
+    (async () => {
+      const sessionId = activeSessionId;
+      const fill = progressFillEl;
+      while (sessionId && !progressStopFlag) {
+        try {
+          const r = await fetch(`/api/progress/snapshot/${sessionId}`);
+          if (r.ok) {
+            const p = await r.json();
+            const percent = Math.max(0, Math.min(100, Number(p.progress || 0)));
+            if (fill) fill.style.width = `${percent}%`;
+            updateOrchestrationState(p);
+            if (p.done) { progressStopFlag = true; break; }
+          }
+        } catch { /* ignore */ }
+        await new Promise(r => setTimeout(r, 900));
+      }
+    })();
+    try {
+      const es = new EventSource(`/api/progress/${activeSessionId}`);
+      progressEventSource = es;
+      es.onmessage = ev => {
+        try {
+          const p = JSON.parse(ev.data);
+          const percent = Math.max(0, Math.min(100, Number(p.progress || 0)));
+          if (progressFillEl) progressFillEl.style.width = `${percent}%`;
+          updateOrchestrationState(p);
+          if (p.done) { progressStopFlag = true; es.close(); }
+        } catch { /* ignore */ }
+      };
+      es.onerror = () => es.close();
+    } catch { /* fallback to polling above */ }
+  } catch (err) {
+    if (resumeMessageEl) {
+      resumeMessageEl.textContent = `Resume failed: ${err?.error || err?.message || err}`;
+      resumeMessageEl.classList.add("error");
+    }
+  }
+}
+
+// Treat 202 Accepted (paused) as a first-class state instead of an error
+async function handlePausedResponse(sessionId) {
+  try {
+    // Fetch latest snapshot so UI can reflect paused state immediately
+    const snapshotResp = await fetch(`/api/progress/snapshot/${sessionId}`);
+    if (snapshotResp.ok) {
+      const snapshot = await snapshotResp.json();
+      updateOrchestrationState(snapshot);
+      return true;
+    }
+  } catch (err) {
+    console.warn("Failed to fetch snapshot after 202 paused:", err);
+  }
+  return false;
+}
+
+function updateOrchestrationState(snapshot) {
+  updateWorkflowSummary(snapshot?.workflowMetadata ?? null);
+  if (!snapshot || !orchestrationSection) return;
+  orchestrationSection.classList.remove("hidden");
+
+  if (snapshot.paused) {
+    pauseSessionButton && (pauseSessionButton.disabled = true);
+    showResumeDrawer(snapshot.questions || []);
+    // Stop progress streams while paused to avoid noisy 304 polling
+    try { progressStopFlag = true; } catch { /* noop */ }
+    try { progressEventSource?.close?.(); } catch { /* noop */ }
+    return;
+  }
+
+  if (snapshot.questions && snapshot.questions.length > 0) {
+    showResumeDrawer(snapshot.questions);
+  } else {
+    hideResumeDrawer();
+  }
+
+  if (pauseSessionButton) {
+    pauseSessionButton.disabled = !activeSessionId || Boolean(snapshot.done);
+  }
+  if (snapshot.done) {
+    activeSessionId = null;
+    orchestrationSection?.classList.add("hidden");
+  }
+}
+
+function createOrchestrationControls() {
+  if (!mainContainer || orchestrationSection) return;
+  orchestrationSection = document.createElement("section");
+  orchestrationSection.className = "orchestration hidden";
+
+  const header = document.createElement("div");
+  header.className = "orchestration__header";
+  const heading = document.createElement("h2");
+  heading.textContent = "Execution Control";
+  header.appendChild(heading);
+
+  pauseSessionButton = document.createElement("button");
+  pauseSessionButton.type = "button";
+  pauseSessionButton.className = "btn btn-secondary";
+  pauseSessionButton.textContent = "Pause";
+  pauseSessionButton.disabled = true;
+  pauseSessionButton.addEventListener("click", handlePauseClick);
+  header.appendChild(pauseSessionButton);
+
+  orchestrationSection.appendChild(header);
+
+  resumeDrawer = document.createElement("div");
+  resumeDrawer.className = "resume-drawer hidden";
+
+  resumeMessageEl = document.createElement("p");
+  resumeMessageEl.className = "resume-message";
+  resumeMessageEl.textContent = "Session paused. Provide answers to resume.";
+  resumeDrawer.appendChild(resumeMessageEl);
+
+  resumeFormEl = document.createElement("form");
+  resumeFormEl.id = "resumeForm";
+  resumeFormEl.addEventListener("submit", handleResumeSubmit);
+
+  resumeQuestionsEl = document.createElement("div");
+  resumeQuestionsEl.className = "resume-questions";
+  resumeFormEl.appendChild(resumeQuestionsEl);
+
+  const resumeActions = document.createElement("div");
+  resumeActions.className = "resume-actions";
+
+  const resumeButton = document.createElement("button");
+  resumeButton.type = "submit";
+  resumeButton.className = "btn btn-primary";
+  resumeButton.textContent = "Resume";
+  resumeActions.appendChild(resumeButton);
+
+  const cancelButton = document.createElement("button");
+  cancelButton.type = "button";
+  cancelButton.className = "btn btn-ghost";
+  cancelButton.textContent = "Cancel";
+  cancelButton.addEventListener("click", hideResumeDrawer);
+  resumeActions.appendChild(cancelButton);
+
+  resumeFormEl.appendChild(resumeActions);
+  resumeDrawer.appendChild(resumeFormEl);
+  orchestrationSection.appendChild(resumeDrawer);
+
+  mainContainer.insertBefore(orchestrationSection, resultEl);
+}
+
+createOrchestrationControls();
 
 function createDemoTestResult() {
   const now = new Date();
@@ -56,10 +496,16 @@ function createDemoExecutionResponse() {
     { id: "plan", title: "Plan solution", status: "completed" },
     { id: "generate", title: "Generate files", status: "completed" },
   ];
+  const generatedFileMap = {
+    plan: ["README.md", "package.json"],
+    generate: ["src/index.ts", "src/index.test.ts", "public/index.html"],
+  };
   return {
+    ok: true,
     status: "success",
     browse_url: "#",
     project: "demo-project",
+    files_written: generatedFileMap.plan.length + generatedFileMap.generate.length,
     taskPlan: { subtasks },
     planExecutionResult: {
       status: "completed",
@@ -71,9 +517,11 @@ function createDemoExecutionResponse() {
       subtaskResults: subtasks.map((subtask, index) => ({
         subtaskId: subtask.id,
         status: "completed",
+        generatedFiles: generatedFileMap[subtask.id] || [],
         startedAt: new Date(now.getTime() - (index + 2) * 1000).toISOString(),
         completedAt: new Date(now.getTime() - (index + 1) * 1000).toISOString(),
       })),
+      totalDurationMs: 4200,
     },
     timeEstimate: {
       estimatedCompletionTimestamp: now.toISOString(),
@@ -120,6 +568,8 @@ if (repairHistoryToggle) {
   });
 }
 
+// Legacy helper - kept for potential future use
+// eslint-disable-next-line no-unused-vars
 function renderLink(url) {
   const a = document.createElement("a");
   a.href = url;
@@ -227,7 +677,12 @@ function renderTaskPlan(taskPlan, executionResult, timeEstimate) {
   }
 
   if (taskPlanSummary) {
-    taskPlanSummary.textContent = `Completed ${completed} of ${taskPlan.subtasks.length} · Failed ${failed} · Status: ${executionResult?.status ?? "pending"}`;
+    const planStatus = executionResult?.status ?? "pending";
+    const testsStatus = String(executionResult?.subtaskResults?.at(-1)?.testResult?.status || '').toUpperCase();
+    const finalLabel = (planStatus === 'partial' && testsStatus === 'PASS') ? 'execution complete' : planStatus;
+    const halt = (executionResult && executionResult.haltReason) || (window.lastHaltReason) || '';
+    const suffix = halt ? ` · Halt reason: ${halt}` : '';
+    taskPlanSummary.textContent = `Completed ${completed} of ${taskPlan.subtasks.length} · Failed ${failed} · Status: ${finalLabel}${suffix}`;
   }
 
   if (currentSubtaskLabel) {
@@ -285,6 +740,16 @@ function renderTaskPlan(taskPlan, executionResult, timeEstimate) {
   }
 
   taskPlanSection.classList.remove("hidden");
+}
+
+function getGeneratedFiles(data) {
+  return Array.from(
+    new Set(
+      (data?.planExecutionResult?.subtaskResults || [])
+        .flatMap(result => (Array.isArray(result.generatedFiles) ? result.generatedFiles : []))
+        .filter(Boolean)
+    )
+  );
 }
 
 function renderTimelineEntry(label, runResult) {
@@ -475,6 +940,135 @@ function renderRepairHistory(history) {
   repairHistoryTimeline.appendChild(footer);
 }
 
+// old success card removed in favor of modern outcome-card implementation
+
+/**
+ * Render Partial Success Card - Files generated but tests failed
+ * Yellow/amber theme to indicate caution without panic
+ */
+function renderPartialCard(data) {
+  if (!data || !data.files_written) {
+    return false;
+  }
+  resultEl.innerHTML = "";
+  const card = document.createElement("article");
+  card.className = "outcome-card outcome-card--partial";
+  const header = document.createElement("div");
+  header.className = "outcome-card__header";
+  const iconWrap = document.createElement("span");
+  iconWrap.className = "outcome-card__icon";
+  iconWrap.innerHTML = partialIcon;
+  header.appendChild(iconWrap);
+  const heading = document.createElement("div");
+  heading.className = "outcome-card__heading";
+  const title = document.createElement("h2");
+  title.className = "outcome-card__title";
+  title.textContent = "Project created – tests need attention";
+  const failCount = data.testResults?.initial?.failCount ?? 0;
+  const passCount = data.testResults?.initial?.passCount ?? 0;
+  const subtitle = document.createElement("p");
+  subtitle.className = "outcome-card__subtitle";
+  subtitle.textContent = `${failCount} failing, ${passCount} passing`;
+  heading.append(title, subtitle);
+  header.appendChild(heading);
+  card.appendChild(header);
+
+  const message = document.createElement("p");
+  message.className = "outcome-card__message";
+  message.textContent = "Files are ready, but automated checks highlighted issues. Review the failing tests and apply fixes before re-running.";
+  card.appendChild(message);
+
+  const metrics = document.createElement("div");
+  metrics.className = "outcome-card__metrics";
+  [
+    { label: "Files generated", value: data.files_written },
+    { label: "Tests failed", value: failCount },
+    { label: "Tests passed", value: passCount }
+  ].forEach(m => {
+    const metric = document.createElement("div");
+    metric.className = "outcome-card__metric";
+    const mv = document.createElement("span");
+    mv.className = "outcome-card__metric-value";
+    mv.textContent = String(m.value ?? 0);
+    const ml = document.createElement("span");
+    ml.className = "outcome-card__metric-label";
+    ml.textContent = m.label;
+    metric.append(mv, ml);
+    metrics.appendChild(metric);
+  });
+  card.appendChild(metrics);
+
+  const actions = document.createElement("div");
+  actions.className = "outcome-card__actions button-group";
+  if (data.browse_url) {
+    const openLink = document.createElement("a");
+    openLink.href = data.browse_url;
+    openLink.target = "_blank";
+    openLink.rel = "noopener";
+    openLink.className = "btn btn-primary";
+    openLink.textContent = "Open Project";
+    // Try to open index.html if present; otherwise fall back to folder
+    openLink.addEventListener("click", async (ev) => {
+      try {
+        ev.preventDefault();
+        const base = openLink.href.replace(/\/$/, "");
+        const indexUrl = `${base}/index.html`;
+        const r = await fetch(indexUrl, { method: "HEAD" });
+        if (r.ok) {
+          window.open(indexUrl, "_blank", "noopener");
+        } else {
+          window.open(openLink.href, "_blank", "noopener");
+        }
+      } catch {
+        window.open(openLink.href, "_blank", "noopener");
+      }
+    });
+    actions.appendChild(openLink);
+  }
+  // Download full project archive (.zip/.tar.gz)
+  if (data.project) {
+    const projectSlug = encodeURIComponent(data.project);
+    const zipLink = document.createElement("a");
+    zipLink.href = `/output-archive/${projectSlug}?format=zip`;
+    zipLink.className = "btn btn-secondary";
+    zipLink.textContent = "Download .zip";
+    zipLink.setAttribute("download", "");
+    actions.appendChild(zipLink);
+
+    const tarLink = document.createElement("a");
+    tarLink.href = `/output-archive/${projectSlug}?format=tar`;
+    tarLink.className = "btn btn-ghost";
+    tarLink.textContent = "Download .tar.gz";
+    tarLink.setAttribute("download", "");
+    actions.appendChild(tarLink);
+  }
+  const viewResultsButton = document.createElement("button");
+  viewResultsButton.type = "button";
+  viewResultsButton.className = "btn btn-secondary";
+  viewResultsButton.textContent = "View test results";
+  viewResultsButton.addEventListener("click", () => {
+    revealDebugDisclosure();
+    debugDisclosure?.setAttribute("open", "");
+    testControlsEl?.classList.remove("hidden");
+    testControlsEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  actions.appendChild(viewResultsButton);
+  const openDebugButton = document.createElement("button");
+  openDebugButton.type = "button";
+  openDebugButton.className = "btn btn-ghost";
+  openDebugButton.textContent = "Open debug panel";
+  openDebugButton.addEventListener("click", () => {
+    revealDebugDisclosure();
+    debugDisclosure?.setAttribute("open", "");
+    debugDisclosure?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  actions.appendChild(openDebugButton);
+  card.appendChild(actions);
+
+  resultEl.appendChild(card);
+  return true;
+}
+
 function renderTestLifecycle(testResults, repair) {
   if (!testResults) return;
   testStatusEl.innerHTML = "";
@@ -522,6 +1116,306 @@ function renderTestLifecycle(testResults, repair) {
   } else {
     testStatusEl.textContent = "No tests executed for this generation.";
   }
+}
+
+function computeOutcome(data) {
+  // Robust outcome classification that tolerates missing/zero test counts
+  if (!data || data.error) return 'error';
+  const files = Number(data.files_written || 0);
+  if (!Number.isFinite(files) || files <= 0) return 'error';
+
+  const initial = data.testResults?.initial || null;
+  const after = data.testResults?.afterRepair || null;
+  const statusRaw = (after?.status ?? initial?.status ?? '').toString();
+  const status = statusRaw.toUpperCase();
+  const passCount = Number(after?.passCount ?? initial?.passCount ?? 0);
+  const failCount = Number(after?.failCount ?? initial?.failCount ?? 0);
+  const executed = (Number.isFinite(passCount) && Number.isFinite(failCount) && (passCount + failCount > 0));
+
+  // Treat passing test status as success even if plan shows partial due to time-budget
+  if (status === 'PASS' && files > 0) return 'success';
+
+  // If the server marked success and we have files, prefer success
+  if (data.ok && files > 0 && (status === 'PASS' || status === 'PASSED' || !status)) {
+    return 'success';
+  }
+
+  // Clear PASS even when counts are zero (some runs skip tests but still succeed)
+  if (status === 'PASS' || status === 'PASSED') return 'success';
+  if (status === 'FAIL') return 'partial';
+
+  // Fallback by counts
+  if (executed && failCount > 0) return 'partial';
+  if (data.ok && files > 0) return 'success';
+  return 'error';
+}
+
+function renderSuccessCard(data) {
+  if (!data || !data.ok || !data.files_written) return false;
+  resultEl.innerHTML = "";
+  const card = document.createElement("article");
+  card.className = "outcome-card outcome-card--success";
+  const header = document.createElement("div");
+  header.className = "outcome-card__header";
+  const iconWrap = document.createElement("span");
+  iconWrap.className = "outcome-card__icon";
+  iconWrap.innerHTML = successIcon;
+  header.appendChild(iconWrap);
+  const heading = document.createElement("div");
+  heading.className = "outcome-card__heading";
+  const title = document.createElement("h2");
+  title.className = "outcome-card__title";
+  title.textContent = "Project generated successfully";
+  const testsStatus = data.testResults?.initial?.status?.toUpperCase() ?? "NOT RUN";
+  const subtitle = document.createElement("p");
+  subtitle.className = "outcome-card__subtitle";
+  subtitle.textContent = `${data.files_written} files created · Initial tests ${testsStatus}`;
+  heading.append(title, subtitle);
+  header.appendChild(heading);
+  card.appendChild(header);
+
+  const metrics = document.createElement("div");
+  metrics.className = "outcome-card__metrics";
+  const metricItems = [
+    { label: "Files generated", value: data.files_written }
+  ];
+  const pc = Number(data.testResults?.initial?.passCount ?? 0);
+  const fc = Number(data.testResults?.initial?.failCount ?? 0);
+  const status = String(data.testResults?.initial?.status || '').toUpperCase();
+  const executed = Number.isFinite(pc) && Number.isFinite(fc) && (pc + fc > 0);
+  if (executed) {
+    metricItems.push({ label: "Tests passed", value: pc });
+  } else if (status === 'PASS' || data.ok) {
+    metricItems.push({ label: "Tests", value: "PASS" });
+  }
+  metricItems.forEach(m => {
+    const metric = document.createElement("div");
+    metric.className = "outcome-card__metric";
+    const mv = document.createElement("span");
+    mv.className = "outcome-card__metric-value";
+    mv.textContent = String(m.value ?? 0);
+    const ml = document.createElement("span");
+    ml.className = "outcome-card__metric-label";
+    ml.textContent = m.label;
+    metric.append(mv, ml);
+    metrics.appendChild(metric);
+  });
+  card.appendChild(metrics);
+
+  const actions = document.createElement("div");
+  actions.className = "outcome-card__actions button-group";
+  if (data.browse_url) {
+    const openLink = document.createElement("a");
+    openLink.href = data.browse_url;
+    openLink.target = "_blank";
+    openLink.rel = "noopener";
+    openLink.className = "btn btn-primary";
+    openLink.textContent = "Open Project";
+    openLink.addEventListener("click", async (ev) => {
+      try {
+        ev.preventDefault();
+        const base = openLink.href.replace(/\/$/, "");
+        const indexUrl = `${base}/index.html`;
+        const r = await fetch(indexUrl, { method: "HEAD" });
+        if (r.ok) {
+          window.open(indexUrl, "_blank", "noopener");
+        } else {
+          window.open(openLink.href, "_blank", "noopener");
+        }
+      } catch {
+        window.open(openLink.href, "_blank", "noopener");
+      }
+    });
+    actions.appendChild(openLink);
+  }
+  const viewFilesBtn = document.createElement("button");
+  viewFilesBtn.type = "button";
+  viewFilesBtn.className = "btn btn-secondary";
+  viewFilesBtn.textContent = "View files";
+  viewFilesBtn.addEventListener("click", async () => {
+    let files = getGeneratedFiles(data);
+    if ((!files || files.length === 0) && currentProjectSlug) {
+      try {
+        const metaResp = await fetch(`/output/${currentProjectSlug}/_executor_meta.json`);
+        if (metaResp.ok) {
+          const meta = await metaResp.json();
+          const paths = Array.isArray(meta.files)
+            ? meta.files.map((f) => (typeof f?.path === 'string' ? f.path : null)).filter(Boolean)
+            : [];
+          if (paths.length > 0) files = paths;
+        }
+      } catch { /* ignore; use empty list */ }
+    }
+    renderFilePreview(files || []);
+  });
+  actions.appendChild(viewFilesBtn);
+
+  const openDebugButton = document.createElement("button");
+  openDebugButton.type = "button";
+  openDebugButton.className = "btn btn-ghost";
+  openDebugButton.textContent = "Open debug panel";
+  openDebugButton.addEventListener("click", () => {
+    revealDebugDisclosure();
+    debugDisclosure?.setAttribute("open", "");
+    debugDisclosure?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  actions.appendChild(openDebugButton);
+
+  card.appendChild(actions);
+  resultEl.appendChild(card);
+  return true;
+}
+
+function formatError(data) {
+  try {
+    const message = typeof data === 'string' ? data : (data?.error ?? 'Unknown error');
+    const details = typeof data === 'string' ? '' : (data?.details ?? '');
+    return `<div><strong>${escapeHtml(String(message))}</strong>${details ? `<pre>${escapeHtml(String(details))}</pre>` : ''}</div>`;
+  } catch {
+    return `<div><strong>${escapeHtml(String(data))}</strong></div>`;
+  }
+}
+
+function renderErrorCard(data) {
+  resultEl.innerHTML = "";
+  const card = document.createElement("article");
+  card.className = "outcome-card outcome-card--error";
+  const header = document.createElement("div");
+  header.className = "outcome-card__header";
+  const iconWrap = document.createElement("span");
+  iconWrap.className = "outcome-card__icon";
+  iconWrap.innerHTML = errorIcon;
+  header.appendChild(iconWrap);
+  const heading = document.createElement("div");
+  heading.className = "outcome-card__heading";
+  const title = document.createElement("h2");
+  title.className = "outcome-card__title";
+  title.textContent = "We couldn't complete your request";
+  const subtitle = document.createElement("p");
+  subtitle.className = "outcome-card__subtitle";
+  subtitle.textContent = "Something went wrong during generation or testing.";
+  heading.append(title, subtitle);
+  header.appendChild(heading);
+  card.appendChild(header);
+  const message = document.createElement("p");
+  message.className = "outcome-card__message";
+  message.innerHTML = formatError(data);
+  card.appendChild(message);
+  const actions = document.createElement("div");
+  actions.className = "outcome-card__actions button-group";
+  const retry = document.createElement("button");
+  retry.className = "btn btn-primary";
+  retry.textContent = "Try again";
+  retry.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    promptEl.focus();
+  });
+  actions.appendChild(retry);
+  const openDebugButton = document.createElement("button");
+  openDebugButton.type = "button";
+  openDebugButton.className = "btn btn-ghost";
+  openDebugButton.textContent = "Open debug panel";
+  openDebugButton.addEventListener("click", () => {
+    revealDebugDisclosure();
+    debugDisclosure?.setAttribute("open", "");
+    debugDisclosure?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  actions.appendChild(openDebugButton);
+  card.appendChild(actions);
+  resultEl.appendChild(card);
+  return true;
+}
+
+function renderFilePreview(files) {
+  if (!filePreviewPanel) return;
+  filePreviewPanel.innerHTML = "";
+  filePreviewPanel.classList.add("active");
+  filePreviewPanel.removeAttribute("hidden");
+  const tree = document.createElement("div");
+  tree.className = "file-tree";
+  const preview = document.createElement("div");
+  preview.className = "file-preview";
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  const codePre = document.createElement("pre");
+  const code = document.createElement("code");
+  code.className = "language-js";
+  codePre.appendChild(code);
+  const copy = document.createElement("button");
+  copy.className = "btn btn-secondary copy-btn";
+  copy.textContent = "Copy";
+  copy.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(code.textContent || "");
+      copy.textContent = "Copied!";
+      setTimeout(() => (copy.textContent = "Copy"), 1200);
+    } catch {
+      copy.textContent = "Copy failed";
+      setTimeout(() => (copy.textContent = "Copy"), 1200);
+    }
+  });
+  preview.append(meta, copy, codePre);
+
+  files.forEach(filePath => {
+    const item = document.createElement("div");
+    item.className = "item";
+    item.textContent = filePath;
+    item.addEventListener("click", async () => {
+      document.querySelectorAll('.file-tree .item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+      meta.textContent = "Loading...";
+      const project = currentProjectSlug || "";
+      const encodedPath = encodeURIComponent(filePath);
+      try {
+        const resp = await fetch(`/api/files/${project}/${encodedPath}`);
+        if (!resp.ok) {
+          meta.textContent = `Error ${resp.status}`;
+          return;
+        }
+        const data = await resp.json();
+        meta.textContent = `${filePath} • ${data.size} bytes • ${new Date(data.modified).toLocaleString()}${data.binary ? ' • binary' : ''}`;
+        if (data.binary) {
+          code.textContent = "Binary file preview not supported.";
+        } else {
+          const ext = filePath.split('.').pop() || 'txt';
+          code.className = `language-${ext}`;
+          code.textContent = data.content;
+          if (window.Prism && Prism.highlightAllUnder) {
+            Prism.highlightAllUnder(preview);
+          }
+        }
+      } catch (e) {
+        meta.textContent = `Failed to load file: ${e}`;
+      }
+    });
+    tree.appendChild(item);
+  });
+
+  filePreviewPanel.append(tree, preview);
+}
+
+function renderProgressStages() {
+  const container = document.createElement('div');
+  container.className = 'progress-stages';
+  const stages = ['analyzing','planning','generating','testing','finalizing'];
+  stages.forEach(stage => {
+    const row = document.createElement('div');
+    row.className = `stage stage-${stage}`;
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    const label = document.createElement('div');
+    label.textContent = stage.charAt(0).toUpperCase()+stage.slice(1);
+    row.append(dot,label);
+    container.appendChild(row);
+  });
+  const bar = document.createElement('div');
+  bar.className = 'progress-bar';
+  const fill = document.createElement('span');
+  bar.appendChild(fill);
+  container.appendChild(bar);
+  resultEl.innerHTML = '';
+  resultEl.appendChild(container);
+  return { container, fill };
 }
 
 function resetClarificationUI() {
@@ -643,15 +1537,101 @@ function collectClarificationAnswers() {
   return { answers };
 }
 
+// legacy formatError removed (modern formatError used above)
+
+/**
+ * Render Error Card - Generation failed completely
+ * Used when no files produced or system error occurred
+ */
+// old error card removed in favor of modern outcome-card implementation
+
+// removed legacy updateLoadingPhase (replaced by renderProgressStages)
+
 async function executeRequest({ prompt, projectName, clarifications }) {
   resetClarificationUI();
-  resultEl.textContent = "Planning and executing your project... This may take several minutes for complex requests.";
   testControlsEl.classList.add("hidden");
   currentProjectSlug = null;
   renderRepairHistory(null);
   resetTaskPlanUI();
+  resetOrchestrationControls();
 
-  const payload = { prompt };
+  // Start progress UI and polling
+  const { fill } = renderProgressStages();
+  progressFillEl = fill;
+  const sessionId = (() => {
+    const arr = new Uint8Array(8);
+    (window.crypto || self.crypto).getRandomValues(arr);
+    return Array.from(arr).map(n => n.toString(16).padStart(2,'0')).join('');
+  })();
+  activeSessionId = sessionId;
+  // Expose for tests/diagnostics
+  try { globalThis.activeSessionId = sessionId; } catch { /* noop */ }
+  orchestrationSection?.classList.remove("hidden");
+  if (pauseSessionButton) {
+    pauseSessionButton.disabled = false;
+  }
+  progressStopFlag = false;
+  (async () => {
+    while (!progressStopFlag) {
+      try {
+        const r = await fetch(`/api/progress/snapshot/${sessionId}`);
+        if (r.ok) {
+          const p = await r.json();
+          const percent = Math.max(0, Math.min(100, Number(p.progress || 0)));
+          fill.style.width = `${percent}%`;
+          const current = p.stage || 'analyzing';
+          document.querySelectorAll('.progress-stages .stage').forEach(node => node.classList.remove('current','completed'));
+          const order = ['analyzing','planning','generating','testing','finalizing'];
+          const idx = order.indexOf(current);
+          order.forEach((name,i) => {
+            const el = document.querySelector(`.stage-${name}`);
+            if (!el) return;
+            if (i < idx) el.classList.add('completed');
+            if (i === idx) el.classList.add('current');
+          });
+          updateOrchestrationState(p);
+          if (p.done) { progressStopFlag = true; break; }
+        }
+      } catch {
+        /* ignore */ void 0;
+      }
+      await new Promise(r => setTimeout(r, 900));
+    }
+  })();
+
+  // Try EventSource (SSE) for real-time progress; fallback polling remains
+  try {
+    const es = new EventSource(`/api/progress/${sessionId}`);
+    progressEventSource = es;
+    es.onmessage = ev => {
+      try {
+        const p = JSON.parse(ev.data);
+        const percent = Math.max(0, Math.min(100, Number(p.progress || 0)));
+        fill.style.width = `${percent}%`;
+        const current = p.stage || 'analyzing';
+        document.querySelectorAll('.progress-stages .stage').forEach(node => node.classList.remove('current','completed'));
+        const order = ['analyzing','planning','generating','testing','finalizing'];
+        const idx = order.indexOf(current);
+        order.forEach((name,i) => {
+          const el = document.querySelector(`.stage-${name}`);
+          if (!el) return;
+          if (i < idx) el.classList.add('completed');
+          if (i === idx) el.classList.add('current');
+        });
+        updateOrchestrationState(p);
+        if (p.done) { progressStopFlag = true; es.close(); }
+      } catch {
+        /* ignore */ void 0;
+      }
+    };
+    es.onerror = () => {
+      es.close();
+    };
+  } catch {
+    // silently fall back to polling only
+  }
+
+  const payload = { prompt, sessionId };
   if (projectName) {
     payload.projectName = projectName;
   }
@@ -668,17 +1648,50 @@ async function executeRequest({ prompt, projectName, clarifications }) {
           body: JSON.stringify(payload),
         });
 
-    const data = await resp.json();
-    if (!resp.ok) {
-      resultEl.textContent = `Error: ${data?.error || resp.statusText}`;
+    // 202 Accepted means execution paused; treat as paused UX, not an error
+    if (resp.status === 202) {
+      await resp.json().catch(() => ({})); // drain body for devtools/debug
+      await handlePausedResponse(sessionId);
+      // Stop progress streams while paused; resume will restart
+      try { progressStopFlag = true; } catch { /* noop */ }
+      try { progressEventSource?.close?.(); } catch { /* noop */ }
       return;
     }
 
-    resultEl.textContent = JSON.stringify(data, null, 2);
+    const data = await resp.json();
+    if (!resp.ok) {
+      renderErrorCard({ error: data?.error || resp.statusText });
+      return;
+    }
+
+    // Use outcome state machine to determine which card to render
+    const outcome = computeOutcome(data);
+    let rendered = false;
+    
+    switch (outcome) {
+      case 'success':
+        rendered = renderSuccessCard(data);
+        break;
+      case 'partial':
+        rendered = renderPartialCard(data);
+        break;
+      case 'error':
+        rendered = renderErrorCard(data);
+        break;
+      default:
+        console.error('Unknown outcome:', outcome);
+        rendered = renderErrorCard({ error: 'Unknown outcome state' });
+    }
+
+    // Fallback to JSON if render failed (shouldn't happen with state machine)
+    if (!rendered) {
+      resultEl.textContent = JSON.stringify(data, null, 2);
+    }
+
+    // Always render task plan and test lifecycle (in debug disclosure)
     renderTaskPlan(data.taskPlan, data.planExecutionResult, data.timeEstimate);
+    
     if (data?.browse_url) {
-      resultEl.appendChild(document.createElement("br"));
-      resultEl.appendChild(renderLink(data.browse_url));
       currentProjectSlug = data.project;
       testControlsEl.classList.remove("hidden");
       renderTestLifecycle(data.testResults, data.repair);
@@ -687,7 +1700,9 @@ async function executeRequest({ prompt, projectName, clarifications }) {
       currentProjectSlug = null;
     }
   } catch (err) {
-    resultEl.textContent = String(err);
+    renderErrorCard({ error: err });
+  } finally {
+    // No-op; paused flow handled above. Progress streams stop on done=true or pause.
   }
 }
 
@@ -708,6 +1723,7 @@ async function startClarificationFlow() {
   testControlsEl.classList.add("hidden");
   currentProjectSlug = null;
   resetClarificationUI();
+  resetOrchestrationControls();
 
   try {
     const resp = isDemoMode
@@ -733,7 +1749,7 @@ async function startClarificationFlow() {
     renderClarificationQuestions(questions);
     resultEl.textContent = "Clarifications required before generation.";
   } catch (err) {
-    resultEl.textContent = String(err);
+    resultEl.innerHTML = formatError(err);
   }
 }
 

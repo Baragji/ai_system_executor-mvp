@@ -72,6 +72,7 @@ export interface SubtaskPromptRequest {
 export interface ExecutionContext {
   projectPath: string;
   projectSlug: string;
+  sessionId?: string;
   originalPrompt: string;
   clarifications?: ClarificationResponse;
   previousSubtaskResults: SubtaskResult[];
@@ -108,6 +109,7 @@ export interface PlanExecutionResult {
   totalDurationMs: number;
   failedSubtasks: string[];
   completedSubtasks: string[];
+  haltReason?: string;
 }
 
 export interface TimeEstimate {

@@ -1,0 +1,38 @@
+{
+  "project_name": "small-ts-lib",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"small-ts-lib\",\n  \"version\": \"0.1.0\",\n  \"description\": \"A tiny TypeScript library with one function and a unit test (TypeScript + Jest)\",\n  \"main\": \"dist/index.js\",\n  \"types\": \"dist/index.d.ts\",\n  \"scripts\": {\n    \"build\": \"tsc -p tsconfig.json\",\n    \"test\": \"jest --colors\",\n    \"start\": \"node dist/index.js\"\n  },\n  \"license\": \"MIT\",\n  \"devDependencies\": {\n    \"@types/jest\": \"^29.5.0\",\n    \"jest\": \"^29.6.0\",\n    \"ts-jest\": \"^29.1.0\",\n    \"typescript\": \"^5.1.0\"\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2019\",\n    \"module\": \"CommonJS\",\n    \"declaration\": true,\n    \"outDir\": \"dist\",\n    \"rootDir\": \"src\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"forceConsistentCasingInFileNames\": true\n  },\n  \"include\": [\"src/**/*\"],\n  \"exclude\": [\"node_modules\", \"dist\"]\n}\n"
+    },
+    {
+      "path": "jest.config.js",
+      "contents": "module.exports = {\n  preset: 'ts-jest',\n  testEnvironment: 'node',\n  testMatch: ['**/tests/**/*.test.ts']\n};\n"
+    },
+    {
+      "path": "src/index.ts",
+      "contents": "/**\n * A tiny example function for the library.\n * Keeps the project runnable and testable.\n */\n\nexport function add(a: number, b: number): number {\n  return a + b;\n}\n\n// a tiny default export (optional)\nexport default { add };\n"
+    },
+    {
+      "path": "tests/add.test.ts",
+      "contents": "import { add } from '../src/index';\n\ndescribe('add()', () => {\n  test('adds two positive numbers', () => {\n    expect(add(1, 2)).toBe(3);\n  });\n\n  test('adds negative and positive number', () => {\n    expect(add(-1, 4)).toBe(3);\n  });\n});\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# small-ts-lib\n\nA tiny TypeScript library with one function and a unit test.\n\nQuickstart\n\n1. Install dependencies\n\n   npm install\n\n2. Build the library\n\n   npm run build\n\n3. Run tests\n\n   npm test\n\n4. Run the built file (after build)\n\n   npm start\n\nRepository layout\n\n- src/ - TypeScript source files\n- tests/ - Jest tests\n- dist/ - compiled output (created after running npm run build)\n\nInitializing a git repository locally\n\nIf you want to initialize a git repository locally and make the initial commit:\n\n1. git init\n2. git add .\n3. git commit -m \"chore: initial project structure\"\n\nLicense\n\nThis project is licensed under the MIT License - see the LICENSE file for details.\n"
+    },
+    {
+      "path": "LICENSE",
+      "contents": "MIT License\n\nCopyright (c) 2025 small-ts-lib contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  ],
+  "notes": [
+    "Run `npm install` to install dev dependencies, `npm run build` to compile, and `npm test` to run tests.",
+    "Add an initial git commit locally with `git init && git add . && git commit -m \"chore: initial project structure\"`."
+  ],
+  "hasTests": true
+}

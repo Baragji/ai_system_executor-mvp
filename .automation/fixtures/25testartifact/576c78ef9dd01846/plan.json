@@ -1,0 +1,81 @@
+{
+  "originalPrompt": "make a ui with hello wolrd rainbows",
+  "subtasks": [
+    {
+      "id": "define-requirements",
+      "title": "Define requirements",
+      "description": "Document exact functional and visual requirements for a UI that displays a \"Hello World\" message with rainbow styling and any animations.",
+      "status": "in_progress",
+      "estimatedComplexity": "low",
+      "successCriteria": "A one-page requirements note exists specifying text content, target platforms, colors/animations, and accessibility expectations."
+    },
+    {
+      "id": "create-design-mockup",
+      "title": "Create design mockup",
+      "description": "Produce a static mockup (image or HTML prototype) showing layout, typography, and rainbow color treatment for the Hello World UI.",
+      "status": "pending",
+      "dependencies": [
+        "define-requirements"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Mockup shows final placement of the message, color palette for the rainbow, and a notes section describing animation behavior."
+    },
+    {
+      "id": "setup-project-scaffold",
+      "title": "Set up project scaffold",
+      "description": "Initialize project repository, install tooling (build system, dev server), and create base files (index.html, styles, main JS/TS).",
+      "status": "pending",
+      "dependencies": [
+        "create-design-mockup"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Repository with working dev server that serves index.html and a starter CSS/JS bundle is created and runnable locally."
+    },
+    {
+      "id": "implement-ui-components",
+      "title": "Implement UI components",
+      "description": "Build the HTML/CSS/JS components that render the Hello World message and support injecting styling classes for rainbow effects.",
+      "status": "pending",
+      "dependencies": [
+        "setup-project-scaffold"
+      ],
+      "estimatedComplexity": "high",
+      "successCriteria": "Hello World text renders in the app with correct semantics and is targetable by CSS/JS for styling and animation."
+    },
+    {
+      "id": "add-rainbow-styling",
+      "title": "Add rainbow styling and animation",
+      "description": "Create and apply CSS (or JS-driven) gradients/animations to produce a rainbow effect across the text or background per the design.",
+      "status": "pending",
+      "dependencies": [
+        "implement-ui-components"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Rainbow colors are applied and animate smoothly at target framerate; design mockup color stops and timing are matched."
+    },
+    {
+      "id": "test-and-polish",
+      "title": "Test and polish",
+      "description": "Perform cross-browser checks, accessibility audit (contrast/ARIA), responsive adjustments, and fix visual/interaction bugs.",
+      "status": "pending",
+      "dependencies": [
+        "add-rainbow-styling"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "All major browsers render correctly, accessibility issues addressed (contrast >= WCAG AA where applicable), and no visual glitches remain."
+    },
+    {
+      "id": "deploy-publish",
+      "title": "Deploy and publish",
+      "description": "Build production assets and deploy the UI to a hosting platform or shareable URL for review.",
+      "status": "pending",
+      "dependencies": [
+        "test-and-polish"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "A public URL is available serving the production build and the deployed page matches the tested local version."
+    }
+  ],
+  "totalSubtasks": 7,
+  "decompositionStrategy": "Top-down: capture requirements, create visual mockup, scaffold project, implement core UI, apply rainbow styling/animation, then test and deploy."
+}

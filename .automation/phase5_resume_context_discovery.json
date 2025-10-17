@@ -1,0 +1,25 @@
+{
+  "phase": "5_resume_context",
+  "date": "2025-10-11",
+  "change": "Implement pause→resume execution flow with manifest-informed prompts, asynchronous restart, and shared single-run pipeline helper.",
+  "integration_points": [
+    { "file": "src/server.ts", "line_hint": 1411, "why": "Resume endpoint currently only flips state; needs to launch execution with context." },
+    { "file": "src/server.ts", "line_hint": 980, "why": "Single-run execution logic must be reusable for resumed jobs and respect existing files." },
+    { "file": "src/orchestrator/workspaceManifest.ts", "line_hint": 1, "why": "Manifest loader will supply summaries for resume prompts." },
+    { "file": "src/workspace/manifest.ts", "line_hint": 1, "why": "Need formatting helpers to turn manifest summaries into prompt text." },
+    { "file": "src/orchestrator/resume.ts", "line_hint": 200, "why": "Resume result should expose answered question data for prompt context." }
+  ],
+  "new_files": [
+    "src/orchestrator/resumePrompt.ts",
+    "tests/orchestrator/resumePrompt.test.ts"
+  ],
+  "non_breaking": true,
+  "new_dependencies": true,
+  "validation_gate": {
+    "lint": true,
+    "typecheck": true,
+    "tests": true,
+    "contracts": true,
+    "sbom": true
+  }
+}

@@ -33,6 +33,13 @@ describe("POST /api/clarify", () => {
       .send({});
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toBeDefined();
+    expect(res.headers["content-type"]).toContain("application/problem+json");
+    expect(res.body).toMatchObject({
+      status: 400,
+      title: "Bad Request",
+      detail: "prompt required",
+      instance: "/api/clarify"
+    });
+    expect(res.body).not.toHaveProperty("error");
   });
 });

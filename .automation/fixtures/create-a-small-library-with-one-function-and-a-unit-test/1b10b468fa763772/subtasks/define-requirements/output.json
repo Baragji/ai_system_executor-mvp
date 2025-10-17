@@ -1,0 +1,35 @@
+{
+  "project_name": "clamp-number",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"clamp-number\",\n  \"version\": \"0.1.0\",\n  \"private\": true,\n  \"main\": \"dist/index.js\",\n  \"types\": \"dist/index.d.ts\",\n  \"scripts\": {\n    \"build\": \"tsc -p .\",\n    \"test\": \"jest\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"^4.9.5\",\n    \"jest\": \"^29.5.0\",\n    \"ts-jest\": \"^29.0.5\",\n    \"@types/jest\": \"^29.5.0\"\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2019\",\n    \"module\": \"commonjs\",\n    \"declaration\": true,\n    \"outDir\": \"dist\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"skipLibCheck\": true\n  }\n}\n"
+    },
+    {
+      "path": "jest.config.js",
+      "contents": "module.exports = {\n  preset: 'ts-jest',\n  testEnvironment: 'node',\n  roots: ['<rootDir>/tests']\n};\n"
+    },
+    {
+      "path": "src/index.ts",
+      "contents": "/**\n * clampNumber\n *\n * Purpose:\n *   Small utility that clamps a numeric value between optional min and max bounds.\n *\n * API (TypeScript):\n *   clampNumber(value: number, min?: number, max?: number): number\n *\n * Parameters:\n *   - value: number\n *       The numeric value to clamp. Must be a finite number.\n *   - min?: number\n *       Optional lower bound. If provided, must be a finite number.\n *   - max?: number\n *       Optional upper bound. If provided, must be a finite number.\n *\n * Returns:\n *   - number: the clamped value. If neither min nor max are provided, returns value unchanged\n *\n * Behavior and edge cases:\n *   - If value is not a finite number (NaN, Infinity, -Infinity), a TypeError is thrown.\n *   - If min or max are provided but are not finite numbers, a TypeError is thrown.\n *   - If both min and max are provided and min > max, a RangeError is thrown.\n *   - If only min is provided, result = Math.max(value, min).\n *   - If only max is provided, result = Math.min(value, max).\n *   - If both are provided (and min <= max), result is clamped into [min, max].\n *\n * Target runtime:\n *   - Node.js 14+ (also works in modern browsers when compiled/transpiled)\n *\n * Example usage:\n *   import { clampNumber } from './index';\n *   const a = clampNumber(5, 1, 10); // 5\n *   const b = clampNumber(15, 1, 10); // 10\n *   const c = clampNumber(2, 3); // 3\n *\n */\n\nexport function clampNumber(value: number, min?: number, max?: number): number {\n  if (!Number.isFinite(value)) {\n    throw new TypeError('value must be a finite number');\n  }\n  if (min !== undefined && !Number.isFinite(min)) {\n    throw new TypeError('min must be a finite number when provided');\n  }\n  if (max !== undefined && !Number.isFinite(max)) {\n    throw new TypeError('max must be a finite number when provided');\n  }\n  if (min !== undefined && max !== undefined && min > max) {\n    throw new RangeError('min must be <= max');\n  }\n\n  let result = value;\n  if (min !== undefined) result = Math.max(result, min);\n  if (max !== undefined) result = Math.min(result, max);\n  return result;\n}\n"
+    },
+    {
+      "path": "tests/index.test.ts",
+      "contents": "import { clampNumber } from '../src/index';\n\ndescribe('clampNumber', () => {\n  test('returns value when inside bounds', () => {\n    expect(clampNumber(5, 1, 10)).toBe(5);\n  });\n\n  test('clamps value above max to max', () => {\n    expect(clampNumber(15, 1, 10)).toBe(10);\n  });\n\n  test('clamps value below min to min', () => {\n    expect(clampNumber(-5, 0, 10)).toBe(0);\n  });\n\n  test('min only clamps lower bound', () => {\n    expect(clampNumber(2, 3)).toBe(3);\n    expect(clampNumber(5, 3)).toBe(5);\n  });\n\n  test('max only clamps upper bound', () => {\n    expect(clampNumber(8, undefined, 6)).toBe(6);\n    expect(clampNumber(4, undefined, 6)).toBe(4);\n  });\n\n  test('throws when min > max', () => {\n    expect(() => clampNumber(5, 10, 1)).toThrow(RangeError);\n  });\n\n  test('throws on non-finite value', () => {\n    expect(() => clampNumber(NaN, 1, 2)).toThrow(TypeError);\n    expect(() => clampNumber(Infinity)).toThrow(TypeError);\n  });\n\n  test('throws on non-finite min/max when provided', () => {\n    expect(() => clampNumber(1, NaN)).toThrow(TypeError);\n    expect(() => clampNumber(1, undefined, Infinity)).toThrow(TypeError);\n  });\n});\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# clamp-number\n\nThis small library provides one utility function: `clampNumber`.\n\nSpecification (function API and requirements)\n\n- Function name: clampNumber\n- Signature (TypeScript):\n  - clampNumber(value: number, min?: number, max?: number): number\n- Purpose: Return a numeric value clamped between optional lower (min) and upper (max) bounds.\n\nParameters\n- value: number — the value to clamp. Must be a finite number.\n- min?: number — optional lower bound. If provided, must be finite.\n- max?: number — optional upper bound. If provided, must be finite.\n\nReturn value\n- number — the clamped value. If neither min nor max are provided, returns the original value.\n\nEdge cases and defined behaviors\n- If `value` is not a finite number (NaN, Infinity, -Infinity), the function throws a TypeError.\n- If `min` or `max` is provided but is not finite, the function throws a TypeError.\n- If both `min` and `max` are provided and `min > max`, the function throws a RangeError.\n- If only `min` is provided, the result is Math.max(value, min).\n- If only `max` is provided, the result is Math.min(value, max).\n- If both are provided (and min <= max), the result is clamped into [min, max].\n\nExample usage (TypeScript)\n\n```ts\nimport { clampNumber } from './index';\n\nconsole.log(clampNumber(5, 1, 10)); // 5\nconsole.log(clampNumber(15, 1, 10)); // 10\nconsole.log(clampNumber(2, 3)); // 3\n```\n\nTarget runtime\n- Node.js 14+ (the code is TypeScript; build with `npm run build` to produce JS for distribution).\n\nRun\n- Install dev dependencies: `npm install`\n- Run tests: `npm test`\n- Build: `npm run build`\n"
+    }
+  ],
+  "notes": [
+    "Install dependencies with `npm install`.",
+    "Run tests with `npm test`. Tests are implemented using jest + ts-jest.",
+    "Build TypeScript with `npm run build` to produce outputs in `dist/`."
+  ],
+  "hasTests": true
+}

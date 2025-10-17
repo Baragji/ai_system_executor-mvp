@@ -1,0 +1,38 @@
+{
+  "project_name": "smalllib",
+  "files": [
+    {
+      "path": "pyproject.toml",
+      "contents": "[build-system]\nrequires = [\"setuptools>=42\", \"wheel\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"smalllib\"\nversion = \"0.1.0\"\ndescription = \"A small library with one function\"\nreadme = \"README.md\"\nlicense = { text = \"MIT\" }\nrequires-python = \">=3.8\"\nauthors = [{ name = \"Your Name\", email = \"you@example.com\" }]\n\n[project.optional-dependencies]\ndev = [\"pytest\"]\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# smalllib\n\nA tiny Python library with one function and tests.\n\nQuickstart\n\n1. Create a virtual environment and activate it:\n\n   python -m venv .venv\n\n   # macOS / Linux\n   source .venv/bin/activate\n\n   # Windows (PowerShell)\n   .\\.venv\\Scripts\\Activate.ps1\n\n2. Install the package and dev dependencies:\n\n   pip install -e .\n   pip install -r requirements-dev.txt\n\n3. Run tests:\n\n   pytest\n\nNotes\n\n- The project uses a src/ layout. The tests are configured to work locally by adding src/ to PYTHONPATH via tests/conftest.py so you don't need to install the package to run tests.\n- Design details for the library function are recorded in DESIGN.md.\n"
+    },
+    {
+      "path": "requirements-dev.txt",
+      "contents": "pytest\n"
+    },
+    {
+      "path": "DESIGN.md",
+      "contents": "# Design note: add(a, b)\n\nThis document describes the API, intended behavior, examples, and edge-case handling for the library function add(a, b).\n\nFunction signature\n\n- add(a, b) -> dependent on operand types\n\nBehavior\n\n- The function performs the operation a + b using Python's built-in addition operator and returns the result.\n- The function does not coerce types or perform any implicit conversions beyond what Python's + operator does for the given operands.\n- If the two operands support the + operator together (for example, two numbers, two strings, two lists), the operation succeeds and the result is returned.\n- If the operands are incompatible for the + operator (for example, int + str), Python will raise a TypeError. The function does not catch or change that exception; it is propagated to the caller.\n\nExamples\n\n- add(1, 2) -> 3\n- add(0.5, 0.25) -> 0.75\n- add(\"a\", \"b\") -> \"ab\"\n- add([1], [2]) -> [1, 2]\n- add(True, False) -> 1  # booleans are integers in Python\n\nError handling and edge cases\n\n- add(1, \"a\") -> raises TypeError (no implicit conversion performed)\n- add(None, 1) -> raises TypeError (NoneType does not support addition with int)\n- add(object(), object()) -> may raise TypeError unless the objects implement __add__ to handle each other\n\nRationale\n\n- This design intentionally mirrors Python's native + operator semantics. The function is intentionally minimal and acts as a thin wrapper around + so callers can rely on standard Python behavior.\n- If callers require strict type checking or coercion, they should perform validation before calling add or use a different helper function that enforces those rules.\n\nTesting notes\n\n- Tests in tests/test_add.py exercise numeric addition, floating-point addition, string concatenation, list concatenation, and an incompatible-type case that must raise TypeError.\n"
+    },
+    {
+      "path": "src/smalllib/__init__.py",
+      "contents": "\"\"\"smalllib: a minimal example library.\"\"\"\n\n__all__ = [\"add\", \"__version__\"]\n__version__ = \"0.1.0\"\n\n\ndef add(a, b):\n    \"\"\"Return the sum of a and b.\n\n    This simple function is the library's functionality used by the tests.\n    It uses Python's built-in + operator and therefore supports any types\n    for which + is defined. Incompatible types will raise a TypeError.\n    \"\"\"\n    return a + b\n"
+    },
+    {
+      "path": "tests/conftest.py",
+      "contents": "import os\nimport sys\n\n# Ensure src/ is on sys.path so tests can import the package without installing.\nROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), \"..\"))\nSRC = os.path.join(ROOT, \"src\")\nif SRC not in sys.path:\n    sys.path.insert(0, SRC)\n"
+    },
+    {
+      "path": "tests/test_add.py",
+      "contents": "import pytest\nfrom smalllib import add\n\n\ndef test_add_integers():\n    assert add(1, 2) == 3\n\n\ndef test_add_floats():\n    assert add(0.5, 0.25) == 0.75\n\n\ndef test_add_strings():\n    assert add(\"a\", \"b\") == \"ab\"\n\n\ndef test_add_lists():\n    assert add([1], [2]) == [1, 2]\n\n\ndef test_add_incompatible_types_raises():\n    with pytest.raises(TypeError):\n        add(1, \"a\")\n"
+    }
+  ],
+  "notes": [
+    "Design note for add(a, b) is in DESIGN.md.",
+    "Run tests with: pytest"
+  ],
+  "hasTests": true
+}

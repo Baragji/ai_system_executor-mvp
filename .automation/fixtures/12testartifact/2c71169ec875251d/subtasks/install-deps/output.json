@@ -1,0 +1,52 @@
+{
+  "project_name": "express-tailwind-hello",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"express-tailwind-hello\",\n  \"version\": \"0.1.0\",\n  \"private\": true,\n  \"main\": \"dist/index.js\",\n  \"scripts\": {\n    \"build\": \"tsc\",\n    \"build:css\": \"tailwindcss -i ./src/styles/tailwind.css -o ./public/styles.css --minify\",\n    \"dev\": \"nodemon --watch src --exec ts-node src/index.ts\",\n    \"start\": \"node dist/index.js\",\n    \"test\": \"jest --coverage\"\n  },\n  \"dependencies\": {\n    \"express\": \"^4.18.2\"\n  },\n  \"devDependencies\": {\n    \"tailwindcss\": \"^3.5.0\",\n    \"postcss\": \"^8.4.21\",\n    \"autoprefixer\": \"^10.4.13\",\n    \"nodemon\": \"^2.0.22\",\n    \"ts-node\": \"^10.9.1\",\n    \"typescript\": \"^4.9.5\",\n    \"jest\": \"^29.6.1\",\n    \"ts-jest\": \"^29.1.0\",\n    \"@types/jest\": \"^29.5.2\",\n    \"supertest\": \"^6.3.3\",\n    \"@types/supertest\": \"^2.0.12\",\n    \"@types/express\": \"^4.17.17\",\n    \"@types/node\": \"^18.16.19\"\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2019\",\n    \"module\": \"commonjs\",\n    \"rootDir\": \"src\",\n    \"outDir\": \"dist\",\n    \"esModuleInterop\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"strict\": true,\n    \"skipLibCheck\": true,\n    \"sourceMap\": true\n  }\n}\n"
+    },
+    {
+      "path": "jest.config.js",
+      "contents": "module.exports = {\n  preset: 'ts-jest',\n  testEnvironment: 'node',\n  testMatch: ['**/tests/**/*.test.ts']\n};\n"
+    },
+    {
+      "path": "postcss.config.cjs",
+      "contents": "module.exports = {\n  plugins: {\n    tailwindcss: {},\n    autoprefixer: {}\n  }\n};\n"
+    },
+    {
+      "path": "tailwind.config.cjs",
+      "contents": "module.exports = {\n  content: ['./public/**/*.html', './src/**/*.{ts,tsx,js,jsx}'],\n  theme: {\n    extend: {}\n  },\n  plugins: []\n};\n"
+    },
+    {
+      "path": "src/styles/tailwind.css",
+      "contents": "@tailwind base;\n@tailwind components;\n@tailwind utilities;\n"
+    },
+    {
+      "path": "src/index.ts",
+      "contents": "import express from 'express';\nimport path from 'path';\n\nconst app = express();\n\n// Serve static frontend from /public\napp.use(express.static(path.join(__dirname, '..', 'public')));\n\n// Simple API endpoint for tests and future use\napp.get('/api/hello', (_req, res) => {\n  res.json({ message: 'Hello World' });\n});\n\n// Fallback: serve index.html (static will handle it but keep for clarity)\napp.get('/', (_req, res) => {\n  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));\n});\n\n// Start server unless running in test mode\nif (process.env.NODE_ENV !== 'test') {\n  const port = process.env.PORT ? Number(process.env.PORT) : 3000;\n  app.listen(port, () => {\n    // eslint-disable-next-line no-console\n    console.log(`Server listening on http://localhost:${port}`);\n  });\n}\n\nexport default app;\n"
+    },
+    {
+      "path": "public/index.html",
+      "contents": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <title>Hello - Tailwind</title>\n    <!-- Tailwind CDN (play) for rapid prototyping; built CSS (public/styles.css) will override when generated -->\n    <script src=\"https://cdn.tailwindcss.com\"></script>\n    <link rel=\"stylesheet\" href=\"/styles.css\" />\n  </head>\n  <body class=\"bg-gray-100 min-h-screen flex items-center justify-center\">\n    <div class=\"max-w-xl w-full p-6 bg-white rounded shadow\">\n      <h1 id=\"helloText\" class=\"text-4xl font-bold text-gray-800 mb-4 text-center\">Hello World</h1>\n\n      <div class=\"grid grid-cols-1 gap-4\">\n        <div class=\"flex items-center justify-between\">\n          <label for=\"textColor\" class=\"mr-4\">Text color:</label>\n          <input id=\"textColor\" type=\"color\" value=\"#1f2937\" class=\"w-12 h-8 p-0\" />\n        </div>\n\n        <div class=\"flex items-center justify-between\">\n          <label for=\"bgColor\" class=\"mr-4\">Background color:</label>\n          <input id=\"bgColor\" type=\"color\" value=\"#ffffff\" class=\"w-12 h-8 p-0\" />\n        </div>\n\n        <div class=\"flex items-center justify-between\">\n          <label for=\"fontSize\" class=\"mr-4\">Font size:</label>\n          <select id=\"fontSize\" class=\"border rounded p-1\">\n            <option value=\"text-2xl\">Large</option>\n            <option value=\"text-3xl\">Larger</option>\n            <option value=\"text-4xl\" selected>Default</option>\n            <option value=\"text-5xl\">Huge</option>\n          </select>\n        </div>\n\n        <div class=\"pt-2 text-center\">\n          <button id=\"resetBtn\" class=\"px-4 py-2 bg-blue-600 text-white rounded\">Reset</button>\n        </div>\n      </div>\n    </div>\n\n    <script>\n      const helloText = document.getElementById('helloText');\n      const textColorInput = document.getElementById('textColor');\n      const bgColorInput = document.getElementById('bgColor');\n      const fontSizeSelect = document.getElementById('fontSize');\n      const resetBtn = document.getElementById('resetBtn');\n\n      function applyTextColor(value) {\n        if (helloText) helloText.style.color = value;\n      }\n\n      function applyBgColor(value) {\n        if (helloText) helloText.style.backgroundColor = value;\n      }\n\n      function applyFontSize(className) {\n        if (!helloText) return;\n        // remove any text-* classes matching tailwind sizes we used\n        helloText.classList.remove('text-2xl', 'text-3xl', 'text-4xl', 'text-5xl');\n        helloText.classList.add(className);\n      }\n\n      if (textColorInput) {\n        applyTextColor(textColorInput.value);\n        textColorInput.addEventListener('input', (e) => applyTextColor(e.target.value));\n      }\n\n      if (bgColorInput) {\n        applyBgColor(bgColorInput.value);\n        bgColorInput.addEventListener('input', (e) => applyBgColor(e.target.value));\n      }\n\n      if (fontSizeSelect) {\n        applyFontSize(fontSizeSelect.value);\n        fontSizeSelect.addEventListener('change', (e) => applyFontSize(e.target.value));\n      }\n\n      if (resetBtn) {\n        resetBtn.addEventListener('click', () => {\n          if (textColorInput) textColorInput.value = '#1f2937';\n          if (bgColorInput) bgColorInput.value = '#ffffff';\n          if (fontSizeSelect) fontSizeSelect.value = 'text-4xl';\n          applyTextColor('#1f2937');\n          applyBgColor('#ffffff');\n          applyFontSize('text-4xl');\n        });\n      }\n    </script>\n  </body>\n</html>\n"
+    },
+    {
+      "path": "tests/server.test.ts",
+      "contents": "import request from 'supertest';\nimport app from '../src/index';\n\ndescribe('GET /api/hello', () => {\n  it('responds with Hello World JSON', async () => {\n    const res = await request(app).get('/api/hello').expect(200);\n    expect(res.body).toEqual({ message: 'Hello World' });\n  });\n});\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# Express + Tailwind Hello\n\nThis small project provides a Hello World page and allows changing the \"Hello World\" text color (and background) from the frontend UI.\n\nSetup\n\n1. Install dependencies:\n\n   npm install\n\n2. (Optional) Build Tailwind CSS into public/styles.css:\n\n   npm run build:css\n\n   Note: The page uses the Tailwind CDN for immediate styling, so building CSS is optional for development. Building will produce a local styles.css at public/styles.css.\n\nRun\n\n- Development (uses nodemon + ts-node):\n\n  npm run dev\n\n- Build TypeScript and start from dist\n\n  npm run build\n  npm start\n\nTests\n\nRun tests with:\n\n  npm test\n\nThe test suite includes a basic supertest check for the /api/hello endpoint.\n"
+    }
+  ],
+  "notes": [
+    "Dependencies added: tailwindcss, postcss, autoprefixer, nodemon (dev).",
+    "Build Tailwind output with: npm run build:css",
+    "Dev server: npm run dev (nodemon + ts-node)",
+    "Tests: npm test (uses ts-jest and supertest)."
+  ],
+  "hasTests": true
+}

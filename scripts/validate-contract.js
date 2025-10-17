@@ -19,6 +19,7 @@ import path from 'path';
 // Configuration
 const SCHEMA_PATH = 'contracts/schemas/roadmap_phase.schema.json';
 const CONTRACTS_DIR = 'contracts/Roadmap_execution';
+const INCLUDE_LEGACY = process.env.CONTRACT_INCLUDE_LEGACY === '1';
 
 // ANSI color codes
 const colors = {
@@ -29,6 +30,9 @@ const colors = {
   blue: '\x1b[34m',
   bold: '\x1b[1m'
 };
+
+const TASK_STATUS_VALUES = new Set(['pending', 'in_progress', 'complete', 'blocked']);
+const GATE_STATUS_VALUES = new Set(['not_started', 'in_progress', 'partial', 'passed', 'failed', 'blocked']);
 
 function log(message, color = 'reset') {
   console.log(`${colors[color]}${message}${colors.reset}`);
@@ -44,21 +48,79 @@ function loadJson(filePath) {
   }
 }
 
-function validateContract(ajv, schema, contractPath) {
+function collectStatusWarnings(contract) {
+  const warnings = [];
+
+  const gates = Array.isArray(contract.gates) ? contract.gates : [];
+  gates.forEach((gate, index) => {
+    const status = gate?.status;
+    if (status && !GATE_STATUS_VALUES.has(status)) {
+      warnings.push(`Gate[${index}] (${gate?.id ?? 'unknown'}) has unsupported status '${status}'.`);
+    }
+  });
+
+  const tasks = Array.isArray(contract.tasks) ? contract.tasks : [];
+  tasks.forEach((task, index) => {
+    if (!task || typeof task !== 'object') return;
+
+    const status = task.status;
+    if (status && !TASK_STATUS_VALUES.has(status)) {
+      warnings.push(`Task[${index}] (${task.id ?? 'unknown'}) has unsupported status '${status}'.`);
+    }
+
+    const completedAt = task.completed_at;
+    if (status === 'complete' && !completedAt) {
+      warnings.push(`Task[${index}] (${task.id ?? 'unknown'}) marked complete without completed_at timestamp.`);
+    }
+    if (completedAt && status !== 'complete') {
+      warnings.push(`Task[${index}] (${task.id ?? 'unknown'}) has completed_at timestamp but status='${status ?? 'undefined'}'.`);
+    }
+
+    const validationEntries = Array.isArray(task.validation) ? task.validation : [];
+    const validationCommands = new Set(
+      validationEntries
+        .map((entry) => (entry && typeof entry === 'object' ? entry.cmd : entry))
+        .filter((cmd) => typeof cmd === 'string' && cmd.length > 0)
+    );
+
+    const validationResults = Array.isArray(task.validation_results) ? task.validation_results : [];
+
+    if (status === 'complete' && validationCommands.size > 0 && validationResults.length === 0) {
+      warnings.push(`Task[${index}] (${task.id ?? 'unknown'}) completed without recorded validation_results.`);
+    }
+
+    validationResults.forEach((result, resultIndex) => {
+      const cmd = result?.cmd;
+      if (cmd && validationCommands.size > 0 && !validationCommands.has(cmd)) {
+        warnings.push(`Task[${index}] (${task.id ?? 'unknown'}) validation_results[${resultIndex}] cmd='${cmd}' not declared in validation list.`);
+      }
+      if (typeof result?.exit_code === 'number' && status === 'complete' && result.exit_code !== 0) {
+        warnings.push(`Task[${index}] (${task.id ?? 'unknown'}) marked complete but validation_results[${resultIndex}] exit_code=${result.exit_code}.`);
+      }
+    });
+  });
+
+  return warnings;
+}
+
+function validateContract(validateFn, contractPath) {
   log(`\n📋 Validating: ${contractPath}`, 'blue');
-  
+
   const contract = loadJson(contractPath);
-  const validate = ajv.compile(schema);
-  const valid = validate(contract);
-  
+  const valid = validateFn(contract);
+
   if (valid) {
     log(`✅ Valid - ${path.basename(contractPath)}`, 'green');
+    const warnings = collectStatusWarnings(contract);
+    warnings.forEach((warning) => {
+      log(`  ⚠️  ${warning}`, 'yellow');
+    });
     return true;
   } else {
     log(`❌ Invalid - ${path.basename(contractPath)}`, 'red');
     log(`\nValidation Errors:`, 'yellow');
-    
-    validate.errors.forEach((error, index) => {
+
+    validateFn.errors.forEach((error, index) => {
       log(`\n  Error ${index + 1}:`, 'yellow');
       log(`    Path: ${error.instancePath || '(root)'}`, 'reset');
       log(`    Message: ${error.message}`, 'reset');
@@ -71,18 +133,17 @@ function validateContract(ajv, schema, contractPath) {
   }
 }
 
-function isCDIContract(filePath) {
+function isContract(filePath) {
   try {
     const content = fs.readFileSync(filePath, 'utf8');
     const contract = JSON.parse(content);
     
-    // CDI contracts have contract_version starting with a letter (A.x.x, B.x.x)
-    // Legacy contracts have numeric versions (2.0.0, 4B1.0.0)
     const version = contract.contract_version;
-    if (!version) return false;
-    
-    // Check if version starts with a letter A-Z
-    return /^[A-Z]\./.test(version);
+    if (typeof version !== 'string' || version.length === 0) return false;
+    const modernMatch = /^[A-Z]\.\d+\.\d+$/.test(version);
+    const numericMatch = /^\d+\.\d+\.\d+$/.test(version);
+    if (INCLUDE_LEGACY) return modernMatch || numericMatch;
+    return modernMatch;
   } catch {
     return false; // If can't parse, skip
   }
@@ -95,13 +156,9 @@ function findContracts(dir) {
   }
   
   return fs.readdirSync(dir)
-    .filter(file => {
-      if (!file.endsWith('.json')) return false;
-      
-      const filePath = path.join(dir, file);
-      return isCDIContract(filePath);
-    })
-    .map(file => path.join(dir, file));
+    .filter(file => file.endsWith('.json'))
+    .map(file => path.join(dir, file))
+    .filter(isContract);
 }
 
 async function main() {
@@ -128,19 +185,20 @@ async function main() {
     verbose: true
   });
   addFormats(ajv);
-  
+
+  const validateFn = ajv.compile(schema);
+
   // Find contracts
   const contracts = findContracts(CONTRACTS_DIR);
   
   if (contracts.length === 0) {
     log(`\n⚠️  No CDI contracts found in ${CONTRACTS_DIR}`, 'yellow');
-    log(`This is expected if you haven't created any CDI-pattern contracts yet.`, 'yellow');
-    log(`\nNote: Legacy contracts (version 2.x.x, 4B1.x.x) are skipped - they use a different format.`, 'blue');
+    log(`Set CONTRACT_INCLUDE_LEGACY=1 to include legacy-numbered contracts.`, 'yellow');
     process.exit(0);
   }
   
-  log(`\n📚 Found ${contracts.length} CDI contract(s) to validate`, 'blue');
-  log(`(Skipping legacy contracts with numeric versions)\n`, 'blue');
+  log(`\n📚 Found ${contracts.length} contract(s) to validate`, 'blue');
+  log(INCLUDE_LEGACY ? `(Including legacy-numbered contracts)\n` : `(Skipping legacy-numbered contracts)\n`, 'blue');
   
   // Validate all contracts
   let allValid = true;
@@ -149,14 +207,32 @@ async function main() {
     valid: 0,
     invalid: 0
   };
-  
+
   for (const contractPath of contracts) {
-    const isValid = validateContract(ajv, schema, contractPath);
+    const isValid = validateContract(validateFn, contractPath);
     if (isValid) {
       results.valid++;
     } else {
       results.invalid++;
       allValid = false;
+    }
+  }
+
+  const phase19Path = path.join(CONTRACTS_DIR, '19_phase19_autonomous_transition_contract.json');
+  if (fs.existsSync(phase19Path)) {
+    log(`\n📋 Analyzing status metadata (Phase 19 pilot): ${phase19Path}`, 'blue');
+    try {
+      const phase19 = loadJson(phase19Path);
+      const warnings = collectStatusWarnings(phase19);
+      if (warnings.length === 0) {
+        log('  ✅ Status metadata check passed (no issues detected)', 'green');
+      } else {
+        warnings.forEach((warning) => {
+          log(`  ⚠️  ${warning}`, 'yellow');
+        });
+      }
+    } catch (error) {
+      log(`  ⚠️  Unable to analyze Phase 19 contract: ${error.message}`, 'yellow');
     }
   }
   

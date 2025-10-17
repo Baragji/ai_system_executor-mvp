@@ -1,0 +1,24 @@
+{
+  "phase": 19,
+  "task": "Resolve merge conflict in src/server.ts by standardizing on WorkflowMetadata",
+  "integration_points": [
+    { "file": "src/server.ts", "line": 85, "action": "imports -> loadPhaseState, buildWorkflowMetadata, WorkflowMetadata" },
+    { "file": "src/server.ts", "section": "workflow caches", "action": "use workflowMetadataCache and ensureWorkflowMetadataForSession()" },
+    { "file": "src/server.ts", "section": "progress snapshots", "action": "attach workflowMetadata in ProgressSnapshot" },
+    { "file": "src/server.ts", "section": "routes", "action": "ensureWorkflowMetadataForSession in execute/pause/resume" },
+    { "file": "src/server.ts", "section": "__progressTest", "action": "expose ensureMetadata, snapshot, clear for metadata cache" }
+  ],
+  "decision": "Adopt WorkflowMetadata (buildWorkflowMetadata) over local WorkflowContext to align with state module and tests",
+  "compliance": {
+    "language": "ts/js",
+    "backend": "express",
+    "no_new_dependencies": true,
+    "no_api_break": true
+  },
+  "validation": {
+    "lint": true,
+    "typecheck": true,
+    "tests": true
+  }
+}
+

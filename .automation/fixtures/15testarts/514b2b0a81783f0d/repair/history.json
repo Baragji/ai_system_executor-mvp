@@ -1,0 +1,27 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "pass",
+      "startedAt": "2025-10-10T21:18:36.903Z",
+      "finishedAt": "2025-10-10T21:18:52.294Z",
+      "changedFiles": [
+        ".git/HEAD"
+      ],
+      "summary": "Attempt 1: tests passed after updates to .git/HEAD (+1/-0, minor)",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "pass",
+        "passCount": 0,
+        "failCount": 0,
+        "durationMs": 340,
+        "logsPath": "logs/15testarts_last_test_run_35583f99-9637-4ac6-81ce-5e1928853c21.log"
+      },
+      "durationMs": 15391,
+      "cumulativeTime": 15391
+    }
+  ],
+  "finalStatus": "pass",
+  "totalAttempts": 1,
+  "successAttemptNumber": 1
+}

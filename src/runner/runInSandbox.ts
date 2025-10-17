@@ -9,6 +9,7 @@ import { validateRunResult, type RunResult } from "../contracts/validators.js";
 import { ensureDependencies } from "./installDeps.js";
 import { detectTestCommand } from "./detectTestCommand.js";
 import { logEvaluationResult, type EvaluationResult } from "../evaluation/logResults.js";
+import { throwIfAborted, onAbort, PausedError } from "../orchestrator/abortSignal.js";
 
 export interface RunInSandboxOptions {
   projectRoot: string;
@@ -16,9 +17,11 @@ export interface RunInSandboxOptions {
   command?: string;
   timeoutMs?: number;
   env?: Record<string, string | undefined>;
+  sessionId?: string;
 }
 
 const DEFAULT_TIMEOUT_MS = 60_000;
+const SIGKILL_DELAY_MS = Number(process.env.SANDBOX_SIGKILL_DELAY_MS ?? 5_000);
 
 function parseCounts(log: string): { passCount: number; failCount: number } {
   let passCount = 0;
@@ -60,6 +63,15 @@ function parseCounts(log: string): { passCount: number; failCount: number } {
       if (key === "fail") failCount = val;
       continue;
     }
+
+    // Fallback heuristic: if a line explicitly says "test passed" and no framework summary exists
+    if (/\b(test|tests)\s+passed\b/i.test(line)) {
+      // Only bump if we haven't parsed any framework counts yet
+      if (passCount === 0 && failCount === 0) {
+        passCount = 1;
+      }
+      continue;
+    }
   }
 
   return { passCount, failCount };
@@ -73,7 +85,11 @@ function deriveStatus(exitCode: number | null, timedOut: boolean): RunResult["st
 }
 
 export async function runInSandbox(options: RunInSandboxOptions): Promise<RunResult> {
-  const { projectRoot, projectSlug, command: providedCommand, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
+  const { projectRoot, projectSlug, command: providedCommand, timeoutMs = DEFAULT_TIMEOUT_MS, sessionId } = options;
+  
+  // Check if execution was paused before running tests
+  throwIfAborted(sessionId, "testing");
+  
   const env: Record<string, string | undefined> = {
     ...process.env,
     ...options.env,
@@ -89,6 +105,22 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
 
   const logStream = createWriteStream(logFilePath, { encoding: "utf-8" });
   let combinedOutput = "";
+  let streamFailed = false;
+
+  logStream.on("error", err => {
+    streamFailed = true;
+    console.error(`Log stream error for ${logFilePath}:`, (err as Error).message);
+  });
+
+  function safeWrite(data: string) {
+    if (streamFailed) return;
+    try {
+      logStream.write(data);
+    } catch (e) {
+      streamFailed = true;
+      console.warn("Log write failed:", (e as Error).message);
+    }
+  }
 
   let installSummary = "[install] skipped (node_modules present or package.json missing)";
   let installPerformed = false;
@@ -98,14 +130,14 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
       installPerformed = true;
       installSummary = `[install] ran ${installResult.command}`;
       combinedOutput += `${installSummary}\n`;
-      logStream.write(`${installSummary}\n`);
+      safeWrite(`${installSummary}\n`);
       if (installResult.stdout) {
         combinedOutput += installResult.stdout;
-        logStream.write(installResult.stdout);
+        safeWrite(installResult.stdout);
       }
       if (installResult.stderr) {
         combinedOutput += installResult.stderr;
-        logStream.write(installResult.stderr);
+        safeWrite(installResult.stderr);
       }
     }
   } catch (installError) {
@@ -118,34 +150,76 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
   const command = providedCommand ?? detectTestCommand(projectRoot);
   if (!installPerformed) {
     combinedOutput += `${installSummary}\n`;
-    logStream.write(`${installSummary}\n`);
+    safeWrite(`${installSummary}\n`);
   }
   combinedOutput += `[sandbox] running ${command}\n`;
-  logStream.write(`[sandbox] running ${command}\n`);
+  safeWrite(`[sandbox] running ${command}\n`);
 
   const startedAt = new Date();
+  const isWin = process.platform === "win32";
   const child = spawn(command, {
     cwd: projectRoot,
     env,
     shell: true,
-    stdio: ["ignore", "pipe", "pipe"]
+    stdio: ["ignore", "pipe", "pipe"],
+    detached: !isWin
   });
 
   let timedOut = false;
+  let aborted = false;
+  let abortError: PausedError | undefined;
+  let sigkillTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const scheduleSigkill = () => {
+    if (sigkillTimer) return;
+    sigkillTimer = setTimeout(() => {
+      killTree();
+    }, SIGKILL_DELAY_MS);
+    const maybeTimer = sigkillTimer as { unref?: () => void };
+    maybeTimer.unref?.();
+  };
+
+  if (sessionId) {
+    onAbort(sessionId, () => {
+      aborted = true;
+      abortError = new PausedError(sessionId, "testing");
+      try {
+        child.kill("SIGTERM");
+      } catch (_err) {
+        void _err;
+      }
+      scheduleSigkill();
+    });
+  }
+
+  function killTree(): void {
+    try {
+      if (isWin) {
+        try {
+          // Best-effort kill of process tree on Windows
+          spawn("taskkill", ["/PID", String(child.pid), "/T", "/F"], { shell: true });
+        } catch (_e) { void _e; }
+      } else if (child.pid) {
+        try { process.kill(-child.pid, "SIGKILL"); } catch (_e) { void _e; }
+      }
+    } catch (_e) { void _e; }
+    try { child.kill("SIGKILL"); } catch (_e) { void _e; }
+  }
+
   const timeoutHandle = setTimeout(() => {
     timedOut = true;
-    child.kill("SIGKILL");
+    killTree();
   }, timeoutMs).unref();
 
   child.stdout?.on("data", chunk => {
     const text = chunk.toString();
     combinedOutput += text;
-    logStream.write(text);
+    safeWrite(text);
   });
   child.stderr?.on("data", chunk => {
     const text = chunk.toString();
     combinedOutput += text;
-    logStream.write(text);
+    safeWrite(text);
   });
 
   const exitPromise = new Promise<{ code: number | null; signal: string | null }>(resolve => {
@@ -154,6 +228,9 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
 
   const { code, signal } = await exitPromise.finally(() => {
     clearTimeout(timeoutHandle);
+    if (sigkillTimer) {
+      clearTimeout(sigkillTimer);
+    }
     logStream.end();
   });
 
@@ -180,6 +257,11 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
     finishedAt: finishedAt.toISOString(),
     errorMessage: timedOut ? `Process timed out after ${timeoutMs}ms` : undefined
   };
+
+  if (aborted) {
+    const pauseError = abortError ?? new PausedError(sessionId ?? "sandbox", "testing");
+    throw pauseError;
+  }
 
   const validation = validateRunResult(runResult);
   if (!validation.ok) {

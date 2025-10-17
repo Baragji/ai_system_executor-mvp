@@ -22,6 +22,9 @@ Files are written to `./output/<project>`.
 
 ## 📍 Quick Navigation
 
+**Confused about what you're working on?** Start here:
+- **[WHAT_IS_WHAT.md](WHAT_IS_WHAT.md)** - Category clarification: Product vs Workflow (3 min read)
+
 **New to this repo?** Start here:
 - **[FILE_INDEX.md](FILE_INDEX.md)** - Quick map: what's where (2 min read)
 - **[CDI_INFRASTRUCTURE.md](CDI_INFRASTRUCTURE.md)** - CDI pattern overview (5 min read)
@@ -37,6 +40,21 @@ npm run contract:check    # Validate contracts
 npm run sbom              # Generate SBOM
 npm run validate:all      # Run all checks
 ```
+- **New:** [Technical Validation Checklist template](.github/ISSUE_TEMPLATE/technical_validation_checklist.md) for running the full workflow + executor review.
+
+**Workflow State Management (Autonomous System)**
+```bash
+npm run state:show        # Show current workflow state
+npm run state:sync        # Sync contract statuses with evidence
+npm run state:next:dry    # Show suggested next action (dry-run)
+npm run state:next        # Execute next action (interactive)
+```
+
+**Working on evidence detection or gates?**
+- **[docs/detector_behavior_changes.md](docs/detector_behavior_changes.md)** - Recent detector changes & migration guide
+- `.automation/GATES_LEDGER.md` - Gate definitions (canonical source)
+- `scripts/detect-evidence.js` - Evidence detection logic
+- `scripts/check-detector-constants.js` - Guard against hard-coded criteria
 
 ## Contract
 - `contracts/executor-output.schema.json`

@@ -18,15 +18,15 @@
   "properties": {
     "contract_version": {
       "type": "string",
-      "pattern": "^[A-Z]\\.\\d+\\.\\d+$",
-      "description": "Version like A.2.0"
+      "pattern": "^([A-Z]|\\d+)\\.\\d+\\.\\d+$",
+      "description": "Version identifier supporting both lettered (A.2.0) and numeric (19.0.0) releases"
     },
     "contract_meta": {
       "type": "object",
       "required": ["created", "phase", "phase_name", "prerequisite_phase", "rationale"],
       "properties": {
         "created": {"type": "string", "format": "date"},
-        "phase": {"type": "string", "pattern": "^[A-Z]$"},
+        "phase": {"type": "string", "pattern": "^([A-Z]|\\d+)$"},
         "phase_name": {"type": "string"},
         "prerequisite_phase": {"type": "string"},
         "enhancement": {"type": "string"},
@@ -60,7 +60,12 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["autonomous_with_verification", "discovery_then_autonomous", "human_in_loop"]
+          "enum": [
+            "autonomous_with_verification",
+            "discovery_then_autonomous",
+            "discovery_complete_then_implementation",
+            "human_in_loop"
+          ]
         },
         "verification_strategy": {"type": "string"},
         "description": {"type": "string"},
@@ -178,6 +183,40 @@
       "items": {"type": "string"},
       "minItems": 3
     },
+    "gates": {
+      "type": "array",
+      "description": "Lifecycle checkpoints with acceptance criteria and evidence.",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "status"],
+        "properties": {
+          "id": {"type": "string"},
+          "name": {"type": "string"},
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "in_progress",
+              "partial",
+              "passed",
+              "failed",
+              "blocked"
+            ]
+          },
+          "note": {"type": "string"},
+          "acceptance": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "evidence": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "last_updated_at": {"type": "string", "format": "date-time"}
+        },
+        "additionalProperties": false
+      }
+    },
     "tasks": {
       "type": "array",
       "minItems": 3,
@@ -193,11 +232,21 @@
           "title": {"type": "string"},
           "type": {
             "type": "string",
-            "enum": ["verification", "discovery", "win", "evidence", "validation"]
+            "enum": [
+              "verification",
+              "discovery",
+              "win",
+              "evidence",
+              "validation",
+              "documentation",
+              "implementation",
+              "testing",
+              "governance"
+            ]
           },
           "description": {"type": "string", "minLength": 20},
           "time_estimate_minutes": {"type": "integer", "minimum": 1},
-          "prerequisite": {"type": "string"},
+          "prerequisite": {"type": ["string", "null"]},
           "verification_mode": {"type": "string"},
           "work_profile": {"type": "string"},
           "actions": {
@@ -209,6 +258,36 @@
             "type": "array",
             "items": {"type": "string"},
             "minItems": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in_progress", "complete", "blocked"],
+            "description": "Progress indicator for the task within the phase execution lifecycle."
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp when the task began active work."
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp when the task reached a complete state."
+          },
+          "validation_results": {
+            "type": "array",
+            "description": "Recorded execution results for validation commands tied to the task.",
+            "items": {
+              "type": "object",
+              "required": ["cmd", "exit_code", "timestamp"],
+              "properties": {
+                "cmd": {"type": "string"},
+                "exit_code": {"type": "integer"},
+                "timestamp": {"type": "string", "format": "date-time"},
+                "notes": {"type": "string"}
+              },
+              "additionalProperties": false
+            }
           },
           "evidence_requirements": {"type": "object"},
           "evaluation": {"type": "object"},

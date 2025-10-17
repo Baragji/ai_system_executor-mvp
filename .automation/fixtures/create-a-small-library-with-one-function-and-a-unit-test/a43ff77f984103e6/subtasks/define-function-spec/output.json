@@ -1,0 +1,39 @@
+{
+  "project_name": "number-clamp",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"number-clamp\",\n  \"version\": \"0.1.0\",\n  \"description\": \"Small library providing a single clamp() function to constrain numbers within bounds.\",\n  \"main\": \"dist/index.js\",\n  \"types\": \"dist/index.d.ts\",\n  \"scripts\": {\n    \"build\": \"tsc\",\n    \"test\": \"jest\",\n    \"prepare\": \"npm run build\"\n  },\n  \"keywords\": [\"clamp\",\"number\",\"utility\"],\n  \"author\": \"\",\n  \"license\": \"MIT\",\n  \"devDependencies\": {\n    \"@types/jest\": \"^29.5.2\",\n    \"@types/node\": \"^20.4.2\",\n    \"jest\": \"^29.6.1\",\n    \"ts-jest\": \"^29.1.1\",\n    \"typescript\": \"^5.3.2\"\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2019\",\n    \"module\": \"CommonJS\",\n    \"declaration\": true,\n    \"outDir\": \"dist\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"skipLibCheck\": true\n  },\n  \"include\": [\"src/**/*\", \"tests/**/*\"]\n}\n"
+    },
+    {
+      "path": "jest.config.js",
+      "contents": "module.exports = {\n  preset: 'ts-jest',\n  testEnvironment: 'node',\n  testMatch: ['**/tests/**/*.test.ts']\n};\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# number-clamp\n\nA tiny TypeScript library that exports a single function: clamp().\n\nUsage\n\n1. Install dependencies:\n\n   npm install\n\n2. Run tests:\n\n   npm test\n\n3. Build:\n\n   npm run build\n\nAPI\n\n- clamp(value: number, min: number, max: number): number\n\nSee SPEC.md for the full function specification, examples, and edge cases.\n"
+    },
+    {
+      "path": "SPEC.md",
+      "contents": "# Function Specification: clamp\n\nName\n\n- clamp\n\nPurpose\n\n- Constrain a numeric value to lie within an inclusive range [min, max]. If the value is less than min, return min. If greater than max, return max. Otherwise return the value unchanged.\n\nSignature (TypeScript)\n\n- clamp(value: number, min: number, max: number): number\n\nDescription\n\n- The function accepts three numeric arguments and returns a number. It performs runtime validation to ensure inputs are valid finite numbers and that min <= max.\n\nInputs\n\n- value (number): The numeric value to constrain.\n- min (number): The lower bound of the inclusive range.\n- max (number): The upper bound of the inclusive range.\n\nOutput\n\n- A number representing the constrained value. Always a finite number (unless inputs themselves are infinite, which is rejected).\n\nBehavior\n\n- If value < min -> return min.\n- If value > max -> return max.\n- Otherwise -> return value.\n- If min > max -> throw RangeError.\n- If any argument is not a finite number (NaN, Infinity, -Infinity, or not a number) -> throw TypeError.\n\nExamples\n\n- clamp(5, 1, 10) -> 5 (within range)\n- clamp(-3, 0, 100) -> 0 (below min)\n- clamp(300, 0, 200) -> 200 (above max)\n- clamp(2, 2, 5) -> 2 (equals min)\n- clamp(5, 1, 5) -> 5 (equals max)\n\nEdge Cases and Error Handling (to be covered in tests)\n\n1. min > max: should throw RangeError.\n2. value is NaN: should throw TypeError.\n3. min or max is NaN: should throw TypeError.\n4. value is Infinity or -Infinity: should throw TypeError.\n5. min or max is Infinity/-Infinity: should throw TypeError.\n6. value, min, or max are non-number JS values (e.g., string, null): should throw TypeError.\n7. value exactly equal to min or max: return value (inclusive bounds).\n8. Negative numbers and zero: normal behavior should apply.\n\nMinimal API Surface\n\n- Export a single named function `clamp` from the module. Keep implementation small and well-documented.\n\nTesting Notes\n\n- Tests should validate normal cases and all listed edge cases. The test suite should assert thrown errors for invalid inputs and correct clamping behavior for valid inputs.\n\n\n"
+    },
+    {
+      "path": "src/index.ts",
+      "contents": "/**\n * Constrain a numeric value to the inclusive range [min, max].\n *\n * Throws:\n *  - TypeError if any argument is not a finite number (NaN or ±Infinity or non-number).\n *  - RangeError if min > max.\n */\nexport function clamp(value: number, min: number, max: number): number {\n  // Validate types and finiteness at runtime to provide clear errors.\n  const isFiniteNumber = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);\n\n  if (!isFiniteNumber(value)) {\n    throw new TypeError('clamp: value must be a finite number');\n  }\n  if (!isFiniteNumber(min)) {\n    throw new TypeError('clamp: min must be a finite number');\n  }\n  if (!isFiniteNumber(max)) {\n    throw new TypeError('clamp: max must be a finite number');\n  }\n\n  if (min > max) {\n    throw new RangeError('clamp: min must be <= max');\n  }\n\n  if (value < min) return min;\n  if (value > max) return max;\n  return value;\n}\n\nexport default clamp;\n"
+    },
+    {
+      "path": "tests/clamp.test.ts",
+      "contents": "import { clamp } from '../src/index';\n\ndescribe('clamp', () => {\n  test('returns the value when within bounds', () => {\n    expect(clamp(5, 1, 10)).toBe(5);\n    expect(clamp(1.5, 1, 2)).toBe(1.5);\n  });\n\n  test('returns min when value is below min', () => {\n    expect(clamp(-3, 0, 100)).toBe(0);\n  });\n\n  test('returns max when value is above max', () => {\n    expect(clamp(300, 0, 200)).toBe(200);\n  });\n\n  test('inclusive bounds: equals min or max returns value', () => {\n    expect(clamp(2, 2, 5)).toBe(2);\n    expect(clamp(5, 1, 5)).toBe(5);\n  });\n\n  test('throws RangeError when min > max', () => {\n    expect(() => clamp(1, 10, 5)).toThrow(RangeError);\n  });\n\n  test('throws TypeError for NaN or Infinity inputs', () => {\n    expect(() => clamp(NaN, 0, 1)).toThrow(TypeError);\n    expect(() => clamp(0, NaN as any, 1)).toThrow(TypeError);\n    expect(() => clamp(0, 0, Infinity as any)).toThrow(TypeError);\n    expect(() => clamp(Infinity as any, 0, 1)).toThrow(TypeError);\n  });\n\n  test('works with negative ranges', () => {\n    expect(clamp(-10, -20, -5)).toBe(-10);\n    expect(clamp(-30, -20, -5)).toBe(-20);\n    expect(clamp(0, -5, 5)).toBe(0);\n  });\n\n  test('non-number inputs throw TypeError at runtime', () => {\n    // @ts-ignore - intentional runtime misuse tests\n    expect(() => clamp('1', 0, 2)).toThrow(TypeError);\n    // @ts-ignore\n    expect(() => clamp(1, null, 2)).toThrow(TypeError);\n  });\n});\n"
+    }
+  ],
+  "notes": [
+    "SPEC.md contains the one-page function specification required by the subtask.",
+    "Run `npm install` then `npm test` to run the unit tests.",
+    "The project includes a small, well-documented implementation of clamp plus tests covering the specified edge cases."
+  ],
+  "hasTests": true
+}

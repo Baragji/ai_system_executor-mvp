@@ -1,0 +1,14 @@
+{
+  "win": "S2",
+  "integration_points": [
+    { "file": "src/repair/multiTurnRepair.ts", "function": "applyArtifacts", "lines": "~120-180", "note": "Throws on missing contents" },
+    { "file": "src/repair/multiTurnRepair.ts", "function": "multiTurnRepair", "lines": "~260-520", "note": "Place retry around applyArtifacts" }
+  ],
+  "justification": "Observed repeated 'Missing contents for <file>' errors in screenshots and logs. Retry with stricter prompt reduces spurious failures without relaxing guardrails.",
+  "compliance": {
+    "language": "TypeScript/JavaScript only",
+    "frontend_frameworks": "none",
+    "no_new_deps": true
+  }
+}
+

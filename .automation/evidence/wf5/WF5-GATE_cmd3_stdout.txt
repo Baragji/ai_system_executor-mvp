@@ -1,0 +1,261 @@
+
+> executor-mvp@0.1.0 test
+> node scripts/run-vitest-with-rollup-shim.mjs
+
+
+ RUN  v2.1.9 /workspace/ai_system_executor-mvp
+      Coverage enabled with v8
+
+ ✓ tests/repair/multiTurnRepair.test.ts (9 tests) 173ms
+ ✓ tests/validation/dependencyPreflight.test.ts (12 tests) 86ms
+stdout | tests/api/execute-multi-turn.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [32m200[0m 60.986 ms - 1208[0m
+[0mPOST /api/execute [32m200[0m 12.126 ms - 1271[0m
+[0mPOST /api/execute [32m200[0m 7.498 ms - 1928[0m
+[0mPOST /api/execute [32m200[0m 6.803 ms - 2227[0m
+[0mPOST /api/execute [32m200[0m 17.205 ms - 1269[0m
+[0mPOST /api/execute [32m200[0m 18.882 ms - 1269[0m
+ ✓ tests/api/execute-multi-turn.test.ts (6 tests) 217ms
+ ✓ tests/planning/executeSubtask.test.ts (7 tests) 13ms
+stdout | tests/api/execute-with-planning.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [32m200[0m 50.768 ms - 1052[0m
+[0mPOST /api/execute [32m200[0m 25.879 ms - 1451[0m
+[0mPOST /api/execute [32m200[0m 31.936 ms - 1078[0m
+[0mPOST /api/execute [32m200[0m 8.377 ms - 1381[0m
+ ✓ tests/planning/executeTaskPlan.test.ts (8 tests) 12ms
+ ✓ tests/api/execute-with-planning.test.ts (4 tests) 192ms
+ ✓ tests/runner/installDeps.test.ts (8 tests) 195ms
+ ✓ tests/contracts/repair-history.test.ts (12 tests) 15ms
+stdout | tests/meta/repair-metrics.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [32m200[0m 36.874 ms - 1664[0m
+[0mPOST /api/execute [32m200[0m 31.469 ms - 2529[0m
+[0mPOST /api/execute [32m200[0m 12.329 ms - 1180[0m
+ ✓ tests/meta/repair-metrics.test.ts (3 tests) 136ms
+ ✓ tests/state/sync.test.ts (2 tests) 100ms
+ ✓ tests/orchestrator/abortSignal.test.ts (26 tests) 31ms
+ ✓ tests/planning/validateDecomposition.test.ts (7 tests) 15ms
+ ✓ tests/planning/estimateCompletion.test.ts (6 tests) 9ms
+ ✓ tests/orchestrator/stepQueue.test.ts (6 tests) 64ms
+ ✓ tests/planning/decomposeTask.test.ts (7 tests) 1656ms
+   ✓ decomposeTask > retries when LLM returns invalid JSON 917ms
+   ✓ decomposeTask > throws when validation fails after retries 724ms
+stdout | tests/api/sessions-pause-resume.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > pauses a session and persists pending questions
+[Pause] Session session-001 abort signal sent: false
+
+[0mPOST /api/sessions/session-001/pause [32m201[0m 49.042 ms - 554[0m
+[0mGET /api/progress/snapshot/session-001 [32m200[0m 2.476 ms - 246[0m
+stdout | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > resumes a paused session when answers provided
+[Pause] Session session-002 abort signal sent: false
+
+[0mPOST /api/sessions/session-002/pause [32m201[0m 1.973 ms - 576[0m
+[0mPOST /api/sessions/session-002/resume [32m200[0m 6.323 ms - 945[0m
+[0mGET /api/progress/snapshot/session-002 [32m200[0m 2.508 ms - 198[0m
+stdout | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > rejects resume when missing answers
+[Pause] Session session-003 abort signal sent: false
+
+[0mPOST /api/sessions/session-003/pause [32m201[0m 1.462 ms - 578[0m
+[0mPOST /api/sessions/session-003/resume [33m400[0m 0.655 ms - 107[0m
+stdout | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > returns 409 when pausing an already paused session
+[Pause] Session session-004 abort signal sent: false
+
+[0mPOST /api/sessions/session-004/pause [32m201[0m 0.978 ms - 570[0m
+[0mPOST /api/sessions/session-004/pause [33m409[0m 0.197 ms - 34[0m
+ ✓ tests/api/sessions-pause-resume.test.ts (4 tests) 149ms
+ ✓ tests/repair/analyzeFailure.test.ts (7 tests) 34ms
+stdout | tests/api/execute-with-clarifications.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [32m200[0m 154.852 ms - 1184[0m
+[0mPOST /api/execute [32m200[0m 56.782 ms - 1243[0m
+[0mPOST /api/execute [33m400[0m 1.318 ms - 270[0m
+ ✓ tests/api/execute-with-clarifications.test.ts (3 tests) 297ms
+stdout | tests/meta/clarification-telemetry.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/clarify [32m200[0m 8.178 ms - 539[0m
+ ✓ tests/state/execute-next-action.test.ts (18 tests) 15208ms
+   ✓ execute-next-action script > shows help with --help flag 1003ms
+   ✓ execute-next-action script > runs in dry-run mode without executing commands 952ms
+   ✓ execute-next-action script > shows current workflow state 932ms
+   ✓ execute-next-action script > suggests an action based on workflow state 894ms
+   ✓ execute-next-action script > exits cleanly when NO_ACTION suggested 896ms
+   ✓ execute-next-action script > does not execute destructive commands 603ms
+   ✓ execute-next-action script > provides reasoning for suggested action 611ms
+   ✓ execute-next-action script > shows phase and gate information 763ms
+   ✓ execute-next-action script > detects uncommitted changes 991ms
+   ✓ execute-next-action script > formats output with emojis for readability 1039ms
+   ✓ execute-next-action script > accepts --dry-run short form -n 939ms
+   ✓ execute-next-action script > accepts --help short form -h 824ms
+   ✓ execute-next-action script > script is executable with tsx 882ms
+   ✓ execute-next-action script > shows command to execute in dry-run mode 942ms
+   ✓ execute-next-action script > includes safety documentation in help 885ms
+   ✓ execute-next-action script > validates action command exists before execution 1194ms
+   ✓ execute-next-action script > omits legacy workflow metadata fields from CLI output 846ms
+[0mPOST /api/execute [32m200[0m 862.576 ms - 1284[0m
+[0mPOST /api/clarify [32m200[0m 0.821 ms - 416[0m
+ ✓ tests/contracts/task-plan.test.ts (8 tests) 10ms
+[0mPOST /api/execute [32m200[0m 694.669 ms - 2865[0m
+[0mPOST /api/clarify [32m200[0m 0.462 ms - 416[0m
+ ✓ tests/contracts/ui-validation-result.test.ts (6 tests) 19ms
+[0mPOST /api/execute [32m200[0m 983.410 ms - 1194[0m
+[0mPOST /api/execute [32m200[0m 10.188 ms - 1202[0m
+ ✓ tests/contracts/repair-history.adaptive.test.ts (3 tests) 61ms
+ ✓ tests/meta/clarification-telemetry.test.ts (4 tests) 2716ms
+   ✓ clarification telemetry meta > meta file includes clarification data when clarifications used 1000ms
+   ✓ clarification telemetry meta > sets improvedSuccess false when tests fail 705ms
+   ✓ clarification telemetry meta > marks clarification asked when user skips answers 994ms
+ ✓ tests/orchestrator/interrupts.test.ts (5 tests) 28ms
+ ✓ tests/planning/progressTracker.test.ts (8 tests) 11ms
+stdout | tests/e2e/phase1.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [32m200[0m 78.129 ms - 1578[0m
+ ✓ tests/orchestrator/jobQueue.test.ts (2 tests) 7ms
+ ✓ tests/e2e/phase1.test.ts (1 test) 141ms
+ ✓ tests/evaluation/logResults.test.ts (3 tests) 33ms
+ ✓ tests/orchestrator/checkpoints.test.ts (8 tests) 46ms
+ ✓ tests/runner/runInSandbox.abort.test.ts (1 test) 87ms
+ ✓ tests/runner/runInSandbox.integration.test.ts (2 tests) 23ms
+ ✓ tests/state/phaseState.test.ts (6 tests) 12ms
+ ✓ tests/orchestrator/stateMachine.test.ts (11 tests) 13ms
+ ✓ tests/repair/missing-contents-fallback.test.ts (1 test) 22ms
+ ✓ tests/llm/providers/choose.test.ts (8 tests) 11ms
+ ✓ tests/planning/executeTaskPlan.duration.test.ts (1 test) 15ms
+ ✓ tests/orchestrator/resume.test.ts (3 tests) 24ms
+ ✓ tests/planning/executeSubtask.resilience.test.ts (2 tests) 24ms
+ ✓ tests/llm/timeout-retry.test.ts (3 tests) 3446ms
+   ✓ LLM timeout and retry behavior > should retry on timeout with exponential backoff 692ms
+   ✓ LLM timeout and retry behavior > should fail after max retries exceeded 713ms
+   ✓ LLM timeout and retry behavior > should handle long-running successful calls within timeout 2039ms
+ ✓ tests/runner/logStream-error.test.ts (1 test) 40ms
+ ✓ tests/clarification/detectMissing.test.ts (7 tests) 6ms
+ ✓ tests/telemetry/dual-write.test.ts (4 tests) 27ms
+ ✓ tests/repair/buildRepairPrompt.test.ts (4 tests) 6ms
+ ✓ tests/planning/analyzeDependencies.test.ts (5 tests) 8ms
+ ✓ tests/contracts/clarification-validators.test.ts (10 tests) 18ms
+ ✓ tests/repair/repairOnce.test.ts (2 tests) 17ms
+ ✓ tests/orchestrator/resumePrompt.test.ts (1 test) 4ms
+stdout | tests/api/files.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mGET /api/files/api-files-test/src%2Findex.ts [32m200[0m 7.823 ms - 96[0m
+[0mGET /api/files/api-files-test/nope.txt [33m404[0m 8.065 ms - 21[0m
+[0mGET /api/files/api-files-test/..%2F..%2Fetc%2Fpasswd [33m403[0m 0.591 ms - 21[0m
+[0mGET /output-archive/api-files-test [32m200[0m 2.643 ms - -[0m
+[0mGET /output-archive/api-files-test?format=tar [32m200[0m 25.542 ms - -[0m
+ ✓ tests/api/files.test.ts (5 tests) 119ms
+ ✓ tests/repair/delete-validation.test.ts (1 test) 29ms
+ ✓ tests/clarification/augmentPrompt.test.ts (6 tests) 5ms
+ ✓ tests/clarification/generateQuestions.test.ts (6 tests) 7ms
+ ✓ tests/llm/tools/fsTools.test.ts (4 tests) 46ms
+ ✓ tests/repair/buildRepairPrompt.adaptive.test.ts (3 tests) 4ms
+ ✓ tests/repair/generateDiff.test.ts (3 tests) 9ms
+ ✓ tests/planning/generateSubtaskOutput.test.ts (3 tests) 51ms
+ ✓ tests/outcome-state-machine.test.ts (5 tests) 4ms
+stdout | tests/api/executions.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [32m202[0m 13.772 ms - 79[0m
+ ✓ tests/telemetry/plan-trace.test.ts (1 test) 206ms
+[0mGET /api/executions/graph-29b90532-5260-40f8-aa85-9784cebb5d70 [32m200[0m 0.660 ms - 280[0m
+[0mGET /api/executions/graph-29b90532-5260-40f8-aa85-9784cebb5d70 [32m200[0m 0.431 ms - 280[0m
+[0mGET /api/executions/does-not-exist [33m404[0m 0.531 ms - 171[0m
+ ✓ tests/api/executions.test.ts (2 tests) 108ms
+ ✓ tests/orchestrator/workspaceManifest.test.ts (1 test) 37ms
+ ✓ tests/runner/detectTestCommand.test.ts (5 tests) 26ms
+ ✓ tests/repair/strategySelector.test.ts (6 tests) 6ms
+ ✓ tests/llm/retry.test.ts (2 tests) 15ms
+ ✓ tests/contracts/validators.test.ts (6 tests) 24ms
+ ✓ tests/runner/runInSandbox.test.ts (3 tests) 1792ms
+   ✓ runInSandbox > returns pass status for passing projects 755ms
+   ✓ runInSandbox > returns fail status for failing projects 759ms
+ ✓ tests/state/snapshot.test.ts (1 test) 269ms
+ ✓ tests/llm/abortSignal.test.ts (1 test) 11ms
+stdout | tests/api/problem-details.test.ts > problem+json envelope > returns legacy error body when disabled
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [33m400[0m 8.287 ms - 27[0m
+ ✓ tests/executor/writeFiles.security.test.ts (4 tests) 32ms
+stdout | tests/api/problem-details.test.ts > problem+json envelope > returns RFC 9457 problem when enabled
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [33m400[0m 4.308 ms - 151[0m
+ ✓ tests/api/problem-details.test.ts (2 tests) 2359ms
+   ✓ problem+json envelope > returns legacy error body when disabled 1833ms
+   ✓ problem+json envelope > returns RFC 9457 problem when enabled 524ms
+ ✓ tests/clarification/suggestDefaults.test.ts (6 tests) 5ms
+ ✓ tests/utils/normalizeExports.test.ts (2 tests) 26ms
+stdout | tests/api/clarify-route.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+ ✓ tests/workspace/manifest.test.ts (2 tests) 4ms
+[0mPOST /api/clarify [32m200[0m 5.351 ms - 16[0m
+[0mPOST /api/clarify [32m200[0m 1.271 ms - 396[0m
+[0mPOST /api/clarify [33m400[0m 0.420 ms - 151[0m
+ ✓ tests/api/clarify-route.test.ts (3 tests) 61ms
+ ✓ tests/utils/validateFiles.test.ts (3 tests) 34ms
+stdout | tests/run-tests-route.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/run-tests [33m404[0m 4.884 ms - 29[0m
+stdout | tests/api/progress.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mGET /api/progress/snapshot/wf-test-session [32m200[0m 6.155 ms - 124[0m
+ ✓ tests/api/progress.test.ts (2 tests) 43ms
+[0mPOST /api/run-tests [32m200[0m 827.494 ms - 295[0m
+ ✓ tests/run-tests-route.test.ts (2 tests) 895ms
+   ✓ POST /api/run-tests > runs tests for an existing project 832ms
+ ✓ tests/utils/seedTests.test.ts (2 tests) 5ms
+ ✓ tests/utils/fixtures.test.ts (1 test) 10ms
+stdout | tests/executor/sanitizeOutput.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+ ✓ tests/executor/sanitizeOutput.test.ts (1 test) 5ms
+ ✓ tests/contracts/execution-trace.test.ts (2 tests) 6ms
+stdout | tests/meta/progress-ttl.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+ ✓ tests/meta/progress-ttl.test.ts (1 test) 9ms
+stdout | tests/api/fixtures-route.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mGET /api/fixtures/passing [32m200[0m 12.301 ms - 73[0m
+[0mPOST /api/replay/repair [33m404[0m 1.171 ms - 44[0m
+ ✓ tests/api/fixtures-route.test.ts (2 tests) 45ms
+
+ Test Files  81 passed (81)
+      Tests  374 passed (374)
+   Start at  17:52:01
+   Duration  59.64s (transform 2.67s, setup 0ms, collect 38.08s, tests 31.78s, environment 31ms, prepare 11.48s)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   84.16 |    78.02 |   93.87 |   84.16 |                   
+ contracts         |   88.23 |    81.98 |   94.73 |   88.23 |                   
+  ...eValidator.ts |     100 |       50 |     100 |     100 | 45-50             
+  ...yValidator.ts |    80.8 |    77.14 |     100 |    80.8 | ...51-152,155-156 
+  ...nValidator.ts |   85.31 |    86.04 |    87.5 |   85.31 | ...27-132,153-159 
+  validators.ts    |     100 |       92 |     100 |     100 | 52,56             
+ runner            |   87.43 |    78.16 |     100 |   87.43 |                   
+  ...estCommand.ts |     100 |    94.11 |     100 |     100 | 22                
+  installDeps.ts   |   84.43 |    82.69 |     100 |   84.43 | ...85-188,190-194 
+  runInSandbox.ts  |   88.12 |    71.23 |     100 |   88.12 | ...59-260,278-279 
+ utils             |   70.87 |    70.49 |   88.23 |   70.87 |                   
+  checksum.ts      |     100 |      100 |     100 |     100 |                   
+  ...izeExports.ts |   96.87 |     92.3 |     100 |   96.87 | 38                
+  ...lizeHealth.ts |   41.66 |       75 |     100 |   41.66 | 7-30              
+  seedTests.ts     |   66.37 |    56.75 |      80 |   66.37 | ...,85-86,115-127 
+  validateFiles.ts |     100 |      100 |     100 |     100 |                   
+-------------------|---------|----------|---------|---------|-------------------

@@ -1,0 +1,82 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "fail",
+      "startedAt": "2025-10-11T23:30:24.570Z",
+      "finishedAt": "2025-10-11T23:30:24.570Z",
+      "changedFiles": [
+        "src/index.ts"
+      ],
+      "summary": "Attempt 1 failed",
+      "testResult": {
+        "status": "fail",
+        "passCount": 1,
+        "failCount": 1,
+        "durationMs": 1050,
+        "logsPath": "logs/attempt1.log"
+      },
+      "durationMs": 1050,
+      "cumulativeTime": 1050
+    },
+    {
+      "number": 2,
+      "status": "fail",
+      "startedAt": "2025-10-11T23:30:24.570Z",
+      "finishedAt": "2025-10-11T23:30:24.570Z",
+      "changedFiles": [
+        "src/index.ts"
+      ],
+      "summary": "Attempt 2 failed",
+      "testResult": {
+        "status": "fail",
+        "passCount": 1,
+        "failCount": 1,
+        "durationMs": 1100,
+        "logsPath": "logs/attempt2.log"
+      },
+      "durationMs": 1100,
+      "cumulativeTime": 2150
+    },
+    {
+      "number": 3,
+      "status": "fail",
+      "startedAt": "2025-10-11T23:30:24.570Z",
+      "finishedAt": "2025-10-11T23:30:24.570Z",
+      "changedFiles": [
+        "src/index.ts"
+      ],
+      "summary": "Attempt 3 failed",
+      "testResult": {
+        "status": "fail",
+        "passCount": 1,
+        "failCount": 1,
+        "durationMs": 1150,
+        "logsPath": "logs/attempt3.log"
+      },
+      "durationMs": 1150,
+      "cumulativeTime": 3300
+    },
+    {
+      "number": 4,
+      "status": "fail",
+      "startedAt": "2025-10-11T23:30:24.570Z",
+      "finishedAt": "2025-10-11T23:30:24.570Z",
+      "changedFiles": [
+        "src/index.ts"
+      ],
+      "summary": "Attempt 4 failed",
+      "testResult": {
+        "status": "fail",
+        "passCount": 1,
+        "failCount": 1,
+        "durationMs": 1200,
+        "logsPath": "logs/attempt4.log"
+      },
+      "durationMs": 1200,
+      "cumulativeTime": 4500
+    }
+  ],
+  "finalStatus": "exhausted",
+  "totalAttempts": 4
+}

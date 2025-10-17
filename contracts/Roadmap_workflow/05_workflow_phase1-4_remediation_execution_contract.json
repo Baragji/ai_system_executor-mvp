@@ -1,0 +1,481 @@
+{
+  "contract_version": "5.0.0",
+  "contract_meta": {
+    "created": "2025-10-15",
+    "phase": "5",
+    "phase_name": "Workflow Phase 1-4 Remediation & Gate Closure",
+    "prerequisite_phase": "Workflow Phases 1-4 initial implementation",
+    "supersedes": null,
+    "status": "active",
+    "enhancement": "Restore track separation by removing workflow contamination from the Executor MVP runtime and completing evidence capture for workflow automation tooling.",
+    "rationale": "Validations 04a/04b and audits 05a/05b proved that Phase 3 embedded workflow metadata in product endpoints and Phase 4 depends on that shared module. Remediation must occur before declaring the workflow track complete or advancing Executor MVP Gate G3.",
+    "references": [
+      "docs/05_151024_todays_status.md/03_phase1-p4_WF_validation_checklist.md",
+      "docs/05_151024_todays_status.md/04a_validation_&_remediation_WF.md",
+      "docs/05_151024_todays_status.md/04b_validation_&_remediation_WF.md",
+      "docs/05_151024_todays_status.md/05a_Audit_of_validation_and_remediation.md",
+      "docs/05_151024_todays_status.md/05b_Audit_of_validation_and_remediation.md",
+      "docs/05_151024_todays_status.md/06_final_validation_and_remediation_summary.md",
+      "WHAT_IS_WHAT.md"
+    ]
+  },
+  "project": {
+    "name": "Autonomous Workflow System",
+    "current_phase": "Workflow Phase 1-4 Remediation",
+    "goal": "Eliminate workflow metadata exposure from product code, isolate workflow libraries, capture validation evidence, and certify workflow automation readiness.",
+    "scope": "Server decoupling, module relocation, contract evidence persistence, workflow CLI test coverage, and validation gate execution.",
+    "estimated_time": "3-4 engineering days including validation and audits",
+    "work_profile": "TypeScript/JavaScript remediation, Express server cleanup, contract tooling maintenance, Vitest updates",
+    "out_of_scope": [
+      "New product features",
+      "LangGraph orchestrator enhancements",
+      "UI consumption of workflow metadata"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "halt_on_contamination_detected",
+    "description": "Confirm contamination baseline, remove workflow coupling step-by-step, rerun validations after each win, and document evidence in contracts and .automation logs.",
+    "failure_mode": "halt_and_report_with_diff",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "ai-stack.json + AGENTS.md",
+    "language": "TypeScript/JavaScript",
+    "frameworks": [
+      "Vitest"
+    ],
+    "test_command": "npm test",
+    "constraints": [
+      "No Python files",
+      "No new npm dependencies without owner approval",
+      "Coverage ≥ 80% line / 75% branch",
+      "ESLint warnings forbidden"
+    ],
+    "validation": "npm run contract:check"
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "linux|macos",
+      "verify_commands": [
+        "node -v",
+        "npm -v",
+        "npm run state:show"
+      ]
+    }
+  },
+  "observability": {
+    "description": "Track remediation progress, validation runs, and evidence capture for audit readiness.",
+    "trace_file": ".automation/workflow_phase1-4_remediation_trace.jsonl",
+    "discovery_file": ".automation/workflow_phase1-4_remediation_discovery.json",
+    "evidence_file": ".automation/workflow_phase1-4_remediation_evidence.json",
+    "evaluation_file": ".automation/workflow_phase1-4_remediation_evaluation.json",
+    "monitoring": {
+      "task_status_tracking": true,
+      "verification_pass_fail": true,
+      "elapsed_time_per_task": true
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": [
+        "timestamp",
+        "task_id",
+        "action",
+        "status",
+        "cmd",
+        "exit_code",
+        "stdout_excerpt",
+        "stderr_excerpt"
+      ]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_each_win": true,
+      "quality_dimensions": [
+        "correctness",
+        "completeness",
+        "safety"
+      ]
+    }
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npm run lint",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "must_pass": true
+    },
+    "tests": {
+      "command": "npm test",
+      "expected": {
+        "exit_code": 0,
+        "no_failed_suites": true
+      },
+      "coverage": {
+        "min_line_pct": 80,
+        "min_branch_pct": 75
+      }
+    },
+    "schemas": {
+      "ajv_strict": true,
+      "draft_version": "2020-12"
+    }
+  },
+  "high_level_stages": [
+    "prerequisite_verification",
+    "runtime_decoupling",
+    "workflow_isolation",
+    "evidence_capture",
+    "validation_gate"
+  ],
+  "tasks": [
+    {
+      "id": "WF5-V01",
+      "stage": "prerequisite_verification",
+      "title": "Confirm contamination baseline",
+      "type": "verification",
+      "description": "Reproduce current contamination signals before making changes to guarantee remediation addresses the verified state.",
+      "time_estimate_minutes": 45,
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "rg --line-number 'workflowMetadata' src/server.ts",
+          "capture_output": true
+        },
+        {
+          "type": "observe",
+          "cmd": "grep -n '/api/workflow/status' src/server.ts",
+          "capture_output": true
+        },
+        {
+          "type": "observe",
+          "cmd": "npm test -- tests/api/workflow-status.test.ts",
+          "expect_exit_code": 0,
+          "capture_output": true
+        }
+      ],
+      "success_criteria": [
+        "Existing contamination confirmed and documented",
+        "Baseline test exercising contaminated endpoint captured"
+      ],
+      "trace_context": {
+        "decision_point": "wf5_baseline_verification",
+        "reasoning_required": true
+      }
+    },
+    {
+      "id": "WF5-W51",
+      "stage": "runtime_decoupling",
+      "title": "Remove workflow metadata from product runtime",
+      "type": "win",
+      "description": "Delete workflow imports, metadata cache, and `/api/workflow/status` route from `src/server.ts`; ensure progress payloads contain only product data.",
+      "time_estimate_minutes": 240,
+      "actions": [
+        {
+          "type": "edit",
+          "file": "src/server.ts",
+          "content_spec": "Remove workflow helper imports, metadata cache logic, workflowMetadata fields, and `/api/workflow/status` registration."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "rg --line-number 'workflowMetadata' src/server.ts",
+          "expect_exit_code": 1
+        },
+        {
+          "cmd": "rg '/api/workflow/status' src/server.ts",
+          "expect_exit_code": 1
+        },
+        {
+          "cmd": "npm test -- tests/api/workflow-status.test.ts",
+          "expect_exit_code": 1,
+          "allow_failure_note": "Test should fail because endpoint removed; will be deleted in WF5-W54."
+        }
+      ],
+      "success_criteria": [
+        "Server no longer references workflow helpers",
+        "Progress payloads exclude workflow metadata",
+        "Workflow endpoint removed"
+      ],
+      "trace_context": {
+        "decision_point": "wf5_runtime_decoupling",
+        "win_number": "51"
+      }
+    },
+    {
+      "id": "WF5-W52",
+      "stage": "workflow_isolation",
+      "title": "Isolate workflow state module",
+      "type": "win",
+      "description": "Relocate workflow state implementation outside `src/`, update CLI imports, and add optional workflow-specific TypeScript config to prevent regressions.",
+      "time_estimate_minutes": 210,
+      "actions": [
+        {
+          "type": "move",
+          "from": "src/state/phaseState.ts",
+          "to": "workflow/lib/phaseState.ts"
+        },
+        {
+          "type": "edit",
+          "file": "scripts/snapshot-state.js",
+          "content_spec": "Update imports to new workflow module path."
+        },
+        {
+          "type": "edit",
+          "file": "scripts/sync-contract-status.js",
+          "content_spec": "Update imports to new workflow module path."
+        },
+        {
+          "type": "edit",
+          "file": "scripts/execute-next-action.js",
+          "content_spec": "Update imports to new workflow module path."
+        },
+        {
+          "type": "create_file",
+          "file": "tsconfig.workflow.json",
+          "content_spec": "Optional TypeScript configuration isolating workflow tooling build."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f workflow/lib/phaseState.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "rg 'from \\"./state/phaseState\\"' -g'*.ts'",
+          "expect_exit_code": 1
+        },
+        {
+          "cmd": "npm test -- tests/state/phaseState.test.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Workflow module resides outside product source tree",
+        "CLI scripts compile with new path",
+        "Optional workflow tsconfig documented"
+      ],
+      "trace_context": {
+        "decision_point": "wf5_workflow_isolation",
+        "win_number": "52"
+      }
+    },
+    {
+      "id": "WF5-W53",
+      "stage": "evidence_capture",
+      "title": "Persist contract validation evidence",
+      "type": "win",
+      "description": "Enhance contract sync tooling to populate `validation_results`, update tests to assert evidence presence, and re-run sync to refresh contract files.",
+      "time_estimate_minutes": 180,
+      "actions": [
+        {
+          "type": "edit",
+          "file": "scripts/sync-contract-status.js",
+          "content_spec": "Capture command outputs and write them to validation_results before marking tasks complete."
+        },
+        {
+          "type": "edit",
+          "file": "tests/state/sync.test.ts",
+          "content_spec": "Assert validation_results arrays are populated for completed tasks."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "npm test -- tests/state/sync.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run state:sync",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "rg 'validation_results' contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Sync script writes validation evidence",
+        "Tests enforce evidence presence",
+        "Contract warnings cleared"
+      ],
+      "trace_context": {
+        "decision_point": "wf5_evidence_capture",
+        "win_number": "53"
+      }
+    },
+    {
+      "id": "WF5-W54",
+      "stage": "evidence_capture",
+      "title": "Retire contaminated API test & reinforce CLI coverage",
+      "type": "win",
+      "description": "Remove workflow-status API test, add or update CLI-level tests to verify workflow tooling remains functional post-isolation.",
+      "time_estimate_minutes": 120,
+      "actions": [
+        {
+          "type": "delete",
+          "file": "tests/api/workflow-status.test.ts"
+        },
+        {
+          "type": "edit",
+          "file": "tests/state/execute-next-action.test.ts",
+          "content_spec": "Update imports/assertions to reflect relocated workflow module and absence of workflow metadata in product payloads."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f tests/api/workflow-status.test.ts",
+          "expect_exit_code": 1
+        },
+        {
+          "cmd": "npm test -- tests/state/execute-next-action.test.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Contaminated API test removed",
+        "Workflow CLI coverage intact",
+        "Test suite reflects new boundaries"
+      ],
+      "trace_context": {
+        "decision_point": "wf5_cli_validation",
+        "win_number": "54"
+      }
+    },
+    {
+      "id": "WF5-GATE",
+      "stage": "validation_gate",
+      "title": "Workflow remediation validation gate",
+      "type": "validation",
+      "description": "Run full validation checklist to certify remediation, capture evidence, and prepare summary report before unblocking Executor MVP Gate G3.",
+      "time_estimate_minutes": 180,
+      "actions": [
+        {
+          "type": "validate",
+          "cmd": "npm run lint"
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run typecheck"
+        },
+        {
+          "type": "validate",
+          "cmd": "npm test"
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run contract:check"
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run sbom:all"
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run provenance"
+        },
+        {
+          "type": "manual_validate",
+          "description": "Run npm run state:show, npm run state:sync, and npm run state:next:dry to confirm workflow tooling functions without product coupling."
+        }
+      ],
+      "success_criteria": [
+        "All validations succeed with zero warnings",
+        "No workflow metadata present in product server",
+        "Contract warnings resolved",
+        "Remediation summary recorded in docs"
+      ],
+      "trace_context": {
+        "decision_point": "wf5_validation_gate",
+        "critical": true,
+        "gate_type": "go_no_go"
+      }
+    }
+  ],
+  "execution_order": [
+    "WF5-V01",
+    "WF5-W51",
+    "WF5-W52",
+    "WF5-W53",
+    "WF5-W54",
+    "WF5-GATE"
+  ],
+  "execution_semantics": {
+    "win_isolation": {
+      "description": "Do not proceed to evidence capture until runtime decoupling and workflow isolation passes lint/typecheck/tests.",
+      "implementation": "After WF5-W51 and WF5-W52, run npm run lint && npm run typecheck before moving to WF5-W53."
+    },
+    "gate_enforcement": {
+      "WF5-GATE": {
+        "required": true,
+        "on_fail": "Halt, revert partial changes if necessary, and document remediation blockers in .automation/workflow_phase1-4_remediation_evaluation.json",
+        "report": "Provide summary, failing command output, and next steps."
+      }
+    },
+    "phase_specific_constraints": {
+      "no_public_workflow_endpoints": "New product endpoints must not expose workflow metadata.",
+      "cli_only_workflow_state": "Workflow state access limited to CLI/tools outside src/."
+    }
+  },
+  "completion_criteria": {
+    "workflow_metadata_removed": true,
+    "workflow_module_isolated": true,
+    "contract_evidence_populated": true,
+    "contaminated_tests_removed": true,
+    "all_validations_pass": true,
+    "audit_trail_updated": true
+  },
+  "fallback_policies": {
+    "validation_failure": "Stop immediately, capture logs, and create remediation note before retrying.",
+    "unexpected_dependency": "Escalate to repository owner; do not add dependencies without approval.",
+    "cli_regression": "Re-run npm test for workflow CLI suites; if failures persist, revert to last known good commit."
+  },
+  "reporting": {
+    "progress_file": ".automation/workflow_phase1-4_remediation_progress.json",
+    "fields": [
+      "task_id",
+      "status",
+      "started_at",
+      "completed_at",
+      "elapsed_ms",
+      "notes"
+    ],
+    "status_values": [
+      "pending",
+      "running",
+      "succeeded",
+      "blocked"
+    ],
+    "phase_report": {
+      "file": ".automation/workflow_phase1-4_remediation_completion.json",
+      "fields": [
+        "wins_completed",
+        "gate_passed",
+        "timestamp",
+        "evidence_bundle_paths"
+      ]
+    }
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Server decoupling",
+      "path": "src/server.ts",
+      "must_not_include_regex": "workflowMetadata"
+    },
+    {
+      "name": "Workflow module location",
+      "path": "workflow/lib/phaseState.ts",
+      "must_include_regex": "export"
+    },
+    {
+      "name": "Contract evidence",
+      "path": "contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json",
+      "must_include_regex": "validation_results"
+    }
+  ]
+}

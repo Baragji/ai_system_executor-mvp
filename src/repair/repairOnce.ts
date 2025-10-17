@@ -4,6 +4,7 @@ import path from "node:path";
 // Orchestrates a single repair attempt using the sandbox runner and LLM output.
 
 import { generateJSON, type LLMMessage } from "../llm/index.js";
+import { throwIfAborted } from "../orchestrator/abortSignal.js";
 import { runInSandbox } from "../runner/runInSandbox.js";
 import {
   validateRepairArtifact,
@@ -18,6 +19,7 @@ export interface RepairOnceArgs {
   failure: RunResult;
   originalFiles: ExecutorFile[];
   prompt: string;
+  sessionId?: string;
 }
 
 export interface RepairOutcome {
@@ -101,6 +103,7 @@ function validateArtifacts(rawArtifacts: unknown[]): RepairArtifactDescription[]
 }
 
 export async function repairOnce(args: RepairOnceArgs): Promise<RepairOutcome> {
+  const { sessionId } = args;
   const notes: string[] = [];
   if (!process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY) {
     notes.push("NO_LLM");
@@ -116,7 +119,11 @@ export async function repairOnce(args: RepairOnceArgs): Promise<RepairOutcome> {
 
   let raw: string;
   try {
-    raw = await generateJSON(buildRepairPrompt(args));
+    throwIfAborted(sessionId, "repair_once_llm");
+    raw = await generateJSON(buildRepairPrompt(args), { sessionId });
+    if (sessionId) {
+      throwIfAborted(sessionId, "post_repair_once_llm");
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return {

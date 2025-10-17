@@ -1,0 +1,34 @@
+{
+  "project_name": "lab-technician-landing",
+  "files": [
+    {
+      "path": "index.html",
+      "contents": "<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  <title>Lab Technician - Professional Services</title>\n  <link rel=\"stylesheet\" href=\"styles.css\" />\n  <script src=\"script.js\" defer></script>\n</head>\n<body>\n  <header class=\"hero\">\n    <div class=\"container\">\n      <h1 id=\"hero-title\">Lab Technician</h1>\n      <p class=\"subtitle\">Reliable lab support, precision, and safety.</p>\n    </div>\n  </header>\n  <main class=\"container\">\n    <section class=\"services\" aria-labelledby=\"services-title\">\n      <h2 id=\"services-title\">Services</h2>\n      <ul>\n        <li>Sample preparation and processing</li>\n        <li>Equipment calibration and maintenance</li>\n        <li>Data recording and quality control</li>\n      </ul>\n    </section>\n\n    <section class=\"contact\" aria-labelledby=\"contact-title\">\n      <h2 id=\"contact-title\">Contact</h2>\n      <form id=\"contact-form\" novalidate>\n        <div class=\"field\">\n          <label for=\"name\">Name</label>\n          <input type=\"text\" id=\"name\" name=\"name\" required />\n        </div>\n        <div class=\"field\">\n          <label for=\"email\">Email</label>\n          <input type=\"email\" id=\"email\" name=\"email\" required />\n        </div>\n        <div class=\"field\">\n          <label for=\"message\">Message</label>\n          <textarea id=\"message\" name=\"message\" rows=\"4\" required></textarea>\n        </div>\n        <button type=\"submit\" class=\"btn\">Send</button>\n      </form>\n    </section>\n  </main>\n\n  <footer class=\"footer\">\n    <div class=\"container\">\n      <small>&copy; 2025 Lab Technician</small>\n    </div>\n  </footer>\n</body>\n</html>\n"
+    },
+    {
+      "path": "styles.css",
+      "contents": "/* Color palette: red, black, white only */\n* { box-sizing: border-box; }\nbody {\n  margin: 0;\n  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Arial, sans-serif;\n  color: #000;\n  background: #fff;\n  line-height: 1.5;\n}\n.container { width: min(960px, 92%); margin: 0 auto; }\n\n.hero {\n  background: #000;\n  color: #fff;\n  padding: 4rem 0;\n  text-align: center;\n  border-bottom: 4px solid #d00000;\n}\n.hero .subtitle {\n  color: #fff;\n  max-width: 60ch;\n  margin: 0.5rem auto 0;\n}\n\nh1, h2 { margin: 0 0 0.5rem; }\n.services { margin-top: 2rem; }\n.services ul { padding-left: 1.2rem; }\n.services li { margin: 0.25rem 0; }\n\n.contact { margin-top: 2rem; }\n.field { display: flex; flex-direction: column; margin-bottom: 1rem; }\nlabel { font-weight: 600; }\n\ninput, textarea {\n  padding: 0.6rem;\n  border: 1px solid #000;\n  border-radius: 4px;\n  background: #fff;\n  color: #000;\n}\ninput:focus, textarea:focus { outline: 2px solid #d00000; outline-offset: 2px; }\n\n.btn {\n  background: #d00000;\n  color: #fff;\n  border: none;\n  padding: 0.75rem 1rem;\n  border-radius: 4px;\n  cursor: pointer;\n  font-weight: 700;\n}\n.btn:hover { filter: brightness(0.9); }\n\n.footer {\n  border-top: 4px solid #d00000;\n  text-align: center;\n  padding: 1rem 0;\n  margin-top: 3rem;\n}\n\n@media (max-width: 600px) {\n  .hero { padding: 3rem 0; }\n}\n"
+    },
+    {
+      "path": "script.js",
+      "contents": "document.addEventListener('DOMContentLoaded', () => {\n  const form = document.getElementById('contact-form');\n  if (form) {\n    form.addEventListener('submit', (e) => {\n      e.preventDefault();\n      const nameEl = document.getElementById('name');\n      const nameVal = nameEl && 'value' in nameEl ? nameEl.value.trim() : '';\n      alert(`Thank you${nameVal ? ', ' + nameVal : ''}! Your message has been received.`);\n      form.reset();\n    });\n  }\n});\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "Lab Technician Landing Page\n\nA minimal single-page landing site for a lab technician. The page is responsive, uses a red/black/white color scheme, includes a hero with title and subtitle, a brief services list, and a contact form that shows an alert on submit (no backend).\n\nGetting started\n- Install dependencies: npm install\n- Run tests: npm test\n- Open the site: open the index.html file in your browser (double-click or use a simple static server)\n\nProject structure\n- index.html — Single-page site\n- styles.css — Styles (red, black, white only)\n- script.js — Contact form handler (shows an alert)\n- __tests__/index.test.js — Basic Jest test for hero title\n\nNotes\n- No backend is included; the form submission is intercepted by JavaScript and shows an alert.\n"
+    },
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"lab-technician-landing\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"description\": \"Minimal single-page landing site for a lab technician.\",\n  \"scripts\": {\n    \"test\": \"jest\"\n  },\n  \"devDependencies\": {\n    \"jest\": \"^29.7.0\"\n  }\n}\n"
+    },
+    {
+      "path": "__tests__/index.test.js",
+      "contents": "const fs = require('fs');\nconst path = require('path');\n\ndescribe('index.html', () => {\n  test('contains the hero title', () => {\n    const html = fs.readFileSync(path.resolve(__dirname, '..', 'index.html'), 'utf8');\n    expect(html).toContain('Lab Technician');\n  });\n});\n"
+    }
+  ],
+  "notes": [
+    "Run npm install to install Jest, then npm test to execute the test.",
+    "Open index.html directly in a browser to view the landing page."
+  ],
+  "hasTests": true
+}

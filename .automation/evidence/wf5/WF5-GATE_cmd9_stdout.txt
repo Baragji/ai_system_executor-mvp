@@ -1,0 +1,23 @@
+
+> executor-mvp@0.1.0 state:next:dry
+> tsx scripts/execute-next-action.js --dry-run
+
+🤖 Autonomous Next Action Executor
+
+Loading workflow state...
+
+📊 Current State:
+Phase: Autonomous Transition — Trust Spine & LangGraph Foundation
+Current Gate: G3 (partial)
+Current Task: None
+Uncommitted Changes: 25
+
+🎯 Suggested Next Action:
+Action: COMMIT_PENDING_CHANGES
+Reasoning: Uncommitted changes detected. Commit to persist progress.
+Command: git add -A && git commit -m 'chore: persist progress'
+
+[DRY RUN MODE]
+Would execute: git add -A && git commit -m 'chore: persist progress'
+
+To execute, run: npm run state:next
