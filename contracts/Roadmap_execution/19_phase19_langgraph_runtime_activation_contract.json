@@ -80,7 +80,7 @@
       "type": "verification",
       "description": "Confirm Phase 20 executions store endpoints and StepQueue workflow remain healthy before enabling LangGraph runtime.",
       "status": "pending",
-      "time_estimate_minutes": 45,
+      "time_estimate_minutes": 30,
       "actions": [
         "Inspect GET /api/executions/:id handler to confirm completion polling remains unchanged",
         "Check StepQueue implementation in src/orchestrator/stepQueue.ts for deterministic options"
@@ -138,7 +138,7 @@
       "type": "implementation",
       "description": "Update src/orchestrator/graph.ts to compile a StateGraph that invokes the existing StepQueue workflow and writes execution status transitions.",
       "status": "pending",
-      "time_estimate_minutes": 90,
+      "time_estimate_minutes": 40,
       "actions": [
         "Replace runGraph stub with runWithLangGraph implementation from plan",
         "Ensure buildExecutionId retains backwards compatibility"
@@ -171,7 +171,7 @@
       "type": "implementation",
       "description": "Update src/server.ts to import runWithLangGraph, persist execution state, and fire-and-forget LangGraph execution when AGENTS_RUNTIME=langgraph.",
       "status": "pending",
-      "time_estimate_minutes": 75,
+      "time_estimate_minutes": 35,
       "actions": [
         "Add runWithLangGraph import next to buildExecutionId",
         "Replace useLangGraph branch with execution creation and async LangGraph invocation",
@@ -205,7 +205,7 @@
       "type": "validation",
       "description": "Execute automated tests under AGENTS_RUNTIME=langgraph and gather logs showing execution lifecycle transitions.",
       "status": "pending",
-      "time_estimate_minutes": 60,
+      "time_estimate_minutes": 30,
       "actions": [
         "Run AGENTS_RUNTIME=langgraph npm test -- -t 'execute'",
         "Capture console log snippet showing runtime selection",
