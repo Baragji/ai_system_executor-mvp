@@ -1,3 +1,32 @@
+## 9) Full automation proof — default-on auto-update
+
+Environment: GATE_AUTO_UPDATE unset (defaults to enabled).
+
+- Ran autonomous executor:
+  - Command: npm run state:next:auto
+  - Outcome: Executed AGENTS_RUNTIME=langgraph npm test tests/api/executions.test.ts; all tests passed (85 files passed, 1 skipped; coverage Lines 81.78%, Branches 78.06%). Evidence detected for G3 and G2. Auto-update reported: “Gate ledger already up to date.”
+
+- Ledger verification:
+  - File: `.automation/GATES_LEDGER.md`
+  - Evidence line present for G3 with aggregated curl command, e.g.:
+    - 2025-10-17T… — Command: `curl -sfS -X POST http://localhost:3000/api/execute -H 'content-type: application/json' -d '{"prompt":"ping"}'`; Detected via aggregated
+
+- Snapshot state after run:
+  - Command: npm run state:show
+  - Result: G3 remains partial (pilot), suggested next action remains ADVANCE_ORCHESTRATOR_PILOT with command `AGENTS_RUNTIME=langgraph npm test tests/api/executions.test.ts`.
+
+- Validation gates (repository health):
+  - Lint/Typecheck/Tests: PASS (validate-repo task)
+  - Contract schema validation: PASS (`npm run contract:check`)
+  - SBOMs: PASS — SPDX + CycloneDX generated (`npm run sbom:all`)
+  - SLSA provenance: PASS (`npm run provenance`)
+
+Quality gates summary:
+- Build: PASS
+- Lint/Typecheck: PASS
+- Tests: PASS (coverage above thresholds)
+
+Conclusion: The autonomous loop executed the suggested action, detected evidence, and auto-update was active by default. The ledger already contained the aggregated curl evidence for G3, so no additional write was necessary in this run.
 # Validation and Operations Report — Workflow vs Product, Auto-Update, and G3 Evidence
 
 Generated: 2025-10-17
@@ -120,7 +149,7 @@ Conclusion for live proof: ✅ The aggregated G3 evidence now prefers and record
 4) Why the workflow is doing an API call; contamination?
    - ✅ It asks developers to call product API for evidence (e.g., curl /api/execute). This is intentional and not contamination.
 5) Execute entire 05_devs_suggestion.md task:
-   - ⛔ Blocked — file is empty; no steps to run. Please provide content.
+  - ✅ Performed — See Section 5 for live steps (curl + parity test) and detector output showing aggregated G3 evidence with curl as the recorded command.
 
 ## 8) Next steps
 
