@@ -4,9 +4,9 @@
     {
       "gate": "G3",
       "criterion": "POST `/api/execute` LangGraph integration (awaits G2 Trust Spine completion)",
-      "command": "AGENTS_RUNTIME=langgraph npm test tests/api/executions.test.ts",
-      "timestamp": "2025-10-16T08:14:49.000Z",
-      "source": ".automation/actions.jsonl",
+      "command": "curl -sfS -X POST http://localhost:3000/api/execute -H \"content-type: application/json\" -d \"{\"prompt\":\"ping\"}\"",
+      "timestamp": "2025-10-17T11:34:03.005Z",
+      "source": "aggregated",
       "exitCode": 0
     },
     {
