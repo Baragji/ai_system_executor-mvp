@@ -1,0 +1,30 @@
+{
+  "source": "auto",
+  "evidence": [
+    {
+      "gate": "G3",
+      "criterion": "POST `/api/execute` LangGraph integration (awaits G2 Trust Spine completion)",
+      "command": "AGENTS_RUNTIME=langgraph npm test tests/api/executions.test.ts",
+      "timestamp": "2025-10-16T08:14:49.000Z",
+      "source": ".automation/actions.jsonl",
+      "exitCode": 0
+    },
+    {
+      "gate": "G2",
+      "criterion": "SLSA v1.0 provenance emitted via `npm run provenance`",
+      "command": "npm run provenance",
+      "timestamp": "2025-10-15T17:53:37.613Z",
+      "source": ".automation/workflow_phase1-4_remediation_trace.jsonl",
+      "exitCode": 0
+    },
+    {
+      "gate": "G2",
+      "criterion": "CycloneDX 1.6 SBOM generated via `npm run sbom:cyclonedx`",
+      "command": "npm run sbom:all",
+      "timestamp": "2025-10-15T17:53:30.368Z",
+      "source": ".automation/workflow_phase1-4_remediation_trace.jsonl",
+      "exitCode": 0
+    }
+  ],
+  "warnings": []
+}
