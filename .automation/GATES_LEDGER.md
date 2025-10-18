@@ -130,8 +130,8 @@ All evidence files located in `.automation/evidence/G2/`:
 
 ## Gate G3: Orchestrator Pilot (Feature-flagged)
 
-**Status:** 🟡 PARTIAL
-**Completed:** 2025-10-13 (Phase 20 infrastructure complete)
+**Status:** ✅ PASSED
+**Completed:** 2025-10-18
 **Phase:** Phase 20 (LangGraph Executions)
 
 ### Acceptance Criteria
@@ -139,9 +139,9 @@ All evidence files located in `.automation/evidence/G2/`:
 - ✅ GET `/api/executions/:id` endpoint functional
 - ✅ Tests passing (`tests/api/executions.test.ts`)
 - ✅ POST `/api/execute` LangGraph integration (awaits G2 Trust Spine completion)
-- ⏳ Deterministic replay validation
-- ⏳ Performance benchmarks (overhead < 500ms/transition)
-- ⏳ Parity tests (StepQueue fallback validation)
+- ✅ Deterministic replay validation
+- ✅ Performance benchmarks (overhead < 500ms/transition)
+- ✅ Parity tests (StepQueue fallback validation)
 
 ### Evidence
 - `src/orchestrator/executionsStore.ts`
@@ -150,6 +150,9 @@ All evidence files located in `.automation/evidence/G2/`:
 - `tests/api/executions.test.ts`
 - `.automation/phase20_langgraph_exec_discovery.json`
 - 2025-10-17T09:27:19.529Z — Command: `curl -sfS -X POST http://localhost:3000/api/execute -H 'content-type: application/json' -d '{"prompt":"ping"}'`; Detected via aggregated
+- 2025-10-18T07:03:05.227Z — Command: `AGENTS_RUNTIME=langgraph npm test tests/orchestrator/replay.test.ts`; Detected via state:next
+- 2025-10-18T07:03:17.675Z — Command: `AGENTS_RUNTIME=langgraph npm test tests/orchestrator/parity.test.ts`; Detected via state:next
+- 2025-10-18T07:23:59.303Z — Command: `AGENTS_RUNTIME=langgraph npm test tests/benchmarks/perf-overhead.test.ts`; Detected via state:next
 <!-- evidence will be appended automatically when a real /api/execute + executions parity test run is detected -->
 
 ### Next Steps
