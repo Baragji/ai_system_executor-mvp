@@ -1,5 +1,5 @@
 import request from "supertest";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import express from "express";
 import { executeAdapter } from "../../src/orchestrator/adapter.js";
 
@@ -34,7 +34,7 @@ describe("executeAdapter", () => {
   it("returns 500 when langgraph simulation failure enabled", async () => {
     process.env.AGENTS_RUNTIME = "langgraph";
     process.env.AGENTS_GRAPH_SIMULATE_FAILURE = "1";
-  const res = await request(app).post("/api/execute").send({ prompt: "hi" }).expect(500);
-  expect(res.body).toMatchObject({ title: "Internal Server Error", status: 500, type: "about:blank" });
+    const res = await request(app).post("/api/execute").send({ prompt: "hi" }).expect(500);
+    expect(res.body).toMatchObject({ title: "Internal Server Error", status: 500, type: "about:blank" });
   });
 });

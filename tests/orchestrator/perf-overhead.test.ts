@@ -31,7 +31,6 @@ describe("orchestrator overhead", () => {
     const langgraphMs = Date.now() - t1;
     // If flakey due to CI load, don't fail the suite; capture a soft assertion.
     if (!done) {
-      // eslint-disable-next-line no-console
       console.warn(`LangGraph completion not observed within window; measured ${langgraphMs}ms`);
       return;
     }

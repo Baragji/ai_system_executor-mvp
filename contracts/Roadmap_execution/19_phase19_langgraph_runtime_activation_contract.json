@@ -170,7 +170,7 @@
       "title": "Wire /api/execute flag path to LangGraph runtime",
       "type": "implementation",
       "description": "Update src/server.ts to import runWithLangGraph, persist execution state, and fire-and-forget LangGraph execution when AGENTS_RUNTIME=langgraph.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 35,
       "actions": [
         "Add runWithLangGraph import next to buildExecutionId",
@@ -204,7 +204,7 @@
       "title": "Run tests and capture LangGraph parity evidence",
       "type": "validation",
       "description": "Execute automated tests under AGENTS_RUNTIME=langgraph and gather logs showing execution lifecycle transitions.",
-      "status": "pending",
+      "status": "complete",
       "time_estimate_minutes": 30,
       "actions": [
         "Run AGENTS_RUNTIME=langgraph npm test -- -t 'execute'",
