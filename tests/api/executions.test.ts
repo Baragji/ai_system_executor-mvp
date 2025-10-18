@@ -94,13 +94,11 @@ describe("LangGraph executions endpoint", () => {
 
     let finalExecution: { status?: string; output?: unknown; logs?: unknown } | null = null;
     for (let attempt = 0; attempt < 40; attempt += 1) {
-      // eslint-disable-next-line no-await-in-loop
       const poll = await request(app).get(location).expect(200);
       finalExecution = poll.body;
       if (poll.body.status === "completed") {
         break;
       }
-      // eslint-disable-next-line no-await-in-loop
       await new Promise(r => setTimeout(r, 25));
     }
 

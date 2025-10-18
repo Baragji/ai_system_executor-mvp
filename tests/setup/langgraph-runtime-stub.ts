@@ -17,7 +17,6 @@ export class StateGraph<TState> {
       async invoke(initial: TState): Promise<TState> {
         let state = initial;
         for (const handler of handlers) {
-          // eslint-disable-next-line no-await-in-loop
           state = await handler(state);
         }
         return state;

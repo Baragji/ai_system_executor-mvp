@@ -1,11 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { runWithLangGraph } from "../../src/orchestrator/graph.js";
-import {
-  createExecution,
-  getExecution,
-  __test as executionsStoreTestUtils,
-} from "../../src/orchestrator/executionsStore.js";
+import * as executionsStore from "../../src/orchestrator/executionsStore.js";
+const { createExecution, getExecution, __test: executionsStoreTestUtils } = executionsStore;
 import type { StepDescriptor, StepExecutionResult } from "../../src/orchestrator/stepQueue.js";
 import type { StepQueue } from "../../src/orchestrator/stepQueue.js";
 
@@ -30,6 +27,8 @@ describe("runWithLangGraph", () => {
     const executionId = "graph-success";
     const sessionId = "session-123";
     createExecution(executionId, { status: "started", logs: [] });
+
+    const updateSpy = vi.spyOn(executionsStore, "updateExecution");
 
     const stepResult: StepExecutionResult = {
       stepId: "step-1",
@@ -74,12 +73,36 @@ describe("runWithLangGraph", () => {
     expect(record?.status).toBe("completed");
     expect(record?.result).toEqual(stepResult.data?.response);
     expect(record?.logs).toEqual(result.logs);
+
+    expect(updateSpy).toHaveBeenCalledWith(
+      executionId,
+      expect.objectContaining({ status: "running", logs: [] })
+    );
+    expect(updateSpy).toHaveBeenCalledWith(
+      executionId,
+      expect.objectContaining({
+        logs: [
+          {
+            stepId: "step-1",
+            stepType: "single",
+            status: "completed",
+            sequence: 0,
+            stop: true,
+            data: stepResult.data,
+          },
+        ],
+      })
+    );
+
+    updateSpy.mockRestore();
   });
 
   it("marks executions as failed when the workflow throws", async () => {
     const executionId = "graph-failure";
     const sessionId = "session-456";
     createExecution(executionId, { status: "started" });
+
+    const updateSpy = vi.spyOn(executionsStore, "updateExecution");
 
     const descriptors: StepDescriptor[] = [{ type: "single" }];
 
@@ -104,5 +127,12 @@ describe("runWithLangGraph", () => {
     const record = getExecution(executionId);
     expect(record?.status).toBe("failed");
     expect(record?.error).toBe("step failure");
+
+    expect(updateSpy).toHaveBeenCalledWith(
+      executionId,
+      expect.objectContaining({ status: "running", logs: [] })
+    );
+
+    updateSpy.mockRestore();
   });
 });

@@ -49,6 +49,15 @@ type GraphState = {
   logs: unknown[];
 };
 
+type LangGraphBuilder = {
+  addNode: (
+    key: string,
+    action: (state: GraphState) => Promise<GraphState> | GraphState,
+  ) => LangGraphBuilder;
+  addEdge: (from: unknown, to: unknown) => LangGraphBuilder;
+  compile: () => { invoke: (initial: GraphState) => Promise<GraphState> };
+};
+
 function serializeStep(step: StepExecutionResult): Record<string, unknown> {
   return {
     stepId: step.stepId,
@@ -71,24 +80,32 @@ function extractResponse(run: WorkflowRunResult): ExecutorSuccessResponse | unde
 export async function runWithLangGraph(args: GraphRunArgs): Promise<GraphOutput> {
   const { executionId, sessionId, steps, stepQueue, deterministic, seed } = args;
 
-  const builder = new StateGraph<GraphState>({
+  const LangGraphCtor = StateGraph as unknown as new (config?: unknown) => LangGraphBuilder;
+  const builder = new LangGraphCtor({
     channels: {} as Record<string, never>,
   });
 
+  let latestLogs: unknown[] = [];
+
   builder.addNode("runWorkflow", async state => {
-    updateExecution(executionId, { status: "running" });
+    latestLogs = [];
+    updateExecution(executionId, { status: "running", logs: latestLogs });
 
     const capturedLogs: unknown[] = [];
     const workflow = await stepQueue.runWorkflow(sessionId, steps, {
       onStep(step) {
         capturedLogs.push(serializeStep(step));
+        latestLogs = capturedLogs.slice();
+        updateExecution(executionId, { logs: latestLogs });
       },
     });
 
     const response = extractResponse(workflow);
 
+    latestLogs = capturedLogs.slice();
+
     return {
-      ...state,
+      executionId: state.executionId,
       result: response,
       logs: capturedLogs,
     } satisfies GraphState;
@@ -101,7 +118,9 @@ export async function runWithLangGraph(args: GraphRunArgs): Promise<GraphOutput>
 
   try {
     logEvent("langgraph.started", { executionId, deterministic, seed });
-    const final = await app.invoke({ executionId, logs: [] });
+    const final = await app.invoke({ executionId, logs: [] } as GraphState);
+
+    latestLogs = Array.isArray(final.logs) ? final.logs.slice() : latestLogs;
 
     completeExecution(executionId, {
       output: final.result,
@@ -111,6 +130,9 @@ export async function runWithLangGraph(args: GraphRunArgs): Promise<GraphOutput>
 
     return { output: final.result, logs: final.logs } satisfies GraphOutput;
   } catch (err) {
+    if (latestLogs.length > 0) {
+      updateExecution(executionId, { logs: latestLogs });
+    }
     failExecution(executionId, err);
     logEvent("langgraph.failed", {
       executionId,

@@ -1,0 +1,42 @@
+{
+  "date": "2025-10-25",
+  "task": "P19-V05",
+  "scope": "Run tests and capture LangGraph parity evidence",
+  "integration_points": [
+    {
+      "file": "package.json",
+      "lines": [1, 160],
+      "note": "Holds lint, typecheck, and test scripts referenced by the contract"
+    },
+    {
+      "file": "tests/api/executions.test.ts",
+      "lines": [1, 140],
+      "note": "Validates LangGraph execution lifecycle under the feature flag"
+    },
+    {
+      "file": "src/server.ts",
+      "lines": [1550, 1800],
+      "note": "Produces runtime logs and orchestrates execution-store updates"
+    },
+    {
+      "file": ".automation/evidence/langgraph/",
+      "note": "Destination for P19-V05 validation evidence"
+    },
+    {
+      "file": ".automation/progress_phase19_langgraph_runtime.json",
+      "note": "Progress tracker requiring validation results and evidence references"
+    }
+  ],
+  "commands_run": [],
+  "risks": [
+    "Must export AGENTS_RUNTIME=langgraph when running targeted tests",
+    "Lint/typecheck could surface latent LangGraph typing issues",
+    "Evidence updates require precise citations to avoid compliance gaps"
+  ],
+  "next_steps": [
+    "Execute AGENTS_RUNTIME=langgraph npm test -- -t 'execute'",
+    "Run npm run lint and npm run typecheck",
+    "Capture runtime log excerpt demonstrating flag path",
+    "Document results in evidence files and update progress tracker"
+  ]
+}
