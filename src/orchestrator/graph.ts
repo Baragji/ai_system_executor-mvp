@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { StateGraph, START, END } from "@langchain/langgraph";
+import { StateGraph, START, END, Annotation } from "@langchain/langgraph";
 
 import { cleanupAbortSignal } from "./abortSignal.js";
 import { logEvent } from "../telemetry/events.js";
@@ -43,20 +43,11 @@ export function buildExecutionId(sessionId?: string): string {
   return `graph-${randomUUID()}`;
 }
 
-type GraphState = {
-  executionId: string;
-  result?: unknown;
-  logs: unknown[];
-};
-
-type LangGraphBuilder = {
-  addNode: (
-    key: string,
-    action: (state: GraphState) => Promise<GraphState> | GraphState,
-  ) => LangGraphBuilder;
-  addEdge: (from: unknown, to: unknown) => LangGraphBuilder;
-  compile: () => { invoke: (initial: GraphState) => Promise<GraphState> };
-};
+const GraphState = Annotation.Root({
+  executionId: Annotation<string>(),
+  result: Annotation<unknown | undefined>(),
+  logs: Annotation<unknown[]>({ reducer: (a = [], b = []) => (Array.isArray(a) ? a : []).concat(b ?? []) }),
+});
 
 function serializeStep(step: StepExecutionResult): Record<string, unknown> {
   return {
@@ -80,14 +71,11 @@ function extractResponse(run: WorkflowRunResult): ExecutorSuccessResponse | unde
 export async function runWithLangGraph(args: GraphRunArgs): Promise<GraphOutput> {
   const { executionId, sessionId, steps, stepQueue, deterministic, seed } = args;
 
-  const LangGraphCtor = StateGraph as unknown as new (config?: unknown) => LangGraphBuilder;
-  const builder = new LangGraphCtor({
-    channels: {} as Record<string, never>,
-  });
+  const builder = new StateGraph(GraphState);
 
   let latestLogs: unknown[] = [];
 
-  builder.addNode("runWorkflow", async state => {
+  (builder as unknown as { addNode: Function }).addNode("runWorkflow", async (state: { executionId: string; logs?: unknown[]; result?: unknown }) => {
     latestLogs = [];
     updateExecution(executionId, { status: "running", logs: latestLogs });
 
@@ -108,17 +96,17 @@ export async function runWithLangGraph(args: GraphRunArgs): Promise<GraphOutput>
       executionId: state.executionId,
       result: response,
       logs: capturedLogs,
-    } satisfies GraphState;
+    } as { executionId: string; result?: unknown; logs: unknown[] };
   });
 
-  builder.addEdge(START, "runWorkflow");
-  builder.addEdge("runWorkflow", END);
+  (builder as unknown as { addEdge: Function }).addEdge(START, "runWorkflow");
+  (builder as unknown as { addEdge: Function }).addEdge("runWorkflow", END);
 
   const app = builder.compile();
 
   try {
     logEvent("langgraph.started", { executionId, deterministic, seed });
-    const final = await app.invoke({ executionId, logs: [] } as GraphState);
+    const final = await app.invoke({ executionId, logs: [] });
 
     latestLogs = Array.isArray(final.logs) ? final.logs.slice() : latestLogs;
 

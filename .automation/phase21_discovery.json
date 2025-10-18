@@ -1,0 +1,34 @@
+{
+  "phase": "21",
+  "title": "Multi-Node LangGraph Orchestration - Discovery",
+  "integration_points": [
+    {
+      "file": "src/orchestrator/graph.ts",
+      "lines_to_change": [
+        "90-132 (current single-node runWorkflow block)",
+        "114-117 (edges START→runWorkflow→END)",
+        "119-131 (invoke + completion wiring)"
+      ],
+      "reason": "Replace wrapper with nodes: clarify, plan, generate, test, conditional repair loop, deliver; add edges accordingly."
+    },
+    {
+      "file": "src/server.ts",
+      "lines": [
+        "1555 (useLangGraph flag)",
+        "1751-1790 (fire-and-forget runWithLangGraph + 202 response)"
+      ],
+      "reason": "Ensure prompt/projectName passed into graph entry; keep API parity (202 + Location)."
+    }
+  ],
+  "function_signatures": {
+    "generateQuestions": "src/clarification/generateQuestions.ts:28 — (missing: MissingInfoType[], prompt?: string): ClarificationQuestion[]",
+    "decomposeTask": "src/planning/decomposeTask.ts:195 — (prompt: string, clarifications?: ClarificationResponse): Promise<TaskPlan>",
+    "runInSandbox": "src/runner/runInSandbox.ts:87 — (options: RunInSandboxOptions): Promise<RunResult>",
+    "multiTurnRepair": "src/repair/multiTurnRepair.ts:273 — (context: MultiTurnContext): Promise<RepairHistory>"
+  },
+  "dependencies": {
+    "@langchain/langgraph": "^1.0.0 (installed)",
+    "@langchain/core": "^1.0.1 (installed)"
+  },
+  "notes": "Annotation API adopted in graph.ts. E2E route verified to return 202 + poll; direct LLM smoke test passed with OpenAI."
+}

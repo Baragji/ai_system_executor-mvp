@@ -1,0 +1,184 @@
+{
+  "contract_version": "21.0.0",
+  "contract_meta": {
+    "created": "2025-10-18",
+    "phase": "21",
+    "phase_name": "Multi-Node LangGraph Orchestration",
+    "prerequisite_phase": "Phase 19/20 complete (G2/G3)",
+    "enhancement": "Replace wrapper with a real multi-node StateGraph and validate with a live LLM e2e.",
+    "rationale": "The current LangGraph integration is a minimal wrapper that does not exercise graph orchestration benefits (nodes, conditional routing, loops). This phase delivers a true multi-node StateGraph aligned with the ADR while preserving API behavior and proving live LLM execution via a gated e2e test. This unlocks future durability and HITL work.",
+    "references": [
+      "docs/08_181025_todays_status/10_finalized_real_langgraph_e2e_plan.md",
+      "src/orchestrator/graph.ts",
+      "docs/08_181025_todays_status/02_understanding_langgraph_current_state.md",
+      "docs/Goal_&_Vision_inspirational_only/03_final_decisions/RA_Deliveries/ADR-019_LangGraph_TS_Orchestrator_2025-10-12.md"
+    ]
+  },
+  "project": {
+    "name": "executor-mvp",
+    "current_phase": "21",
+    "goal": "Implement a 6-node LangGraph (clarify, plan, generate, test, conditional repair loop, deliver) replacing the wrapper while maintaining API parity and proving real LLM integration via HTTP e2e.",
+    "scope": "Backend orchestration only; feature-flagged runtime behind POST /api/execute with 202 + Location semantics unchanged.",
+    "estimated_time": "3 days",
+    "work_profile": "backend_orchestration",
+    "out_of_scope": [
+      "Frontend framework changes",
+      "Production checkpointer (planned next)",
+      "HITL UI wiring"
+    ]
+  },
+  "execution_model": {
+    "type": "discovery_then_autonomous",
+    "verification_strategy": "evidence_first",
+    "description": "Document integration points then implement multi-node graph and validate with live LLM HTTP e2e.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "AGENTS.md (Phase 19+)",
+    "language": "TypeScript (Node.js 20.x)",
+    "frameworks": ["Express"],
+    "test_command": "npm test",
+    "constraints": [
+      "No Python",
+      "No frontend frameworks",
+      "Keep API backwards compatible",
+      "Use feature flag AGENTS_RUNTIME=langgraph"
+    ],
+    "validation": "npm run contract:check"
+  },
+  "observability": {
+    "trace_file": ".automation/execution_trace.jsonl",
+    "discovery_file": ".automation/phase21_discovery.json",
+    "evidence_file": ".automation/evidence/langgraph/actions.jsonl",
+    "evaluation_file": ".automation/evaluation_results.json",
+    "monitoring": {"discovery_phase_tracking": true},
+    "logging": {"format": "jsonl"},
+    "evaluation": {"continuous": true}
+  },
+  "high_level_stages": [
+    "Discovery",
+    "Implementation",
+    "Validation"
+  ],
+  "gates": [
+    {
+      "id": "G3.1",
+      "name": "Multi-Node Implementation",
+      "status": "in_progress",
+      "note": "Deliver six-node graph with live LLM e2e.",
+      "acceptance": [
+        "6 nodes implemented with conditional repair loop",
+        "HTTP e2e with real OpenAI key passes",
+        "Planning stage optimized to avoid unnecessary retries"
+      ],
+      "evidence": [
+        "tests/e2e/langgraph-real-llm.e2e.test.ts",
+        ".automation/evidence/langgraph/actions.jsonl"
+      ],
+      "last_updated_at": "2025-10-18T00:00:00.000Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "P21-V01",
+      "stage": "Discovery",
+      "title": "Document integration points and signatures",
+      "type": "discovery",
+      "description": "Capture exact lines to change in src/orchestrator/graph.ts and confirm function signatures for generateQuestions, decomposeTask, runInSandbox, multiTurnRepair.",
+      "time_estimate_minutes": 120,
+      "actions": [
+        "Record integration lines in .automation/phase21_discovery.json",
+        "List function signatures and modules",
+        "Note feature flag routing and store updates"
+      ],
+      "validation": [
+        {"cmd": "test -f .automation/phase21_discovery.json", "expect_exit_code": 0}
+      ],
+      "success_criteria": [
+        "Discovery file exists with precise line refs",
+        "Signatures documented with file paths"
+      ],
+      "status": "complete"
+    },
+    {
+      "id": "P21-V02",
+      "stage": "Implementation",
+      "title": "D21.1 Multi-node graph (6 nodes)",
+      "type": "implementation",
+      "description": "Replace the wrapper with a StateGraph containing clarify → plan → generate → test → (deliver | repair loop) → deliver.",
+      "time_estimate_minutes": 480,
+      "actions": [
+        "Implement nodes calling existing modules with adapters",
+        "Add conditional edges and bounded repair loop",
+        "Preserve API: 202 + Location + polling"
+      ],
+      "validation": [
+        {"cmd": "npm run typecheck", "expect_exit_code": 0},
+        {"cmd": "npm run lint", "expect_exit_code": 0}
+      ],
+      "success_criteria": [
+        "Graph compiles and runs under flag",
+        "Executions store shows running → completed transitions"
+      ],
+      "status": "in_progress"
+    },
+    {
+      "id": "P21-V03",
+      "stage": "Validation",
+      "title": "D21.2 Real LLM e2e + D21.3 Planning optimization",
+      "type": "validation",
+      "description": "Run HTTP e2e test with RUN_REAL_LLM=1; tune planning to avoid unnecessary retries and reduce time to first success.",
+      "time_estimate_minutes": 180,
+      "actions": [
+        "Run e2e against dev server (AGENTS_RUNTIME=langgraph)",
+        "Capture executionId and append JSONL evidence",
+        "Adjust planning thresholds if excessive retries"
+      ],
+      "validation": [
+        {"cmd": "RUN_REAL_LLM=1 vitest run tests/e2e/langgraph-real-llm.e2e.test.ts", "expect_exit_code": 0}
+      ],
+      "success_criteria": [
+        "E2E completes to completed status",
+        "Evidence JSONL contains command + executionId",
+        "Planning shows reduced retries vs baseline"
+      ],
+      "status": "pending"
+    }
+  ],
+  "execution_order": [
+    "P21-V01",
+    "P21-V02",
+    "P21-V03"
+  ],
+  "execution_semantics": {
+    "win_isolation": {"enforced": true},
+    "gate_enforcement": {"required": true},
+    "evidence_backed": {"required": true}
+  },
+  "completion_criteria": {
+    "all_tests_pass": true,
+    "lint_passes": true,
+    "typecheck_passes": true,
+    "evidence_recorded": true
+  },
+  "final_artifacts_verification": [
+    {"name": "Multi-node Graph", "path": "src/orchestrator/graph.ts", "must_exist": true, "must_include_regex": "addEdge|addNode"},
+    {"name": "E2E Test", "path": "tests/e2e/langgraph-real-llm.e2e.test.ts", "must_exist": true}
+  ],
+  "reporting": {
+    "progress_file": ".automation/progress_phase21_multinode.json",
+    "fields": ["task_id", "status", "started_at", "completed_at", "validation_results", "evidence_paths"],
+    "status_values": ["pending", "in_progress", "complete", "blocked"]
+  },
+  "fallback_policies": {
+    "runtime": "Unset AGENTS_RUNTIME or set to stepqueue to fallback",
+    "telemetry": "Disable OTEL_ENABLED to reduce noise"
+  },
+  "ai_executor_guidelines": {
+    "observability_first": "Record executionId for e2e runs",
+    "test_driven": "Run e2e after graph implements nodes"
+  }
+}
+
