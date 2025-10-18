@@ -1,0 +1,41 @@
+{
+  "name": "Executor MVP - Phase 21",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    }
+  },
+  "containerEnv": {
+    "OPENAI_API_KEY": "${localEnv:OPENAI_API_KEY}",
+    "AGENTS_RUNTIME": "langgraph",
+    "RUN_REAL_LLM": "1",
+    "NODE_ENV": "development"
+  },
+  "postCreateCommand": "npm install && npm run typecheck && npm run lint",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      }
+    },
+    "codespaces": {
+      "openFiles": [
+        "README.md",
+        "contracts/Roadmap_execution/21_phase21_multi_node_langgraph_contract.json"
+      ]
+    }
+  },
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Executor API",
+      "onAutoForward": "notify"
+    }
+  }
+}

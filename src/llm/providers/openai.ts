@@ -4,6 +4,7 @@ import type {
   ProviderGenerateOptions,
   ProviderGenerateResult
 } from "../types.js";
+import { curlFetch } from "../../utils/curlFetch.js";
 
 type MessageContent = OpenAI.ChatCompletionMessage["content"];
 
@@ -76,7 +77,10 @@ export class OpenAIProvider {
   constructor() {
     const key = process.env.OPENAI_API_KEY;
     if (!key) throw new Error("OPENAI_API_KEY is not set");
-    this.client = new OpenAI({ apiKey: key });
+    this.client = new OpenAI({
+      apiKey: key,
+      fetch: curlFetch as unknown as typeof fetch
+    });
     this.model = process.env.LLM_MODEL || "gpt-4o-mini";
   }
 

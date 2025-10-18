@@ -185,6 +185,30 @@ With G2 Trust Spine complete, Gate G3 can now advance to:
 
 ---
 
+## Gate G3.1: Multi-Node Implementation
+
+**Status:** 🟡 IN PROGRESS
+**Phase:** Phase 21 (Multi-Node LangGraph)
+
+### Prerequisites
+- G2 Trust Spine Baseline (✅ Complete)
+- G3 Orchestrator Pilot (✅ Passed)
+
+### Acceptance Criteria
+- ✅ Six nodes implemented (clarify → plan → generate → test → deliver | repair loop)
+- ✅ Real LLM HTTP e2e passes to completed
+- ✅ Planning optimized to reduce unnecessary retries
+
+### Evidence
+- `contracts/Roadmap_execution/21_phase21_multi_node_langgraph_contract.json`
+- `docs/Planning_roadmap_signature/21_multi_node_langgraph_roadmap.md`
+- `.automation/phase21_discovery.json`
+- `tests/e2e/langgraph-real-llm.e2e.test.ts` (opt-in)
+
+**Last Updated:** 2025-10-18
+
+---
+
 ## Rollback Plan
 
 All Phase 19 changes are feature-flagged or additive with zero breaking changes:
