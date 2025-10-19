@@ -1,287 +1,271 @@
-import OpenAI from "openai";
 import type {
   LLMRequestMessage,
   ProviderGenerateOptions,
-  ProviderGenerateResult
+  ProviderGenerateResult,
+  ProviderToolSchema,
 } from "../types.js";
-import { logEvent } from "../../telemetry/events.js";
 
-type MessageContent = OpenAI.ChatCompletionMessage["content"];
-
-type ToolCall = OpenAI.ChatCompletionMessageToolCall;
-
-type AssistantMessage = OpenAI.ChatCompletionAssistantMessageParam;
-
-type ToolMessage = OpenAI.ChatCompletionToolMessageParam;
-
-type SystemMessage = OpenAI.ChatCompletionSystemMessageParam;
-
-type UserMessage = OpenAI.ChatCompletionUserMessageParam;
-
-function toOpenAIMessage(message: LLMRequestMessage): OpenAI.ChatCompletionMessageParam {
-  if (message.role === "assistant") {
-    const base: AssistantMessage = {
-      role: "assistant",
-      content: message.content ?? ""
-    };
-    if (message.toolCalls && message.toolCalls.length > 0) {
-      base.tool_calls = message.toolCalls.map(call => ({
-        id: call.id,
-        type: "function",
-        function: {
-          name: call.name,
-          arguments: call.arguments ?? "{}"
-        }
-      } satisfies ToolCall));
-    }
-    return base;
-  }
-  if (message.role === "tool") {
-    return {
-      role: "tool",
-      content: message.content,
-      tool_call_id: message.toolCallId
-    } satisfies ToolMessage;
-  }
-  return {
-    role: message.role,
-    content: message.content
-  } satisfies SystemMessage | UserMessage;
+interface GatewayRequestBody {
+  messages: LLMRequestMessage[];
+  tools?: ProviderToolSchema[];
 }
 
-function extractTextFromPart(part: unknown): string {
-  if (typeof part === "string") {
-    return part;
-  }
-  if (!part || typeof part !== "object") {
-    return "";
-  }
+// Avoid relying on DOM lib types so ESLint/TS do not require lib.dom
+type FetchImpl = (input: string, init?: unknown) => Promise<Response>;
 
-  const record = part as Record<string, unknown>;
-  const type = typeof record.type === "string" ? record.type : undefined;
-
-  if (type === "reasoning" || type === "tool_call" || type === "tool_result") {
-    return "";
-  }
-
-  const directText = record.text;
-  if (typeof directText === "string") {
-    return directText;
-  }
-  if (directText && typeof directText === "object" && "value" in (directText as Record<string, unknown>)) {
-    const value = (directText as Record<string, unknown>).value;
-    if (typeof value === "string") {
-      return value;
-    }
-  }
-
-  if (typeof record.value === "string") {
-    return record.value;
-  }
-
-  if (typeof record.content === "string") {
-    return record.content;
-  }
-
-  if (Array.isArray(record.content)) {
-    return (record.content as unknown[]).map(extractTextFromPart).join("");
-  }
-
-  return "";
-}
-
-function normalizeContent(content: MessageContent): string | null {
-  if (typeof content === "string") {
-    return content;
-  }
-  if (Array.isArray(content)) {
-    const combined = (content as unknown[]).map(extractTextFromPart).join("");
-    return combined.length > 0 ? combined : "";
-  }
-  if (content && typeof content === "object") {
-    return extractTextFromPart(content);
-  }
-  return null;
+interface StreamParseResult {
+  event?: string;
+  data?: string;
 }
 
 export class OpenAIProvider {
-  private client: OpenAI;
-  private model: string;
+  private readonly baseUrl: string;
 
-  constructor() {
-    const key = process.env.OPENAI_API_KEY;
-    if (!key) throw new Error("OPENAI_API_KEY is not set");
-    // Use default fetch provided by the runtime; the curl-backed shim can
-    // cause incomplete bodies in some environments.
-    this.client = new OpenAI({ apiKey: key });
-    // Default to GPT-5 family unless explicitly overridden
-    this.model = process.env.LLM_MODEL || "gpt-5";
+  private readonly fetchImpl: FetchImpl;
+
+  constructor(options: { baseUrl?: string; fetchImpl?: FetchImpl } = {}) {
+    const configured = options.baseUrl ?? process.env.LLM_GATEWAY_URL ?? "http://localhost:3006";
+    this.baseUrl = configured.replace(/\/+$/, "");
+
+    const impl = options.fetchImpl ?? globalThis.fetch;
+    if (!impl) {
+      throw new Error("fetch is not available in this runtime");
+    }
+    this.fetchImpl = ((input: string, init?: unknown) => impl(input as string, init as never)) as FetchImpl;
   }
 
   async generate(messages: LLMRequestMessage[], options: ProviderGenerateOptions = {}): Promise<ProviderGenerateResult> {
-    const isReasoningModel = this.model.startsWith("o1") || this.model.startsWith("gpt-5");
-
-    const requestMessages = messages.map(toOpenAIMessage);
-
-    const requestParams: OpenAI.ChatCompletionCreateParams = {
-      model: this.model,
-      messages: requestMessages
+    const payload: GatewayRequestBody = {
+      messages: this.normalizeMessages(messages),
     };
 
     if (options.tools && options.tools.length > 0) {
-      requestParams.tools = options.tools.map(tool => ({
-        type: "function" as const,
-        function: {
-          name: tool.name,
-          description: tool.description,
-          parameters: tool.parameters
-        }
+      payload.tools = options.tools.map(tool => ({
+        name: tool.name,
+        description: tool.description,
+        parameters: tool.parameters,
       }));
-      requestParams.tool_choice = "auto";
-    } else {
-      requestParams.response_format = { type: "json_object" };
     }
 
-    if (!isReasoningModel) {
-      requestParams.temperature = 0.2;
+    if (typeof options.onToken === "function") {
+      return this.streamCompletion(payload, options);
     }
 
-    const resp = await this.client.chat.completions.create(requestParams, {
-      signal: options.signal
+    return this.requestCompletion(payload, options.signal);
+  }
+
+  private normalizeMessages(messages: LLMRequestMessage[]): LLMRequestMessage[] {
+    return messages.map(message => {
+      if (message.role === "assistant") {
+        return {
+          role: "assistant" as const,
+          content: message.content ?? null,
+          toolCalls: message.toolCalls?.map(call => ({
+            id: call.id,
+            name: call.name,
+            arguments: call.arguments,
+          })),
+        };
+      }
+      if (message.role === "tool") {
+        return {
+          role: "tool" as const,
+          content: message.content,
+          name: message.name,
+          toolCallId: message.toolCallId,
+        };
+      }
+      return { role: message.role, content: message.content } as LLMRequestMessage;
+    });
+  }
+
+  private async requestCompletion(
+    payload: GatewayRequestBody,
+    signal?: AbortSignal,
+  ): Promise<ProviderGenerateResult> {
+    const response = await this.fetchImpl(`${this.baseUrl}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal,
     });
 
-    // Optional: emit response metadata for diagnostics (behind flag)
-
-    // Emit metadata to aid diagnosis of shape variants across models/SDKs
-    if (process.env.LLM_PROVIDER_DEBUG) {
-      try {
-        await logEvent("llm_provider_debug_response_meta", {
-          provider: "openai",
-          model: this.model,
-          type: typeof resp,
-          keys: resp && typeof resp === 'object' ? Object.keys(resp as unknown as Record<string, unknown>) : null,
-          hasChoices: resp && typeof resp === 'object' && Array.isArray((resp as unknown as { choices?: unknown[] }).choices),
-          id: (resp as unknown as { id?: string }).id ?? null,
-          modelField: (resp as unknown as { model?: string }).model ?? null
-        });
-      } catch {
-        // best-effort only
-      }
+    if (!response.ok) {
+      throw await this.buildGatewayError(response);
     }
 
-    let message = resp.choices?.[0]?.message;
-    // Fallback: some newer models may not populate `message` reliably on chat.completions
-    // Try the Responses API as a secondary path to recover a usable output.
-    if (!message) {
-      await logEvent("llm_provider_empty_message", {
-        provider: "openai",
-        model: this.model,
-        reason: "missing_message",
-        finish_reason: resp.choices?.[0]?.finish_reason ?? null
-      });
-      try {
-        // Attach request context for diagnostics (roles + content only)
-        await logEvent("llm_provider_request_context", {
-          provider: "openai",
-          model: this.model,
-          messages: requestMessages.map(m => ({
-            role: m.role,
-            content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
-          })),
-          tools: requestParams.tools ? (requestParams.tools as Array<{ function?: { name?: string } }>).map(t => (t?.function?.name ?? 'unknown')) : []
-        });
-        const joined = requestMessages
-          .map(m => `${m.role.toUpperCase()}: ${typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}`)
-          .join("\n\n");
-        // Broad compatibility across SDK versions: access Responses API via a narrowed shape
-        type ResponsesAPI = {
-          responses: {
-            create: (args: { model: string; input: string }, opts?: { signal?: AbortSignal }) => Promise<unknown>;
-          };
-        };
-        const resp2: unknown = await (this.client as unknown as ResponsesAPI).responses.create(
-          { model: this.model, input: joined },
-          { signal: options.signal }
-        );
-        // Prefer `output_text` if present; otherwise dig into first content block
-        const fallbackText: string | undefined = (() => {
-          if (typeof resp2 === 'string') return resp2;
-          if (resp2 && typeof resp2 === 'object') {
-            const r2 = resp2 as Record<string, unknown>;
-            if (typeof r2.output_text === 'string') return r2.output_text as string;
-            const out = r2.output as unknown;
-            if (Array.isArray(out) && out.length > 0) {
-              const first = out[0] as { content?: unknown } | undefined;
-              const content = first?.content as unknown;
-              if (Array.isArray(content)) {
-                return content.map((p: unknown) => {
-                  if (p && typeof p === 'object') {
-                    const text = (p as Record<string, unknown>).text as unknown;
-                    if (typeof text === 'string') return text;
-                    if (text && typeof text === 'object' && typeof (text as Record<string, unknown>).value === 'string') {
-                      return (text as Record<string, unknown>).value as string;
-                    }
-                  }
-                  return '';
-                }).join('');
-              }
-            }
+    const data = (await response.json()) as ProviderGenerateResult;
+    return {
+      content: data.content ?? null,
+      toolCalls: data.toolCalls,
+    };
+  }
+
+  private async streamCompletion(
+    payload: GatewayRequestBody,
+    options: ProviderGenerateOptions,
+  ): Promise<ProviderGenerateResult> {
+    const response = await this.fetchImpl(`${this.baseUrl}/stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: options.signal,
+    });
+
+    if (!response.ok) {
+      throw await this.buildGatewayError(response);
+    }
+
+    if (!response.body) {
+      throw new Error("Gateway stream response missing body");
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let finalResult: ProviderGenerateResult | null = null;
+    const onToken = options.onToken;
+
+    const flushBuffer = () => {
+      let separatorIndex = buffer.indexOf("\n\n");
+      while (separatorIndex !== -1) {
+        const rawEvent = buffer.slice(0, separatorIndex);
+        buffer = buffer.slice(separatorIndex + 2);
+        this.handleStreamEvent(rawEvent, chunk => {
+          if (onToken && typeof chunk === "string" && chunk.length > 0) {
+            onToken(chunk);
           }
-          return undefined;
-        })();
-        if (typeof fallbackText === 'string' && fallbackText.length > 0) {
-          await logEvent("llm_provider_empty_message_recovered", {
-            provider: "openai",
-            model: this.model,
-            path: "responses_api"
-          });
-          return { content: fallbackText, toolCalls: undefined };
-        }
-      } catch (fallbackErr) {
-        await logEvent("llm_provider_empty_message_fallback_failed", {
-          provider: "openai",
-          model: this.model,
-          reason: fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr)
+        }, result => {
+          finalResult = result;
         });
+        separatorIndex = buffer.indexOf("\n\n");
       }
-      const err = new Error("OpenAI returned empty message");
-      (err as { code?: string }).code = "EMPTY_MESSAGE";
-      throw err;
-    }
+    };
 
-    const toolCalls = message.tool_calls?.map(call => ({
-      id: call.id,
-      name: call.function.name,
-      arguments: call.function.arguments ?? "{}"
-    })) ?? undefined;
-
-    let content = normalizeContent(message.content);
-
-    const outputText = (message && typeof message === 'object' ? (message as unknown as Record<string, unknown>).output_text : undefined);
-    if ((content === null || content === "") && outputText) {
-      if (typeof outputText === "string") {
-        content = outputText;
-      } else if (Array.isArray(outputText)) {
-        content = outputText.map(extractTextFromPart).join("");
+    const abortSignal = options.signal;
+    if (abortSignal) {
+      const abortHandler = () => {
+        reader.cancel(abortSignal.reason ?? new Error("aborted"));
+      };
+      if (abortSignal.aborted) {
+        abortHandler();
+      } else {
+        abortSignal.addEventListener("abort", abortHandler, { once: true });
       }
     }
 
-    if ((content === null || content === "") && (!toolCalls || toolCalls.length === 0)) {
-      await logEvent("llm_provider_empty_message", {
-        provider: "openai",
-        model: this.model,
-        reason: "empty_content",
-        finish_reason: resp.choices?.[0]?.finish_reason ?? null
-      });
-      const err = new Error("OpenAI returned empty message");
-      (err as { code?: string }).code = "EMPTY_MESSAGE";
-      throw err;
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) {
+        buffer += decoder.decode();
+        break;
+      }
+      buffer += decoder.decode(value, { stream: true });
+      flushBuffer();
     }
 
-    if (typeof content === "string" && options.onToken) {
-      options.onToken(content);
+    flushBuffer();
+
+    if (!finalResult) {
+      throw new Error("Gateway stream ended without result");
     }
 
-    return { content, toolCalls };
+    const result = finalResult as ProviderGenerateResult;
+    return {
+      content: result.content ?? null,
+      toolCalls: result.toolCalls,
+    };
+  }
+
+  private handleStreamEvent(
+    rawEvent: string,
+    onChunk: (token: string | undefined) => void,
+    onResult: (result: ProviderGenerateResult) => void,
+  ) {
+    const { event, data } = this.parseStreamEvent(rawEvent);
+    if (!event || !data) {
+      return;
+    }
+
+    try {
+      if (event === "chunk") {
+        const parsed = JSON.parse(data) as { token?: string };
+        onChunk(parsed.token);
+        return;
+      }
+      if (event === "result") {
+        const parsed = JSON.parse(data) as ProviderGenerateResult;
+        onResult({
+          content: parsed.content ?? null,
+          toolCalls: parsed.toolCalls,
+        });
+        return;
+      }
+      if (event === "error") {
+        const parsed = JSON.parse(data) as { message?: string };
+        throw new Error(parsed.message ?? "Gateway stream error");
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(String(error));
+    }
+  }
+
+  private parseStreamEvent(eventPayload: string): StreamParseResult {
+    const lines = eventPayload.split("\n");
+    let event: string | undefined;
+    const dataLines: string[] = [];
+
+    for (const line of lines) {
+      if (line.startsWith(":")) {
+        continue;
+      }
+      if (line.startsWith("event:")) {
+        event = line.slice(6).trim();
+        continue;
+      }
+      if (line.startsWith("data:")) {
+        dataLines.push(line.slice(5).trimStart());
+      }
+    }
+
+    return { event, data: dataLines.length > 0 ? dataLines.join("\n") : undefined };
+  }
+
+  private async buildGatewayError(response: Response): Promise<Error> {
+    const contentType = response.headers.get("content-type") ?? "";
+    let detail: string | undefined;
+    let rawBody: string | undefined;
+
+    try {
+      rawBody = await response.text();
+    } catch {
+      rawBody = undefined;
+    }
+
+    if (rawBody) {
+      if (contentType.includes("application/json")) {
+        try {
+          const json = JSON.parse(rawBody) as Record<string, unknown>;
+          detail = typeof json.detail === "string" ? json.detail : undefined;
+          if (!detail) {
+            detail = JSON.stringify(json);
+          }
+        } catch {
+          detail = rawBody;
+        }
+      } else {
+        detail = rawBody;
+      }
+    }
+
+    const message = detail || `Gateway request failed with status ${response.status}`;
+    const error = new Error(message);
+    (error as { status?: number }).status = response.status;
+    return error;
   }
 }
+
+export default OpenAIProvider;

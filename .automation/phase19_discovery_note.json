@@ -1,0 +1,84 @@
+{
+  "phase": 19,
+  "target": "docs/09_191025_todays_status/06_refactor_validation.md",
+  "changes": [
+    {
+      "section": "Executive Summary",
+      "reason": "Conflated task tracks and incorrect completion count",
+      "actions": ["clarify scope", "update status", "add quality snapshot"]
+    },
+    {
+      "section": "Execution Task 1",
+      "reason": "Provider fix implemented via llm-gateway; prior assessment outdated",
+      "actions": ["update evidence locations", "revise criteria status", "note lint issue"]
+    },
+    {
+      "section": "Evidence Summary (Refactor Tasks 01–03)",
+      "reason": "Reconcile prior approvals with concrete code evidence",
+      "actions": ["add service template evidence", "http client evidence", "validate:all evidence"]
+    },
+    {
+      "section": "Critical Issues",
+      "reason": "Provider fallback moved to gateway; adjust wording",
+      "actions": ["update issue #2 text"]
+    },
+    {
+      "section": "Compliance/Recommendations/Next Batch",
+      "reason": "Reflect gateway-based provider and focus work on multi-node graph",
+      "actions": ["update acceptance table", "adjust immediate actions", "revise next tasks"]
+    }
+  ],
+  "evidence": {
+    "monolith_provider": [
+      "src/llm/providers/openai.ts:26",
+      "src/llm/providers/openai.ts:29",
+      "src/llm/providers/openai.ts:85",
+      "src/llm/providers/openai.ts:107"
+    ],
+    "gateway_provider": [
+      "services/llm-gateway/src/domain/providers/openai.ts:107",
+      "services/llm-gateway/src/domain/providers/openai.ts:205",
+      "services/llm-gateway/src/domain/providers/openai.ts:238",
+      "services/llm-gateway/src/domain/providers/openai.ts:246",
+      "services/llm-gateway/src/domain/providers/openai.ts:276"
+    ],
+    "gateway_routes": [
+      "services/llm-gateway/src/routes/complete.ts:16",
+      "services/llm-gateway/src/routes/stream.ts:16",
+      "services/llm-gateway/src/routes/health.ts:9"
+    ],
+    "graph_single_node": [
+      "src/orchestrator/graph.ts:87",
+      "src/orchestrator/graph.ts:111",
+      "src/orchestrator/graph.ts:112"
+    ],
+    "template_evidence": [
+      "services/_template/package.json:13",
+      "services/_template/src/routes/health.ts:9",
+      "services/_template/src/telemetry/otel.ts:58",
+      "services/_template/src/lib/httpClient.ts:28",
+      "services/_template/src/lib/httpClient.ts:34",
+      "services/_template/src/lib/httpClient.ts:78"
+    ],
+    "validation_results": {
+      "tests": {
+        "files": 101,
+        "passed": 98,
+        "skipped": 3
+      },
+      "coverage": {
+        "lines": 82.25,
+        "branches": 75.75
+      },
+      "lint": {
+        "status": "fail",
+        "errors": [
+          "src/llm/providers/openai.ts:13:41 no-undef RequestInit",
+          "src/llm/providers/openai.ts:33:46 no-undef RequestInit"
+        ]
+      },
+      "contracts": "pass"
+    }
+  }
+}
+

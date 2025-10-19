@@ -10,7 +10,7 @@ export type LLMMessage =
   | { role: "system"; content: string }
   | { role: "user"; content: string }
   | { role: "assistant"; content: string | null; toolCalls?: LLMToolCall[] }
-  | { role: "tool"; content: string; toolCallId: string };
+  | { role: "tool"; content: string; name: string; toolCallId: string };
 
 export interface ToolSchema {
   name: string;
@@ -87,3 +87,5 @@ export function createUnconfiguredDriver(): LLMGatewayDriver {
     },
   };
 }
+
+export { OpenAIProvider } from "./providers/openai.js";

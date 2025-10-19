@@ -5,6 +5,7 @@ import { createLLMGatewayDriver, createUnconfiguredDriver } from "./domain/index
 import { installProblemDetails } from "./middleware/problemDetails.js";
 import { createCompleteRouter } from "./routes/complete.js";
 import { createHealthRouter } from "./routes/health.js";
+import { createStreamRouter } from "./routes/stream.js";
 import { maybeInitTelemetry, shutdownTelemetry } from "./telemetry/otel.js";
 
 config();
@@ -34,6 +35,7 @@ export function createApp(driver = resolveDriver()): Express {
   app.use(express.json({ limit: "1mb" }));
   app.use(createHealthRouter());
   app.use(createCompleteRouter(driver));
+  app.use(createStreamRouter(driver));
 
   installProblemDetails(app);
 
