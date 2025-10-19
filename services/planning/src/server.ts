@@ -2,6 +2,8 @@ import { config } from "dotenv";
 import express, { type Express, type Request, type Response } from "express";
 
 import { installProblemDetails, respondWithProblem } from "./middleware/problemDetails.js";
+import { createDecomposeRouter } from "./routes/decompose.js";
+import { createExecutePlanRouter } from "./routes/executePlan.js";
 import { createHealthRouter } from "./routes/health.js";
 import { maybeInitTelemetry, shutdownTelemetry } from "./telemetry/otel.js";
 
@@ -18,6 +20,8 @@ export function createApp(): Express {
 
   app.use(express.json());
   app.use(createHealthRouter());
+  app.use(createDecomposeRouter());
+  app.use(createExecutePlanRouter());
 
   installProblemDetails(app);
 
