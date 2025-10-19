@@ -1,0 +1,37 @@
+{
+  "task_id": "REFACTOR-TASK-17",
+  "date": "2025-10-19",
+  "scope": "Expose run/install/test operations via services/runner routes that wrap existing sandbox and dependency logic with API parity.",
+  "sources": [
+    {
+      "path": "src/server.ts",
+      "summary": "Current monolith POST /api/run-tests route computes slug, resolves project output path, and calls runInSandbox before returning the RunResult JSON."
+    },
+    {
+      "path": "src/runner/runInSandbox.ts",
+      "summary": "Sandbox executor that installs dependencies, selects test command, streams logs, and returns validated RunResult shape."
+    },
+    {
+      "path": "src/runner/installDeps.ts",
+      "summary": "ensureDependencies(projectRoot, timeoutMs) installs npm packages with ci/install fallback, returning install metadata."
+    },
+    {
+      "path": "src/runner/runUIValidation.ts",
+      "summary": "runUIValidation(projectRoot, options) orchestrates Playwright and Lighthouse validations producing UIValidationResult payload."
+    }
+  ],
+  "planned_changes": [
+    "Add services/runner/src/routes/{run,install,test}.ts exporting Express routers that validate input and invoke domain functions.",
+    "Reuse slugify + OUTPUT_DIR resolution to mirror monolith /api/run-tests behavior for parity.",
+    "Mount new routers in services/runner/src/server.ts before 404 handler and expand Vitest coverage for happy/error paths.",
+    "Document dependency needs (slugify) to align slug normalization with monolith behavior."
+  ],
+  "risks": [
+    "Incorrect request validation could break monolith proxy expectations once RUNNER_URL is enabled.",
+    "Missing slug normalization or differing error shapes might fail existing UI integrations relying on { error: string } payloads."
+  ],
+  "validation": [
+    "cd services/runner && npm run validate:all",
+    "curl -sfS http://localhost:3004/healthz"
+  ]
+}

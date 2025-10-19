@@ -3,6 +3,9 @@ import express, { type Express, type Request, type Response } from "express";
 
 import { installProblemDetails, respondWithProblem } from "./middleware/problemDetails.js";
 import { createHealthRouter } from "./routes/health.js";
+import { createInstallRouter } from "./routes/install.js";
+import { createRunRouter } from "./routes/run.js";
+import { createTestRouter } from "./routes/test.js";
 import { maybeInitTelemetry, shutdownTelemetry } from "./telemetry/otel.js";
 
 config();
@@ -18,6 +21,9 @@ export function createApp(): Express {
 
   app.use(express.json());
   app.use(createHealthRouter());
+  app.use(createRunRouter());
+  app.use(createInstallRouter());
+  app.use(createTestRouter());
 
   installProblemDetails(app);
 
