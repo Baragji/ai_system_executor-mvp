@@ -332,3 +332,12 @@ HTTP server closed
 c[OTel] Telemetry disabled (OTEL_ENABLED not set)
 Executor MVP listening on http://localhost:3000
 UI: http://localhost:3000/
+[0mGET / [32m200[0m 10.161 ms - 6296[0m
+[0mGET /?ide_webview_request_time=1760911592005 [32m200[0m 1.902 ms - 6296[0m
+[0mGET /styles.css [32m200[0m 2.822 ms - 18927[0m
+[0mGET / [36m304[0m 1.312 ms - -[0m
+[0mGET /?ide_webview_request_time=1760911592005 [32m200[0m 1.075 ms - 6296[0m
+[0mGET /styles.css [36m304[0m 3.105 ms - -[0m
+[0mGET /script.js [32m200[0m 15.594 ms - 63897[0m
+[0mGET /icons.js [32m200[0m 3.841 ms - 1162[0m
+[0mGET /@vite/client [33m404[0m 18.734 ms - 151[0m
