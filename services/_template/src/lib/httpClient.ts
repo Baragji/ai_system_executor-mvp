@@ -7,7 +7,7 @@ type FetchInput = Parameters<FetchFunction>[0];
 type RequestInitLike = FetchFunction extends (
   input: FetchInput,
   init?: infer Init,
-) => any
+) => Promise<Response>
   ? NonNullable<Init>
   : Record<string, never>;
 type HeadersInitLike = RequestInitLike extends { headers?: infer HeadersInitType }

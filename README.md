@@ -15,7 +15,18 @@ pnpm dev # or: npm run dev
 http://localhost:3000
 ```
 
-Use a prompt like:  
+## Development Service Ports
+
+The refactor work extracts our executor into dedicated services. Each service includes a `.env.example` with its default
+development port. Copy the file to `.env` inside the service directory to customize your local setup.
+
+| Service     | Directory              | Default Port |
+| ----------- | ---------------------- | ------------ |
+| Runner      | `services/runner`      | `3004`       |
+| Orchestrator| `services/orchestrator`| `3005`       |
+| LLM Gateway | `services/llm-gateway` | `3006`       |
+
+Use a prompt like:
 **Make a minimal Node+TypeScript Hello World HTTP server exposing GET / returning "Hello World". Include README.md with run steps.**
 
 Files are written to `./output/<project>`.
