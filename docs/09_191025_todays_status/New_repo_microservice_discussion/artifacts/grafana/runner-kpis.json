@@ -1,0 +1,65 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Active Runs",
+      "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+      "targets": [{ "expr": "sum(runner_active_runs)" }]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Queue Depth",
+      "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+      "targets": [{ "expr": "sum(runner_queue_depth)", "legendFormat": "queue" }]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Run Success/Failure %",
+      "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(runner_runs_total{status=\"success\"}[5m])) / sum(rate(runner_runs_total[5m]))",
+          "legendFormat": "success %"
+        },
+        {
+          "expr": "100 * sum(rate(runner_runs_total{status!=\"success\"}[5m])) / sum(rate(runner_runs_total[5m]))",
+          "legendFormat": "failure %"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Average Run Duration (s)",
+      "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+      "targets": [
+        {
+          "expr": "sum(rate(runner_run_duration_seconds_sum[5m])) / sum(rate(runner_run_duration_seconds_count[5m]))",
+          "legendFormat": "avg"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "CPU / Memory Usage (per runner pod)",
+      "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+      "targets": [
+        { "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"runner-.*\"}[5m])) by (pod)", "legendFormat": "{{pod}} cpu" },
+        { "expr": "sum(container_memory_working_set_bytes{pod=~\"runner-.*\"}) by (pod)", "legendFormat": "{{pod}} mem" }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["runner", "kpis"],
+  "templating": { "list": [] },
+  "title": "Runner KPIs",
+  "uid": "runner-kpis",
+  "version": 1
+}

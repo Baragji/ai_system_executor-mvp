@@ -70,7 +70,7 @@ export function maybeInitTelemetry(): void {
       traceExporter,
       instrumentations: [
         new HttpInstrumentation({
-          ignoreIncomingRequestHook: (req) => {
+          ignoreIncomingRequestHook: (req: { url?: string }) => {
             // Ignore health check endpoints to reduce noise
             return req.url === '/health' || req.url === '/api/health';
           },

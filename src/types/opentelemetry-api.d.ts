@@ -4,6 +4,11 @@ declare module "@opentelemetry/api" {
     with<T>(context: unknown, fn: () => T): T;
   };
 
+  export const propagation: {
+    inject(context: unknown, carrier: Record<string, unknown>, setter?: unknown): void;
+    extract(context: unknown, carrier: Record<string, unknown>, getter?: unknown): unknown;
+  };
+
   export const trace: {
     getTracer(name: string, version?: string): {
       startSpan(name: string, options?: Record<string, unknown>, context?: unknown): Span | undefined;

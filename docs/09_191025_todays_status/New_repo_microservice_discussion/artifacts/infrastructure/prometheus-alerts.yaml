@@ -1,0 +1,54 @@
+groups:
+- name: bff_alerts
+  interval: 30s
+  rules:
+  - alert: HighErrorRate
+    expr: (sum(rate(http_server_requests_seconds_count{service="bff",status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count{service="bff"}[5m]))) > 0.05
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "BFF error rate >5% for 5m"
+      description: "BFF service error rate is {{ $value | humanizePercentage }}"
+  
+  - alert: HighLatency
+    expr: histogram_quantile(0.95, sum(rate(http_server_request_duration_seconds_bucket{service="bff"}[5m])) by (le)) > 1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "BFF p95 latency > 1s"
+      description: "BFF p95 latency is {{ $value }}s"
+
+- name: db_alerts
+  interval: 30s
+  rules:
+  - alert: DatabaseConnectionPoolExhausted
+    expr: (pg_stat_database_numbackends / pg_settings_max_connections) > 0.9
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "PostgreSQL connection pool exhausted"
+      description: "{{ $value | humanizePercentage }} connections used"
+  
+  - alert: DiskSpaceLow
+    expr: node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} < 0.1
+    for: 10m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Disk space < 10%"
+      description: "{{ $value | humanizePercentage }} remaining"
+
+- name: runner_alerts
+  interval: 30s
+  rules:
+  - alert: RunnerQueueBacklog
+    expr: sum(runner_queue_depth) > 100
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Runner queue depth > 100"
+      description: "Queue depth is {{ $value }}"

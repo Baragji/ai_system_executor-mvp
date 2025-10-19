@@ -1,0 +1,65 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Service Graph (Tempo)",
+      "type": "nodeGraph",
+      "datasource": { "type": "tempo", "uid": "TEMPO_DS" },
+      "options": {
+        "graph": {
+          "layout": "force",
+          "showEdgeLabels": true
+        },
+        "traces": {
+          "serviceGraph": true,
+          "metricsGenerator": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+          "expr": "traces_service_graph_request_total"
+        }
+      ],
+      "description": "Requires Tempo metrics-generator producing traces_service_graph_* metrics."
+    },
+    {
+      "id": 2,
+      "title": "Errors by Edge",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+      "targets": [
+        {
+          "expr": "sum(rate(traces_service_graph_request_failed_total[5m])) by (client,server)",
+          "legendFormat": "{{client}} → {{server}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Latency p95 by Edge (s)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(traces_service_graph_request_duration_seconds_bucket[5m])) by (le,client,server))",
+          "legendFormat": "{{client}} → {{server}}"
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["topology", "tempo"],
+  "templating": { "list": [] },
+  "title": "Service Dependency Map",
+  "uid": "svc-dependency-map",
+  "version": 1
+}

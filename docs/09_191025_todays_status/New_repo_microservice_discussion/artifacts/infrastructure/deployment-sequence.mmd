@@ -1,0 +1,102 @@
+```mermaid
+graph TD
+    Evidence[Evidence Service] --> Start[Infrastructure Layer]
+    Auth[Auth Service] --> Evidence
+    Projects[Projects Service] --> Auth
+    Files[Files Service] --> Auth
+    Files --> Projects
+    Runner[Runner Service] --> Auth
+    Runner --> Evidence
+    Collab[Collab Service] --> Auth
+    Collab --> Projects
+    Deploy[Deployments Service] --> Auth
+    Deploy --> Runner
+    Deploy --> Evidence
+    BFF[BFF/Gateway] --> Auth
+    BFF --> Evidence
+    BFF --> Projects
+    BFF --> Files
+    BFF --> Runner
+    BFF --> Collab
+    Frontend[Frontend UI] --> BFF
+```
+
+## Deployment Sequence (6 Phases)
+
+### Phase 0: Infrastructure
+```bash
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/otel-collector.yaml k8s/tempo.yaml k8s/loki.yaml k8s/grafana.yaml
+kubectl apply -f k8s/postgres.yaml k8s/redis.yaml
+```
+
+### Phase 1: Migrations
+```bash
+kubectl apply -f k8s/jobs/db-migrate.yaml
+kubectl wait --for=condition=complete job/db-migrate --timeout=5m
+```
+
+### Phase 2: Core Services
+```bash
+kubectl apply -f k8s/evidence.yaml
+kubectl wait --for=condition=available deploy/evidence --timeout=5m
+kubectl apply -f k8s/auth.yaml
+kubectl wait --for=condition=available deploy/auth --timeout=5m
+```
+
+### Phase 3: Dependent Services
+```bash
+kubectl apply -f k8s/projects.yaml k8s/files.yaml k8s/runner.yaml k8s/collab.yaml
+kubectl wait --for=condition=available deploy/projects deploy/files deploy/runner deploy/collab --timeout=5m
+```
+
+### Phase 4: Higher-Level Services
+```bash
+kubectl apply -f k8s/deployments.yaml
+kubectl wait --for=condition=available deploy/deployments --timeout=5m
+```
+
+### Phase 5: Gateway & Frontend
+```bash
+kubectl apply -f k8s/bff.yaml k8s/ingress-gateway.yaml
+kubectl wait --for=condition=available deploy/bff --timeout=5m
+kubectl apply -f k8s/frontend.yaml
+```
+
+### Phase 6: Smoke Tests
+```bash
+kubectl apply -f k8s/jobs/smoke-tests.yaml
+kubectl wait --for=condition=complete job/smoke-tests --timeout=5m
+```
+
+## Health Check Dependencies
+
+Each service's `/readyz` endpoint checks its direct dependencies:
+
+- **Auth**: PostgreSQL, Redis
+- **Projects**: PostgreSQL, Auth
+- **Files**: PostgreSQL, Auth, Projects
+- **Runner**: PostgreSQL, Auth, Evidence, Queue
+- **Collab**: PostgreSQL, Redis, Auth, Projects, y-websocket
+- **Deployments**: Kubernetes API, Auth, Runner, Evidence
+- **Evidence**: PostgreSQL, Object Store, Cosign
+- **BFF**: All backend services
+
+Kubernetes uses these probes:
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 30
+
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: 8080
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  failureThreshold: 3
+```

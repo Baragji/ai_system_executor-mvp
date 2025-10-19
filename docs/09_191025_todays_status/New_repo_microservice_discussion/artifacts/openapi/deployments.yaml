@@ -1,0 +1,225 @@
+openapi: 3.1.0
+info:
+  title: Deployments Service
+  version: 1.0.0
+  description: "Preview/staging/prod envs, deploys, promotions, rollbacks."
+servers:
+  - url: https://deploy.api.example.com
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Problem:
+      type: object
+      properties:
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+paths:
+  /api/environments:
+    post:
+      summary: Create env
+      responses: { '201': { description: Created } }
+    get:
+      summary: List envs
+      responses: { '200': { description: OK } }
+  /api/environments/{id}:
+    get:
+      summary: Get env
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+    patch:
+      summary: Update config
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: Updated } }
+    delete:
+      summary: Delete env
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '204': { description: Deleted } }
+  /api/environments/{id}/config:
+    get:
+      summary: Get variables/secrets (redacted)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+    patch:
+      summary: Update variables
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: Updated } }
+  /api/environments/{id}/config/secrets:
+    post:
+      summary: Add secret
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '201': { description: Added } }
+  /api/environments/{id}/config/secrets/{key}:
+    delete:
+      summary: Remove secret
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: key
+          required: true
+          schema: { type: string }
+      responses: { '204': { description: Removed } }
+  /api/environments/{id}/health:
+    get:
+      summary: Env health
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/environments/{id}/status:
+    get:
+      summary: Current status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/environments/{id}/incidents:
+    get:
+      summary: Incidents
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/environments/{id}/health-check:
+    post:
+      summary: Trigger manual health check
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '202': { description: Triggered } }
+  /api/deployments:
+    post:
+      summary: Deploy artifact to env
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [environment_id, artifact_ref, strategy]
+              properties:
+                environment_id: { type: string, format: uuid }
+                artifact_ref: { type: string }
+                strategy: { type: string, enum: [rolling, blue_green, canary], default: rolling }
+      responses: { '202': { description: Started } }
+    get:
+      summary: List deployments
+      responses: { '200': { description: OK } }
+  /api/deployments/{id}:
+    get:
+      summary: Deployment detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/deployments/{id}/promote:
+    post:
+      summary: Promote
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '202': { description: Promoting } }
+  /api/deployments/{id}/rollback:
+    post:
+      summary: Rollback
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '202': { description: Rolling back } }
+  /api/deployments/{id}/cancel:
+    post:
+      summary: Cancel
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '202': { description: Cancelling } }
+  /api/deployments/{id}/logs:
+    get:
+      summary: Deployment logs (SSE)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: "text/event-stream"
+          content:
+            text/event-stream:
+              schema: { type: string }
+  /api/deployments/{id}/metrics:
+    get:
+      summary: Success rate / latency
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/deployments/{id}/preview-url:
+    get:
+      summary: Get preview URL
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/deployments/{id}/preview-url/refresh:
+    post:
+      summary: Regenerate preview URL
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }

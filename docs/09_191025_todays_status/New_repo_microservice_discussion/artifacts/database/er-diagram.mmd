@@ -1,0 +1,16 @@
+```mermaid
+erDiagram
+  tenants ||--o{ users : has
+  tenants ||--o{ projects : has
+  users ||--o{ projects : owns
+  projects ||--o{ runs : has
+  projects ||--o{ files : has
+  projects ||--o{ collab_documents : has
+  runs ||--o{ deployments : may_produce
+  deployments }o--|| environments : targets
+  runs ||--o{ evidence_bundles : emits
+  deployments ||--o{ attestations : has
+  runs ||--o{ attestations : has
+  collab_documents ||--o{ collab_collaborators : has
+  tenants ||--o{ audit_events : has
+```

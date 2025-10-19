@@ -1,0 +1,203 @@
+openapi: 3.1.0
+info:
+  title: Runner Service
+  version: 1.0.0
+  description: "Queued code execution in isolated sandboxes (gVisor/Firecracker)."
+servers:
+  - url: https://runner.api.example.com
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  headers:
+    Idempotency-Key:
+      schema: { type: string }
+  schemas:
+    Problem:
+      type: object
+      properties:
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        trace_id: { type: string }
+    Run:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        project_id: { type: string, format: uuid }
+        status: { type: string, enum: [queued, running, success, failed, timeout, canceled] }
+        runtime: { type: string }
+        command: { type: string }
+        cpu: { type: number }
+        memory_mb: { type: integer }
+        timeout_sec: { type: integer }
+        started_at: { type: string, format: date-time }
+        finished_at: { type: string, format: date-time }
+paths:
+  /api/runs:
+    post:
+      summary: Start execution
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_id, command, runtime]
+              properties:
+                project_id: { type: string, format: uuid }
+                runtime: { type: string, enum: [nodejs@20, python@3.12, deno@1, go@1.22] }
+                command: { type: string }
+                env: { type: object, additionalProperties: { type: string } }
+                cpu: { type: number, minimum: 0.1, maximum: 8 }
+                memory_mb: { type: integer, minimum: 128, maximum: 16384 }
+                timeout_sec: { type: integer, minimum: 1, maximum: 7200 }
+      responses:
+        '202': { description: Accepted, content: { application/json: { schema: { $ref: '#/components/schemas/Run' } } } }
+  /api/runs/{id}:
+    get:
+      summary: Get run status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Run' } } } }
+  /api/runs/{id}/logs:
+    get:
+      summary: Stream logs (SSE)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: "text/event-stream"
+          content:
+            text/event-stream:
+              schema: { type: string }
+  /api/runs/{id}/stop:
+    post:
+      summary: Kill process
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '202': { description: Stopping } }
+  /api/runs/{id}/artifacts:
+    get:
+      summary: List artifacts
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+    post:
+      summary: Upload artifact
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '201': { description: Created } }
+  /api/runs/{id}/artifacts/{path}:
+    get:
+      summary: Download artifact (302 presigned)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: path
+          required: true
+          schema: { type: string }
+      responses: { '302': { description: Redirect } }
+    delete:
+      summary: Delete artifact
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: path
+          required: true
+          schema: { type: string }
+      responses: { '204': { description: Deleted } }
+  /api/runs/{id}/metrics:
+    get:
+      summary: Realtime usage
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/runs/{id}/metrics/history:
+    get:
+      summary: Historical usage
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/environments:
+    post:
+      summary: Create custom runtime
+      responses: { '201': { description: Created } }
+    get:
+      summary: List runtimes
+      responses: { '200': { description: OK } }
+  /api/environments/{id}:
+    get:
+      summary: Runtime detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+    delete:
+      summary: Delete runtime
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '204': { description: Deleted } }
+  /api/runs/batch:
+    post:
+      summary: Queue multiple runs
+      responses: { '202': { description: Batch queued } }
+  /api/runs/batch/{batchId}:
+    get:
+      summary: Batch status
+      parameters:
+        - in: path
+          name: batchId
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/runs/batch/{batchId}/cancel:
+    post:
+      summary: Cancel batch
+      parameters:
+        - in: path
+          name: batchId
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '202': { description: Cancelling } }

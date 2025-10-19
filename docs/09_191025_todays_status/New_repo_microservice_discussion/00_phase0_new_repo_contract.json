@@ -1,0 +1,516 @@
+{
+  "contractId": "new-repo-phase-0-foundation-setup",
+  "version": "1.0.0",
+  "createdAt": "2025-10-19T00:00:00Z",
+  "phaseInfo": {
+    "phaseNumber": 0,
+    "phaseName": "Foundation Setup - New Repository Scaffold",
+    "repository": "NEW - ai-coding-platform (to be created)",
+    "description": "Bootstrap new monorepo for AI coding platform with 9 platform services + 3 AI services. Establish repository structure, tooling, CI/CD foundation, and infrastructure-as-code setup before implementing any business logic.",
+    "parentPhase": null,
+    "dependsOn": []
+  },
+  "scope": {
+    "objective": "Create production-ready monorepo scaffold with complete developer experience, CI/CD pipelines, observability infrastructure, and deployment automation - ready for Phase 1 service implementation",
+    "boundaries": {
+      "inScope": [
+        "Repository initialization (Git, .gitignore, LICENSE)",
+        "Monorepo structure (services/, packages/, infrastructure/, docs/)",
+        "Package manager setup (npm workspaces or pnpm workspaces)",
+        "TypeScript configuration (root + per-service tsconfig)",
+        "Linting & formatting (ESLint 9.x, Prettier)",
+        "Testing framework (Vitest with workspace support)",
+        "Build tooling (tsup or esbuild for services)",
+        "Docker setup (multi-stage Dockerfiles, docker-compose for local dev)",
+        "Kubernetes manifests (namespace, ConfigMap, Secret templates)",
+        "Observability stack (Grafana, Tempo, Loki, Prometheus via docker-compose)",
+        "Database setup (PostgreSQL 16 with docker-compose, migration tooling)",
+        "CI/CD pipelines (GitHub Actions: lint, test, build, SBOM, deploy)",
+        "Development scripts (dev, build, test, lint, typecheck)",
+        "Documentation (README, CONTRIBUTING, ARCHITECTURE, API_STANDARDS)",
+        "Pre-commit hooks (Husky + lint-staged)",
+        "Environment management (.env.example, config validation)",
+        "Health check package (shared /healthz /readyz utilities)",
+        "OpenAPI tooling (swagger-cli, redocly-cli for validation)",
+        "Secret management setup (External Secrets Operator manifests)",
+        "Service mesh prep (Istio/Linkerd decision + initial configs)"
+      ],
+      "outOfScope": [
+        "Business logic implementation (Phase 1+)",
+        "Actual API endpoint code (Phase 1+)",
+        "Database migrations (Phase 1+)",
+        "Authentication implementation (Phase 1+)",
+        "Frontend UI code (Phase 2+)",
+        "Production deployment (Phase 3+)",
+        "User data or real credentials"
+      ]
+    },
+    "constraints": {
+      "technical": [
+        "Node.js 20.x LTS only",
+        "TypeScript 5.6.x",
+        "OpenAPI 3.1.0 spec compliance",
+        "Kubernetes 1.31+ target",
+        "PostgreSQL 16.x (not 17 yet for stability)",
+        "Zero Python code anywhere",
+        "No frontend frameworks (vanilla JS only when needed)",
+        "Docker Compose v2.x format",
+        "All configs as code (no manual setup steps)"
+      ],
+      "operational": [
+        "All commands must work on macOS/Linux",
+        "Local dev environment runnable with `docker-compose up`",
+        "CI must complete in <10 minutes",
+        "All secrets templated, never committed",
+        "SBOM generated on every build",
+        "Zero-downtime migration strategy enforced"
+      ]
+    }
+  },
+  "technicalSpecifications": {
+    "inputs": [
+      {
+        "name": "Complete Technical Specifications",
+        "source": "docs/09_191025_todays_status/New_repo_microservice_discussion/13_round_3.md",
+        "description": "100% complete specs: 5 OpenAPI files, DB schema, observability configs, health checks, S2S auth code, deployment sequences",
+        "format": "Markdown with embedded YAML/JSON/SQL/TypeScript",
+        "validationCriteria": "All artifacts copy-paste ready, zero pseudocode"
+      },
+      {
+        "name": "Architecture Decision",
+        "source": "docs/09_191025_todays_status/New_repo_microservice_discussion/06_refinement_decision.md",
+        "description": "Platform (9 services) + AI layer (3 services) architecture with clean boundaries",
+        "format": "Markdown",
+        "validationCriteria": "Service list, tech stack, execution model defined"
+      },
+      {
+        "name": "User Experience Specs",
+        "source": "docs/09_191025_todays_status/New_repo_microservice_discussion/08_user_experience.md",
+        "description": "Non-technical founder persona, Create Project journey, gates G0-G8 in UI",
+        "format": "Markdown",
+        "validationCriteria": "Personas, journeys, UI screens specified"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Monorepo Structure",
+        "path": "NEW_REPO_ROOT/",
+        "description": "Complete directory tree with all folders, package.json workspaces, tsconfig hierarchy",
+        "acceptanceCriteria": [
+          "npm install succeeds without errors",
+          "TypeScript compilation succeeds (even with empty services)",
+          "ESLint passes on scaffold code",
+          "All scripts in root package.json work"
+        ]
+      },
+      {
+        "name": "Local Development Environment",
+        "path": "NEW_REPO_ROOT/docker-compose.yml",
+        "description": "Full observability stack + PostgreSQL + Redis runnable locally",
+        "acceptanceCriteria": [
+          "docker-compose up starts all infra services",
+          "Grafana accessible at localhost:3000",
+          "PostgreSQL accessible at localhost:5432",
+          "Tempo/Loki/Prometheus healthy",
+          "Health checks return 200"
+        ]
+      },
+      {
+        "name": "CI/CD Pipelines",
+        "path": "NEW_REPO_ROOT/.github/workflows/",
+        "description": "Reusable workflows for validate, build, test, sbom, deploy",
+        "acceptanceCriteria": [
+          "Workflows validate against GitHub schema",
+          "Lint/test jobs run on PR",
+          "SBOM generated and uploaded",
+          "Docker images build successfully",
+          "No secrets in workflow files"
+        ]
+      },
+      {
+        "name": "OpenAPI Specifications",
+        "path": "NEW_REPO_ROOT/services/*/openapi.yaml",
+        "description": "5 complete OpenAPI 3.1 specs from Round 3 delivery",
+        "acceptanceCriteria": [
+          "swagger-cli validate passes for all 5 specs",
+          "Specs include all endpoints from 13_round_3.md",
+          "RFC 9457 Problem Details schemas present",
+          "Security schemes (bearerAuth) defined"
+        ]
+      },
+      {
+        "name": "Database Foundation",
+        "path": "NEW_REPO_ROOT/database/",
+        "description": "Schema, migration tooling setup, seed data templates",
+        "acceptanceCriteria": [
+          "golang-migrate installed and configured",
+          "Initial migration (001_init.up.sql) with 11 tables",
+          "Migration applies cleanly to empty PostgreSQL 16 DB",
+          "Rollback (001_init.down.sql) works"
+        ]
+      },
+      {
+        "name": "Observability Dashboards",
+        "path": "NEW_REPO_ROOT/infrastructure/grafana/dashboards/",
+        "description": "4 Grafana dashboard JSONs from Round 3",
+        "acceptanceCriteria": [
+          "All 4 JSONs import to Grafana without errors",
+          "Dashboards render (queries may be empty until services running)",
+          "Variables defined correctly",
+          "Prometheus datasource UID matches config"
+        ]
+      },
+      {
+        "name": "Shared Packages",
+        "path": "NEW_REPO_ROOT/packages/",
+        "description": "Reusable health, auth, observability, config packages",
+        "acceptanceCriteria": [
+          "packages/health exports runChecks, httpCheck",
+          "packages/otel exports tracer, metrics setup",
+          "packages/config exports env validation",
+          "All packages compile independently"
+        ]
+      },
+      {
+        "name": "Documentation",
+        "path": "NEW_REPO_ROOT/docs/",
+        "description": "README, CONTRIBUTING, ARCHITECTURE, API_STANDARDS, DEPLOYMENT",
+        "acceptanceCriteria": [
+          "README has quickstart (< 5 commands to run locally)",
+          "ARCHITECTURE explains service boundaries",
+          "API_STANDARDS references OpenAPI 3.1, RFC 9457, OAuth 2.1",
+          "CONTRIBUTING has PR checklist"
+        ]
+      }
+    ],
+    "implementation": {
+      "approach": "Scaffold monorepo top-down: structure → tooling → infra → shared packages → service templates → CI/CD → docs. Validate each layer before proceeding.",
+      "steps": [
+        {
+          "order": 1,
+          "name": "Repository Initialization",
+          "description": "Create repo, initialize Git, setup .gitignore, LICENSE (MIT), basic README",
+          "commands": [
+            "mkdir ai-coding-platform && cd ai-coding-platform",
+            "git init",
+            "echo 'node_modules\\n.env\\n.DS_Store\\ndist/\\ncoverage/' > .gitignore",
+            "echo '# AI Coding Platform' > README.md"
+          ],
+          "validation": "git status shows clean working tree, .gitignore present"
+        },
+        {
+          "order": 2,
+          "name": "Monorepo Structure",
+          "description": "Create directory tree for services, packages, infra, docs",
+          "commands": [
+            "mkdir -p services/{auth,bff,projects,files,runner,collab,deployments,evidence}",
+            "mkdir -p services/ai/{orchestrator,workers,evaluator}",
+            "mkdir -p packages/{health,otel,config,logger}",
+            "mkdir -p infrastructure/{k8s,docker,grafana,terraform}",
+            "mkdir -p docs database scripts"
+          ],
+          "validation": "tree output matches expected structure"
+        },
+        {
+          "order": 3,
+          "name": "Package Manager Setup",
+          "description": "Initialize npm workspaces, setup root package.json with scripts",
+          "commands": [
+            "npm init -y",
+            "# Edit package.json to add workspaces: ['services/*', 'services/ai/*', 'packages/*']"
+          ],
+          "validation": "npm install succeeds, workspaces detected"
+        },
+        {
+          "order": 4,
+          "name": "TypeScript Configuration",
+          "description": "Create root tsconfig.json, service-specific extends, strict mode",
+          "validation": "tsc --noEmit passes (even with empty .ts files)"
+        },
+        {
+          "order": 5,
+          "name": "Linting & Formatting",
+          "description": "ESLint 9.x flat config, Prettier, integration with TypeScript",
+          "validation": "npm run lint passes on scaffold code"
+        },
+        {
+          "order": 6,
+          "name": "Testing Framework",
+          "description": "Vitest workspace config, coverage thresholds (80% line, 75% branch)",
+          "validation": "npm test runs (no tests yet, but framework works)"
+        },
+        {
+          "order": 7,
+          "name": "OpenAPI Specifications",
+          "description": "Copy 5 OpenAPI YAML files from 13_round_3.md into services/*/openapi.yaml",
+          "validation": "swagger-cli validate services/*/openapi.yaml passes for all 5"
+        },
+        {
+          "order": 8,
+          "name": "Database Setup",
+          "description": "golang-migrate setup, initial migration (11 tables), docker-compose PostgreSQL 16",
+          "validation": "migrate up applies cleanly, migrate down rolls back"
+        },
+        {
+          "order": 9,
+          "name": "Docker Compose (Infra)",
+          "description": "Grafana, Tempo, Loki, Prometheus, PostgreSQL, Redis in docker-compose.yml",
+          "validation": "docker-compose up starts all services, health checks green"
+        },
+        {
+          "order": 10,
+          "name": "Observability Setup",
+          "description": "Copy 4 Grafana dashboard JSONs, Prometheus alerts YAML, configure datasources",
+          "validation": "Grafana dashboards import successfully, queries validate (may be empty)"
+        },
+        {
+          "order": 11,
+          "name": "Shared Packages",
+          "description": "Create packages/health, packages/otel, packages/config with exports",
+          "validation": "Each package compiles, exports work when imported"
+        },
+        {
+          "order": 12,
+          "name": "Service Templates",
+          "description": "Create src/index.ts, health.ts, Dockerfile for each service (minimal scaffold)",
+          "validation": "Each service builds, Docker image builds successfully"
+        },
+        {
+          "order": 13,
+          "name": "Kubernetes Manifests",
+          "description": "Namespace, Service, Deployment templates for each service (placeholder replicas: 1)",
+          "validation": "kubectl apply --dry-run=client succeeds for all manifests"
+        },
+        {
+          "order": 14,
+          "name": "CI/CD Pipelines",
+          "description": "GitHub Actions workflows: validate.yml, build.yml, sbom.yml",
+          "validation": "Workflows validate against schema, jobs defined correctly"
+        },
+        {
+          "order": 15,
+          "name": "Documentation",
+          "description": "README (quickstart), CONTRIBUTING (PR checklist), ARCHITECTURE (service map), API_STANDARDS",
+          "validation": "Docs render correctly, all links work, code examples valid"
+        },
+        {
+          "order": 16,
+          "name": "Pre-commit Hooks",
+          "description": "Husky + lint-staged for auto-lint/format on commit",
+          "validation": "git commit triggers hooks, fails on lint errors"
+        },
+        {
+          "order": 17,
+          "name": "Environment Templates",
+          "description": ".env.example with all required vars, config validation in packages/config",
+          "validation": "Config validation rejects missing vars, accepts valid .env"
+        },
+        {
+          "order": 18,
+          "name": "Final Validation",
+          "description": "Run all validation commands, ensure clean state",
+          "commands": [
+            "npm run lint",
+            "npm run typecheck",
+            "npm test",
+            "npm run build",
+            "docker-compose up -d && docker-compose ps",
+            "swagger-cli validate services/*/openapi.yaml"
+          ],
+          "validation": "All commands exit 0, no errors, infra services healthy"
+        }
+      ]
+    },
+    "dependencies": {
+      "runtime": {
+        "node": "20.x LTS",
+        "npm": "10.x",
+        "docker": "24.x+",
+        "kubectl": "1.31+",
+        "golang-migrate": "4.17.x"
+      },
+      "packages": {
+        "typescript": "5.6.3",
+        "vitest": "^2.0.0",
+        "eslint": "^9.0.0",
+        "prettier": "^3.3.0",
+        "@swc/core": "^1.7.0",
+        "tsup": "^8.2.0",
+        "express": "^4.21.0",
+        "@opentelemetry/api": "^1.9.0",
+        "@opentelemetry/sdk-node": "^0.53.0",
+        "jose": "^5.9.0",
+        "pg": "^8.13.0",
+        "ioredis": "^5.4.0",
+        "undici": "^6.20.0",
+        "zod": "^3.23.0",
+        "pino": "^9.4.0",
+        "swagger-cli": "^4.0.4",
+        "husky": "^9.1.0",
+        "lint-staged": "^15.2.0"
+      }
+    }
+  },
+  "validationCriteria": {
+    "mustPass": [
+      {
+        "id": "V0.1",
+        "description": "Repository structure matches monorepo pattern",
+        "test": "All services/, packages/, infrastructure/ folders exist with correct nesting"
+      },
+      {
+        "id": "V0.2",
+        "description": "npm install succeeds without errors or warnings",
+        "test": "npm install && npm ls (no missing dependencies)"
+      },
+      {
+        "id": "V0.3",
+        "description": "TypeScript compilation succeeds",
+        "test": "npm run typecheck exits 0"
+      },
+      {
+        "id": "V0.4",
+        "description": "Linting passes on all scaffold code",
+        "test": "npm run lint exits 0, zero warnings"
+      },
+      {
+        "id": "V0.5",
+        "description": "All 5 OpenAPI specs validate",
+        "test": "swagger-cli validate services/*/openapi.yaml exits 0 for all"
+      },
+      {
+        "id": "V0.6",
+        "description": "Database migrations apply and rollback cleanly",
+        "test": "migrate up && migrate down succeeds"
+      },
+      {
+        "id": "V0.7",
+        "description": "Docker Compose infra stack starts successfully",
+        "test": "docker-compose up -d && all services healthy within 60s"
+      },
+      {
+        "id": "V0.8",
+        "description": "Grafana dashboards import without errors",
+        "test": "All 4 JSON files import via Grafana UI, zero errors"
+      },
+      {
+        "id": "V0.9",
+        "description": "CI workflows validate",
+        "test": "GitHub Actions validator passes for all .github/workflows/*.yml"
+      },
+      {
+        "id": "V0.10",
+        "description": "All root scripts work",
+        "test": "npm run dev, npm run build, npm test all exit 0 or run successfully"
+      },
+      {
+        "id": "V0.11",
+        "description": "Pre-commit hooks installed and working",
+        "test": "git commit with lint error → commit blocked"
+      },
+      {
+        "id": "V0.12",
+        "description": "Documentation complete and accurate",
+        "test": "README quickstart commands work, ARCHITECTURE matches actual structure"
+      }
+    ],
+    "shouldPass": [
+      {
+        "id": "V0.S1",
+        "description": "SBOM generation works",
+        "test": "npm run sbom generates sbom.spdx.json and sbom.cdx.json"
+      },
+      {
+        "id": "V0.S2",
+        "description": "Service Dockerfiles build",
+        "test": "docker build services/auth succeeds (even with minimal code)"
+      },
+      {
+        "id": "V0.S3",
+        "description": "Kubernetes manifests apply (dry-run)",
+        "test": "kubectl apply --dry-run=client -f infrastructure/k8s/ succeeds"
+      }
+    ]
+  },
+  "risks": [
+    {
+      "id": "R0.1",
+      "description": "Monorepo tooling complexity (workspace dependencies)",
+      "severity": "medium",
+      "mitigation": "Use npm workspaces (built-in, stable). Test cross-package imports early.",
+      "owner": "AI Dev (Codex)"
+    },
+    {
+      "id": "R0.2",
+      "description": "Docker Compose resource limits on developer machines",
+      "severity": "low",
+      "mitigation": "Document minimum requirements (8GB RAM, 4 CPU). Provide docker-compose.minimal.yml.",
+      "owner": "AI Dev (Codex)"
+    },
+    {
+      "id": "R0.3",
+      "description": "OpenAPI specs drift from implementation (Phase 1+)",
+      "severity": "medium",
+      "mitigation": "Add swagger-cli validate to CI, fail on mismatch. Use code generation where possible.",
+      "owner": "Human Reviewer"
+    },
+    {
+      "id": "R0.4",
+      "description": "Migration tooling (golang-migrate) unfamiliarity",
+      "severity": "low",
+      "mitigation": "Provide clear migration template, document expand-migrate-contract pattern.",
+      "owner": "AI Dev (Codex)"
+    }
+  ],
+  "exitCriteria": {
+    "completionGate": "Phase 0 Complete when all 12 mustPass validations succeed AND quickstart (README) works on fresh clone",
+    "deliverables": [
+      "✅ Complete monorepo with 12 services (9 platform + 3 AI) scaffolded",
+      "✅ Local dev environment (docker-compose) running with observability stack",
+      "✅ 5 OpenAPI 3.1 specs validated and committed",
+      "✅ Database foundation (migrations, schema) working",
+      "✅ 4 Grafana dashboards imported",
+      "✅ CI/CD pipelines defined (GitHub Actions)",
+      "✅ All validation commands passing (lint, typecheck, test, build)",
+      "✅ Documentation complete (README, CONTRIBUTING, ARCHITECTURE, API_STANDARDS)",
+      "✅ Pre-commit hooks enforcing quality",
+      "✅ Zero secrets committed, all templated"
+    ],
+    "readyForNextPhase": "Phase 1 (Auth Service Implementation) can begin when Phase 0 exit criteria met"
+  },
+  "evidence": {
+    "created": [],
+    "references": [
+      {
+        "type": "technical_specs",
+        "path": "docs/09_191025_todays_status/New_repo_microservice_discussion/13_round_3.md",
+        "description": "100% complete specs: APIs, DB, observability, health checks, S2S auth"
+      },
+      {
+        "type": "architecture",
+        "path": "docs/09_191025_todays_status/New_repo_microservice_discussion/06_refinement_decision.md",
+        "description": "Platform + AI layer architecture (9+3 services)"
+      },
+      {
+        "type": "user_experience",
+        "path": "docs/09_191025_todays_status/New_repo_microservice_discussion/08_user_experience.md",
+        "description": "Non-technical founder persona, Create Project journey"
+      }
+    ]
+  },
+  "metadata": {
+    "author": "AI Assistant (Claude)",
+    "approver": "Human (yousefbaragji)",
+    "estimatedEffort": "16-24 hours (AI dev execution time)",
+    "priority": "P0 - Foundation blocker for all subsequent phases",
+    "tags": ["scaffold", "monorepo", "foundation", "phase-0", "new-repo"],
+    "relatedContracts": [],
+    "notes": [
+      "This is Phase 0 for NEW repository (ai-coding-platform), not the current ai_system_executor-mvp",
+      "All 100% complete specs from Round 3 (13_round_3.md) are inputs",
+      "No business logic in Phase 0 - pure infrastructure and tooling setup",
+      "Quickstart must work: clone → npm install → docker-compose up → localhost:3000 Grafana",
+      "Phase 1 will implement Auth service as first real service with endpoints"
+    ]
+  }
+}

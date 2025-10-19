@@ -1,0 +1,219 @@
+openapi: 3.1.0
+info:
+  title: Collab Service
+  version: 1.0.0
+  description: "Realtime collaborative docs using Yjs and WS protocol."
+servers:
+  - url: https://collab.api.example.com
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Problem:
+      type: object
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+    Document:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        project_id: { type: string, format: uuid }
+        title: { type: string }
+        visibility: { type: string, enum: [private, team, public] }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+paths:
+  /api/collab/documents:
+    get:
+      summary: List documents
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50, minimum: 1, maximum: 200 }
+        - in: query
+          name: page[after]
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          headers: { Link: { schema: { type: string } } }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/Document' } }
+                  next: { type: string, nullable: true }
+    post:
+      summary: Create document
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, project_id]
+              properties:
+                title: { type: string }
+                project_id: { type: string, format: uuid }
+                visibility: { type: string, enum: [private, team, public], default: private }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Document' } } } }
+  /api/collab/documents/{id}:
+    get:
+      summary: Get snapshot/meta
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+    patch:
+      summary: Update title/permissions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                permissions: { type: object }
+      responses: { '200': { description: Updated } }
+    delete:
+      summary: Delete document
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '204': { description: Deleted } }
+  /api/collab/documents/{id}/fork:
+    post:
+      summary: Fork document
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '201': { description: Forked } }
+  /api/collab/documents/{id}/share:
+    post:
+      summary: Share with user/team
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [principal, role]
+              properties:
+                principal: { type: string }
+                role: { type: string, enum: [viewer, editor, owner] }
+      responses: { '204': { description: Granted } }
+  /api/collab/documents/{id}/share/{userId}:
+    delete:
+      summary: Revoke access
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '204': { description: Revoked } }
+  /api/collab/documents/{id}/collaborators:
+    get:
+      summary: List collaborators
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/collab/documents/{id}/history:
+    get:
+      summary: Snapshot versions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/collab/documents/{id}/snapshot:
+    post:
+      summary: Create snapshot
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '201': { description: Created } }
+  /api/collab/documents/{id}/restore:
+    post:
+      summary: Restore snapshot
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '202': { description: Restore started } }
+  /api/collab/documents/{id}/comments:
+    post:
+      summary: Add comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '201': { description: Added } }
+    get:
+      summary: List comments
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/collab/comments/{id}:
+    patch:
+      summary: Edit comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: Updated } }
+    delete:
+      summary: Delete comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '204': { description: Deleted } }
+x-websocket:
+  urlTemplate: "wss://collab.api.example.com/api/collab/documents/{id}/ws"
+  auth: "Authorization: Bearer <JWT>"
+  protocol: "Yjs sync (binary) + awareness; heartbeat 30s; close codes 4401, 4404, 4429."

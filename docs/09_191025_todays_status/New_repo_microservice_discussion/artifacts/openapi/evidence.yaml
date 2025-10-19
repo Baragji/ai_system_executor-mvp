@@ -1,0 +1,139 @@
+openapi: 3.1.0
+info:
+  title: Evidence Service
+  version: 1.0.0
+  description: "SBOM & SLSA provenance gen, DSSE/cosign signing, attestations."
+servers:
+  - url: https://evidence.api.example.com
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Problem:
+      type: object
+      properties:
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+paths:
+  /api/sbom/generate:
+    post:
+      summary: Generate SBOM (CycloneDX/SPDX)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subject]
+              properties:
+                subject: { type: string, description: "OCI image ref or project ID" }
+                format: { type: string, enum: [cyclonedx@1.6, spdx@2.3], default: cyclonedx@1.6 }
+      responses: { '202': { description: Accepted (job id) } }
+  /api/sbom:
+    get:
+      summary: List SBOMs
+      responses: { '200': { description: OK } }
+  /api/sbom/{id}:
+    get:
+      summary: Get SBOM doc
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/sbom/{id}/sign:
+    post:
+      summary: Sign SBOM with cosign (DSSE)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '201': { description: Signed } }
+  /api/provenance/generate:
+    post:
+      summary: Generate SLSA provenance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [material, builder]
+              properties:
+                material: { type: string, description: "OCI digest or artifact" }
+                builder: { type: string, description: "CI identity / workflow ref" }
+                level: { type: string, enum: [L1, L2, L3], default: L2 }
+      responses: { '202': { description: Job queued } }
+  /api/provenance/{id}:
+    get:
+      summary: Get provenance doc
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/provenance/{id}/sign:
+    post:
+      summary: Sign provenance (DSSE)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '201': { description: Signed } }
+  /api/evidence/bundles:
+    get:
+      summary: List evidence bundles (immutable)
+      responses: { '200': { description: OK } }
+  /api/evidence/bundles/{id}:
+    get:
+      summary: Get DSSE bundle
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }
+  /api/evidence/bundles/{id}/verify:
+    get:
+      summary: Verify signatures
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: Verified } }
+  /api/evidence/bundles/{id}/attest:
+    post:
+      summary: Add attestation signature
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '201': { description: Attested } }
+  /api/attestations:
+    post:
+      summary: Create human approval attestation
+      responses: { '201': { description: Created } }
+    get:
+      summary: List attestations
+      responses: { '200': { description: OK } }
+  /api/attestations/{id}:
+    get:
+      summary: Get attestation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses: { '200': { description: OK } }

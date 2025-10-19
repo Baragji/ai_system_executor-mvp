@@ -1,0 +1,116 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Request Rate (rps)",
+      "id": 1,
+      "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{service=\"bff\"}[5m])) by (method,route)",
+          "legendFormat": "{{method}} {{route}}"
+        }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "right" } }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Rate (%)",
+      "id": 2,
+      "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_server_requests_seconds_count{service=\"bff\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{service=\"bff\"}[5m]))",
+          "legendFormat": "5xx %"
+        },
+        {
+          "expr": "100 * sum(rate(http_server_requests_seconds_count{service=\"bff\",status=~\"4..\"}[5m])) / sum(rate(http_server_requests_seconds_count{service=\"bff\"}[5m]))",
+          "legendFormat": "4xx %"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency (p50/p95/p99, s)",
+      "id": 3,
+      "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(http_server_request_duration_seconds_bucket{service=\"bff\"}[5m])) by (le))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_request_duration_seconds_bucket{service=\"bff\"}[5m])) by (le))",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_request_duration_seconds_bucket{service=\"bff\"}[5m])) by (le))",
+          "legendFormat": "p99"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "In-Flight Requests",
+      "id": 4,
+      "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+      "targets": [
+        { "expr": "sum(http_server_in_flight_requests{service=\"bff\"})", "legendFormat": "in-flight" }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top Endpoints by p95 Latency",
+      "id": 5,
+      "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+      "targets": [
+        {
+          "expr": "topk(10, histogram_quantile(0.95, sum(rate(http_server_request_duration_seconds_bucket{service=\"bff\"}[5m])) by (le,route)))",
+          "legendFormat": "{{route}}"
+        }
+      ],
+      "options": { "showHeader": true }
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "styles": [],
+  "tags": ["bff", "red"],
+  "templating": {
+    "list": [
+      {
+        "name": "route",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "PROM_DS" },
+        "query": "label_values(http_server_requests_seconds_count{service=\"bff\"}, route)",
+        "current": { "text": "All", "value": ".*" },
+        "includeAll": true,
+        "regex": ""
+      }
+    ]
+  },
+  "timezone": "",
+  "title": "BFF Service Overview (RED)",
+  "uid": "bff-red-overview",
+  "version": 1,
+  "weekStart": ""
+}

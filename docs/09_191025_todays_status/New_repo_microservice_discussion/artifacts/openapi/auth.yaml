@@ -1,0 +1,325 @@
+openapi: 3.1.0
+info:
+  title: Auth & IAM Service
+  version: 1.0.0
+  description: OAuth 2.1/OIDC auth with WebAuthn, JWT (RFC 9068), service-to-service Client Credentials.
+servers:
+  - url: https://auth.api.example.com
+tags:
+  - name: User
+  - name: Sessions
+  - name: WebAuthn
+  - name: OAuth
+  - name: ServiceTokens
+  - name: Admin
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  headers:
+    RateLimit-Policy:
+      schema: { type: string }
+    RateLimit-Remaining:
+      schema: { type: integer }
+    Retry-After:
+      schema: { type: integer }
+  schemas:
+    Problem:
+      type: object
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        trace_id: { type: string }
+        request_id: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+              code: { type: string }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        email_verified: { type: boolean }
+        name: { type: string }
+        picture: { type: string, format: uri }
+        mfa_enabled: { type: boolean }
+        roles: { type: array, items: { type: string } }
+        created_at: { type: string, format: date-time }
+    TokenResponse:
+      type: object
+      required: [access_token, token_type, expires_in]
+      properties:
+        access_token: { type: string }
+        token_type: { type: string, enum: [Bearer] }
+        expires_in: { type: integer }
+        scope: { type: string }
+        refresh_token: { type: string }
+    ServiceTokenRequest:
+      type: object
+      required: [client_id, client_secret, audience]
+      properties:
+        client_id: { type: string }
+        client_secret: { type: string }
+        audience: { type: string }
+    WebAuthnBeginResponse:
+      type: object
+      properties:
+        challenge: { type: string }
+        publicKey: { type: object }
+    WebAuthnCompleteRequest:
+      type: object
+      properties:
+        id: { type: string }
+        rawId: { type: string }
+        response: { type: object }
+        type: { type: string, const: "public-key" }
+        clientExtensionResults: { type: object }
+paths:
+  /auth/register:
+    post:
+      tags: [User]
+      summary: Create user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+                name: { type: string }
+      responses:
+        '201':
+          description: Created
+          headers:
+            RateLimit-Policy: { $ref: '#/components/headers/RateLimit-Policy' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '409': { description: Conflict, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        default: { description: Error, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /auth/login:
+    post:
+      tags: [Sessions]
+      summary: Email+password login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TokenResponse' } } } }
+        '401': { description: Unauthorized, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /auth/refresh:
+    post:
+      tags: [Sessions]
+      summary: Refresh access token (rotation)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token: { type: string }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TokenResponse' } } } }
+        '401': { description: Unauthorized, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /auth/logout:
+    post:
+      tags: [Sessions]
+      summary: Invalidate session and refresh token
+      responses: { '204': { description: No content } }
+  /auth/me:
+    get:
+      tags: [User]
+      summary: Get current user profile
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }
+        '401': { description: Unauthorized, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /auth/verify-email:
+    post:
+      tags: [User]
+      summary: Verify email with token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [token], properties: { token: { type: string } } }
+      responses:
+        '204': { description: Verified }
+  /auth/reset-password:
+    post:
+      tags: [User]
+      summary: Request password reset email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [email], properties: { email: { type: string, format: email } } }
+      responses: { '204': { description: Email sent (if exists) } }
+  /auth/reset-password/confirm:
+    post:
+      tags: [User]
+      summary: Complete password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, new_password]
+              properties:
+                token: { type: string }
+                new_password: { type: string, minLength: 8 }
+      responses: { '204': { description: Reset complete } }
+  /auth/webauthn/register/begin:
+    post:
+      tags: [WebAuthn]
+      summary: Start passkey registration
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200': { description: Options, content: { application/json: { schema: { $ref: '#/components/schemas/WebAuthnBeginResponse' } } } }
+  /auth/webauthn/register/complete:
+    post:
+      tags: [WebAuthn]
+      summary: Complete passkey registration
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/WebAuthnCompleteRequest' } } }
+      responses: { '201': { description: Registered } }
+  /auth/webauthn/login/begin:
+    post:
+      tags: [WebAuthn]
+      summary: Start passkey login
+      responses: { '200': { description: Options, content: { application/json: { schema: { $ref: '#/components/schemas/WebAuthnBeginResponse' } } } } }
+  /auth/webauthn/login/complete:
+    post:
+      tags: [WebAuthn]
+      summary: Complete passkey login
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/WebAuthnCompleteRequest' } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TokenResponse' } } } } }
+  /auth/oauth/{provider}/authorize:
+    get:
+      tags: [OAuth]
+      summary: Redirect to OAuth provider
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema: { type: string, enum: [google, github, gitlab] }
+        - in: query
+          name: redirect_uri
+          required: true
+          schema: { type: string, format: uri }
+      responses: { '302': { description: Redirect } }
+  /auth/oauth/{provider}/callback:
+    get:
+      tags: [OAuth]
+      summary: OAuth callback handler
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema: { type: string, enum: [google, github, gitlab] }
+      responses: { '302': { description: App redirect w/ code or error } }
+  /auth/service-tokens:
+    post:
+      tags: [ServiceTokens]
+      summary: Create service token (Client Credentials)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ServiceTokenRequest' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TokenResponse' } } } }
+        '401': { description: Unauthorized, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /auth/service-tokens/verify:
+    post:
+      tags: [ServiceTokens]
+      summary: Verify service token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [token], properties: { token: { type: string } } }
+      responses:
+        '200':
+          description: Active
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  active: { type: boolean }
+                  sub: { type: string }
+                  aud: { type: string }
+                  scope: { type: string }
+        '401': { description: Invalid, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: List users (paginated)
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50, minimum: 1, maximum: 200 }
+        - in: query
+          name: page[after]
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          headers: { Link: { schema: { type: string } } }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/User' } }
+                  next: { type: string, nullable: true }
+  /admin/users/{id}:
+    patch:
+      tags: [Admin]
+      summary: Update user (roles/status)
+      parameters: [ { in: path, name: id, required: true, schema: { type: string, format: uuid } } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                roles: { type: array, items: { type: string } }
+                disabled: { type: boolean }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }
+    delete:
+      tags: [Admin]
+      summary: Delete user
+      responses: { '204': { description: No content } }
