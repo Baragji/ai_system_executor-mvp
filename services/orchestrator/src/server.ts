@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import express, { type Express, type Request, type Response } from "express";
 
-import { createStepQueueAdapter } from "./lib/stepQueueAdapter.js";
+import { createStepQueueAdapter } from "./domain/stepQueueAdapter.js";
 import { installProblemDetails, respondWithProblem } from "./middleware/problemDetails.js";
 import { createExecuteRouter } from "./routes/execute.js";
 import { createExecutionsRouter } from "./routes/executions.js";

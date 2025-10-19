@@ -1,0 +1,35 @@
+{
+  "task": "REFACTOR-TASK-15",
+  "phase": 22,
+  "title": "Wire Monolith → Orchestrator (Proxy)",
+  "envVar": "ORCHESTRATOR_URL",
+  "routes": [
+    {
+      "path": "/api/executions/:id",
+      "file": "src/server.ts",
+      "lines": "~520",
+      "behavior": "Proxy to {ORCHESTRATOR_URL}/executions/:id when set; fallback to local getExecution()",
+      "errorHandling": "RFC 9457 via respondWithProblem() on upstream/network failure"
+    },
+    {
+      "path": "/api/execute",
+      "file": "src/server.ts",
+      "lines": "~1730",
+      "behavior": "After building steps, if not LangGraph and ORCHESTRATOR_URL set, POST { sessionId, steps } to {ORCHESTRATOR_URL}/execute and relay response. Rewrite Location to /api/executions/:id",
+      "errorHandling": "RFC 9457 via respondWithProblem() on upstream/network failure"
+    }
+  ],
+  "healthProbe": {
+    "enabled": true,
+    "file": "src/server.ts",
+    "lines": "~2380",
+    "details": "Background GET {ORCHESTRATOR_URL}/healthz with 1.5s timeout; logs status"
+  },
+  "compliance": {
+    "language": "TypeScript",
+    "backend": "Express",
+    "noNewDeps": true,
+    "problemDetails": true
+  }
+}
+

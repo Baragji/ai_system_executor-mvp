@@ -120,6 +120,9 @@ app.use(express.json({ limit: "2mb" }));
 app.use(morgan("dev"));
 
 const PORT = Number(process.env.PORT || 3000);
+function getOrchestratorBase(): string {
+  return (process.env.ORCHESTRATOR_URL || "").trim();
+}
 const OUTPUT_DIR = path.resolve("output");
 const PUBLIC_DIR = path.resolve("public");
 // In-memory progress sessions for SSE/polling
@@ -447,8 +450,36 @@ async function addDirectoryToZip(zip: ZipFile, absoluteDir: string, relativeDir:
 app.get("/healthz", (_req, res) => res.json({ status: "ok" }));
 
 // Executions status endpoint for LangGraph runtime (and future runtimes)
-app.get("/api/executions/:id", (req, res) => {
+app.get("/api/executions/:id", async (req, res) => {
   const { id } = req.params as { id: string };
+  // If proxying to external orchestrator, forward the request
+  const ORCHESTRATOR_BASE = getOrchestratorBase();
+  if (ORCHESTRATOR_BASE) {
+    const instance = req.originalUrl || req.url || "/api/executions";
+    try {
+      const target = new URL(`/executions/${encodeURIComponent(id)}`, ORCHESTRATOR_BASE).toString();
+      const fetchLike = (globalThis as unknown as { fetch?: (input: string, init?: { method?: string; headers?: Record<string, string>; body?: string }) => Promise<{ ok: boolean; status: number; headers: { get(name: string): string | null }; json(): Promise<unknown>; }> }).fetch;
+      if (!fetchLike) {
+        respondWithProblem(res, 502, "UpstreamUnavailable", "fetch API not available in runtime", instance);
+        return;
+      }
+      const upstream = await fetchLike(target, { method: "GET", headers: { accept: "application/json" } });
+      let payload: unknown = null;
+      try {
+        payload = await upstream.json();
+      } catch {
+        payload = { error: "invalid upstream response" };
+      }
+      res.status(upstream.status).json(payload as object);
+      return;
+    } catch (error) {
+      const message = (error as Error | undefined)?.message || "failed to reach orchestrator";
+      respondWithProblem(res, 502, "BadGateway", message, instance);
+      return;
+    }
+  }
+
+  // Local fallback
   const record = getExecution(id);
   if (!record) {
     respondWithProblem(res, 404, "NotFound", "execution not found", req.originalUrl || req.url || "/api/executions");
@@ -1744,6 +1775,48 @@ app.post("/api/execute", async (req, res) => {
     const singlePayload: SingleStepPayload = { singleOptions };
     steps.push({ type: "single", payload: singlePayload, stopOnSuccess: true });
 
+    // When ORCHESTRATOR_URL is configured and LangGraph is not active,
+    // delegate execution to the external orchestrator service.
+    const ORCHESTRATOR_BASE = getOrchestratorBase();
+    if (!useLangGraph && ORCHESTRATOR_BASE) {
+      try {
+        const fetchLike = (globalThis as unknown as { fetch?: (input: string, init?: { method?: string; headers?: Record<string, string>; body?: string }) => Promise<{ ok: boolean; status: number; headers: { get(name: string): string | null }; json(): Promise<unknown>; }> }).fetch;
+        if (!fetchLike) {
+          respondWithProblem(res, 502, "UpstreamUnavailable", "fetch API not available in runtime", instance);
+          return;
+        }
+        const target = new URL("/execute", ORCHESTRATOR_BASE).toString();
+        const upstream = await fetchLike(target, {
+          method: "POST",
+          headers: { "content-type": "application/json", accept: "application/json" },
+          body: JSON.stringify({ sessionId, steps })
+        });
+
+        // Attempt to parse upstream response body for pass-through
+        let body: unknown = null;
+        try {
+          body = await upstream.json();
+        } catch {
+          body = {};
+        }
+
+        // If upstream returns a Location header, rewrite to our /api/executions path for clients
+        const upstreamLocation = upstream.headers.get("location");
+        if (upstreamLocation) {
+          const rewritten = upstreamLocation.startsWith("/executions/")
+            ? `/api${upstreamLocation}`
+            : upstreamLocation;
+          res.setHeader("Location", rewritten);
+        }
+        res.status(upstream.status).json(body as object);
+        return;
+      } catch (error) {
+        const message = (error as Error | undefined)?.message || "failed to reach orchestrator";
+        respondWithProblem(res, 502, "BadGateway", message, instance);
+        return;
+      }
+    }
+
     if (useLangGraph && executionId) {
       const createdAt = new Date();
       const location = `/api/executions/${executionId}`;
@@ -2362,7 +2435,36 @@ if (process.env.NODE_ENV !== "test") {
   const server = app.listen(PORT, () => {
     console.log(`Executor MVP listening on http://localhost:${PORT}`);
     console.log(`UI: http://localhost:${PORT}/`);
+    const ORCHESTRATOR_BASE = getOrchestratorBase();
+    if (ORCHESTRATOR_BASE) {
+      console.log(`[orchestrator-proxy] Enabled → ${ORCHESTRATOR_BASE}`);
+      console.log(`[orchestrator-proxy] Proxying POST /api/execute and GET /api/executions/:id`);
+    }
   });
+
+  // Optional: probe external orchestrator health when configured
+  const ORCHESTRATOR_BASE = getOrchestratorBase();
+  if (ORCHESTRATOR_BASE) {
+    (async () => {
+      try {
+        const fetchLike = (globalThis as unknown as { fetch?: (input: string, init?: { method?: string; headers?: Record<string, string>; body?: string; signal?: AbortSignal }) => Promise<{ ok: boolean; status: number; }> }).fetch;
+        if (fetchLike) {
+          const ctrl = AbortSignal.timeout(1500);
+          const resp = await fetchLike(new URL("/healthz", ORCHESTRATOR_BASE).toString(), { method: "GET", signal: ctrl });
+          if (!resp.ok) {
+            console.warn(`[orchestrator-proxy] Health probe returned ${resp.status} for ${ORCHESTRATOR_BASE}`);
+          } else {
+            console.log(`[orchestrator-proxy] Connected: ${ORCHESTRATOR_BASE}`);
+          }
+        } else {
+          console.warn("[orchestrator-proxy] fetch API not available; skipping health probe");
+        }
+      } catch (err) {
+        const msg = (err as Error | undefined)?.message || String(err ?? "unknown error");
+        console.warn(`[orchestrator-proxy] Health probe failed: ${msg}`);
+      }
+    })();
+  }
 
   // Graceful shutdown handler for OpenTelemetry
   const shutdown = async (signal: string) => {

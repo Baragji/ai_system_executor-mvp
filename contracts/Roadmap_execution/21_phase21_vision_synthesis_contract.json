@@ -220,7 +220,7 @@
         "Technologies cataloged",
         "Integration points mapped"
       ],
-      "status": "pending"
+      "status": "completed"
     },
     {
       "id": "V21-E4",
@@ -249,7 +249,7 @@
         "External systems listed",
         "Decision roles clarified"
       ],
-      "status": "pending"
+      "status": "completed"
     },
     {
       "id": "V21-E5",
@@ -278,7 +278,7 @@
         "Milestones extracted",
         "Timeline references captured"
       ],
-      "status": "pending"
+      "status": "completed"
     },
     {
       "id": "V21-E6",
@@ -307,7 +307,7 @@
         "Boundaries explicit",
         "Tradeoffs acknowledged"
       ],
-      "status": "pending"
+      "status": "completed"
     },
     {
       "id": "V21-S1",

@@ -31,6 +31,17 @@ Use a prompt like:
 
 Files are written to `./output/<project>`.
 
+### Orchestrator Proxy (Phase 22)
+
+Optionally delegate execution to the external Orchestrator service without changing clients:
+
+- Set `ORCHESTRATOR_URL` to the orchestrator base (e.g. `http://localhost:3005`).
+- Affects routes:
+  - `POST /api/execute` → proxies to `{ORCHESTRATOR_URL}/execute` and relays `202` + `Location: /api/executions/:id` for polling.
+  - `GET /api/executions/:id` → proxies to `{ORCHESTRATOR_URL}/executions/:id`.
+- When unset, the monolith retains legacy StepQueue/LangGraph behavior.
+- Startup logs include `[orchestrator-proxy] Enabled → <url>` when active.
+
 ## 📍 Quick Navigation
 
 **Confused about what you're working on?** Start here:
