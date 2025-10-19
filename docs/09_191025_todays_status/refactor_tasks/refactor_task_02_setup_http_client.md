@@ -33,7 +33,7 @@ rg -n "REFACTOR_STATUS_CHECKLIST" docs/09_191025_todays_status
 ```
 **Expected**: checklist present
 
-**CHECKPOINT**: All validations passed? [ ] YES / [ ] NO
+**CHECKPOINT**: All validations passed? [x] YES / [ ] NO
 
 ## Context
 
@@ -66,6 +66,6 @@ git checkout HEAD -- services/_template/src/lib/httpClient.ts services/_template
 ```
 
 ## Definition of Done
-- [ ] Client in place with correlation + trace headers
-- [ ] Tests passing
-- [ ] Checklist updated
+- [x] Client in place with correlation + trace headers
+- [x] Tests passing
+- [x] Checklist updated

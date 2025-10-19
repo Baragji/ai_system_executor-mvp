@@ -28,7 +28,7 @@ Target (post-refactor):
     - `cd services/_template && npm start & sleep 2 && curl -sfS http://localhost:3999/healthz`
   - Depends on: None
 
-- [ ] Task: Setup inter-service HTTP client with correlation IDs
+- [x] Task: Setup inter-service HTTP client with correlation IDs
   - Expected Outcome: Shared http client emits `x-correlation-id`, logs OTel trace IDs
   - Validation:
     - `rg -n "x-correlation-id" services/_template`
