@@ -1,0 +1,255 @@
+{
+  "contract_version": "P.22.1",
+  "contract_meta": {
+    "created": "2025-10-19",
+    "phase": "22",
+    "phase_name": "Service Extraction Core (Orchestrator + Runner)",
+    "prerequisite_phase": "20",
+    "rationale": "Per 02b_assesment_anakysis.md and microservice pivot, implement core service extraction first to avoid double work on monolith. Extract orchestrator and runner services with API parity, then implement LangGraph nodes within orchestrator service in the following phase.",
+    "references": [
+      "docs/07_171025_todays_status/20_microservice_pivot.md",
+      "docs/09_191025_todays_status/02b_assesment_anakysis.md",
+      "docs/09_191025_todays_status/04_REFACTOR_STATUS_CHECKLIST.md"
+    ]
+  },
+  "project": {
+    "name": "UMCA Executor MVP",
+    "current_phase": "22",
+    "goal": "Extract orchestrator and runner into standalone services with health and core endpoints, wire monolith to call them over HTTP, and preserve API parity.",
+    "scope": "services/orchestrator, services/runner, monolith wiring; no LangGraph node work in this phase",
+    "estimated_time": "~6–8 hours (10 wins × 30–45 minutes)",
+    "work_profile": "backend_service_extraction",
+    "out_of_scope": [
+      "LangGraph multi-node implementation (deferred to next phase)",
+      "Frontend changes"
+    ]
+  },
+  "execution_model": {
+    "type": "discovery_then_autonomous",
+    "verification_strategy": "per-service validate:all + root parity tests",
+    "description": "Discovery-first extraction with API parity. Monolith becomes a thin proxy to services.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "ai-stack.json",
+    "language": "TypeScript (Node 20)",
+    "frameworks": ["Express"],
+    "test_command": "npm test",
+    "constraints": [
+      "No Python",
+      "Frontend changes only under /public",
+      "No new dependencies without justification",
+      "No breaking API changes"
+    ],
+    "validation": "npm run validate:all"
+  },
+  "observability": {
+    "trace_file": ".automation/execution_trace.jsonl",
+    "discovery_file": ".automation/phase22_services_discovery.json",
+    "evidence_file": ".automation/phase22_services_evidence.jsonl",
+    "monitoring": {"otel": "optional per service via OTEL_ENABLED"},
+    "logging": {"format": "jsonl"}
+  },
+  "global_quality_standards": {
+    "lint": {"command": "npm run lint", "must_pass": true, "max_warnings": 0},
+    "typecheck": {"command": "npm run typecheck", "must_pass": true},
+    "tests": {"command": "npm test", "coverage": {"lines": 80, "branches": 75}},
+    "contract_schema": {"command": "npm run contract:check", "must_pass": true}
+  },
+  "high_level_stages": ["Discovery", "Implementation", "Validation"],
+  "gates": [
+    {
+      "id": "G22.1",
+      "name": "Orchestrator Service Live",
+      "status": "not_started",
+      "acceptance": [
+        "services/orchestrator exposes POST /execute and GET /executions/:id",
+        "Health endpoint /healthz returns 200",
+        "Monolith proxies requests to orchestrator when configured"
+      ],
+      "evidence": ["services/orchestrator/src/server.ts", "tests/api/executions.test.ts"],
+      "last_updated_at": "2025-10-19T00:00:00.000Z"
+    },
+    {
+      "id": "G22.2",
+      "name": "Runner Service Live",
+      "status": "not_started",
+      "acceptance": [
+        "services/runner exposes POST /run, /install, /test and /healthz",
+        "Monolith proxies to runner endpoints"
+      ],
+      "evidence": ["services/runner/src/server.ts", "tests/run-tests-route.test.ts"],
+      "last_updated_at": "2025-10-19T00:00:00.000Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "P22-V01",
+      "stage": "Discovery",
+      "title": "Map orchestrator extraction points",
+      "type": "discovery",
+      "description": "Identify exact functions and lines to extract: StepQueue, executionsStore, abort handling, routing semantics (202 Location).",
+      "time_estimate_minutes": 45,
+      "actions": [
+        "Record integration points in .automation/phase22_services_discovery.json",
+        "List monolith files to be adapted as thin proxies"
+      ],
+      "validation": [{"cmd": "test -f .automation/phase22_services_discovery.json", "expect_exit_code": 0}],
+      "success_criteria": ["Discovery file includes file:line references"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V02",
+      "stage": "Implementation",
+      "title": "Scaffold orchestrator service",
+      "type": "implementation",
+      "description": "Create Express server with /healthz, OTel bootstrap, and problem+json middleware.",
+      "time_estimate_minutes": 30,
+      "actions": ["Create server.ts", "Add middleware", "Add validate:all scripts"],
+      "validation": [{"cmd": "cd services/orchestrator && npm run validate:all", "expect_exit_code": 0}],
+      "success_criteria": ["Health check returns {status:'ok'}"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V03",
+      "stage": "Implementation",
+      "title": "Extract executions store + endpoints",
+      "type": "implementation",
+      "description": "Port executions store to service and expose POST /execute (202 + Location) and GET /executions/:id.",
+      "time_estimate_minutes": 45,
+      "actions": ["Move minimal store", "Add routes", "Proxy monolith endpoints"],
+      "validation": [{"cmd": "npm test tests/api/executions.test.ts", "expect_exit_code": 0}],
+      "success_criteria": ["Parity with monolith execution lifecycle"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V04",
+      "stage": "Implementation",
+      "title": "Extract StepQueue adapter",
+      "type": "implementation",
+      "description": "Bring StepQueue into orchestrator service as an adapter; keep monolith path as proxy.",
+      "time_estimate_minutes": 45,
+      "actions": ["Copy adapter", "Wire handlers", "Unit tests"],
+      "validation": [{"cmd": "npm test tests/benchmarks/perf-overhead.test.ts", "expect_exit_code": 0}],
+      "success_criteria": ["runWorkflow works through orchestrator service"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V05",
+      "stage": "Implementation",
+      "title": "Wire monolith → orchestrator",
+      "type": "implementation",
+      "description": "Add ORCHESTRATOR_URL env; route /api/execute to service with fallback to legacy when unset.",
+      "time_estimate_minutes": 30,
+      "actions": ["Add env", "Proxy code", "Update docs"],
+      "validation": [{"cmd": "npm run validate:all", "expect_exit_code": 0}],
+      "success_criteria": ["Parity tests green with service on"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V06",
+      "stage": "Implementation",
+      "title": "Scaffold runner service",
+      "type": "implementation",
+      "description": "Create Express server with /healthz and validate:all scripts.",
+      "time_estimate_minutes": 30,
+      "actions": ["Create server.ts", "Add middleware", "Add tests"],
+      "validation": [{"cmd": "cd services/runner && npm run validate:all", "expect_exit_code": 0}],
+      "success_criteria": ["Health check returns {status:'ok'}"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V07",
+      "stage": "Implementation",
+      "title": "Extract runner endpoints (run/install/test)",
+      "type": "implementation",
+      "description": "Expose POST /run, /install, /test; wrap existing domain functions.",
+      "time_estimate_minutes": 45,
+      "actions": ["Add routes", "Wire domain", "Unit tests"],
+      "validation": [{"cmd": "npm test tests/run-tests-route.test.ts", "expect_exit_code": 0}],
+      "success_criteria": ["Monolith parity for run-tests"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V08",
+      "stage": "Implementation",
+      "title": "Wire monolith → runner",
+      "type": "implementation",
+      "description": "Add RUNNER_URL env; proxy run/install/test to service with fallback when unset.",
+      "time_estimate_minutes": 30,
+      "actions": ["Add env", "Proxy code", "Update docs"],
+      "validation": [{"cmd": "npm run validate:all", "expect_exit_code": 0}],
+      "success_criteria": ["Parity tests green with runner on"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V09",
+      "stage": "Validation",
+      "title": "Per-service CI/QA",
+      "type": "validation",
+      "description": "Run validate:all in orchestrator and runner; capture evidence entries.",
+      "time_estimate_minutes": 30,
+      "actions": ["Run lint/type/test", "Record evidence"],
+      "validation": [
+        {"cmd": "cd services/orchestrator && npm run validate:all", "expect_exit_code": 0},
+        {"cmd": "cd services/runner && npm run validate:all", "expect_exit_code": 0}
+      ],
+      "success_criteria": ["Both services pass validate:all"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V10",
+      "stage": "Validation",
+      "title": "Parity + docs",
+      "type": "validation",
+      "description": "Ensure all root tests pass with services; update checklists/docs and status.",
+      "time_estimate_minutes": 30,
+      "actions": ["Run root validate:all", "Update 04_REFACTOR_STATUS_CHECKLIST.md"],
+      "validation": [{"cmd": "npm run validate:all", "expect_exit_code": 0}],
+      "success_criteria": ["All checks pass; docs aligned"],
+      "status": "pending"
+    }
+  ],
+  "execution_order": [
+    "P22-V01",
+    "P22-V02",
+    "P22-V03",
+    "P22-V04",
+    "P22-V05",
+    "P22-V06",
+    "P22-V07",
+    "P22-V08",
+    "P22-V09",
+    "P22-V10"
+  ],
+  "execution_semantics": {
+    "win_isolation": {"enforced": true},
+    "gate_enforcement": {"required": true},
+    "evidence_backed": {"required": true}
+  },
+  "completion_criteria": {
+    "all_tests_pass": true,
+    "lint_passes": true,
+    "typecheck_passes": true,
+    "evidence_recorded": true
+  },
+  "final_artifacts_verification": [
+    {"name": "Orchestrator server", "path": "services/orchestrator/src/server.ts", "must_exist": true, "must_include_regex": "listen\\(|/healthz"},
+    {"name": "Runner server", "path": "services/runner/src/server.ts", "must_exist": true, "must_include_regex": "listen\\(|/healthz"}
+  ],
+  "reporting": {
+    "progress_file": ".automation/progress_phase22_services.json",
+    "fields": ["task_id", "status", "started_at", "completed_at", "validation_results", "evidence_paths"],
+    "status_values": ["pending", "in_progress", "complete", "blocked"]
+  },
+  "fallback_policies": {
+    "runtime": "Fallback to monolith when ORCHESTRATOR_URL/RUNNER_URL unset"
+  },
+  "ai_executor_guidelines": {
+    "observability_first": "Capture evidence for each service",
+    "test_driven": "Exercise root tests to ensure parity"
+  }
+}
+

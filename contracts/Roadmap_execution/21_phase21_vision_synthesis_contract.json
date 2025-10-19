@@ -1,0 +1,549 @@
+{
+  "contract_version": "21.0.0",
+  "contract_meta": {
+    "created": "2025-10-19",
+    "phase": "21",
+    "phase_name": "Vision Synthesis - Strategic Cheat Sheet Extraction",
+    "prerequisite_phase": "Phase 19/20 (Trust Spine + LangGraph Foundation)",
+    "supersedes": null,
+    "status": "pending",
+    "enhancement": "Extract and synthesize vision documents from historical planning artifacts to create executive-level strategic cheat sheet for developer handoff and roadmap alignment.",
+    "rationale": "The repository contains extensive planning documents in docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents capturing the original vision for a fully autonomous AI coding system. These documents represent months of strategic thinking but are scattered across multiple files in varying formats. Before advancing to next autonomy milestones (HITL/MCP/Policy Gates), we need a single authoritative vision document that: (1) distills what the system must become, (2) clarifies success criteria and constraints, (3) provides developer handoff materials, (4) ensures roadmap decisions align with original intent. This phase synthesizes those documents into a concise, non-technical cheat sheet suitable for both owner review and technical planning.",
+    "references": [
+      "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/",
+      "AGENTS.md",
+      "CDI_INFRASTRUCTURE.md",
+      ".automation/INSTRUCTION_vision_cheat_sheet.md (legacy - replaced by this contract)"
+    ]
+  },
+  "project": {
+    "name": "UMCA Executor MVP",
+    "current_phase": "21 - Vision Synthesis (Strategic Cheat Sheet Extraction)",
+    "goal": "Read all historical planning documents in docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents, extract vital information about autonomous AI coding vision, and synthesize a comprehensive executive-level cheat sheet documenting WHAT/WHY/HOW/WHO/WHEN/CONSTRAINTS for developer handoff.",
+    "scope": "Document discovery, content extraction, synthesis into structured cheat sheet format, validation against CDI quality standards, delivery of VISION_CHEAT_SHEET.md artifact.",
+    "estimated_time": "Discovery: 2-3 hours, Extraction: 3-4 hours, Synthesis: 2-3 hours, Validation: 1-2 hours. Total: 8-12 hours (~1-2 working days)",
+    "work_profile": "Documentation analysis (Markdown reading), information extraction, strategic synthesis, executive communication document creation",
+    "out_of_scope": [
+      "Implementation of any features described in vision documents",
+      "Technical architecture design",
+      "Code changes to existing system",
+      "New contracts for future phases (this is documentation only)",
+      "Roadmap revision or re-planning"
+    ]
+  },
+  "execution_model": {
+    "type": "discovery_then_autonomous",
+    "verification_strategy": "AI agent reads all source documents in specified directory, extracts structured information per framework (WHAT/WHY/HOW/WHO/WHEN/CONSTRAINTS), synthesizes into template-driven cheat sheet, validates completeness via checklist, human validates final output.",
+    "description": "Agent discovers all markdown files in target directory, reads each file systematically, extracts information into structured categories, synthesizes findings into executive cheat sheet using provided template, validates against quality checklist, reports completion with file path.",
+    "failure_mode": "halt_and_report_with_context",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "CDI_INFRASTRUCTURE.md",
+    "language": "N/A (documentation only)",
+    "frameworks": [],
+    "test_command": "N/A (documentation artifact)",
+    "constraints": [
+      "Output must be valid Markdown (.md)",
+      "Document must be non-technical (executive-friendly)",
+      "Must follow provided template structure exactly",
+      "Source files must be indexed with contributions documented",
+      "Must validate against completeness checklist",
+      "Must be <= 10 pages when printed (concise executive summary)"
+    ],
+    "validation": "Human review + checklist validation + markdown linting"
+  },
+  "observability": {
+    "description": "Track document discovery, extraction progress, synthesis quality, and validation outcomes.",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "discovery_file": ".automation/phase21_vision_discovery.json",
+    "evidence_file": ".automation/phase21_evidence.json",
+    "monitoring": {
+      "files_discovered": "count",
+      "files_read": "count",
+      "extraction_categories_populated": "count",
+      "template_sections_completed": "count",
+      "validation_items_passed": "count"
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": [
+        "timestamp",
+        "phase",
+        "task_id",
+        "event",
+        "file_path",
+        "extraction_category",
+        "status"
+      ]
+    }
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npx markdownlint docs/Goal_&_Vision_inspirational_only/VISION_CHEAT_SHEET.md",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "content_validation": {
+      "description": "Validate cheat sheet completeness and quality",
+      "checklist_items": 14,
+      "must_pass_all": true
+    }
+  },
+  "high_level_stages": [
+    "Discovery (Find and Index Source Documents)",
+    "Extraction (Read and Categorize Information)",
+    "Synthesis (Create Structured Cheat Sheet)",
+    "Validation (Quality and Completeness Check)",
+    "Evidence Collection",
+    "Human Review"
+  ],
+  "tasks": [
+    {
+      "id": "V21-D1",
+      "stage": "Discovery",
+      "title": "Discover and index all source documents",
+      "type": "discovery",
+      "description": "Find all markdown files in docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents, create index with file paths and sizes, output discovery artifact.",
+      "time_estimate_minutes": 30,
+      "prerequisite": null,
+      "actions": [
+        "Run: find docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents -type f -name '*.md'",
+        "Count total files discovered",
+        "List each file with relative path",
+        "Note file sizes and dates",
+        "Create discovery artifact: .automation/phase21_vision_discovery.json"
+      ],
+      "validation": [
+        {
+          "cmd": "test -f .automation/phase21_vision_discovery.json",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'files_discovered' .automation/phase21_vision_discovery.json",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "All .md files in target directory discovered",
+        "File index created with paths and metadata",
+        "Discovery artifact generated and valid JSON",
+        "No files missed or excluded without reason"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "V21-E1",
+      "stage": "Extraction",
+      "title": "Extract WHAT information (capabilities and features)",
+      "type": "discovery",
+      "description": "Read all discovered files, extract information about what the system needs to do, what features were planned, what problems it solves, what workflows it supports.",
+      "time_estimate_minutes": 60,
+      "prerequisite": "V21-D1",
+      "actions": [
+        "Read each file systematically",
+        "Extract capability statements",
+        "Extract feature descriptions",
+        "Extract problem statements",
+        "Extract workflow descriptions",
+        "Document source file for each extracted item"
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'capabilities' .automation/phase21_extraction_notes.json",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "All capability mentions extracted",
+        "Features cataloged with sources",
+        "Problems clearly identified",
+        "Workflows documented",
+        "Source attribution maintained"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "V21-E2",
+      "stage": "Extraction",
+      "title": "Extract WHY information (purpose and goals)",
+      "type": "discovery",
+      "description": "Extract why the system was conceived, what pain points it addresses, what the ultimate goal is, what value it provides.",
+      "time_estimate_minutes": 45,
+      "prerequisite": "V21-D1",
+      "actions": [
+        "Extract purpose statements",
+        "Extract pain point descriptions",
+        "Extract goal definitions",
+        "Extract value propositions",
+        "Document source file for each extracted item"
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'purpose' .automation/phase21_extraction_notes.json",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Purpose clearly articulated",
+        "Pain points documented",
+        "Goals identified and sourced",
+        "Value propositions extracted"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "V21-E3",
+      "stage": "Extraction",
+      "title": "Extract HOW information (approach and methodology)",
+      "type": "discovery",
+      "description": "Extract technical approaches considered, patterns/architectures mentioned, tools/technologies referenced, integration points discussed.",
+      "time_estimate_minutes": 60,
+      "prerequisite": "V21-D1",
+      "actions": [
+        "Extract architectural approaches",
+        "Extract pattern mentions",
+        "Extract technology references",
+        "Extract integration point descriptions",
+        "Document source file for each extracted item"
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'approach' .automation/phase21_extraction_notes.json",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Approaches documented with sources",
+        "Patterns identified and explained",
+        "Technologies cataloged",
+        "Integration points mapped"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "V21-E4",
+      "stage": "Extraction",
+      "title": "Extract WHO information (stakeholders and components)",
+      "type": "discovery",
+      "description": "Extract who the users are, what agents/components are involved, what external systems integrate, who makes decisions.",
+      "time_estimate_minutes": 30,
+      "prerequisite": "V21-D1",
+      "actions": [
+        "Extract user descriptions",
+        "Extract agent/component mentions",
+        "Extract external system references",
+        "Extract decision-maker roles",
+        "Document source file for each extracted item"
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'stakeholders' .automation/phase21_extraction_notes.json",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Users identified",
+        "Components documented",
+        "External systems listed",
+        "Decision roles clarified"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "V21-E5",
+      "stage": "Extraction",
+      "title": "Extract WHEN information (timeline and phases)",
+      "type": "discovery",
+      "description": "Extract what phases were planned, what sequence of implementation was envisioned, what dependencies exist, what milestones were defined.",
+      "time_estimate_minutes": 45,
+      "prerequisite": "V21-D1",
+      "actions": [
+        "Extract phase definitions",
+        "Extract sequencing information",
+        "Extract dependency relationships",
+        "Extract milestone descriptions",
+        "Document source file for each extracted item"
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'timeline' .automation/phase21_extraction_notes.json",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Phases identified and sequenced",
+        "Dependencies documented",
+        "Milestones extracted",
+        "Timeline references captured"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "V21-E6",
+      "stage": "Extraction",
+      "title": "Extract CONSTRAINTS information (boundaries and anti-patterns)",
+      "type": "discovery",
+      "description": "Extract approaches explicitly rejected, technologies forbidden, boundaries that must be respected, tradeoffs acknowledged.",
+      "time_estimate_minutes": 30,
+      "prerequisite": "V21-D1",
+      "actions": [
+        "Extract rejected approaches",
+        "Extract technology constraints",
+        "Extract boundary definitions",
+        "Extract tradeoff discussions",
+        "Document source file for each extracted item"
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'constraints' .automation/phase21_extraction_notes.json",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Constraints clearly identified",
+        "Rejected approaches documented",
+        "Boundaries explicit",
+        "Tradeoffs acknowledged"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "V21-S1",
+      "stage": "Synthesis",
+      "title": "Create vision cheat sheet from extracted information",
+      "type": "implementation",
+      "description": "Synthesize all extracted information into structured cheat sheet using provided template, ensuring concise executive-friendly language, proper attribution, and complete coverage of all sections.",
+      "time_estimate_minutes": 120,
+      "prerequisite": "V21-E1, V21-E2, V21-E3, V21-E4, V21-E5, V21-E6",
+      "actions": [
+        "Create docs/Goal_&_Vision_inspirational_only/VISION_CHEAT_SHEET.md",
+        "Populate Vision Statement (1-2 paragraphs)",
+        "Populate Core Goals (3-7 items)",
+        "Populate Key Capabilities (Must/Should/Nice-to-Have)",
+        "Populate Known Constraints",
+        "Populate Success Metrics",
+        "Populate High-Level Architecture Concepts",
+        "Populate Stakeholders & Users",
+        "Populate Implementation Philosophy",
+        "Populate Key Learnings",
+        "Populate Critical Decision Points",
+        "Populate Quick Reference (TL;DR)",
+        "Populate Source Document Index",
+        "Add Next Steps for Developer Handoff"
+      ],
+      "validation": [
+        {
+          "cmd": "test -f docs/Goal_&_Vision_inspirational_only/VISION_CHEAT_SHEET.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'Vision Statement' docs/Goal_&_Vision_inspirational_only/VISION_CHEAT_SHEET.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'Core Goals' docs/Goal_&_Vision_inspirational_only/VISION_CHEAT_SHEET.md",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'Quick Reference' docs/Goal_&_Vision_inspirational_only/VISION_CHEAT_SHEET.md",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Cheat sheet file created at specified location",
+        "All template sections populated",
+        "Language is executive-friendly (non-technical where possible)",
+        "Source attribution maintained throughout",
+        "Document is concise (<= 10 pages when printed)",
+        "Markdown is valid and properly formatted"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "V21-V1",
+      "stage": "Validation",
+      "title": "Validate cheat sheet against quality checklist",
+      "type": "validation",
+      "description": "Run through 14-point validation checklist ensuring all quality criteria met, document validation results, confirm readiness for human review.",
+      "time_estimate_minutes": 60,
+      "prerequisite": "V21-S1",
+      "actions": [
+        "Check: All source files read and indexed",
+        "Check: All 6 extraction categories populated",
+        "Check: Template structure followed exactly",
+        "Check: Vision statement is clear and compelling (2 paragraphs max)",
+        "Check: Core goals are specific and measurable (3-7 items)",
+        "Check: Capabilities categorized into Must/Should/Nice-to-Have",
+        "Check: Constraints are explicit and actionable",
+        "Check: Success metrics are measurable",
+        "Check: Architecture concepts are high-level but clear",
+        "Check: TL;DR section could stand alone",
+        "Check: Source document index lists every file analyzed",
+        "Check: Document is under 10 pages when printed",
+        "Check: Language is accessible to non-technical owner",
+        "Check: No markdown formatting errors",
+        "Document validation results in .automation/phase21_validation.json"
+      ],
+      "validation": [
+        {
+          "cmd": "test -f .automation/phase21_validation.json",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npx markdownlint docs/Goal_&_Vision_inspirational_only/VISION_CHEAT_SHEET.md",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "All 14 checklist items pass",
+        "Validation results documented",
+        "Markdown lint passes with zero warnings",
+        "Document ready for human review"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "V21-EV1",
+      "stage": "Evidence Collection",
+      "title": "Collect evidence artifacts for Phase 21",
+      "type": "evidence",
+      "description": "Gather all artifacts produced during vision synthesis: discovery notes, extraction notes, validation results, final cheat sheet.",
+      "time_estimate_minutes": 30,
+      "prerequisite": "V21-V1",
+      "actions": [
+        "Confirm .automation/phase21_vision_discovery.json exists",
+        "Confirm .automation/phase21_extraction_notes.json exists",
+        "Confirm .automation/phase21_validation.json exists",
+        "Confirm docs/Goal_&_Vision_inspirational_only/VISION_CHEAT_SHEET.md exists",
+        "Create .automation/phase21_evidence.json listing all artifacts",
+        "Document file sizes and line counts"
+      ],
+      "validation": [
+        {
+          "cmd": "test -f .automation/phase21_evidence.json",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'VISION_CHEAT_SHEET.md' .automation/phase21_evidence.json",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "All evidence artifacts collected",
+        "Evidence manifest created",
+        "File metadata documented",
+        "Ready for human review"
+      ],
+      "status": "pending"
+    }
+  ],
+  "execution_order": [
+    "V21-D1",
+    "V21-E1",
+    "V21-E2",
+    "V21-E3",
+    "V21-E4",
+    "V21-E5",
+    "V21-E6",
+    "V21-S1",
+    "V21-V1",
+    "V21-EV1"
+  ],
+  "execution_semantics": {
+    "discovery_first": {
+      "description": "Agent must discover all source files before beginning extraction",
+      "mandatory": true
+    },
+    "systematic_extraction": {
+      "description": "Agent must extract information category-by-category, not file-by-file",
+      "rationale": "Prevents duplication and ensures thematic coherence"
+    },
+    "source_attribution": {
+      "description": "Every extracted item must cite source file",
+      "mandatory": true
+    },
+    "template_adherence": {
+      "description": "Agent must follow cheat sheet template structure exactly",
+      "mandatory": true
+    },
+    "validation_before_delivery": {
+      "description": "Agent must validate against checklist before marking complete",
+      "mandatory": true
+    }
+  },
+  "completion_criteria": {
+    "all_source_files_read": true,
+    "all_extraction_categories_populated": true,
+    "cheat_sheet_created": true,
+    "template_structure_followed": true,
+    "validation_checklist_passed": true,
+    "markdown_lint_passes": true,
+    "evidence_collected": true,
+    "ready_for_human_review": true
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Vision Cheat Sheet",
+      "path": "docs/Goal_&_Vision_inspirational_only/VISION_CHEAT_SHEET.md",
+      "must_exist": true,
+      "min_lines": 100,
+      "must_include_regex": "Vision Statement|Core Goals|Quick Reference"
+    },
+    {
+      "name": "Discovery Artifact",
+      "path": ".automation/phase21_vision_discovery.json",
+      "must_exist": true,
+      "must_include_field": "files_discovered"
+    },
+    {
+      "name": "Extraction Notes",
+      "path": ".automation/phase21_extraction_notes.json",
+      "must_exist": true,
+      "must_include_field": "categories"
+    },
+    {
+      "name": "Validation Results",
+      "path": ".automation/phase21_validation.json",
+      "must_exist": true,
+      "must_include_field": "checklist_items_passed"
+    },
+    {
+      "name": "Evidence Manifest",
+      "path": ".automation/phase21_evidence.json",
+      "must_exist": true,
+      "must_include_field": "artifacts"
+    }
+  ],
+  "reporting": {
+    "progress_file": ".automation/progress_phase21.json",
+    "fields": [
+      "task_id",
+      "status",
+      "files_read",
+      "items_extracted",
+      "sections_completed",
+      "validation_passed"
+    ],
+    "status_values": [
+      "pending",
+      "in_progress",
+      "complete",
+      "blocked"
+    ]
+  },
+  "ai_executor_guidelines": {
+    "read_systematically": "Read all source files completely before beginning synthesis",
+    "extract_verbatim": "When extracting quotes, preserve exact wording and cite source",
+    "be_concise": "Cheat sheet must be executive summary, not comprehensive documentation",
+    "maintain_attribution": "Every claim must be traceable to source document",
+    "use_simple_language": "Owner is non-technical; avoid jargon where possible",
+    "structure_strictly": "Follow template structure exactly; do not add or remove sections",
+    "validate_thoroughly": "Run through all 14 checklist items before marking complete",
+    "document_conflicts": "If source documents contradict, note discrepancies in cheat sheet"
+  },
+  "governance_note": {
+    "for_human": "This contract creates a strategic artifact (vision cheat sheet) from historical planning documents. It does NOT implement features or create technical specifications. The deliverable is a non-technical executive summary suitable for owner review and developer handoff. Review the cheat sheet for accuracy and completeness before using it to guide future roadmap planning."
+  }
+}

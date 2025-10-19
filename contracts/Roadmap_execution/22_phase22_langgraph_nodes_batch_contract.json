@@ -1,0 +1,258 @@
+{
+  "contract_version": "P.22.0",
+  "contract_meta": {
+    "created": "2025-10-19",
+    "phase": "22",
+    "phase_name": "Refactor Batch 2 — LangGraph Six-Node Implementation",
+    "prerequisite_phase": "21",
+    "rationale": "Phase 21 established the need for a six-node StateGraph but remains in-progress with a single-node wrapper. This batch decomposes the remaining work into 30–45 minute wins to deliver clarify → plan → generate → test → (repair loop) → deliver with per-node telemetry and parity tests.",
+    "references": [
+      "docs/09_191025_todays_status/05_refactor_batch_approach.md",
+      "docs/09_191025_todays_status/06_refactor_validation.md",
+      "contracts/Roadmap_execution/21_phase21_multi_node_langgraph_contract.json"
+    ]
+  },
+  "project": {
+    "name": "UMCA Executor MVP",
+    "current_phase": "22",
+    "goal": "Deliver the six-node LangGraph orchestration behind AGENTS_RUNTIME=langgraph with bounded repair loop, node-level telemetry, and parity tests without breaking existing API behaviors.",
+    "scope": "src/orchestrator/graph.ts and related modules; tests under tests/orchestrator/*",
+    "estimated_time": "~6–8 hours (10 wins × 30–45 minutes)",
+    "work_profile": "discovery_then_autonomous",
+    "out_of_scope": [
+      "Service extraction to dedicated orchestrator microservice",
+      "Gateway/provider changes",
+      "UI changes"
+    ]
+  },
+  "execution_model": {
+    "type": "discovery_then_autonomous",
+    "verification_strategy": "Write minimal node-unit tests and run existing integration tests for API parity.",
+    "description": "Each node is implemented as an isolated win with tests; edges wired once nodes exist.",
+    "failure_mode": "HALT on failing lint/type/tests; document in evidence and request guidance.",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "ai-stack.json",
+    "language": "TypeScript (Node 20)",
+    "frameworks": ["Express"],
+    "test_command": "npm test",
+    "constraints": [
+      "No Python",
+      "Frontend changes only under /public",
+      "No new dependencies without justification",
+      "No breaking API changes"
+    ],
+    "validation": "npm run validate:all"
+  },
+  "observability": {
+    "description": "Capture node transitions and execution evidence in JSONL trace.",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "discovery_file": ".automation/phase22_discovery.json",
+    "evidence_file": ".automation/phase22_evidence.jsonl",
+    "monitoring": {"otel": "optional via OTEL_ENABLED=1"},
+    "logging": {"format": "jsonl"},
+    "evaluation": {"continuous": true}
+  },
+  "global_quality_standards": {
+    "lint": {"command": "npm run lint", "must_pass": true, "max_warnings": 0},
+    "typecheck": {"command": "npm run typecheck", "must_pass": true},
+    "tests": {
+      "command": "npm test",
+      "coverage": {"lines": 80, "branches": 75}
+    },
+    "contract_schema": {"command": "npm run contract:check", "must_pass": true}
+  },
+  "high_level_stages": ["Discovery", "Implementation", "Validation"],
+  "gates": [
+    {
+      "id": "G22.1",
+      "name": "Six-Node Orchestration Implemented",
+      "status": "not_started",
+      "acceptance": [
+        "Clarify, plan, generate, test, repair, deliver nodes exist",
+        "Bounded conditional loop from test → repair → test",
+        "Graph behind AGENTS_RUNTIME=langgraph"
+      ],
+      "evidence": ["src/orchestrator/graph.ts", "tests/orchestrator/graph-nodes.test.ts"],
+      "last_updated_at": "2025-10-19T00:00:00.000Z"
+    },
+    {
+      "id": "G22.2",
+      "name": "Parity + Telemetry",
+      "status": "not_started",
+      "acceptance": [
+        "API parity preserved (202 Location flow)",
+        "Per-node telemetry events emitted",
+        "All validations pass"
+      ],
+      "evidence": [".automation/execution_trace.jsonl"],
+      "last_updated_at": "2025-10-19T00:00:00.000Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "P22-V01",
+      "stage": "Discovery",
+      "title": "Node integration mapping",
+      "type": "discovery",
+      "description": "Identify exact insert points in src/orchestrator/graph.ts for six nodes and list adapter call sites (clarification, planning, generation, testing, repair, deliver).",
+      "time_estimate_minutes": 45,
+      "actions": [
+        "Record line numbers and functions in .automation/phase22_discovery.json",
+        "Confirm feature flag routing and store updates"
+      ],
+      "validation": [{"cmd": "test -f .automation/phase22_discovery.json", "expect_exit_code": 0}],
+      "success_criteria": ["Discovery file exists with precise line refs"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V02",
+      "stage": "Implementation",
+      "title": "Clarify node",
+      "type": "implementation",
+      "description": "Implement clarify node calling clarification module; returns { clarifications } or no-op.",
+      "time_estimate_minutes": 45,
+      "actions": ["Add clarify node", "Unit test node"],
+      "validation": [{"cmd": "AGENTS_RUNTIME=langgraph npm test tests/orchestrator/graph.test.ts", "expect_exit_code": 0}],
+      "success_criteria": ["clarify node returns structured state"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V03",
+      "stage": "Implementation",
+      "title": "Plan node",
+      "type": "implementation",
+      "description": "Implement plan node consuming clarifications and returning plan items.",
+      "time_estimate_minutes": 45,
+      "actions": ["Add plan node", "Unit test node"],
+      "validation": [{"cmd": "npm run typecheck", "expect_exit_code": 0}],
+      "success_criteria": ["plan node returns expected structure"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V04",
+      "stage": "Implementation",
+      "title": "Generate node",
+      "type": "implementation",
+      "description": "Implement generate node invoking generation pipeline/tooling.",
+      "time_estimate_minutes": 45,
+      "actions": ["Add generate node", "Unit test node"],
+      "validation": [{"cmd": "npm run lint", "expect_exit_code": 0}],
+      "success_criteria": ["generate node returns output for downstream test"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V05",
+      "stage": "Implementation",
+      "title": "Test node",
+      "type": "implementation",
+      "description": "Implement test node executing sandbox tests and producing pass/fail state.",
+      "time_estimate_minutes": 45,
+      "actions": ["Add test node", "Unit test pass/fail paths"],
+      "validation": [{"cmd": "npm test", "expect_exit_code": 0}],
+      "success_criteria": ["test node produces deterministic result state"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V06",
+      "stage": "Implementation",
+      "title": "Repair node + bounded loop",
+      "type": "implementation",
+      "description": "Implement repair node invoking multiTurnRepair with a bounded loop back to test.",
+      "time_estimate_minutes": 45,
+      "actions": ["Add repair node", "Wire conditional loop to test"],
+      "validation": [{"cmd": "npm test tests/repair/multiTurnRepair.test.ts", "expect_exit_code": 0}],
+      "success_criteria": ["loop capped by counter and result state"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V07",
+      "stage": "Implementation",
+      "title": "Deliver node",
+      "type": "implementation",
+      "description": "Implement deliver node that writes final output/logs to executions store and completes.",
+      "time_estimate_minutes": 30,
+      "actions": ["Add deliver node", "Store integration"],
+      "validation": [{"cmd": "npm test tests/api/executions.test.ts", "expect_exit_code": 0}],
+      "success_criteria": ["executions store shows completed with output"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V08",
+      "stage": "Implementation",
+      "title": "Wire edges and routing",
+      "type": "implementation",
+      "description": "Connect clarify → plan → generate → test → (deliver | repair loop) → deliver, preserving feature flag behavior.",
+      "time_estimate_minutes": 30,
+      "actions": ["Add edges", "Route conditional branches"],
+      "validation": [{"cmd": "AGENTS_RUNTIME=langgraph npm test tests/benchmarks/perf-overhead.test.ts", "expect_exit_code": 0}],
+      "success_criteria": ["graph runs end-to-end under flag"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V09",
+      "stage": "Implementation",
+      "title": "Per-node telemetry",
+      "type": "implementation",
+      "description": "Emit langgraph.node_* events on node enter/exit/fail with execution metadata.",
+      "time_estimate_minutes": 30,
+      "actions": ["Instrument nodes", "Append to trace"],
+      "validation": [{"cmd": "rg -n 'langgraph.node_' .automation/execution_trace.jsonl | wc -l", "expect_exit_code": 0}],
+      "success_criteria": ["trace shows node transitions"],
+      "status": "pending"
+    },
+    {
+      "id": "P22-V10",
+      "stage": "Validation",
+      "title": "Parity tests + docs alignment",
+      "type": "validation",
+      "description": "Migrate/expand parity tests to cover graph nodes and update docs to reflect gateway/provider ownership and graph path.",
+      "time_estimate_minutes": 45,
+      "actions": ["Add tests", "Update docs"],
+      "validation": [{"cmd": "npm run validate:all", "expect_exit_code": 0}],
+      "success_criteria": ["all checks pass; docs consistent"],
+      "status": "pending"
+    }
+  ],
+  "execution_order": [
+    "P22-V01",
+    "P22-V02",
+    "P22-V03",
+    "P22-V04",
+    "P22-V05",
+    "P22-V06",
+    "P22-V07",
+    "P22-V08",
+    "P22-V09",
+    "P22-V10"
+  ],
+  "execution_semantics": {
+    "win_isolation": {"enforced": true},
+    "gate_enforcement": {"required": true},
+    "evidence_backed": {"required": true}
+  },
+  "completion_criteria": {
+    "all_tests_pass": true,
+    "lint_passes": true,
+    "typecheck_passes": true,
+    "evidence_recorded": true
+  },
+  "final_artifacts_verification": [
+    {"name": "Graph file", "path": "src/orchestrator/graph.ts", "must_exist": true, "must_include_regex": "addNode|addEdge"},
+    {"name": "Graph node tests", "path": "tests/orchestrator/graph.test.ts", "must_exist": true}
+  ],
+  "reporting": {
+    "progress_file": ".automation/progress_phase22_nodes.json",
+    "fields": ["task_id", "status", "started_at", "completed_at", "validation_results", "evidence_paths"],
+    "status_values": ["pending", "in_progress", "complete", "blocked"]
+  },
+  "fallback_policies": {
+    "runtime": "Unset AGENTS_RUNTIME or set to stepqueue to fallback"
+  },
+  "ai_executor_guidelines": {
+    "observability_first": "Record node-level events in trace",
+    "test_driven": "Add minimal node tests before wiring edges"
+  }
+}
