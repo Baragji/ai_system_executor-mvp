@@ -1,0 +1,45 @@
+{
+  "task_id": "REFACTOR-TASK-16",
+  "date": "2025-10-19",
+  "scope": "Scaffold services/runner from template with Express, health endpoint, OTel bootstrap, problem+json middleware, and validate scripts.",
+  "sources": [
+    {
+      "path": "services/_template/README.md",
+      "summary": "Template documentation covering scripts, env vars, and usage expectations."
+    },
+    {
+      "path": "services/_template/src/server.ts",
+      "summary": "Express server setup with health route, problem details, telemetry lifecycle, graceful shutdown."
+    },
+    {
+      "path": "services/_template/src/middleware/problemDetails.ts",
+      "summary": "RFC 9457 helpers applied to all routes, used for 404 + error handling."
+    },
+    {
+      "path": "services/_template/src/telemetry/otel.ts",
+      "summary": "OpenTelemetry bootstrap referencing SERVICE_NAME override for resource attributes."
+    },
+    {
+      "path": "services/_template/tests/server.test.ts",
+      "summary": "Health endpoint unit test verifying {status:\"ok\"}."
+    },
+    {
+      "path": "services/_template/scripts/run-vitest-with-rollup-shim.mjs",
+      "summary": "Per-service Vitest runner shim invoked by validate:all."
+    }
+  ],
+  "planned_changes": [
+    "Copy template directory into services/runner and update metadata (package name, README title, service name).",
+    "Set runner service PORT default to 3004 in .env.example and configuration.",
+    "Ensure SERVICE_NAME and logging identifiers use executor-runner-service.",
+    "Verify npm scripts include validate:all and telemetry bootstrap remains intact."
+  ],
+  "risks": [
+    "Forgetting to rename package scope or SERVICE_NAME would cause telemetry collisions.",
+    "Missing validate:all script hook would break per-service pipeline expectations."
+  ],
+  "validation": [
+    "npm run validate:all inside services/runner",
+    "curl -sfS http://localhost:3004/healthz"
+  ]
+}
