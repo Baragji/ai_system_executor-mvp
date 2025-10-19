@@ -130,8 +130,8 @@ All evidence files located in `.automation/evidence/G2/`:
 
 ## Gate G3: Orchestrator Pilot (Feature-flagged)
 
-**Status:** ✅ PASSED
-**Completed:** 2025-10-18
+**Status:** 🟡 PARTIAL
+**Completed:**
 **Phase:** Phase 20 (LangGraph Executions)
 
 ### Acceptance Criteria
@@ -139,9 +139,9 @@ All evidence files located in `.automation/evidence/G2/`:
 - ✅ GET `/api/executions/:id` endpoint functional
 - ✅ Tests passing (`tests/api/executions.test.ts`)
 - ✅ POST `/api/execute` LangGraph integration (awaits G2 Trust Spine completion)
-- ✅ Deterministic replay validation
-- ✅ Performance benchmarks (overhead < 500ms/transition)
-- ✅ Parity tests (StepQueue fallback validation)
+- ⏳ Deterministic replay validation
+- ⏳ Performance benchmarks (overhead < 500ms/transition)
+- ⏳ Parity tests (StepQueue fallback validation)
 
 ### Evidence
 - `src/orchestrator/executionsStore.ts`
@@ -156,12 +156,11 @@ All evidence files located in `.automation/evidence/G2/`:
 <!-- evidence will be appended automatically when a real /api/execute + executions parity test run is detected -->
 
 ### Next Steps
-With G2 Trust Spine complete, Gate G3 can now advance to:
-1. Complete LangGraph adapter integration with Trust Spine telemetry
-2. Implement deterministic replay with seeded randomness
-3. Run parity tests comparing StepQueue vs LangGraph outputs
-4. Measure p50 overhead (target: < 500ms per transition)
-5. Validate coverage >= 90% for orchestrator code
+With G2 Trust Spine complete, Gate G3 remains partially complete pending:
+1. Deterministic replay validation evidence
+2. Parity tests comparing StepQueue vs LangGraph outputs
+3. Performance benchmarks (< 500ms per transition)
+4. Validate coverage >= 90% for orchestrator code
 
 ---
 

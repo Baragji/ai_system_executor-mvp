@@ -381,7 +381,7 @@ The repository maintains **strict TypeScript-only, vanilla JS frontend constrain
 interface TrainingServiceClient {
   submitTrainingJob(params: {
     trainingData: string[]; // S3 URIs
-    modelType: 'claude-3.5-sonnet' | 'gpt-4';
+    modelType: 'claude-3.5-sonnet' | 'gpt-5';
     hyperparameters: Record<string, unknown>;
   }): Promise<{ jobId: string }>;
 

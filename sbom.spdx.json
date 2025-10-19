@@ -3,11 +3,11 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "executor-mvp@0.1.0",
-  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-5fb82571-2dce-45ab-988b-1c183a493872",
+  "documentNamespace": "http://spdx.org/spdxdocs/executor-mvp-0.1.0-46f69b8c-f6ed-4036-8d1d-aa61f5c836e6",
   "creationInfo": {
-    "created": "2025-10-17T11:43:07.907Z",
+    "created": "2025-10-19T08:21:51.657Z",
     "creators": [
-      "Tool: npm/cli-10.8.2"
+      "Tool: npm/cli-10.9.3"
     ]
   },
   "documentDescribes": [
@@ -101,6 +101,30 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "26508c3be7a174420aaa517193a21f568014566833edc53bcc3fe1f57674ab37a8b121e650954ecd242fbd84985979055c2f887cb29221f7e1bf4b1566ea7aa4"
+        }
+      ]
+    },
+    {
+      "name": "@cfworker/json-schema",
+      "SPDXID": "SPDXRef-Package-cfworker.json-schema-4.1.1",
+      "versionInfo": "4.1.1",
+      "packageFileName": "node_modules/@cfworker/json-schema",
+      "description": "A JSON schema validator that will run on Cloudflare workers. Supports drafts 4, 7, 2019-09, and 2020-12.",
+      "downloadLocation": "https://registry.npmjs.org/@cfworker/json-schema/-/json-schema-4.1.1.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/cfworker/cfworker/tree/master/packages/json-schema/README.md",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40cfworker/json-schema@4.1.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "8009ab519486b4a73702204bef588d5b10ecc940b9b8c68a28676fcd8b01a135bfc62e362501e5ede295d8e633094aaf73e0f644271fec45d8da20b214893aa2"
         }
       ]
     },
@@ -413,6 +437,246 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "8942a09b9d93f07384fe66a44b18eaa1685ef79649035fc6d6c62c19ebf6243294492d78280820d4b1dbf816be20fa30d317e56e74a43ac65c3b4f02ef0d6063"
+        }
+      ]
+    },
+    {
+      "name": "@langchain/core",
+      "SPDXID": "SPDXRef-Package-langchain.core-1.0.1",
+      "versionInfo": "1.0.1",
+      "packageFileName": "node_modules/@langchain/core",
+      "description": "Core LangChain.js abstractions and schemas",
+      "downloadLocation": "https://registry.npmjs.org/@langchain/core/-/core-1.0.1.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/langchain-ai/langchainjs/tree/main/langchain-core/",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40langchain/core@1.0.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "855337124a2360e9382122502a32ee598487ea4cb238595922b2c51130c0d4bd19dbf22ed2adf66896b06741439faae55c4f1066306dffd39a38bdfaad7734e7"
+        }
+      ]
+    },
+    {
+      "name": "ansi-styles",
+      "SPDXID": "SPDXRef-Package-ansi-styles-5.2.0",
+      "versionInfo": "5.2.0",
+      "packageFileName": "node_modules/@langchain/core/node_modules/ansi-styles",
+      "description": "ANSI escape codes for styling strings in the terminal",
+      "downloadLocation": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-5.2.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/chalk/ansi-styles#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/ansi-styles@5.2.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "0b1c29b7649f4f34ed5dc7ce97318479ef0ef9cf8c994806acd8817179ee5b1b852477ba6b91f3eeac21c1ee4e81a498234209be42ea597d40486f9c24e90488"
+        }
+      ]
+    },
+    {
+      "name": "camelcase",
+      "SPDXID": "SPDXRef-Package-camelcase-6.3.0",
+      "versionInfo": "6.3.0",
+      "packageFileName": "node_modules/@langchain/core/node_modules/camelcase",
+      "description": "Convert a dash/dot/underscore/space separated string to camelCase or PascalCase: `foo-bar` → `fooBar`",
+      "downloadLocation": "https://registry.npmjs.org/camelcase/-/camelcase-6.3.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/sindresorhus/camelcase#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/camelcase@6.3.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "1a6cba161625098eee3849595126f1a365020c7f28c0493df7a8246eba6c806b6b24b33727b8c6c65f4873b430c23e22bce13901665644c79c0dd17b86a1a314"
+        }
+      ]
+    },
+    {
+      "name": "uuid",
+      "SPDXID": "SPDXRef-Package-uuid-10.0.0",
+      "versionInfo": "10.0.0",
+      "packageFileName": "node_modules/@langchain/core/node_modules/uuid",
+      "description": "RFC9562 UUIDs",
+      "downloadLocation": "https://registry.npmjs.org/uuid/-/uuid-10.0.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/uuidjs/uuid#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/uuid@10.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "f17900a6110bb039c41ab0f150e1c1dd11af5f3e937ae6121846413a3b53b4f9b69708460632e03b32c707adc85167c1a4db9c423343e9ddc03ae74ef87dd159"
+        }
+      ]
+    },
+    {
+      "name": "@langchain/langgraph",
+      "SPDXID": "SPDXRef-Package-langchain.langgraph-1.0.0",
+      "versionInfo": "1.0.0",
+      "packageFileName": "node_modules/@langchain/langgraph",
+      "description": "LangGraph",
+      "downloadLocation": "https://registry.npmjs.org/@langchain/langgraph/-/langgraph-1.0.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/langchain-ai/langgraphjs#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40langchain/langgraph@1.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "da4ed3864e6a1f4ccc84ffac6cd2b041997acd2c312adaec1661c6384bd450c8c7e916fd9f920cc681795932653ff08630ef6e948fb951e7cdcf7ace7e3b8f06"
+        }
+      ]
+    },
+    {
+      "name": "@langchain/langgraph-checkpoint",
+      "SPDXID": "SPDXRef-Package-langchain.langgraph-checkpoint-1.0.0",
+      "versionInfo": "1.0.0",
+      "packageFileName": "node_modules/@langchain/langgraph-checkpoint",
+      "description": "Library with base interfaces for LangGraph checkpoint savers.",
+      "downloadLocation": "https://registry.npmjs.org/@langchain/langgraph-checkpoint/-/langgraph-checkpoint-1.0.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/langchain-ai/langgraphjs#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40langchain/langgraph-checkpoint@1.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "c6b725046bcd0970e68b4373dbcb77be3a71487e94631eb0e570174a2881d5611d736c43da263f6bdd77237c776b7d57a489d45bf1867d75df78f7da821579e0"
+        }
+      ]
+    },
+    {
+      "name": "uuid",
+      "SPDXID": "SPDXRef-Package-uuid-10.0.0",
+      "versionInfo": "10.0.0",
+      "packageFileName": "node_modules/@langchain/langgraph-checkpoint/node_modules/uuid",
+      "description": "RFC9562 UUIDs",
+      "downloadLocation": "https://registry.npmjs.org/uuid/-/uuid-10.0.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/uuidjs/uuid#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/uuid@10.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "f17900a6110bb039c41ab0f150e1c1dd11af5f3e937ae6121846413a3b53b4f9b69708460632e03b32c707adc85167c1a4db9c423343e9ddc03ae74ef87dd159"
+        }
+      ]
+    },
+    {
+      "name": "@langchain/langgraph-sdk",
+      "SPDXID": "SPDXRef-Package-langchain.langgraph-sdk-1.0.0",
+      "versionInfo": "1.0.0",
+      "packageFileName": "node_modules/@langchain/langgraph-sdk",
+      "description": "Client library for interacting with the LangGraph API",
+      "downloadLocation": "https://registry.npmjs.org/@langchain/langgraph-sdk/-/langgraph-sdk-1.0.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "NOASSERTION",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40langchain/langgraph-sdk@1.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "836e6d8b65bb0e5e7050f94d2bed2e2066de345a9ff7c8a684795b75554a4d390360b862fe923529382c49293391e2ee0487efb766f4aba6a74300aced70656f"
+        }
+      ]
+    },
+    {
+      "name": "uuid",
+      "SPDXID": "SPDXRef-Package-uuid-9.0.1",
+      "versionInfo": "9.0.1",
+      "packageFileName": "node_modules/@langchain/langgraph-sdk/node_modules/uuid",
+      "description": "RFC4122 (v1, v4, and v5) UUIDs",
+      "downloadLocation": "https://registry.npmjs.org/uuid/-/uuid-9.0.1.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/uuidjs/uuid#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/uuid@9.0.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "6fed5e24e96c47d2bc1c9a68c3d3a4ddf896396488708cd7a1dbefd2b42356839536958ca717f5c19369b78cbd875d2874236baa7629d4e073464b5c9017b7b0"
+        }
+      ]
+    },
+    {
+      "name": "uuid",
+      "SPDXID": "SPDXRef-Package-uuid-10.0.0",
+      "versionInfo": "10.0.0",
+      "packageFileName": "node_modules/@langchain/langgraph/node_modules/uuid",
+      "description": "RFC9562 UUIDs",
+      "downloadLocation": "https://registry.npmjs.org/uuid/-/uuid-10.0.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/uuidjs/uuid#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/uuid@10.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "f17900a6110bb039c41ab0f150e1c1dd11af5f3e937ae6121846413a3b53b4f9b69708460632e03b32c707adc85167c1a4db9c423343e9ddc03ae74ef87dd159"
         }
       ]
     },
@@ -1401,6 +1665,54 @@
       ]
     },
     {
+      "name": "@types/retry",
+      "SPDXID": "SPDXRef-Package-types.retry-0.12.0",
+      "versionInfo": "0.12.0",
+      "packageFileName": "node_modules/@types/retry",
+      "description": "TypeScript definitions for retry",
+      "downloadLocation": "https://registry.npmjs.org/@types/retry/-/retry-0.12.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40types/retry@0.12.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "c1628e0a54d38a2cdc6615e73d8e308a4540c267581e9f2ae83982f84254cc032cc9c6fb1c1df62a1f51378fb4804c6398f9994804238144572060133de800bc"
+        }
+      ]
+    },
+    {
+      "name": "@types/uuid",
+      "SPDXID": "SPDXRef-Package-types.uuid-10.0.0",
+      "versionInfo": "10.0.0",
+      "packageFileName": "node_modules/@types/uuid",
+      "description": "TypeScript definitions for uuid",
+      "downloadLocation": "https://registry.npmjs.org/@types/uuid/-/uuid-10.0.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/uuid",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/%40types/uuid@10.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "ee0a86dfc1321e0c8fd52fbbfb1a2616d2fe64d1dc2afe83c0d682666266a35be032e8321774c29d7560e2dd6e93cf662cdc272ed9d8dd3a4ea423b2a75ff11d"
+        }
+      ]
+    },
+    {
       "name": "abort-controller",
       "SPDXID": "SPDXRef-Package-abort-controller-3.0.0",
       "versionInfo": "3.0.0",
@@ -1617,6 +1929,30 @@
       ]
     },
     {
+      "name": "console-table-printer",
+      "SPDXID": "SPDXRef-Package-console-table-printer-2.14.6",
+      "versionInfo": "2.14.6",
+      "packageFileName": "node_modules/console-table-printer",
+      "description": "Printing pretty tables on console log",
+      "downloadLocation": "https://registry.npmjs.org/console-table-printer/-/console-table-printer-2.14.6.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://console-table.netlify.app",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/console-table-printer@2.14.6"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "302065e47355685bae1d6e8519b2ffe1f07b37fa2b982cbeb50facc53ac5e90b526d23444ef3ee3956e42418730e0621be3586ad399ae1e6096b7ed9ba842c3f"
+        }
+      ]
+    },
+    {
       "name": "cors",
       "SPDXID": "SPDXRef-Package-cors-2.8.5",
       "versionInfo": "2.8.5",
@@ -1689,30 +2025,6 @@
       ]
     },
     {
-      "name": "detect-libc",
-      "SPDXID": "SPDXRef-Package-detect-libc-2.1.2",
-      "versionInfo": "2.1.2",
-      "packageFileName": "node_modules/detect-libc",
-      "description": "Node.js module to detect the C standard library (libc) implementation family and version",
-      "downloadLocation": "https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz",
-      "filesAnalyzed": false,
-      "homepage": "https://github.com/lovell/detect-libc#readme",
-      "licenseDeclared": "Apache-2.0",
-      "externalRefs": [
-        {
-          "referenceCategory": "PACKAGE-MANAGER",
-          "referenceType": "purl",
-          "referenceLocator": "pkg:npm/detect-libc@2.1.2"
-        }
-      ],
-      "checksums": [
-        {
-          "algorithm": "SHA512",
-          "checksumValue": "06d8f604e38ef37a375b21f9f5ef0c817b3111055c6ab9143a9118aee6c1d2eaf09cdd74c90dfae2bb22072535d67665a966199b4e62fe87fb8a8e26ce2841b5"
-        }
-      ]
-    },
-    {
       "name": "diff",
       "SPDXID": "SPDXRef-Package-diff-5.2.0",
       "versionInfo": "5.2.0",
@@ -1781,6 +2093,30 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "8bfd976e74b3feec51094ebe35d54980a5834cce36efe32a61b910cc3df6d43b8240952a3ae24a200d08336f96db1b581dd28e999e1d47a7c4c6c7784972fe59"
+        }
+      ]
+    },
+    {
+      "name": "eventemitter3",
+      "SPDXID": "SPDXRef-Package-eventemitter3-4.0.7",
+      "versionInfo": "4.0.7",
+      "packageFileName": "node_modules/eventemitter3",
+      "description": "EventEmitter3 focuses on performance while maintaining a Node.js AND browser compatible interface.",
+      "downloadLocation": "https://registry.npmjs.org/eventemitter3/-/eventemitter3-4.0.7.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/primus/eventemitter3#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/eventemitter3@4.0.7"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "f20b870590b02a716161d1ebdb2b2e45612b4f08683765fc5c42d196b470a667de6368e3b94378b5a40cb142ca515a352b80ef665fb4a607f2a32b07c6f9af13"
         }
       ]
     },
@@ -1949,6 +2285,78 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "421a3c4e021a9aa10f76088c69d270cd1316dd3b9d220eafa60e1838da24183b9dcb87aa44826d0db557ef6a5f2c1716c6f6e7dea9bfe344f219439b756e2d2d"
+        }
+      ]
+    },
+    {
+      "name": "js-tiktoken",
+      "SPDXID": "SPDXRef-Package-js-tiktoken-1.0.21",
+      "versionInfo": "1.0.21",
+      "packageFileName": "node_modules/js-tiktoken",
+      "description": "JavaScript port of tiktoken",
+      "downloadLocation": "https://registry.npmjs.org/js-tiktoken/-/js-tiktoken-1.0.21.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/dqbd/tiktoken#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/js-tiktoken@1.0.21"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "6e23a3ffa339a9d831e532a30e7153d72992a4ce6d6dddf29700edad0bc5412bb467b6c1624a36745f96fda5245d43ee93a215a51c64ff7436b073b31a54b7ea"
+        }
+      ]
+    },
+    {
+      "name": "langsmith",
+      "SPDXID": "SPDXRef-Package-langsmith-0.3.74",
+      "versionInfo": "0.3.74",
+      "packageFileName": "node_modules/langsmith",
+      "description": "Client library to connect to the LangSmith LLM Tracing and Evaluation Platform.",
+      "downloadLocation": "https://registry.npmjs.org/langsmith/-/langsmith-0.3.74.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/langchain-ai/langsmith-sdk#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/langsmith@0.3.74"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "66e5b741ac33f30f3c5dcb82447f75c93a7a96c746bb0cd1a99e49d077f9abf023333ec3c1c4afd0c904e95e56fbc845308f39d1064dd96971c26dd1f651e566"
+        }
+      ]
+    },
+    {
+      "name": "uuid",
+      "SPDXID": "SPDXRef-Package-uuid-10.0.0",
+      "versionInfo": "10.0.0",
+      "packageFileName": "node_modules/langsmith/node_modules/uuid",
+      "description": "RFC9562 UUIDs",
+      "downloadLocation": "https://registry.npmjs.org/uuid/-/uuid-10.0.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/uuidjs/uuid#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/uuid@10.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "f17900a6110bb039c41ab0f150e1c1dd11af5f3e937ae6121846413a3b53b4f9b69708460632e03b32c707adc85167c1a4db9c423343e9ddc03ae74ef87dd159"
         }
       ]
     },
@@ -2241,6 +2649,30 @@
       ]
     },
     {
+      "name": "mustache",
+      "SPDXID": "SPDXRef-Package-mustache-4.2.0",
+      "versionInfo": "4.2.0",
+      "packageFileName": "node_modules/mustache",
+      "description": "Logic-less {{mustache}} templates with JavaScript",
+      "downloadLocation": "https://registry.npmjs.org/mustache/-/mustache-4.2.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/janl/mustache.js",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/mustache@4.2.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "ef58a9a52cb0ab961beffb5563219b9018206d4f07deee51cf9e9f1fad2318582bf2e1f0c6cf9a48a7aa9a5b885733349b4901ef1423292eaa3df7746f6668a9"
+        }
+      ]
+    },
+    {
       "name": "node-abort-controller",
       "SPDXID": "SPDXRef-Package-node-abort-controller-3.1.1",
       "versionInfo": "3.1.1",
@@ -2409,6 +2841,126 @@
       ]
     },
     {
+      "name": "p-finally",
+      "SPDXID": "SPDXRef-Package-p-finally-1.0.0",
+      "versionInfo": "1.0.0",
+      "packageFileName": "node_modules/p-finally",
+      "description": "`Promise#finally()` ponyfill - Invoked when the promise is settled regardless of outcome",
+      "downloadLocation": "https://registry.npmjs.org/p-finally/-/p-finally-1.0.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/sindresorhus/p-finally#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/p-finally@1.0.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "2c809bda9f4207b152fb4791d68a969c7869d0596318b64258113d6a2c745327bd5bc2d340fc0c4d8546590588c3d45d4220e0e3e7a95d0383c08609b5225aa3"
+        }
+      ]
+    },
+    {
+      "name": "p-queue",
+      "SPDXID": "SPDXRef-Package-p-queue-6.6.2",
+      "versionInfo": "6.6.2",
+      "packageFileName": "node_modules/p-queue",
+      "description": "Promise queue with concurrency control",
+      "downloadLocation": "https://registry.npmjs.org/p-queue/-/p-queue-6.6.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/sindresorhus/p-queue#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/p-queue@6.6.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "4701696fbd9cfc18502c45c86792b67be02180d56621e8c695382207d3336747bddc646fa99eee4a2d1dbd117bfd72170de364adad9f3470714f23c31b24a98d"
+        }
+      ]
+    },
+    {
+      "name": "p-retry",
+      "SPDXID": "SPDXRef-Package-p-retry-4.6.2",
+      "versionInfo": "4.6.2",
+      "packageFileName": "node_modules/p-retry",
+      "description": "Retry a promise-returning or async function",
+      "downloadLocation": "https://registry.npmjs.org/p-retry/-/p-retry-4.6.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/sindresorhus/p-retry#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/p-retry@4.6.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "df5d88777f7a11b25dbd138d967814c7437275fac843996c62ed339ca554cd5bc0af3108b74f15d6a86dc8449b1957751465fb50ab62169e6ec0a65d33cc08b9"
+        }
+      ]
+    },
+    {
+      "name": "retry",
+      "SPDXID": "SPDXRef-Package-retry-0.13.1",
+      "versionInfo": "0.13.1",
+      "packageFileName": "node_modules/p-retry/node_modules/retry",
+      "description": "Abstraction for exponential and custom retry strategies for failed operations.",
+      "downloadLocation": "https://registry.npmjs.org/retry/-/retry-0.13.1.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/tim-kos/node-retry",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/retry@0.13.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "5d0050dc8f16d4281ed127a1fba8238f4dcb6e64455aea2cce02bda280a9c1822b861a0ef34a5fab8714914e439249f07ce7c5b5e470959e7a3d838663215676"
+        }
+      ]
+    },
+    {
+      "name": "p-timeout",
+      "SPDXID": "SPDXRef-Package-p-timeout-3.2.0",
+      "versionInfo": "3.2.0",
+      "packageFileName": "node_modules/p-timeout",
+      "description": "Timeout a promise after a specified amount of time",
+      "downloadLocation": "https://registry.npmjs.org/p-timeout/-/p-timeout-3.2.0.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/sindresorhus/p-timeout#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/p-timeout@3.2.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "ae1230532720c3029c3fdc9338e14afc02ac028a638c26a456a2c778f3b7082e8c8abd59f7dc53f91eb78d9c404f994564b6b68a74b987e652d86bd1f7dfc506"
+        }
+      ]
+    },
+    {
       "name": "protobufjs",
       "SPDXID": "SPDXRef-Package-protobufjs-7.5.4",
       "versionInfo": "7.5.4",
@@ -2501,6 +3053,30 @@
         {
           "algorithm": "SHA512",
           "checksumValue": "f6cd299cce6d1fc1b8752237a66b3619ba183acdb92f03869d133137f1f1dd3613d4ad2b87a3a36967f8748d030109ccc9a1175a81959d24cf41ab2ac334d300"
+        }
+      ]
+    },
+    {
+      "name": "simple-wcswidth",
+      "SPDXID": "SPDXRef-Package-simple-wcswidth-1.1.2",
+      "versionInfo": "1.1.2",
+      "packageFileName": "node_modules/simple-wcswidth",
+      "description": "Simplified JS/TS implementation of wcswidth() written by Markus Kuhn in C",
+      "downloadLocation": "https://registry.npmjs.org/simple-wcswidth/-/simple-wcswidth-1.1.2.tgz",
+      "filesAnalyzed": false,
+      "homepage": "https://github.com/console-table-printer/simple-wcswidth#readme",
+      "licenseDeclared": "MIT",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/simple-wcswidth@1.1.2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA512",
+          "checksumValue": "8fba62c828c07930d28f34d243b0e8919b4c370365100cb1a9265e092f825c7edf2788f1dc5b89fe64d6de613ee892ece152416dc965d0a8e7f8a5c8e6ddb523"
         }
       ]
     },
@@ -2633,6 +3209,16 @@
     },
     {
       "spdxElementId": "SPDXRef-Package-anthropic-ai.sdk-0.21.1",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-langchain.core-1.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-langchain.langgraph-1.0.0",
       "relatedSpdxElement": "SPDXRef-Package-executor-mvp-0.1.0",
       "relationshipType": "DEPENDENCY_OF"
     },
@@ -2839,6 +3425,101 @@
     {
       "spdxElementId": "SPDXRef-Package-yargs-parser-21.1.1",
       "relatedSpdxElement": "SPDXRef-Package-yargs-17.7.2",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cfworker.json-schema-4.1.1",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.core-1.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ansi-styles-5.2.0",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.core-1.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-camelcase-6.3.0",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.core-1.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-js-tiktoken-1.0.21",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.core-1.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-langsmith-0.3.74",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.core-1.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-mustache-4.2.0",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.core-1.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-p-queue-6.6.2",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.core-1.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-p-retry-4.6.2",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.core-1.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-uuid-10.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.core-1.0.1",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-langchain.core-1.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.langgraph-1.0.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-langchain.langgraph-checkpoint-1.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.langgraph-1.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-langchain.langgraph-sdk-1.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.langgraph-1.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-uuid-10.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.langgraph-1.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-langchain.core-1.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.langgraph-checkpoint-1.0.0",
+      "relationshipType": "PREREQUISITE_FOR"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-uuid-10.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.langgraph-checkpoint-1.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-langchain.core-1.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.langgraph-sdk-1.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-p-queue-6.6.2",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.langgraph-sdk-1.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-p-retry-4.6.2",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.langgraph-sdk-1.0.0",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-uuid-9.0.1",
+      "relatedSpdxElement": "SPDXRef-Package-langchain.langgraph-sdk-1.0.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {
@@ -3622,6 +4303,11 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
+      "spdxElementId": "SPDXRef-Package-simple-wcswidth-1.1.2",
+      "relatedSpdxElement": "SPDXRef-Package-console-table-printer-2.14.6",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-object-assign-4.1.1",
       "relatedSpdxElement": "SPDXRef-Package-cors-2.8.5",
       "relationshipType": "DEPENDENCY_OF"
@@ -3697,6 +4383,51 @@
       "relationshipType": "DEPENDENCY_OF"
     },
     {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.api-1.9.0",
+      "relatedSpdxElement": "SPDXRef-Package-langsmith-0.3.74",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.exporter-trace-otlp-proto-0.206.0",
+      "relatedSpdxElement": "SPDXRef-Package-langsmith-0.3.74",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-opentelemetry.sdk-trace-base-2.1.0",
+      "relatedSpdxElement": "SPDXRef-Package-langsmith-0.3.74",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-openai-4.104.0",
+      "relatedSpdxElement": "SPDXRef-Package-langsmith-0.3.74",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-types.uuid-10.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-langsmith-0.3.74",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-console-table-printer-2.14.6",
+      "relatedSpdxElement": "SPDXRef-Package-langsmith-0.3.74",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-p-queue-6.6.2",
+      "relatedSpdxElement": "SPDXRef-Package-langsmith-0.3.74",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-p-retry-4.6.2",
+      "relatedSpdxElement": "SPDXRef-Package-langsmith-0.3.74",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-uuid-10.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-langsmith-0.3.74",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-basic-auth-2.0.1",
       "relatedSpdxElement": "SPDXRef-Package-morgan-1.10.1",
       "relationshipType": "DEPENDENCY_OF"
@@ -3732,11 +4463,6 @@
       "relationshipType": "OPTIONAL_DEPENDENCY_OF"
     },
     {
-      "spdxElementId": "SPDXRef-Package-detect-libc-2.1.2",
-      "relatedSpdxElement": "SPDXRef-Package-node-gyp-build-optional-packages-5.2.2",
-      "relationshipType": "DEPENDENCY_OF"
-    },
-    {
       "spdxElementId": "SPDXRef-Package-types.node-18.19.130",
       "relatedSpdxElement": "SPDXRef-Package-openai-4.104.0",
       "relationshipType": "DEPENDENCY_OF"
@@ -3769,6 +4495,31 @@
     {
       "spdxElementId": "SPDXRef-Package-undici-types-5.26.5",
       "relatedSpdxElement": "SPDXRef-Package-types.node-18.19.130",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-eventemitter3-4.0.7",
+      "relatedSpdxElement": "SPDXRef-Package-p-queue-6.6.2",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-p-timeout-3.2.0",
+      "relatedSpdxElement": "SPDXRef-Package-p-queue-6.6.2",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-types.retry-0.12.0",
+      "relatedSpdxElement": "SPDXRef-Package-p-retry-4.6.2",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-retry-0.13.1",
+      "relatedSpdxElement": "SPDXRef-Package-p-retry-4.6.2",
+      "relationshipType": "DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-p-finally-1.0.0",
+      "relatedSpdxElement": "SPDXRef-Package-p-timeout-3.2.0",
       "relationshipType": "DEPENDENCY_OF"
     },
     {

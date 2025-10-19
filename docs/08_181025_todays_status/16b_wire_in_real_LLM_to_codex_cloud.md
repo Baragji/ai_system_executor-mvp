@@ -16,7 +16,7 @@ Got it. I read your hello-world analysis + the two Codex screenshots. Here’s h
 
 ```bash
 node -e 'import OpenAI from "openai"; const o=new OpenAI(); 
-(async()=>{const r=await o.responses.create({model:"gpt-4.1-mini",input:"say ok"}); 
+(async()=>{const r=await o.responses.create({model:"gpt-5",input:"say ok"}); 
 console.log(r.output_text)})()'
 ```
 

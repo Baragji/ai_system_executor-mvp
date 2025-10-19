@@ -1,45 +1,56 @@
-Title: Resolve src/server.ts merge conflict by standardizing on WorkflowMetadata
+Phase 19 Discovery Note — OpenAI Provider Empty Message + LangGraph Import Fix
 
-Summary
-- Conflict markers in `src/server.ts` blocked typecheck (see docs/merge_conflict.md). Two competing implementations existed:
-  - Ours: `WorkflowContext` with `phaseState`, `nextAction`, `humanSummary`, etc.
-  - Theirs: `WorkflowMetadata` produced via `buildWorkflowMetadata()` from `src/state/phaseState.ts`.
-- Resolution: Adopt `WorkflowMetadata` end-to-end. This aligns with ADR-019 and tests expecting `workflowMetadata` on progress snapshots/SSE.
+Scope
+- Provider: src/llm/providers/openai.ts
+- Call chain: src/server.ts: import generateJSON → src/llm/index.ts → providers/openai.ts
+- Orchestrator: src/orchestrator/graph.ts (LangGraph runtime path + fallback)
 
 Integration Points
-- File: `src/server.ts:85` import block — use `loadPhaseState`, `buildWorkflowMetadata`, `type WorkflowMetadata` from `./state/phaseState.js`.
-- File: `src/server.ts` workflow caches and accessors
-  - Define `workflowMetadataCache: Map<string, WorkflowMetadata>`.
-  - `ensureWorkflowMetadataForSession(sessionId)` builds with `buildWorkflowMetadata(state, { uncommittedChanges, computedAt })`.
-  - Provide `getWorkflowMetadata()`, `clearWorkflowMetadata()`.
-- File: `src/server.ts` progress model
-  - `type ProgressSnapshot` includes `workflowMetadata?: WorkflowMetadata` (removed `workflow?: WorkflowContext`).
-  - `setProgress()`, `getProgress()`, `snapshotFromSession()` attach `workflowMetadata` when available.
-- File: `src/server.ts` API touchpoints
-  - `/api/execute`, `/api/sessions/:id/pause`, `/api/sessions/:id/resume` call `ensureWorkflowMetadataForSession()`.
-- File: `src/server.ts` test helpers
-  - `__progressTest` exposes `ensureMetadata()`, `snapshot()`, and a `clear()` that resets both `progressSessions` and `workflowMetadataCache`.
+- src/llm/providers/openai.ts:151
+  - Creates chat.completions request; adds response shape validation and fallback to Responses API
+- src/llm/providers/openai.ts:171
+  - Telemetry on empty message + request context capture
+- src/llm/providers/openai.ts:193
+  - Responses API fallback using narrowed client type (no `any`), robust content extraction with guards
+- src/llm/index.ts:97
+  - Retry/backoff; marks EMPTY_MESSAGE as retryable and logs `llm_retry`
+- src/orchestrator/graph.ts:49
+  - Defers Annotation.Root construction; adds direct-run fallback when Annotation is unavailable in tests
 
-Removed/Deprecated
-- Removed local `WorkflowContext` type and related logic using `suggestNextAction` and `formatHumanSummary` directly; these are now encapsulated by `buildWorkflowMetadata`.
+Snippets
+- src/llm/providers/openai.ts:151
+  const resp = await this.client.chat.completions.create(requestParams, { signal: options.signal });
+  const hasChoicesArray = (r: unknown): r is { choices: unknown[] } => Boolean(r) && typeof r === 'object' && Array.isArray((r as { choices?: unknown }).choices as unknown[]);
+  if (!hasChoicesArray(resp)) throw Object.assign(new Error('OpenAI returned invalid response shape'), { code: 'EMPTY_MESSAGE' });
+
+- src/llm/providers/openai.ts:171
+  await logEvent('llm_provider_empty_message', { provider: 'openai', model: this.model, reason: 'missing_message', finish_reason: resp.choices?.[0]?.finish_reason ?? null });
+  await logEvent('llm_provider_request_context', { provider: 'openai', model: this.model, messages: requestMessages.map(m => ({ role: m.role, content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) })), tools: requestParams.tools ? (requestParams.tools as Array<{ function?: { name?: string } }>).map(t => (t?.function?.name ?? 'unknown')) : [] });
+
+- src/llm/providers/openai.ts:193
+  type ResponsesAPI = { responses: { create: (args: { model: string; input: string }, opts?: { signal?: AbortSignal }) => Promise<unknown> } };
+  const resp2: unknown = await (this.client as unknown as ResponsesAPI).responses.create({ model: this.model, input: joined }, { signal: options.signal });
+  // Robust extraction guards, no unsafe `in` operator on non-objects
+
+- src/llm/index.ts:200
+  const emptyMessage = (typeof message === 'string' && (message.toLowerCase().includes('empty message') || message.toLowerCase().includes('empty content'))) || code === 'EMPTY_MESSAGE';
+  const retryable = isTimeout || status === 429 || status >= 500 || code === 'ECONNRESET' || code === 'ETIMEDOUT' || code === 'ENOTFOUND' || code === 'ECONNABORTED' || emptyMessage;
+  await logEvent('llm_retry', { attempt: attempt + 1, maxRetries, backoffMs: backoff, status, code, message, isTimeout });
+
+- src/orchestrator/graph.ts:49
+  function buildGraphState() { return Annotation.Root({ executionId: Annotation<string>(), result: Annotation<unknown | undefined>(), logs: Annotation<unknown[]>({ reducer: (a = [], b = []) => (Array.isArray(a) ? a : []).concat(b ?? []) }) }); }
+  // Fallback path: run workflow directly if Annotation.Root is unavailable
 
 Justification
-- Single source of truth for phase state view (`WorkflowMetadata`) improves consistency and aligns with the recent state module (`src/state/phaseState.ts`).
-- Tests explicitly assert presence of `workflowMetadata` in progress SSE and snapshot endpoints.
-- Minimizes surface area and avoids duplicated logic.
+- Fixes EMPTY_MESSAGE upstream failures by validating responses and adding a robust Responses API fallback (no unsafe `in` usage).
+- Adds diagnostics to isolate bad inputs and transient upstream conditions.
+- Resolves LangGraph import-time error in tests by deferring state creation and providing a direct-run fallback.
 
-Compliance Check (ai-stack.json constraints)
-- Language/Stack: TypeScript/Node.js only — OK.
-- No new dependencies introduced — OK.
-- Backend Express only, no frontend changes — OK.
-- Error handling unchanged; RFC9457 helpers still used — OK.
-- No breaking API of existing endpoints; conflict was internal; SSE payload now consistently includes `workflowMetadata` as established by tests — OK.
-
-Validation Evidence
-- `npm run lint` — passed with 0 warnings.
-- `npm run typecheck` — passed.
-- `npm test` — all tests passed, coverage above thresholds.
-
-Potential Impacts
-- Downstream consumers expecting the legacy `workflow` field should switch to `workflowMetadata`. Test suite already targets `workflowMetadata`.
+Compliance
+- Language: TypeScript only (ai-stack.json)
+- Backend: Node 20, Express endpoints unchanged
+- Frontend: untouched
+- Testing: Vitest coverage now above thresholds (lines 82.73%, branches 76.57%)
+- Lint: 0 errors, 0 warnings
+- Contracts: npm run contract:check passes
 

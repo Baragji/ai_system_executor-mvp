@@ -92,7 +92,10 @@ export async function generateJSON(messages: LLMMessage[], options: GenerateJSON
   const maxRetries = Number(process.env.LLM_MAX_RETRIES ?? 3);
   const initialBackoff = Number(process.env.LLM_INITIAL_BACKOFF_MS ?? 1000);
   const maxBackoff = Number(process.env.LLM_MAX_BACKOFF_MS ?? 10000);
-  const callTimeout = Number(process.env.LLM_CALL_TIMEOUT_MS ?? 60000);
+  const rawTimeout = Number(process.env.LLM_CALL_TIMEOUT_MS ?? 60000);
+  const isTestEnv = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
+  // Enforce a sensible minimum timeout in non-test runs to support real LLMs
+  const callTimeout = Math.max(rawTimeout, isTestEnv ? 50 : 1000);
   const maxToolIterations = options.maxToolIterations ?? 4;
 
   const span = await startLlmSpan("llm.generate", {
@@ -284,6 +287,12 @@ export async function generateJSON(messages: LLMMessage[], options: GenerateJSON
           throw err;
         }
 
+        const emptyMessage =
+          typeof message === "string" && (
+            message.toLowerCase().includes("empty message") ||
+            message.toLowerCase().includes("empty content")
+          ) || code === "EMPTY_MESSAGE";
+
         const retryable =
           isTimeout ||
           status === 429 ||
@@ -291,7 +300,8 @@ export async function generateJSON(messages: LLMMessage[], options: GenerateJSON
           code === "ECONNRESET" ||
           code === "ETIMEDOUT" ||
           code === "ENOTFOUND" ||
-          code === "ECONNABORTED";
+          code === "ECONNABORTED" ||
+          emptyMessage;
         if (!retryable || attempt >= maxRetries) {
           throw err;
         }
@@ -321,4 +331,3 @@ export async function generateJSON(messages: LLMMessage[], options: GenerateJSON
     span.end({ code: spanStatus, message: spanMessage });
   }
 }
-

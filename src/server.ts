@@ -39,7 +39,10 @@ import type {
   ClarificationQuestion,
   ClarificationResponse
 } from "./clarification/types.js";
-import { decomposeTask } from "./planning/decomposeTask.js";
+import {
+  decomposeTask,
+  SimplePromptBypassError
+} from "./planning/decomposeTask.js";
 import { validateDecomposition } from "./planning/validateDecomposition.js";
 import { executeTaskPlan } from "./planning/executeTaskPlan.js";
 import { generateSubtaskOutputWithRetry } from "./planning/generateSubtaskOutput.js";
@@ -216,7 +219,25 @@ function setProgress(sessionId: string | undefined, stage: string, progress: num
 
   if (!session.paused) {
     const target = mapStageToState(stage, done);
-    if (target && target !== session.machine.state && target !== "PAUSED") {
+    // Heal invalid end-state transitions by advancing through GENERATING when needed.
+    if (done === true) {
+      const current = session.machine.state;
+      if (current !== "DONE") {
+        if (current !== "GENERATING") {
+          try {
+            session.machine.transition("GENERATING", { reason: `progress:${stage}:pre_done` });
+          } catch (err) {
+            // If this fails, continue and attempt DONE below; state machine may still be in a valid state.
+            console.warn(`Failed pre-done GENERATING transition for ${sessionId}:`, err);
+          }
+        }
+        try {
+          session.machine.transition("DONE", { reason: `progress:${stage}:done` });
+        } catch (err) {
+          console.warn(`Failed to transition orchestrator for ${sessionId}:`, err);
+        }
+      }
+    } else if (target && target !== session.machine.state && target !== "PAUSED") {
       try {
         session.machine.transition(target, { reason: `progress:${stage}` });
       } catch (err) {
@@ -1397,6 +1418,7 @@ const planStepHandler: StepHandler = async ({
   queueMode
 }) => {
   const data = (payload ?? {}) as PlanStepPayload;
+  const baseSlugPre = slugify(data.projectNameInput || "session", { lower: true, strict: true }) || "session";
   if (queueMode === "bullmq" && data.queueMetadata) {
     setProgress(sessionId, "planning", 20, data.queueMetadata);
   }
@@ -1404,7 +1426,6 @@ const planStepHandler: StepHandler = async ({
   try {
     throwIfAborted(sessionId, "decomposition");
 
-    const baseSlugPre = slugify(data.projectNameInput || "session", { lower: true, strict: true }) || "session";
     const plan = await withTraceContext({ projectSlug: baseSlugPre, sessionId, phase: "decompose" }, async () =>
       decomposeTask(data.effectivePrompt, data.clarifications)
     );
@@ -1437,6 +1458,10 @@ const planStepHandler: StepHandler = async ({
     const response = planResult.response as ExecutorSuccessResponse;
     return { status: "completed", data: { response, slug, targetRoot }, stop: true };
   } catch (error) {
+    if (error instanceof SimplePromptBypassError) {
+      await logEvent("plan_skipped", { project: baseSlugPre, reason: error.code });
+      return { status: "skipped" };
+    }
     if (error instanceof PausedError) {
       throw error;
     }

@@ -17,6 +17,15 @@ class ClarificationRequiredError extends Error {
   }
 }
 
+class SimplePromptBypassError extends Error {
+  public readonly code = "simple_prompt_bypass";
+
+  constructor(message: string) {
+    super(message);
+    this.name = "SimplePromptBypassError";
+  }
+}
+
 function needsClarification(prompt: string, clarifications?: ClarificationResponse): boolean {
   if (clarifications && clarifications.answers?.length > 0) {
     return false;
@@ -45,6 +54,57 @@ function needsClarification(prompt: string, clarifications?: ClarificationRespon
   }
 
   return false;
+}
+
+const SIMPLE_PROMPT_MAX_WORDS = 50;
+const BULLET_PATTERN = /(^|\n)\s*(?:[-*]\s+|\d+\.\s+)/;
+const COMPLEXITY_KEYWORDS = [
+  /(auth|authentication|login|signup|oauth)/i,
+  /(database|postgres|mysql|sqlite|mongodb|prisma)/i,
+  /(payment|checkout|stripe|paypal)/i,
+  /(api\b|graphql|rest|endpoint)/i,
+  /(websocket|socket|realtime|streaming)/i,
+  /(microservice|micro-services|service-oriented)/i,
+  /(worker|queue|job|cron|scheduler)/i,
+  /(deploy|deployment|docker|kubernetes|container)/i,
+  /(multi-tenant|multiplayer|multi-player)/i,
+  /(analytics|dashboard|reporting)/i
+];
+
+function hasComplexitySignals(text: string): boolean {
+  return COMPLEXITY_KEYWORDS.some(pattern => pattern.test(text));
+}
+
+function isSimplePrompt(prompt: string, clarifications?: ClarificationResponse): boolean {
+  const trimmed = prompt.trim();
+  if (trimmed.length === 0) {
+    return false;
+  }
+
+  const answersText = clarifications?.answers
+    ?.map(answer => `${answer.questionId}: ${String(answer.value ?? "")}`)
+    .join(" ") ?? "";
+
+  const combined = `${trimmed} ${answersText}`.trim();
+  const wordCount = combined.length === 0 ? 0 : combined.split(/\s+/).filter(Boolean).length;
+
+  if (wordCount === 0) {
+    return false;
+  }
+
+  if (wordCount > SIMPLE_PROMPT_MAX_WORDS) {
+    return false;
+  }
+
+  if (BULLET_PATTERN.test(prompt)) {
+    return false;
+  }
+
+  if (hasComplexitySignals(combined)) {
+    return false;
+  }
+
+  return true;
 }
 
 function buildPrompt(
@@ -202,6 +262,12 @@ export async function decomposeTask(
     );
   }
 
+  if (isSimplePrompt(prompt, clarifications)) {
+    throw new SimplePromptBypassError(
+      "Prompt is simple enough for direct execution without decomposition."
+    );
+  }
+
   let previousIssues: DecompositionIssue[] | undefined;
   let lastError: Error | undefined;
 
@@ -261,4 +327,4 @@ export async function decomposeTask(
   throw lastError ?? new Error("Failed to decompose task");
 }
 
-export type { ClarificationRequiredError };
+export { ClarificationRequiredError, SimplePromptBypassError };

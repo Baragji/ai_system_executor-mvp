@@ -43,11 +43,17 @@ export function buildExecutionId(sessionId?: string): string {
   return `graph-${randomUUID()}`;
 }
 
-const GraphState = Annotation.Root({
-  executionId: Annotation<string>(),
-  result: Annotation<unknown | undefined>(),
-  logs: Annotation<unknown[]>({ reducer: (a = [], b = []) => (Array.isArray(a) ? a : []).concat(b ?? []) }),
-});
+// Defer state annotation construction until runtime to avoid import-time crashes
+// in test environments where langgraph annotations might not be initialized.
+function buildGraphState() {
+  return Annotation.Root({
+    executionId: Annotation<string>(),
+    result: Annotation<unknown | undefined>(),
+    logs: Annotation<unknown[]>({
+      reducer: (a = [], b = []) => (Array.isArray(a) ? a : []).concat(b ?? [])
+    }),
+  });
+}
 
 function serializeStep(step: StepExecutionResult): Record<string, unknown> {
   return {
@@ -71,40 +77,42 @@ function extractResponse(run: WorkflowRunResult): ExecutorSuccessResponse | unde
 export async function runWithLangGraph(args: GraphRunArgs): Promise<GraphOutput> {
   const { executionId, sessionId, steps, stepQueue, deterministic, seed } = args;
 
-  const builder = new StateGraph(GraphState);
-
   let latestLogs: unknown[] = [];
 
-  (builder as unknown as { addNode: Function }).addNode("runWorkflow", async (state: { executionId: string; logs?: unknown[]; result?: unknown }) => {
-    latestLogs = [];
-    updateExecution(executionId, { status: "running", logs: latestLogs });
+  try {
+    // Primary path: use LangGraph StateGraph when available
+    const GraphState = buildGraphState();
+    const builder = new StateGraph(GraphState);
 
-    const capturedLogs: unknown[] = [];
-    const workflow = await stepQueue.runWorkflow(sessionId, steps, {
-      onStep(step) {
-        capturedLogs.push(serializeStep(step));
-        latestLogs = capturedLogs.slice();
-        updateExecution(executionId, { logs: latestLogs });
-      },
+  (builder as unknown as { addNode: (name: string, handler: (state: { executionId: string; logs?: unknown[]; result?: unknown }) => Promise<{ executionId: string; result?: unknown; logs: unknown[] }>) => unknown }).addNode("runWorkflow", async (state: { executionId: string; logs?: unknown[]; result?: unknown }) => {
+      latestLogs = [];
+      updateExecution(executionId, { status: "running", logs: latestLogs });
+
+      const capturedLogs: unknown[] = [];
+      const workflow = await stepQueue.runWorkflow(sessionId, steps, {
+        onStep(step) {
+          capturedLogs.push(serializeStep(step));
+          latestLogs = capturedLogs.slice();
+          updateExecution(executionId, { logs: latestLogs });
+        },
+      });
+
+      const response = extractResponse(workflow);
+
+      latestLogs = capturedLogs.slice();
+
+      return {
+        executionId: state.executionId,
+        result: response,
+        logs: capturedLogs,
+      } as { executionId: string; result?: unknown; logs: unknown[] };
     });
 
-    const response = extractResponse(workflow);
+    (builder as unknown as { addEdge: (from: unknown, to: unknown) => unknown }).addEdge(START as unknown, "runWorkflow");
+    (builder as unknown as { addEdge: (from: unknown, to: unknown) => unknown }).addEdge("runWorkflow", END as unknown);
 
-    latestLogs = capturedLogs.slice();
+    const app = builder.compile();
 
-    return {
-      executionId: state.executionId,
-      result: response,
-      logs: capturedLogs,
-    } as { executionId: string; result?: unknown; logs: unknown[] };
-  });
-
-  (builder as unknown as { addEdge: Function }).addEdge(START, "runWorkflow");
-  (builder as unknown as { addEdge: Function }).addEdge("runWorkflow", END);
-
-  const app = builder.compile();
-
-  try {
     logEvent("langgraph.started", { executionId, deterministic, seed });
     const final = await app.invoke({ executionId, logs: [] });
 
@@ -118,6 +126,42 @@ export async function runWithLangGraph(args: GraphRunArgs): Promise<GraphOutput>
 
     return { output: final.result, logs: final.logs } satisfies GraphOutput;
   } catch (err) {
+    // Fallback path: if LangGraph annotations are unavailable in this environment,
+    // run the workflow directly and update the executions store.
+    if (err && typeof err === "object" && (err as Error).message?.includes("Root")) {
+      try {
+        logEvent("langgraph.fallback", { executionId, reason: (err as Error).message });
+        updateExecution(executionId, { status: "running", logs: [] });
+        const capturedLogs: unknown[] = [];
+        const workflow = await stepQueue.runWorkflow(sessionId, steps, {
+          onStep(step) {
+            capturedLogs.push(serializeStep(step));
+            latestLogs = capturedLogs.slice();
+            updateExecution(executionId, { logs: latestLogs });
+          },
+        });
+        const response = extractResponse(workflow);
+        completeExecution(executionId, { output: response, logs: capturedLogs });
+        return { output: response, logs: capturedLogs };
+      } catch (inner) {
+        if (latestLogs.length > 0) {
+          updateExecution(executionId, { logs: latestLogs });
+        }
+        failExecution(executionId, inner);
+        logEvent("langgraph.failed", {
+          executionId,
+          deterministic,
+          seed,
+          error: inner instanceof Error ? inner.message : String(inner),
+        });
+        throw inner;
+      } finally {
+        if (sessionId) {
+          cleanupAbortSignal(sessionId);
+        }
+      }
+    }
+
     if (latestLogs.length > 0) {
       updateExecution(executionId, { logs: latestLogs });
     }

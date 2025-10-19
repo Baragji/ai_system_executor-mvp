@@ -5135,7 +5135,7 @@ export default defineConfig({
 
 ```dotenv
 LLM_PROVIDER=openai
-LLM_MODEL=gpt-4o-mini
+LLM_MODEL=gpt-5
 OPENAI_API_KEY=sk-REPLACE_ME
 ANTHROPIC_API_KEY=anthropic-REPLACE_ME
 PORT=3000
@@ -7522,4 +7522,3 @@ export async function autoUpdateLedgerWithEvidence(
 }
 
 ```
-

@@ -86,7 +86,7 @@ Total: 2.5–3.5 days (single engineer) including e2e and documentation.
 Parallelizable: Phase 0 can be done while sketching Phase 1; Phase 4/5 after code lands.
 Required Resources
 
-OpenAI API budget for light e2e runs (small model like gpt-4o-mini).
+OpenAI API budget for light e2e runs (small model like gpt-5).
 Node 20+ and existing repo scripts.
 No new dependencies:
 Use Node’s global fetch in tests.

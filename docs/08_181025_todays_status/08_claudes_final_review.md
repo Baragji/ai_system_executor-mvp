@@ -237,7 +237,7 @@ Risk #2: "Adapter complexity unknown"
 Mitigation: Phase 0.1 discovery will reveal this If adapters are complex: Timeline could extend by 0.5-1 day
 Risk #3: "Real LLM test flakiness"
 Issue: OpenAI API timeouts, rate limits, or model changes Mitigation:
-Use gpt-4o-mini (faster, cheaper)
+Use gpt-5 (modern default)
 120s timeout in test (line 64 reference)
 Opt-in only (won't break CI)
 🏆 FINAL VERDICT
@@ -278,7 +278,7 @@ addConditionalEdges(_source: string, _router: Function, _map?: Record<string, st
 3. Pre-Flight Check (5 minutes)
 Before starting Phase 0.1, run this:
 ## Verify OpenAI key works
-echo "import OpenAI from 'openai'; const c = new OpenAI(); c.chat.completions.create({model:'gpt-4o-mini', messages:[{role:'user',content:'pong'}]}).then(r=>console.log(r.choices[0].message.content));" | npx tsx --stdin
+echo "import OpenAI from 'openai'; const c = new OpenAI(); c.chat.completions.create({model:'gpt-5', messages:[{role:'user',content:'pong'}]}).then(r=>console.log(r.choices[0].message.content));" | npx tsx --stdin
 If that fails → fix API key FIRST before any plan execution.
 4. Execute in Strict Order
 Phase 0.1 (discovery) → Phase 0.2 (version lock) → Phase 1 → Phase 2 → Phase 3 → Phase 4 (STRICT) → Phase 6 → Phase 7 (optional)
@@ -641,4 +641,3 @@ No code changes needed - 0.4.9 code is compatible. Use 1.0.0 documentation going
 ---
 
 **Do you want me to verify the upgrade is safe by checking your current graph.ts against 1.0.0 API?**
-
