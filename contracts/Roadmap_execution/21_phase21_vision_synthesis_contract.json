@@ -131,7 +131,7 @@
         "Discovery artifact generated and valid JSON",
         "No files missed or excluded without reason"
       ],
-      "status": "pending"
+      "status": "completed"
     },
     {
       "id": "V21-E1",
@@ -139,7 +139,7 @@
       "title": "Extract WHAT information (capabilities and features)",
       "type": "discovery",
       "description": "Read all discovered files, extract information about what the system needs to do, what features were planned, what problems it solves, what workflows it supports.",
-      "time_estimate_minutes": 60,
+      "time_estimate_minutes": 20,
       "prerequisite": "V21-D1",
       "actions": [
         "Read each file systematically",

@@ -1,0 +1,113 @@
+{
+  "task_id": "V21-D1",
+  "generated_at": "2025-10-19T17:00:24.521Z",
+  "base_directory": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents",
+  "files_discovered": 21,
+  "files": [
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/01_research_agent_RA.md",
+      "size_bytes": 8399,
+      "modified_iso": "2025-10-19T16:59:21.414Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/02_architecture_agent_AA.md",
+      "size_bytes": 8007,
+      "modified_iso": "2025-10-19T16:59:21.414Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/03_security_agent_SA.md",
+      "size_bytes": 7717,
+      "modified_iso": "2025-10-19T16:59:21.414Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/04_implementation_agent_IA.md",
+      "size_bytes": 7886,
+      "modified_iso": "2025-10-19T16:59:21.414Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/05_quality_agent_QA.md",
+      "size_bytes": 7871,
+      "modified_iso": "2025-10-19T16:59:21.414Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/06_dev_ops_agent_DA.md",
+      "size_bytes": 8436,
+      "modified_iso": "2025-10-19T16:59:21.414Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/07_database_agent_DBA.md",
+      "size_bytes": 9514,
+      "modified_iso": "2025-10-19T16:59:21.414Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/08_master_coordinator_agent_MCA.md",
+      "size_bytes": 8683,
+      "modified_iso": "2025-10-19T16:59:21.414Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/09_ai_process_architect_agent_APA.md",
+      "size_bytes": 14971,
+      "modified_iso": "2025-10-19T16:59:21.414Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/10_finops_agent_FOPS.md",
+      "size_bytes": 10000,
+      "modified_iso": "2025-10-19T16:59:21.414Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/10b_finops_agent_FOPS.md",
+      "size_bytes": 8219,
+      "modified_iso": "2025-10-19T16:59:21.414Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/Executor_agent_generic_templates/config/platform_policy.md",
+      "size_bytes": 2309,
+      "modified_iso": "2025-10-19T16:59:21.418Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/Executor_agent_generic_templates/config/README.md",
+      "size_bytes": 609,
+      "modified_iso": "2025-10-19T16:59:21.414Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/Executor_agent_generic_templates/Masterfiles/runbook.md",
+      "size_bytes": 2857,
+      "modified_iso": "2025-10-19T16:59:21.414Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/Executor_agent_generic_templates/templates/code_change_template.md",
+      "size_bytes": 213,
+      "modified_iso": "2025-10-19T16:59:21.418Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/Executor_agent_generic_templates/templates/session_report_template.md",
+      "size_bytes": 957,
+      "modified_iso": "2025-10-19T16:59:21.418Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Atomic_Phased_Systemgap_plan.md",
+      "size_bytes": 37962,
+      "modified_iso": "2025-10-19T16:59:21.418Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/autonomous_ai_coding_system_taxonomy_ssot_1.1.md",
+      "size_bytes": 25181,
+      "modified_iso": "2025-10-19T16:59:21.418Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/autonomous_ai_coding_system_taxonomy_ssot_1.2.md",
+      "size_bytes": 10539,
+      "modified_iso": "2025-10-19T16:59:21.418Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/autonomous_coding_taxonomy-2.md",
+      "size_bytes": 63667,
+      "modified_iso": "2025-10-19T16:59:21.418Z"
+    },
+    {
+      "path": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/spec_for_autonomy.md",
+      "size_bytes": 9785,
+      "modified_iso": "2025-10-19T16:59:21.418Z"
+    }
+  ]
+}

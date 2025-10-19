@@ -1,0 +1,115 @@
+{
+  "orchestrator": {
+    "files": [
+      {
+        "path": "src/server.ts",
+        "lines": "1509-1870",
+        "summary": "StepQueue lifecycle, POST /api/execute runtime switch (AGENTS_RUNTIME), SSE streaming, Location header semantics, and abort cleanup."
+      },
+      {
+        "path": "src/orchestrator/stepQueue.ts",
+        "lines": "79-210",
+        "summary": "StepQueue class orchestrates workflows, resume support, and emits step results via runWorkflow." 
+      },
+      {
+        "path": "src/orchestrator/graph.ts",
+        "lines": "77-180",
+        "summary": "LangGraph runner uses StepQueue, updates executions store (update/complete/fail), and cleans up abort signals."
+      },
+      {
+        "path": "src/orchestrator/executionsStore.ts",
+        "lines": "51-138",
+        "summary": "In-memory executions store backing create/update/complete/fail status responses for /api/executions." 
+      },
+      {
+        "path": "src/orchestrator/abortSignal.ts",
+        "lines": "38-124",
+        "summary": "Session abort signal registry with createAbortSignal and cleanupAbortSignal used by orchestrator flow." 
+      },
+      {
+        "path": "src/orchestrator/adapter.ts",
+        "lines": "21-83",
+        "summary": "Feature-flagged adapter inspects AGENTS_RUNTIME and mirrors 202 Location response shape."
+      }
+    ],
+    "insert_points": [
+      {
+        "path": "src/server.ts",
+        "line": 1509,
+        "description": "Replace local StepQueue.create() + handler registration with orchestrator service client bootstrap (remote queue)."
+      },
+      {
+        "path": "src/server.ts",
+        "line": 1749,
+        "description": "Ensure POST /api/execute preserves 202 + Location=/api/executions/:id semantics when delegating to orchestrator service."
+      },
+      {
+        "path": "src/server.ts",
+        "line": 1795,
+        "description": "Current in-process stepQueue.runWorkflow; future call should dispatch to orchestrator service API or queue."
+      },
+      {
+        "path": "src/server.ts",
+        "line": 1867,
+        "description": "Abort signal cleanup happens locally; orchestrator service needs a remote signal cleanup/teardown hook."
+      },
+      {
+        "path": "src/orchestrator/graph.ts",
+        "line": 89,
+        "description": "LangGraph runner updates executions store; extraction requires moving these updates behind orchestrator API."
+      },
+      {
+        "path": "src/orchestrator/executionsStore.ts",
+        "line": 76,
+        "description": "updateExecution/completeExecution/failExecution become orchestrator service endpoints or RPC calls."
+      },
+      {
+        "path": "src/orchestrator/adapter.ts",
+        "line": 21,
+        "description": "Feature flag guard for AGENTS_RUNTIME will route traffic to new orchestrator service client."
+      }
+    ],
+    "env": ["ORCHESTRATOR_URL"]
+  },
+  "runner": {
+    "files": [
+      {
+        "path": "src/server.ts",
+        "lines": "1172-1506",
+        "summary": "runSingleExecution pipeline (file writes, sandbox run, repair loops) executed inside singleStepHandler." 
+      },
+      {
+        "path": "src/server.ts",
+        "lines": "1415-1506",
+        "summary": "planStepHandler/singleStepHandler registered with StepQueue before POST /api/execute." 
+      },
+      {
+        "path": "src/orchestrator/stepQueue.ts",
+        "lines": "116-205",
+        "summary": "runWorkflow invokes registered step handlers sequentially; runner service will host plan/single logic." 
+      }
+    ],
+    "insert_points": [
+      {
+        "path": "src/server.ts",
+        "line": 1172,
+        "description": "Extract runSingleExecution into runner service API (Task 16+) and replace direct function body with remote call." 
+      },
+      {
+        "path": "src/server.ts",
+        "line": 1415,
+        "description": "planStepHandler should dispatch to runner service planning endpoint instead of local runPlanning." 
+      },
+      {
+        "path": "src/server.ts",
+        "line": 1501,
+        "description": "singleStepHandler currently runs execution locally; future implementation will enqueue runner service job." 
+      },
+      {
+        "path": "src/orchestrator/stepQueue.ts",
+        "line": 145,
+        "description": "StepQueue handler invocation boundary where remote runner responses must be translated back into StepExecutionResult." 
+      }
+    ]
+  }
+}
