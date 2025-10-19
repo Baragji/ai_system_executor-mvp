@@ -89,6 +89,19 @@ import { maybeInitTelemetry, shutdownTelemetry } from "./telemetry/otel.js";
 
 const IS_TEST_ENV = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
 
+type FetchLike = (input: string, init?: {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string;
+  signal?: AbortSignal;
+}) => Promise<{
+  ok: boolean;
+  status: number;
+  headers: { get(name: string): string | null };
+  json(): Promise<unknown>;
+  text(): Promise<string>;
+}>;
+
 // Test-only: Mitigate ENOTEMPTY when test files recursively delete
 // `.automation/checkpoints` concurrently with other test writes.
 if (IS_TEST_ENV) {
@@ -122,6 +135,9 @@ app.use(morgan("dev"));
 const PORT = Number(process.env.PORT || 3000);
 function getOrchestratorBase(): string {
   return (process.env.ORCHESTRATOR_URL || "").trim();
+}
+function getRunnerBase(): string {
+  return (process.env.RUNNER_URL || "").trim();
 }
 const OUTPUT_DIR = path.resolve("output");
 const PUBLIC_DIR = path.resolve("public");
@@ -458,7 +474,7 @@ app.get("/api/executions/:id", async (req, res) => {
     const instance = req.originalUrl || req.url || "/api/executions";
     try {
       const target = new URL(`/executions/${encodeURIComponent(id)}`, ORCHESTRATOR_BASE).toString();
-      const fetchLike = (globalThis as unknown as { fetch?: (input: string, init?: { method?: string; headers?: Record<string, string>; body?: string }) => Promise<{ ok: boolean; status: number; headers: { get(name: string): string | null }; json(): Promise<unknown>; }> }).fetch;
+      const fetchLike = (globalThis as unknown as { fetch?: FetchLike }).fetch;
       if (!fetchLike) {
         respondWithProblem(res, 502, "UpstreamUnavailable", "fetch API not available in runtime", instance);
         return;
@@ -1944,6 +1960,45 @@ app.post("/api/execute", async (req, res) => {
 });
 
 app.post("/api/run-tests", async (req, res) => {
+  const RUNNER_BASE = getRunnerBase();
+  if (RUNNER_BASE) {
+    const instance = req.originalUrl || req.url || "/api/run-tests";
+    try {
+      const fetchLike = (globalThis as unknown as { fetch?: FetchLike }).fetch;
+      if (!fetchLike) {
+        respondWithProblem(res, 502, "UpstreamUnavailable", "fetch API not available in runtime", instance);
+        return;
+      }
+      const target = new URL("/run-tests", RUNNER_BASE).toString();
+      const controller = AbortSignal.timeout(5 * 60 * 1000);
+      const upstream = await fetchLike(target, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          accept: "application/json, application/problem+json"
+        },
+        body: JSON.stringify(req.body ?? {}),
+        signal: controller
+      });
+      const contentType = upstream.headers.get("content-type");
+      const raw = await upstream.text();
+      res.status(upstream.status);
+      if (contentType) {
+        res.setHeader("Content-Type", contentType);
+      }
+      if (raw.length > 0) {
+        res.send(raw);
+      } else {
+        res.end();
+      }
+      return;
+    } catch (error) {
+      const message = (error as Error | undefined)?.message || "failed to reach runner";
+      respondWithProblem(res, 502, "BadGateway", message, instance);
+      return;
+    }
+  }
+
   try {
     const project: string = (req.body?.project || "").toString();
     if (!project) {
@@ -2440,6 +2495,11 @@ if (process.env.NODE_ENV !== "test") {
       console.log(`[orchestrator-proxy] Enabled → ${ORCHESTRATOR_BASE}`);
       console.log(`[orchestrator-proxy] Proxying POST /api/execute and GET /api/executions/:id`);
     }
+    const RUNNER_BASE = getRunnerBase();
+    if (RUNNER_BASE) {
+      console.log(`[runner-proxy] Enabled → ${RUNNER_BASE}`);
+      console.log(`[runner-proxy] Proxying POST /api/run-tests`);
+    }
   });
 
   // Optional: probe external orchestrator health when configured
@@ -2447,7 +2507,7 @@ if (process.env.NODE_ENV !== "test") {
   if (ORCHESTRATOR_BASE) {
     (async () => {
       try {
-        const fetchLike = (globalThis as unknown as { fetch?: (input: string, init?: { method?: string; headers?: Record<string, string>; body?: string; signal?: AbortSignal }) => Promise<{ ok: boolean; status: number; }> }).fetch;
+        const fetchLike = (globalThis as unknown as { fetch?: FetchLike }).fetch;
         if (fetchLike) {
           const ctrl = AbortSignal.timeout(1500);
           const resp = await fetchLike(new URL("/healthz", ORCHESTRATOR_BASE).toString(), { method: "GET", signal: ctrl });
@@ -2462,6 +2522,30 @@ if (process.env.NODE_ENV !== "test") {
       } catch (err) {
         const msg = (err as Error | undefined)?.message || String(err ?? "unknown error");
         console.warn(`[orchestrator-proxy] Health probe failed: ${msg}`);
+      }
+    })();
+  }
+
+  // Optional: probe external runner health when configured
+  const RUNNER_BASE = getRunnerBase();
+  if (RUNNER_BASE) {
+    (async () => {
+      try {
+        const fetchLike = (globalThis as unknown as { fetch?: FetchLike }).fetch;
+        if (fetchLike) {
+          const ctrl = AbortSignal.timeout(1500);
+          const resp = await fetchLike(new URL("/healthz", RUNNER_BASE).toString(), { method: "GET", signal: ctrl });
+          if (!resp.ok) {
+            console.warn(`[runner-proxy] Health probe returned ${resp.status} for ${RUNNER_BASE}`);
+          } else {
+            console.log(`[runner-proxy] Connected: ${RUNNER_BASE}`);
+          }
+        } else {
+          console.warn("[runner-proxy] fetch API not available; skipping health probe");
+        }
+      } catch (err) {
+        const msg = (err as Error | undefined)?.message || String(err ?? "unknown error");
+        console.warn(`[runner-proxy] Health probe failed: ${msg}`);
       }
     })();
   }
