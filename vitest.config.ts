@@ -43,6 +43,7 @@ export default defineConfig({
       "tests/ui/**",
       "ui-tests/**",
       "node_modules/**",
+      "**/node_modules/**",
       "output/**"
     ],
     coverage: {

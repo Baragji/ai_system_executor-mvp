@@ -20,7 +20,7 @@ Target (post-refactor):
 ## Phase 1: Service Extraction (Week 1–2)
 
 ### Infrastructure Setup
-- [ ] Task: Setup service templates (Express + OTel + RFC 9457)
+- [x] Task: Setup service templates (Express + OTel + RFC 9457)
   - Expected Outcome: `services/_template/` boots with `npm start`, returns health and problem+json errors
   - Validation:
     - `node -e "console.log(process.version)"`

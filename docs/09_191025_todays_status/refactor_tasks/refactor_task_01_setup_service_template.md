@@ -58,7 +58,7 @@ git status --porcelain
 
 ---
 
-**CHECKPOINT**: All validations passed? [ ] YES → Proceed [ ] NO → STOP and investigate
+**CHECKPOINT**: All validations passed? [x] YES → Proceed [ ] NO → STOP and investigate
 
 ---
 
@@ -199,22 +199,22 @@ echo '{"task":"REFACTOR-TASK-01","status":"rolled_back","timestamp":"'$(date -u 
 ## Definition of Done
 
 Pre-execution validations:
-- [ ] Current state verified
-- [ ] Dependencies checked
-- [ ] No conflicts detected
-- [ ] Prerequisites complete
+- [x] Current state verified
+- [x] Dependencies checked
+- [x] No conflicts detected
+- [x] Prerequisites complete
 
 Implementation:
-- [ ] Service scaffold created
-- [ ] Template boots and returns health
-- [ ] RFC 9457 error envelope works
+- [x] Service scaffold created
+- [x] Template boots and returns health
+- [x] RFC 9457 error envelope works
 
 Post-execution validations:
-- [ ] Service runs independently
-- [ ] Monolith still works
-- [ ] No regressions
-- [ ] Evidence captured
+- [x] Service runs independently
+- [x] Monolith still works
+- [x] No regressions
+- [x] Evidence captured
 
 Documentation:
-- [ ] REFACTOR_STATUS_CHECKLIST.md updated
-- [ ] Service README.md created
+- [x] REFACTOR_STATUS_CHECKLIST.md updated
+- [x] Service README.md created
