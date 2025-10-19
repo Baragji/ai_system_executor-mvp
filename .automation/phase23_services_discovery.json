@@ -1,0 +1,495 @@
+{
+  "task_id": "REFACTOR-TASK-21",
+  "generated_at": "2025-10-19T20:34:45Z",
+  "services": {
+    "planning": {
+      "files": [
+        "src/planning/decomposeTask.ts",
+        "src/planning/executeTaskPlan.ts",
+        "src/planning/estimateCompletion.ts",
+        "src/planning/generateSubtaskOutput.ts",
+        "src/planning/executeSubtask.ts"
+      ],
+      "insert_points": [
+        {
+          "path": "src/server.ts",
+          "line": 43,
+          "symbol": "decomposeTask",
+          "description": "Express server imports planning decomposition entry point for orchestration."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 47,
+          "symbol": "executeTaskPlan",
+          "description": "Server wires task-plan execution into orchestration context."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 49,
+          "symbol": "estimateCompletion",
+          "description": "Execution flow computes ETA after plan run."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 1005,
+          "description": "Plan execution stage calls executeTaskPlan(plan, context)."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 1016,
+          "description": "Plan completion estimate derived via estimateCompletion(progress, plan)."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 1466,
+          "description": "planStepHandler wraps planning step inside session-aware queue handler."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 1481,
+          "description": "Plan step invokes decomposeTask(effectivePrompt, clarifications)."
+        }
+      ],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/execute",
+          "segment": "planStepHandler",
+          "request": {
+            "body": {
+              "effectivePrompt": "string",
+              "originalPrompt": "string",
+              "clarifications": "ClarificationResponse | undefined",
+              "sessionId": "string",
+              "projectNameInput": "string",
+              "systemPrompt": "string"
+            }
+          },
+          "response": {
+            "plan": "TaskPlan",
+            "planQuality": "number",
+            "fixtures": "clarify.json, plan.json",
+            "context": {
+              "targetRoot": "string",
+              "slug": "string"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/planning/decompose",
+          "request": {
+            "prompt": "string",
+            "clarifications": "ClarificationResponse | undefined",
+            "metadata": {
+              "sessionId": "string",
+              "projectSlug": "string"
+            }
+          },
+          "response": {
+            "plan": "TaskPlan",
+            "warnings": "DecompositionIssue[]"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/planning/execute-plan",
+          "request": {
+            "plan": "TaskPlan",
+            "context": {
+              "projectPath": "string",
+              "projectSlug": "string",
+              "sessionId": "string",
+              "clarifications": "ClarificationResponse | undefined",
+              "systemPrompt": "string"
+            }
+          },
+          "response": {
+            "result": "PlanExecutionResult",
+            "fixtures": {
+              "plan": "TaskPlan",
+              "clarify": "Clarification capture"
+            },
+            "estimate": "TimeEstimate"
+          }
+        }
+      ],
+      "env": [
+        {
+          "name": "PLANNING_URL",
+          "description": "Base URL for remote planning microservice handling decomposition and plan execution."
+        }
+      ],
+      "risks": [
+        "Long-running plan execution currently depends on in-process abort signals and trace context; service extraction must propagate cancellation tokens across network boundaries.",
+        "Plan execution streams progress telemetry via callbacks (logEvent, setProgress); external service requires SSE or webhook strategy to maintain parity.",
+        "Fixtures (plan.json, clarify.json, subtasks) persist to disk locally; remote service must return artifacts or provide signed URLs."
+      ],
+      "tests": [
+        "tests/planning/decomposeTask.test.ts",
+        "tests/planning/executeTaskPlan.test.ts",
+        "tests/planning/estimateCompletion.test.ts",
+        "tests/planning/executeSubtask.resilience.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Remote planning service reproduces TaskPlan validation and retry semantics (ClarificationRequiredError, SimplePromptBypassError).",
+        "execute-plan responses include progress snapshots compatible with existing PlanExecutionResult contract.",
+        "Monolith step queue can swap local calls with HTTP client configured by PLANNING_URL without changing orchestration APIs."
+      ]
+    },
+    "repair": {
+      "files": [
+        "src/repair/analyzeFailure.ts",
+        "src/repair/repairOnce.ts",
+        "src/repair/multiTurnRepair.ts",
+        "src/repair/generateDiff.ts"
+      ],
+      "insert_points": [
+        {
+          "path": "src/server.ts",
+          "line": 23,
+          "symbol": "multiTurnRepair",
+          "description": "Server imports multi-turn repair orchestrator."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 937,
+          "description": "Plan execution context delegates multiTurnRepair(context) for failed subtasks."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 1320,
+          "description": "Single-run execution triggers multiTurnRepair after initial test failure."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 2055,
+          "description": "Replay repair endpoint reuses multiTurnRepair for saved contexts."
+        },
+        {
+          "path": "src/repair/multiTurnRepair.ts",
+          "line": 308,
+          "description": "Repair loop parses failure logs with analyzeFailure(initialLog)."
+        },
+        {
+          "path": "src/repair/multiTurnRepair.ts",
+          "line": 354,
+          "description": "LLM repair payload acquisition feeds strategy selection and diff generation."
+        }
+      ],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/execute",
+          "segment": "repair",
+          "request": {
+            "context": {
+              "projectPath": "string",
+              "projectSlug": "string",
+              "generatedFiles": "string[]",
+              "initialTestResult": "RunResult",
+              "sessionId": "string"
+            }
+          },
+          "response": {
+            "history": "RepairHistory",
+            "attempts": "RepairAttemptRecord[]"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/repair/analyze",
+          "request": {
+            "log": "string",
+            "metadata": {
+              "projectSlug": "string",
+              "sessionId": "string"
+            }
+          },
+          "response": {
+            "analysis": "FailureAnalysis"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/repair/run",
+          "request": {
+            "context": "MultiTurnContext",
+            "maxAttempts": 4
+          },
+          "response": {
+            "history": "RepairHistory",
+            "artifacts": "RepairArtifactDescription[]",
+            "diffs": "string[]"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/replay/repair",
+          "request": {
+            "project": "string",
+            "sessionId": "string"
+          },
+          "response": {
+            "history": "RepairHistory"
+          }
+        }
+      ],
+      "env": [
+        {
+          "name": "REPAIR_URL",
+          "description": "Base URL for remote repair microservice orchestrating analyze+repair flows."
+        }
+      ],
+      "risks": [
+        "Repair payloads include large failure logs and diff artifacts; network service must support streaming or chunked uploads to avoid timeouts.",
+        "Current implementation accesses filesystem (gatherFileContext, applyArtifacts); remote service must expose artifact bundle contract or callback for file mutations.",
+        "RepairOnce fallback is mocked in tests but unused in production; ensure API parity even if monolith currently bypasses it."
+      ],
+      "tests": [
+        "tests/repair/multiTurnRepair.test.ts",
+        "tests/repair/analyzeFailure.test.ts",
+        "tests/repair/repairOnce.test.ts",
+        "tests/repair/generateDiff.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Multi-turn repair over HTTP preserves attempt ordering, telemetry hooks, and pause/abort semantics via sessionId.",
+        "Repair service validates payloads against RepairHistoryValidator before responding.",
+        "Monolith can toggle between local and remote repair via REPAIR_URL without altering step queue contract."
+      ]
+    },
+    "executor": {
+      "files": [
+        "src/executor/outputProcessing.ts",
+        "src/executor/schema.ts",
+        "src/executor/writeFiles.ts",
+        "src/planning/generateSubtaskOutput.ts"
+      ],
+      "insert_points": [
+        {
+          "path": "src/server.ts",
+          "line": 17,
+          "symbol": "sanitizeExecutorOutput",
+          "description": "Server sanitizes JSON model output before schema validation."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 20,
+          "symbol": "writeFiles",
+          "description": "File persistence entry point used across plan + replay flows."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 836,
+          "description": "Single execution sanitizes parsed LLM output prior to validation."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 931,
+          "description": "Plan execution context delegates file writes to writeFiles(rootDir, files)."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 1306,
+          "description": "Single execution writes generated files before running tests."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 2081,
+          "description": "Replay subtask endpoint replays stored files via writeFiles(projectRoot, files)."
+        },
+        {
+          "path": "src/planning/executeSubtask.ts",
+          "line": 209,
+          "description": "Subtask executor invokes context.writeFiles before test runs."
+        }
+      ],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/execute",
+          "segment": "generate",
+          "request": {
+            "messages": "LLMMessage[]",
+            "sessionId": "string",
+            "enforceTests": "boolean"
+          },
+          "response": {
+            "output": "ExecutorOutput",
+            "sanitized": true
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/executor/generate",
+          "request": {
+            "prompt": "ExecutorPrompt",
+            "sessionId": "string"
+          },
+          "response": {
+            "files": "ExecutorFile[]",
+            "hasTests": "boolean",
+            "notes": "string[]"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/executor/validate",
+          "request": {
+            "files": "ExecutorFile[]",
+            "rootDir": "string"
+          },
+          "response": {
+            "status": "ok | error",
+            "issues": "string[]"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/replay/subtask",
+          "request": {
+            "project": "string",
+            "sessionId": "string",
+            "subtaskId": "string"
+          },
+          "response": {
+            "result": "RunResult"
+          }
+        }
+      ],
+      "env": [
+        {
+          "name": "EXECUTOR_URL",
+          "description": "Base URL for remote executor responsible for generation sanitization and file writes."
+        }
+      ],
+      "risks": [
+        "File writes currently execute with full filesystem permissions; remote executor must expose artifact bundles without direct disk access.",
+        "Sanitization depends on schema versioning; service boundary requires explicit contract version negotiation.",
+        "Tests expect writeFiles to enforce path safety (no directory traversal); parity must be preserved over network responses."
+      ],
+      "tests": [
+        "tests/executor/sanitizeOutput.test.ts",
+        "tests/executor/writeFiles.security.test.ts",
+        "tests/planning/executeSubtask.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Remote executor returns payloads conforming to ExecutorOutput schema before validation in monolith.",
+        "File persistence operations respect existing allowlist (no writes outside project root).",
+        "Monolith can configure EXECUTOR_URL to swap local writeFiles/sanitization with HTTP calls without regressions."
+      ]
+    },
+    "clarification": {
+      "files": [
+        "src/clarification/detectMissing.ts",
+        "src/clarification/generateQuestions.ts",
+        "src/clarification/augmentPrompt.ts",
+        "src/clarification/suggestDefaults.ts"
+      ],
+      "insert_points": [
+        {
+          "path": "src/server.ts",
+          "line": 30,
+          "symbol": "detectMissing",
+          "description": "Server inspects prompt for missing context before question generation."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 31,
+          "symbol": "generateQuestions",
+          "description": "Clarification questions generated synchronously for /api/clarify and execute flow."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 32,
+          "symbol": "augmentPrompt",
+          "description": "Prompt augmentation applied before execution when clarifications provided."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 1593,
+          "description": "POST /api/clarify orchestrates detectMissing + generateQuestions pipeline."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 1720,
+          "description": "Execution flow augments prompt with clarifications via augmentPrompt()."
+        },
+        {
+          "path": "src/server.ts",
+          "line": 1754,
+          "description": "Fallback question generation when answers still leave gaps."
+        }
+      ],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/clarify",
+          "request": {
+            "prompt": "string"
+          },
+          "response": {
+            "questions": "ClarificationQuestion[]"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/clarification/clarify",
+          "request": {
+            "prompt": "string",
+            "previousQuestions": "ClarificationQuestion[] | undefined"
+          },
+          "response": {
+            "questions": "ClarificationQuestion[]",
+            "suggestedDefaults": "Record<string, unknown>"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/clarification/augment",
+          "request": {
+            "prompt": "string",
+            "clarifications": "ClarificationResponse"
+          },
+          "response": {
+            "effectivePrompt": "string"
+          }
+        }
+      ],
+      "env": [
+        {
+          "name": "CLARIFICATION_URL",
+          "description": "Base URL for clarification microservice managing question generation and prompt augmentation."
+        }
+      ],
+      "risks": [
+        "Clarification logic caches questions per prompt (rememberClarificationQuestions); service extraction must persist cache or expose callback.",
+        "Synchronous clarification currently happens inline during /api/execute; remote call latency may impact UX and SSE timings.",
+        "Question templates rely on shared enums (MissingInfoType); require shared contract package to prevent drift."
+      ],
+      "tests": [
+        "tests/clarification/generateQuestions.test.ts",
+        "tests/clarification/augmentPrompt.test.ts",
+        "tests/clarification/suggestDefaults.test.ts",
+        "tests/api/clarify-route.test.ts"
+      ],
+      "acceptance_criteria": [
+        "Clarification service returns deterministic question ordering for identical prompts.",
+        "Augmented prompts maintain existing formatting (Original request header).",
+        "Monolith can source clarification data from CLARIFICATION_URL during both /api/clarify and /api/execute flows."
+      ]
+    }
+  },
+  "parity_tests": [
+    "vitest run tests/planning/decomposeTask.test.ts",
+    "vitest run tests/planning/executeTaskPlan.test.ts",
+    "vitest run tests/repair/multiTurnRepair.test.ts",
+    "vitest run tests/repair/repairOnce.test.ts",
+    "vitest run tests/executor/sanitizeOutput.test.ts",
+    "vitest run tests/executor/writeFiles.security.test.ts",
+    "vitest run tests/clarification/generateQuestions.test.ts",
+    "vitest run tests/clarification/augmentPrompt.test.ts",
+    "vitest run tests/api/clarify-route.test.ts",
+    "vitest run tests/run-tests-route.test.ts"
+  ]
+}
