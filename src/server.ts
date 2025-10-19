@@ -41,13 +41,19 @@ import type {
 } from "./clarification/types.js";
 import {
   decomposeTask,
-  SimplePromptBypassError
+  SimplePromptBypassError,
+  ClarificationRequiredError
 } from "./planning/decomposeTask.js";
 import { validateDecomposition } from "./planning/validateDecomposition.js";
 import { executeTaskPlan } from "./planning/executeTaskPlan.js";
 import { generateSubtaskOutputWithRetry } from "./planning/generateSubtaskOutput.js";
 import { estimateCompletion } from "./planning/estimateCompletion.js";
-import type { PlanExecutionContext, SubtaskResult } from "./planning/types.js";
+import {
+  TaskPlanValidationError,
+  type PlanExecutionContext,
+  type SubtaskResult,
+  type TaskPlan
+} from "./planning/types.js";
 import {
   createAbortSignal,
   cleanupAbortSignal,
@@ -138,6 +144,38 @@ function getOrchestratorBase(): string {
 }
 function getRunnerBase(): string {
   return (process.env.RUNNER_URL || "").trim();
+}
+function getPlanningBase(): string {
+  return (process.env.PLANNING_URL || "").trim();
+}
+const PLANNING_PROXY_BASE = (() => {
+  const raw = getPlanningBase();
+  if (!raw) {
+    return null;
+  }
+  try {
+    const normalized = new URL(raw);
+    return normalized.toString().replace(/\/$/, "");
+  } catch (error) {
+    console.warn(`Invalid PLANNING_URL provided: ${raw}`, error);
+    return null;
+  }
+})();
+
+async function probePlanningHealth(base: string): Promise<void> {
+  try {
+    const url = new URL("healthz", `${base}/`).toString();
+    const response = await fetch(url, { method: "GET" });
+    console.log(`Planning proxy health probe ${response.status} ${response.statusText}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`Planning proxy health probe failed: ${message}`);
+  }
+}
+
+if (PLANNING_PROXY_BASE) {
+  console.log(`Planning proxy enabled → ${PLANNING_PROXY_BASE}`);
+  void probePlanningHealth(PLANNING_PROXY_BASE);
 }
 const OUTPUT_DIR = path.resolve("output");
 const PUBLIC_DIR = path.resolve("public");
@@ -1589,6 +1627,251 @@ async function resolveSessionPrompts(
 // - Normalizes file paths (removes leading "./")
 // - Ensures files array contains only { path, contents } with string types
 export { sanitizeExecutorOutput } from "./executor/outputProcessing.js";
+
+function buildPlanningProxyUrl(pathname: string): string | null {
+  if (!PLANNING_PROXY_BASE) {
+    return null;
+  }
+  try {
+    const normalizedPath = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+    return new URL(normalizedPath, `${PLANNING_PROXY_BASE}/`).toString();
+  } catch (error) {
+    console.error(`Failed to construct planning proxy URL for ${pathname}`, error);
+    return null;
+  }
+}
+
+function extractProxyHeaders(req: Request): Record<string, string> {
+  const headers: Record<string, string> = {};
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (value == null) {
+      continue;
+    }
+    if (Array.isArray(value)) {
+      headers[key] = value.join(", ");
+    } else {
+      headers[key] = value;
+    }
+  }
+  delete headers.host;
+  delete headers.connection;
+  delete headers["content-length"];
+  if (!headers.accept) {
+    headers.accept = "application/json";
+  }
+  if (req.body !== undefined && !headers["content-type"]) {
+    headers["content-type"] = "application/json";
+  }
+  return headers;
+}
+
+async function proxyPlanningRequest(req: Request, res: Response, pathname: string): Promise<boolean> {
+  const target = buildPlanningProxyUrl(pathname);
+  if (!target) {
+    return false;
+  }
+
+  const controller = new AbortController();
+  req.once("close", () => {
+    controller.abort();
+  });
+
+  try {
+    const upstream = await fetch(target, {
+      method: req.method,
+      headers: extractProxyHeaders(req),
+      body: req.body === undefined ? undefined : JSON.stringify(req.body),
+      signal: controller.signal
+    });
+
+    res.status(upstream.status);
+    upstream.headers.forEach((value, key) => {
+      const lower = key.toLowerCase();
+      if (lower === "content-length" || lower === "transfer-encoding" || lower === "content-encoding") {
+        return;
+      }
+      res.setHeader(key, value);
+    });
+    const buffer = Buffer.from(await upstream.arrayBuffer());
+    res.send(buffer);
+  } catch (error) {
+    if ((error as { name?: string } | null)?.name === "AbortError") {
+      console.warn(`Planning proxy request aborted for ${pathname}`);
+      return true;
+    }
+    console.error(`Planning proxy request to ${pathname} failed`, error);
+    const instance = req.originalUrl || req.url || pathname;
+    respondWithProblem(res, 502, "Bad Gateway", "Planning service unavailable", instance, {
+      upstream: pathname
+    });
+    return true;
+  }
+
+  return true;
+}
+
+function parsePlanningPrompt(body: unknown): string | null {
+  const promptRaw = (body as { prompt?: unknown } | null)?.prompt;
+  if (typeof promptRaw !== "string") {
+    return null;
+  }
+  const prompt = promptRaw.trim();
+  return prompt.length > 0 ? prompt : null;
+}
+
+function parsePlanningClarifications(body: unknown): ClarificationResponse | undefined {
+  const value = (body as { clarifications?: unknown } | null)?.clarifications;
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (!isPlainObject(value)) {
+    throw new Error("clarifications must be a plain object when provided");
+  }
+  return value as ClarificationResponse;
+}
+
+function assertPlanPayload(value: unknown): asserts value is TaskPlan {
+  if (!isPlainObject(value)) {
+    throw new Error("plan must be an object");
+  }
+  if (!Array.isArray((value as { subtasks?: unknown }).subtasks)) {
+    throw new Error("plan.subtasks must be an array");
+  }
+}
+
+type ExecutePlanRequestBody = {
+  plan?: TaskPlan;
+  targetRoot?: string;
+  slug?: string;
+  effectivePrompt?: string;
+  clarifications?: ClarificationResponse;
+  systemPrompt?: string;
+  sessionId?: string;
+};
+
+function parseExecutePlanField(
+  body: ExecutePlanRequestBody,
+  key: keyof ExecutePlanRequestBody
+): string | null {
+  const raw = body[key];
+  if (typeof raw !== "string") {
+    return null;
+  }
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+app.post("/decompose", async (req, res) => {
+  if (PLANNING_PROXY_BASE && await proxyPlanningRequest(req, res, "/decompose")) {
+    return;
+  }
+
+  const instance = req.originalUrl || req.url || "/decompose";
+  const prompt = parsePlanningPrompt(req.body);
+  if (!prompt) {
+    respondWithProblem(res, 400, "Bad Request", "prompt is required", instance);
+    return;
+  }
+
+  let clarifications: ClarificationResponse | undefined;
+  try {
+    clarifications = parsePlanningClarifications(req.body);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Invalid clarifications payload";
+    respondWithProblem(res, 400, "Bad Request", message, instance);
+    return;
+  }
+
+  try {
+    const plan = await decomposeTask(prompt, clarifications);
+    res.json({ plan });
+  } catch (error) {
+    if (error instanceof ClarificationRequiredError) {
+      respondWithProblem(res, 400, "Clarification Required", error.message, instance, { code: error.code });
+      return;
+    }
+    if (error instanceof SimplePromptBypassError) {
+      respondWithProblem(res, 409, "Simple Prompt", error.message, instance, { code: error.code });
+      return;
+    }
+    if (error instanceof TaskPlanValidationError) {
+      respondWithProblem(res, 422, "Plan Validation Failed", error.message, instance, {
+        code: "plan_validation_failed",
+        issues: error.issues
+      });
+      return;
+    }
+    console.error("[/decompose] unexpected error", error);
+    respondWithProblem(res, 500, "Internal Server Error", "Failed to decompose prompt", instance);
+  }
+});
+
+app.post("/execute-plan", async (req, res) => {
+  if (PLANNING_PROXY_BASE && await proxyPlanningRequest(req, res, "/execute-plan")) {
+    return;
+  }
+
+  const instance = req.originalUrl || req.url || "/execute-plan";
+  const body: ExecutePlanRequestBody = isPlainObject(req.body) ? (req.body as ExecutePlanRequestBody) : {};
+
+  try {
+    assertPlanPayload(body.plan);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "invalid plan";
+    respondWithProblem(res, 400, "Bad Request", message, instance);
+    return;
+  }
+
+  const targetRoot = parseExecutePlanField(body, "targetRoot");
+  if (!targetRoot) {
+    respondWithProblem(res, 400, "Bad Request", "targetRoot is required", instance);
+    return;
+  }
+
+  const slug = parseExecutePlanField(body, "slug");
+  if (!slug) {
+    respondWithProblem(res, 400, "Bad Request", "slug is required", instance);
+    return;
+  }
+
+  const effectivePrompt = parseExecutePlanField(body, "effectivePrompt");
+  if (!effectivePrompt) {
+    respondWithProblem(res, 400, "Bad Request", "effectivePrompt is required", instance);
+    return;
+  }
+
+  const systemPrompt = parseExecutePlanField(body, "systemPrompt");
+  if (!systemPrompt) {
+    respondWithProblem(res, 400, "Bad Request", "systemPrompt is required", instance);
+    return;
+  }
+
+  const clarifications = body.clarifications;
+  const sessionId = typeof body.sessionId === "string" ? body.sessionId : undefined;
+
+  const context = createPlanExecutionContext({
+    targetRoot,
+    slug,
+    effectivePrompt,
+    clarifications,
+    systemPrompt,
+    sessionId
+  });
+
+  try {
+    const result = await executeTaskPlan(body.plan as TaskPlan, context);
+    const estimate = estimateCompletion(result.progress, body.plan as TaskPlan);
+    res.json({ result, estimate });
+  } catch (error) {
+    const code = (error as { code?: string } | null)?.code;
+    if (code === "ABORT_ERR") {
+      respondWithProblem(res, 409, "Plan Aborted", (error as Error).message, instance, { code });
+      return;
+    }
+    console.error("[/execute-plan] unexpected error", error);
+    respondWithProblem(res, 500, "Internal Server Error", "Failed to execute plan", instance);
+  }
+});
 
 app.post("/api/clarify", (req, res) => {
   try {
