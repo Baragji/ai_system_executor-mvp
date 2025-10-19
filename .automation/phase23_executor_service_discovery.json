@@ -1,0 +1,42 @@
+{
+  "task_id": "REFACTOR-TASK-27",
+  "generated_at": "2025-10-19T00:00:00Z",
+  "summary": "Scaffold executor domain microservice from template with Express, OpenTelemetry bootstrap, and RFC 9457 problem+json defaults.",
+  "integration_points": [
+    {
+      "path": "services/_template/src/server.ts",
+      "line_context": "app.get('/healthz', (_req, res) => { res.json({ status: 'ok' }); });",
+      "notes": "Template exposes health check handler that will be reused verbatim in executor scaffold."
+    },
+    {
+      "path": "services/_template/src/index.ts",
+      "line_context": "bootstrap();",
+      "notes": "Entry point wires OpenTelemetry bootstrap prior to HTTP server creation."
+    },
+    {
+      "path": "services/_template/README.md",
+      "line_context": "SERVICE_NAME=template-service",
+      "notes": "Template README documents default service metadata that must be renamed for executor." 
+    },
+    {
+      "path": "services/_template/package.json",
+      "line_context": "\"name\": \"@executor/service-template\"",
+      "notes": "Package metadata requires renaming to @executor/executor-service for new scaffold."
+    },
+    {
+      "path": "services/_template/.env.example",
+      "line_context": "PORT=3999",
+      "notes": "Default port needs to change to 3001 per executor requirements."
+    }
+  ],
+  "compliance": {
+    "language": "TypeScript",
+    "framework": "Express",
+    "telemetry": "OpenTelemetry bootstrap script reused",
+    "error_format": "RFC 9457 problem+json via middleware"
+  },
+  "risks": [
+    "Ensure sed-based replacements run correctly on GNU sed (container uses GNU).",
+    "Validate npm run validate:all script completes without modifying lockfile."
+  ]
+}

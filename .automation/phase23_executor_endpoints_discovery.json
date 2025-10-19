@@ -1,0 +1,50 @@
+{
+  "date": "2025-10-26",
+  "task": "Refactor Task 28 - Extract Executor Endpoints",
+  "scope": "Expose executor file generation and validation over HTTP in services/executor",
+  "integration_points": [
+    {
+      "file": "src/executor/outputProcessing.ts",
+      "lines": [1, 52],
+      "note": "sanitizeExecutorOutput strips unsafe paths and normalizes executor payloads"
+    },
+    {
+      "file": "src/executor/writeFiles.ts",
+      "lines": [1, 40],
+      "note": "writeFiles persists sanitized executor files to disk with path safety checks"
+    },
+    {
+      "file": "src/utils/validateFiles.ts",
+      "lines": [1, 28],
+      "note": "validateFilesNonEmpty reports missing or empty artifacts after generation"
+    },
+    {
+      "file": "services/executor/src/server.ts",
+      "lines": [1, 60],
+      "note": "Express composition point where new /generate and /validate routers must be mounted"
+    },
+    {
+      "file": "services/repair/src/routes/repair.ts",
+      "lines": [1, 200],
+      "note": "Reference implementation for router validation + problem details handling"
+    }
+  ],
+  "commands_run": [
+    {
+      "cmd": "rg -n 'writeFiles\\(|sanitizeExecutorOutput\\(|validateFiles' src | head -n 20"
+    },
+    {
+      "cmd": "rg -n 'executor' tests | head -n 20"
+    }
+  ],
+  "risks": [
+    "Must return RFC 9457 problem details payloads on validation errors to match repo standards",
+    "Project root paths come from caller; improper validation could allow directory traversal if not normalized",
+    "Need parity with monolith responses so orchestrator callers do not break during migration"
+  ],
+  "next_steps": [
+    "Design request/response schema mirroring monolith executor helpers",
+    "Implement services/executor/src/routes/generate.ts and validate.ts with problem details handling",
+    "Add Vitest coverage for happy path and error branches, including validation failures"
+  ]
+}
