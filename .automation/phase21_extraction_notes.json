@@ -1,8 +1,8 @@
 {
-  "task_id": "V21-E1",
-  "generated_at": "2025-10-19T17:04:34.917Z",
+  "task_id": "V21-E2",
+  "generated_at": "2025-10-19T17:13:35.862Z",
   "files_read": 21,
-  "items_extracted": 555,
+  "items_extracted": 599,
   "categories": {
     "capabilities": [
       {
@@ -3340,6 +3340,278 @@
         "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/spec_for_autonomy.md",
         "line": 264,
         "method": "keyword"
+      }
+    ],
+    "purpose": [
+      {
+        "text": "**Purpose**: Deliver decisive, evidence‑backed technology research that is **consistently executable** within UMCA.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/01_research_agent_RA.md",
+        "line": 5,
+        "method": "manual"
+      },
+      {
+        "text": "**Purpose**: Turn RA decisions into **implementation‑ready architecture** with precise handoffs.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/02_architecture_agent_AA.md",
+        "line": 6,
+        "method": "manual"
+      },
+      {
+        "text": "**Purpose**: Turn AA designs into **implementation‑ready security**: threat model, controls, tests, and audit‑ready evidence.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/03_security_agent_SA.md",
+        "line": 6,
+        "method": "manual"
+      },
+      {
+        "text": "**Purpose**: Turn AA contracts into **production‑ready code** with **TDD**, **security‑by‑default**, and **evidence‑backed** handoffs.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/04_implementation_agent_IA.md",
+        "line": 6,
+        "method": "manual"
+      },
+      {
+        "text": "**Purpose**: Validate IA deliveries against AA/SA/DBA/RA with **binary gates**, **repeatable automation**, and **evidence‑backed** sign‑off.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/05_quality_agent_QA.md",
+        "line": 6,
+        "method": "manual"
+      },
+      {
+        "text": "**Purpose**: Turn QA‑validated builds into **production‑ready, observable, reversible** deployments with **binary gates** and **evidence‑first** automation.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/06_dev_ops_agent_DA.md",
+        "line": 6,
+        "method": "manual"
+      },
+      {
+        "text": "**Purpose**: Deliver **production‑ready data foundations**: schemas, safe migrations, performance, security, HA/DR, and evidence‑backed handoffs.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/07_database_agent_DBA.md",
+        "line": 6,
+        "method": "manual"
+      },
+      {
+        "text": "**Purpose**: Orchestrate the seven assistants to deliver **end‑to‑end, evidence‑backed** outcomes through **G0–G8** with zero redundancy and auditable gates.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/08_master_coordinator_agent_MCA.md",
+        "line": 6,
+        "method": "manual"
+      },
+      {
+        "text": "**Purpose**: Design **operationally excellent AI assistant prompts** for enterprise process automation that are **consistently executable** and **bulletproof in production**.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/09_ai_process_architect_agent_APA.md",
+        "line": 5,
+        "method": "manual"
+      },
+      {
+        "text": "You are the **FinOps Assistant (FOPS)**, the financial operations specialist within the UMCA framework. Your mission is to ensure cost-effective project delivery through real-time budget monitoring, predictive cost management, and systematic resource optimization across all project phases.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/10_finops_agent_FOPS.md",
+        "line": 13,
+        "method": "manual"
+      },
+      {
+        "text": "This document provides the standard operating procedures for using the Executor AI framework. The AI is designed for autonomous operation, driven by configuration files and activated by a simple \"Proceed\" command. Its purpose is to execute development tasks in a structured, verifiable, and auditable manner.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/Executor_agent_generic_templates/Masterfiles/runbook.md",
+        "line": 3,
+        "method": "manual"
+      },
+      {
+        "text": "- Single‑source taxonomy of functions for the autonomous AI coding system. Aligned with gates G0–G8 and canonical evidence paths.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/autonomous_ai_coding_system_taxonomy_ssot_1.2.md",
+        "line": 11,
+        "method": "manual"
+      },
+      {
+        "text": "Single‑source, copy‑pasteable taxonomy of functions for the autonomous AI coding system. Structured to align with SSOT gates (G0–G8), phases (P0–P6/Delivery), and evidence packages.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/autonomous_ai_coding_system_taxonomy_ssot_1.1.md",
+        "line": 13,
+        "method": "manual"
+      }
+    ],
+    "pain_points": [
+      {
+        "text": "1. Complete Context Package: Full system state, previous decisions, and current objectives",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Atomic_Phased_Systemgap_plan.md",
+        "line": 13,
+        "method": "manual"
+      },
+      {
+        "text": "2. Validation Checkpoints: Mandatory verification steps before proceeding",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Atomic_Phased_Systemgap_plan.md",
+        "line": 14,
+        "method": "manual"
+      },
+      {
+        "text": "3. Decision Audit Trail: Rationale for every architectural and implementation choice",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Atomic_Phased_Systemgap_plan.md",
+        "line": 15,
+        "method": "manual"
+      },
+      {
+        "text": "4. Error Recovery Procedures: Specific rollback and correction mechanisms",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Atomic_Phased_Systemgap_plan.md",
+        "line": 16,
+        "method": "manual"
+      },
+      {
+        "text": "* No Assumptions: Every instruction includes complete context and validation criteria",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Atomic_Phased_Systemgap_plan.md",
+        "line": 19,
+        "method": "manual"
+      },
+      {
+        "text": "CONTEXT: Current agent_motor/main.py acts as monolithic orchestrator",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Atomic_Phased_Systemgap_plan.md",
+        "line": 31,
+        "method": "manual"
+      },
+      {
+        "text": "If the AI encounters ambiguity, a failing quality gate, or an unsafe request, it will enter a BLOCKED state.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/Executor_agent_generic_templates/Masterfiles/runbook.md",
+        "line": 70,
+        "method": "manual"
+      },
+      {
+        "text": "It will generate a session report detailing the precise reason for the block and provide 2-3 actionable options for you to resolve it.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/Executor_agent_generic_templates/Masterfiles/runbook.md",
+        "line": 74,
+        "method": "manual"
+      },
+      {
+        "text": "A) **Ambiguous Process Requirements** → deliver **Requirements Clarification Protocol**:",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/09_ai_process_architect_agent_APA.md",
+        "line": 47,
+        "method": "manual"
+      },
+      {
+        "text": "B) **Schema Validation Failures** → execute **Schema Fix Protocol**:",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/09_ai_process_architect_agent_APA.md",
+        "line": 53,
+        "method": "manual"
+      },
+      {
+        "text": "- **Emergency cost throttling** with graceful service degradation protocols",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/10_finops_agent_FOPS.md",
+        "line": 24,
+        "method": "manual"
+      },
+      {
+        "text": "1. **Spike Detection**: Automatic identification of abnormal cost increases (>25% variance)",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/10_finops_agent_FOPS.md",
+        "line": 79,
+        "method": "manual"
+      }
+    ],
+    "goals": [
+      {
+        "text": "Develop a fully autonomous AI coding system that adheres to state-of-the-art best practices as of September 2025.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/spec_for_autonomy.md",
+        "line": 5,
+        "method": "manual"
+      },
+      {
+        "text": "Duration: 6 weeks | Objective: Implement Planner-Executor-Critic architecture with AI Assistant orchestration",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Atomic_Phased_Systemgap_plan.md",
+        "line": 25,
+        "method": "manual"
+      },
+      {
+        "text": "OBJECTIVE: Transform into hierarchical Planner-Executor-Critic system",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Atomic_Phased_Systemgap_plan.md",
+        "line": 32,
+        "method": "manual"
+      },
+      {
+        "text": "SUCCESS_CRITERIA: Cerebrum can decompose tasks and route to specialized agents",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Atomic_Phased_Systemgap_plan.md",
+        "line": 35,
+        "method": "manual"
+      },
+      {
+        "text": "**Focus**: Essential functionality for autonomous coding",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/autonomous_coding_taxonomy-2.md",
+        "line": 129,
+        "method": "manual"
+      },
+      {
+        "text": "**Focus**: Enhanced capabilities and resilience",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/autonomous_coding_taxonomy-2.md",
+        "line": 145,
+        "method": "manual"
+      },
+      {
+        "text": "**Focus**: Intelligence, learning, and strategic capabilities",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/autonomous_coding_taxonomy-2.md",
+        "line": 164,
+        "method": "manual"
+      },
+      {
+        "text": "**Core Responsibility**: Prevent cost overruns while maximizing value delivery through data-driven financial governance.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/10_finops_agent_FOPS.md",
+        "line": 15,
+        "method": "manual"
+      },
+      {
+        "text": "The operational cycle is designed to be simple, repeatable, and robust.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/Executor_agent_generic_templates/Masterfiles/runbook.md",
+        "line": 6,
+        "method": "manual"
+      }
+    ],
+    "value_propositions": [
+      {
+        "text": "## Based on your exceptional Analysis→Validation→Execution→Logging framework and the validated evolution strategy, I'll provide a new atomic phase roadmap specifically designed for AI Assistant execution with built-in context preservation and validation mechanisms.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Atomic_Phased_Systemgap_plan.md",
+        "line": 3,
+        "method": "manual"
+      },
+      {
+        "text": "This structured taxonomy provides complete traceability from high-level functions through implementation details to evidence validation, with clear phase assignments and integration into your SSOT framework.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/autonomous_coding_taxonomy-2.md",
+        "line": 1,
+        "method": "manual"
+      },
+      {
+        "text": "platform_policy.md: This file defines the specific rules and constraints the AI must follow for this project's platform (e.g., web_service, desktop_app). It ensures the AI's output is secure, compliant, and architecturally sound for your environment.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/Executor_agent_generic_templates/config/README.md",
+        "line": 6,
+        "method": "manual"
+      },
+      {
+        "text": "This document provides the specific, non-negotiable rules the Executor AI must follow for different application types. It is the source of truth for **how** the AI implements changes in a secure, compliant, and maintainable way.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/Executor_agent_generic_templates/config/platform_policy.md",
+        "line": 1,
+        "method": "manual"
+      },
+      {
+        "text": "session_plan.yaml: This is the master work plan. It defines the objectives and individual \"slices\" of work for the AI to execute in an ordered fashion. Modify this file to change the AI's goals.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/Executor_agent_generic_templates/config/README.md",
+        "line": 4,
+        "method": "manual"
+      },
+      {
+        "text": "This taxonomy can now serve as: 1. **Reference Architecture** - Complete system blueprint 2. **Implementation Roadmap** - Phased deployment guide with clear priorities 3. **Validation Framework** - Gate-based quality assurance 4. **Compliance Matrix** - Standards mapping (OWASP, NIST, ISO, EU AI Act) 5. **Evidence Correlation** - Traceability from function to artifact 6. **Tool Selection Guide** - Specific frameworks and versions 7. **FinOps Framework** - Budget controls and cost governance",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/autonomous_coding_taxonomy-2.md",
+        "line": 34,
+        "method": "manual"
+      },
+      {
+        "text": "### Financial Monitoring & Control - **Real-time cost tracking** for AI tokens, cloud resources, development tooling",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/10_finops_agent_FOPS.md",
+        "line": 21,
+        "method": "manual"
+      },
+      {
+        "text": "### Predictive Cost Management - **Cost trajectory forecasting** using current usage patterns and project timelines",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/10_finops_agent_FOPS.md",
+        "line": 28,
+        "method": "manual"
+      },
+      {
+        "text": "**Single source of truth**: maintain project **state files** (see §4) as canonical.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/08_master_coordinator_agent_MCA.md",
+        "line": 24,
+        "method": "manual"
+      },
+      {
+        "text": "2. **Operational resilience**: perfect happy path + bulletproof edge case handling for production readiness.",
+        "source_file": "docs/Goal_&_Vision_inspirational_only/01_Roadmaps_&_Agents/Agent_framework/09_ai_process_architect_agent_APA.md",
+        "line": 22,
+        "method": "manual"
       }
     ]
   }

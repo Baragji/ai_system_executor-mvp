@@ -191,7 +191,7 @@
         "Goals identified and sourced",
         "Value propositions extracted"
       ],
-      "status": "pending"
+      "status": "completed"
     },
     {
       "id": "V21-E3",
@@ -199,7 +199,7 @@
       "title": "Extract HOW information (approach and methodology)",
       "type": "discovery",
       "description": "Extract technical approaches considered, patterns/architectures mentioned, tools/technologies referenced, integration points discussed.",
-      "time_estimate_minutes": 60,
+      "time_estimate_minutes": 45,
       "prerequisite": "V21-D1",
       "actions": [
         "Extract architectural approaches",

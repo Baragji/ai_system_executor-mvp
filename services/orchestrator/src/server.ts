@@ -1,7 +1,10 @@
 import { config } from "dotenv";
 import express, { type Express, type Request, type Response } from "express";
 
+import { createStepQueueAdapter } from "./lib/stepQueueAdapter.js";
 import { installProblemDetails, respondWithProblem } from "./middleware/problemDetails.js";
+import { createExecuteRouter } from "./routes/execute.js";
+import { createExecutionsRouter } from "./routes/executions.js";
 import { createHealthRouter } from "./routes/health.js";
 import { maybeInitTelemetry, shutdownTelemetry } from "./telemetry/otel.js";
 
@@ -18,6 +21,9 @@ export function createApp(): Express {
 
   app.use(express.json());
   app.use(createHealthRouter());
+  const stepQueue = createStepQueueAdapter();
+  app.use(createExecuteRouter({ stepQueue }));
+  app.use(createExecutionsRouter());
 
   installProblemDetails(app);
 
