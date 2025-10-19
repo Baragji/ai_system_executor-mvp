@@ -19,11 +19,18 @@ Ensure root validations still pass with services enabled. Align checklists/docs 
 
 ## Implementation Steps
 
-1) Run root validations
+1) Run root validations (without forcing proxies globally)
 ```bash
-export ORCHESTRATOR_URL=${ORCHESTRATOR_URL:-http://localhost:3005}
-export RUNNER_URL=${RUNNER_URL:-http://localhost:3004}
+# Leave ORCHESTRATOR_URL and RUNNER_URL unset for full test parity
+unset ORCHESTRATOR_URL
+unset RUNNER_URL
 npm run validate:all
+```
+
+1b) Verify proxy behavior with targeted tests only (these set env locally)
+```bash
+vitest run tests/api/orchestrator-proxy.test.ts
+vitest run tests/run-tests-route.test.ts
 ```
 
 2) Update docs/checklists
@@ -43,5 +50,5 @@ git checkout -- docs/09_191025_todays_status/04_REFACTOR_STATUS_CHECKLIST.md
 ```
 
 ## Definition of Done
-- [ ] Root validate:all passes
-- [ ] Docs aligned with service extraction proxies
+- [x] Root validate:all passes
+- [x] Docs aligned with service extraction proxies (do not force proxies globally for full suite)

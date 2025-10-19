@@ -561,6 +561,48 @@ Use these numbers to calculate evidence for each task (e.g., "extracting OpenAI 
 
 ---
 
+## Task Index (1–30)
+
+Use these links to copy the next standalone tasks for Codex execution.
+
+### Batch 1 (01–10)
+- refactor_tasks/refactor_task_01_setup_service_template.md
+- refactor_tasks/refactor_task_02_setup_http_client.md
+- refactor_tasks/refactor_task_03_setup_ci_cd.md
+- refactor_tasks/refactor_task_04_setup_service_discovery.md
+- refactor_tasks/refactor_task_05_llm_gateway_extract_interfaces.md
+- refactor_tasks/refactor_task_06_llm_gateway_extract_openai_provider.md
+- refactor_tasks/refactor_task_07_llm_gateway_extract_retry_telemetry.md
+- refactor_tasks/refactor_task_08_llm_gateway_setup_endpoints.md
+- refactor_tasks/refactor_task_09_wire_monolith_to_llm_gateway.md
+- refactor_tasks/refactor_task_10_llm_gateway_migrate_tests.md
+
+### Batch 2 (11–20)
+- refactor_tasks/refactor_task_11_orchestrator_extraction_discovery.md
+- refactor_tasks/refactor_task_12_scaffold_orchestrator_service.md
+- refactor_tasks/refactor_task_13_extract_executions_store_endpoints.md
+- refactor_tasks/refactor_task_14_extract_stepqueue_adapter.md
+- refactor_tasks/refactor_task_15_wire_monolith_to_orchestrator.md
+- refactor_tasks/refactor_task_16_scaffold_runner_service.md
+- refactor_tasks/refactor_task_17_extract_runner_endpoints.md
+- refactor_tasks/refactor_task_18_wire_monolith_to_runner.md
+- refactor_tasks/refactor_task_19_per_service_ci_qa.md
+- refactor_tasks/refactor_task_20_parity_and_docs.md
+
+### Batch 3 (21–30)
+- refactor_tasks/refactor_task_21_services_extraction_discovery.md
+- refactor_tasks/refactor_task_22_scaffold_planning_service.md
+- refactor_tasks/refactor_task_23_extract_planning_endpoints.md
+- refactor_tasks/refactor_task_24_wire_monolith_to_planning.md
+- refactor_tasks/refactor_task_25_scaffold_repair_service.md
+- refactor_tasks/refactor_task_26_extract_repair_endpoints.md
+- refactor_tasks/refactor_task_27_scaffold_executor_service.md
+- refactor_tasks/refactor_task_28_extract_executor_endpoints.md
+- refactor_tasks/refactor_task_29_scaffold_clarification_service.md
+- refactor_tasks/refactor_task_30_parity_ci_docs_all_services.md
+
+---
+
 ## VALIDATION BEFORE SUBMISSION
 
 Before providing the task files, validate:

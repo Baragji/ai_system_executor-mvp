@@ -479,14 +479,18 @@ app.get("/api/executions/:id", async (req, res) => {
         respondWithProblem(res, 502, "UpstreamUnavailable", "fetch API not available in runtime", instance);
         return;
       }
-      const upstream = await fetchLike(target, { method: "GET", headers: { accept: "application/json" } });
-      let payload: unknown = null;
-      try {
-        payload = await upstream.json();
-      } catch {
-        payload = { error: "invalid upstream response" };
+      const upstream = await fetchLike(target, { method: "GET", headers: { accept: "application/json, application/problem+json" } });
+      const contentType = upstream.headers.get("content-type");
+      const raw = await upstream.text();
+      res.status(upstream.status);
+      if (contentType) {
+        res.setHeader("Content-Type", contentType);
       }
-      res.status(upstream.status).json(payload as object);
+      if (raw.length > 0) {
+        res.send(raw);
+      } else {
+        res.end();
+      }
       return;
     } catch (error) {
       const message = (error as Error | undefined)?.message || "failed to reach orchestrator";
@@ -1791,10 +1795,9 @@ app.post("/api/execute", async (req, res) => {
     const singlePayload: SingleStepPayload = { singleOptions };
     steps.push({ type: "single", payload: singlePayload, stopOnSuccess: true });
 
-    // When ORCHESTRATOR_URL is configured and LangGraph is not active,
-    // delegate execution to the external orchestrator service.
+    // Delegate to external orchestrator only when enabled for this runtime
     const ORCHESTRATOR_BASE = getOrchestratorBase();
-    if (!useLangGraph && ORCHESTRATOR_BASE) {
+    if (ORCHESTRATOR_BASE) {
       try {
         const fetchLike = (globalThis as unknown as { fetch?: (input: string, init?: { method?: string; headers?: Record<string, string>; body?: string }) => Promise<{ ok: boolean; status: number; headers: { get(name: string): string | null }; json(): Promise<unknown>; }> }).fetch;
         if (!fetchLike) {

@@ -149,10 +149,45 @@ Target (post-refactor):
 
 ## Phase 2: Domain Services (Week 3–4)
 
-- Planning, Repair, Executor services extracted with endpoints, tests, and monolith wiring.
-- Validation for each:
-  - `cd services/[service] && npm run validate:all`
-  - `curl -sfS http://localhost:[port]/healthz`
+- [ ] Task 21: Remaining services extraction — discovery
+  - Expected Outcome: `.automation/phase23_services_discovery.json` lists integration points and endpoints for planning/repair/executor/clarification
+  - Validation: `test -f .automation/phase23_services_discovery.json`
+
+- [ ] Task 22: Scaffold planning service
+  - Expected Outcome: `services/planning` boots; /healthz returns ok; validate:all passes
+  - Validation: `cd services/planning && npm run validate:all`
+
+- [ ] Task 23: Extract planning endpoints (/decompose, /execute-plan)
+  - Expected Outcome: Routes live and tested
+  - Validation: `cd services/planning && npm run validate:all`
+
+- [ ] Task 24: Wire monolith → planning (PLANNING_URL)
+  - Expected Outcome: Monolith proxies planning calls when env set
+  - Validation: `vitest run tests/planning/*.test.ts`
+
+- [ ] Task 25: Scaffold repair service
+  - Expected Outcome: `services/repair` boots; validate:all passes
+  - Validation: `cd services/repair && npm run validate:all`
+
+- [ ] Task 26: Extract repair endpoints (/analyze, /repair)
+  - Expected Outcome: Routes live and tested
+  - Validation: `cd services/repair && npm run validate:all`
+
+- [ ] Task 27: Scaffold executor service
+  - Expected Outcome: `services/executor` boots; validate:all passes
+  - Validation: `cd services/executor && npm run validate:all`
+
+- [ ] Task 28: Extract executor endpoints (/generate, /validate)
+  - Expected Outcome: Routes live and tested
+  - Validation: `cd services/executor && npm run validate:all`
+
+- [ ] Task 29: Scaffold clarification service + /clarify
+  - Expected Outcome: `services/clarification` boots; /clarify implemented
+  - Validation: `cd services/clarification && npm run validate:all`
+
+- [ ] Task 30: Parity validation + CI/QA + docs (all domain services)
+  - Expected Outcome: All services pass validate:all; root suite passes without global proxies; proxy tests pass in isolation; docs updated
+  - Validation: `npm run validate:all`
 
 ---
 
@@ -170,4 +205,3 @@ Target (post-refactor):
 - llm-gateway before orchestrator LangGraph live testing
 - runner before orchestrator test paths
 - Orchestrator wiring before UI integration
-
