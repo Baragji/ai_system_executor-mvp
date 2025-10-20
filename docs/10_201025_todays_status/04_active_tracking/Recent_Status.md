@@ -46,11 +46,6 @@ Microservices refactor: 3/53 batches complete; currently between Batch 2a (verif
 Phase 19 (paused per AGENTS override): Gates G0–G2 passed, G3 partial; replay/parity/perf validations pending for LangGraph.
 Recommended Next Actions
 
-Option A (refactor-first):
+Option (refactor-first):
 Mark 2a complete (README is in place and links are working).
 Create services/clarification/.env.example (PORT=3006 etc.), then update .automation/refactor_progress.md to mark 2b complete.
-Option B (phase gate):
-Run G3 validations with LangGraph enabled:
-AGENTS_RUNTIME=langgraph npm test tests/orchestrator/replay.test.ts
-AGENTS_RUNTIME=langgraph npm test tests/orchestrator/parity.test.ts
-AGENTS_RUNTIME=langgraph npm test tests/benchmarks/perf-overhead.test.ts

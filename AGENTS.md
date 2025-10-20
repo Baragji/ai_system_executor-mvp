@@ -1,298 +1,161 @@
-# UMCA Executor MVP — Repository Instructions for AI Agents
+# AGENTS.md Contract v1.0
 
-**Last Updated:** 2025-10-15
-**Enforcement:** This file is protected by CODEOWNERS. Changes require approval.
+## Metadata
+- Version: 1.0.0
+- Enforcement: CODEOWNERS-protected
+- Last Updated: 2025-10-20
+- Line Count: CI MUST verify ≤200
+- Purpose: Stop stubs/hardcoded "fake green" by requiring machine evidence per task
+- Standards: SSDF SP 800-218 (PS.2/PS.3), SLSA v1.0 (provenance), OWASP ASVS 5.0 (verification)
 
----
+## Critical Rules (numbered, verifiable)
+1. Evidence-Based ONLY
+   - No claim without saved, machine-verifiable evidence.
 
-## Current Work
+2. Discover Before Act
+   - MUST search/read before edits.
+   - Cmd: `rg -n "<pattern>" src/ services/ | tee .automation/evidence/$TASK/discovery.txt`
+   - HALT if edit touches paths not present in `discovery.txt`.
 
-⚠️ **TEMPORARY OVERRIDE:** Phase 19/20 work paused for critical microservices refactoring.
+3. Scope Lock
+   - Work ONLY on `Recent_Status.md` task `$TASK`.
+   - Commit title must include `[TASK:$TASK]`.
+   - HALT on scope drift.
 
-- **Active Work:** Microservices refactoring (monolith → 7 services)
-- **Refactoring Guidelines:** `docs/10_201025_todays_status/00_core/REFACTORING_GUIDELINES.md`
-- **Progress Tracking:** `.automation/refactor_progress.md`
-- **Next Batches:** `docs/10_201025_todays_status/00_core/batches_plan.md`
-- **Dependency Matrix:** `docs/10_201025_todays_status/00_core/dependency_matrix.md`
-- **Navigation:** `docs/10_201025_todays_status/README.md`
+4. Baseline → Change → Final
+   - BEFORE: `node scripts/metrics.js --out .automation/evidence/$TASK/baseline.json`
+   - AFTER:  `node scripts/metrics.js --out .automation/evidence/$TASK/final.json`
+   - HALT if acceptance in `Recent_Status.md` not met.
 
+5. Validation Gates (must pass, in order)
+   - `npm run lint   | tee .automation/evidence/$TASK/valid/lint.txt`
+   - `npm run typecheck | tee .automation/evidence/$TASK/valid/typecheck.txt`
+   - `npm test -- --reporter=json > .automation/evidence/$TASK/valid/tests.json`
+   - HALT on any non-zero or missing file.
 
-When refactoring completes, this section will revert to Phase 19/20 status.
+6. Integrity (Practical SLSA for dev tasks)
+   - Hash changed files:
+     `git diff --name-only | xargs -r sha256sum > .automation/evidence/$TASK/artifacts.sha256`
+   - Verify: `sha256sum -c .automation/evidence/$TASK/artifacts.sha256`
+   - HALT if verification fails or list is empty.
 
----
+7. Lightweight Task Provenance (dev tasks)
+   - Create `.automation/evidence/$TASK/task_provenance.json` with:
+     `{ "task": "$TASK", "files_modified": [...], "hashes_file": "artifacts.sha256", "tests": "valid/tests.json", "env": "env.txt", "timestamp": ISO8601 }`
+   - HALT if any referenced file missing.
 
-## Quick Status Check
+8. Environment & Determinism
+   - `{ node -v; npm -v; git rev-parse HEAD; } > .automation/evidence/$TASK/env.txt`
+   - Record seeds/configs used. HALT if `env.txt` missing.
 
-```bash
-npm run state:show  # Generates and displays .automation/WHERE_AM_I.json
+9. API/Contract Stability
+   - Do not break compatibility unless `Recent_Status.md` allows.
+   - Provide smoke proof: `node scripts/smoke.js > .automation/evidence/$TASK/api_smoke.txt` when endpoints touched.
+   - HALT on unapproved break.
+
+10. Security Baseline (lightweight)
+   - `npm audit --omit=dev --json > .automation/evidence/$TASK/audit.json`
+   - HALT if high/critical count increases vs baseline.
+
+11. Release Tasks (conditional)
+   - If packaging/releasing in this task:
+     - Produce `dist/` hashes: `sha256sum dist/** > .automation/evidence/$TASK/SHA256SUMS.txt`
+     - Produce SLSA provenance per builder (e.g., Actions): `provenance.json`
+     - (Security-relevant only) add `asvs.csv` mapping.
+   - HALT if any required artifact missing.
+   - Note: Signatures required only at release gates.
+
+12. Line-Cap & Machine-Parseable
+   - `wc -l AGENTS.md | tee .automation/evidence/$TASK/agents_linecount.txt`
+   - HALT if >200 lines.
+
+## Evidence Directory (required layout)
+```
+.automation/
+  evidence/$TASK/
+    discovery.txt
+    baseline.json
+    final.json
+    valid/
+      lint.txt
+      typecheck.txt
+      tests.json
+    artifacts.sha256
+    task_provenance.json
+    audit.json
+    api_smoke.txt (if APIs touched)
+    env.txt
+    summary.md
+    (release) SHA256SUMS.txt
+    (release) provenance.json
+    (optional) asvs.csv
 ```
 
-- Snapshot is read-only and synthesized from authoritative sources (GATES_LEDGER, contracts, git status).
-- File: `.automation/WHERE_AM_I.json` is auto-generated; do not commit.
-- See `CDI_INFRASTRUCTURE.md` for source mapping and usage.
+## Evidence Checklist (all MUST pass)
+- [ ] discovery.txt proves targets exist pre-edit
+- [ ] baseline.json & final.json show delta meets acceptance
+- [ ] lint/typecheck/tests.json all present; tests exit 0
+- [ ] artifacts.sha256 generated and verified
+- [ ] task_provenance.json references real files
+- [ ] audit.json shows no high/critical increase
+- [ ] api_smoke.txt present when endpoints changed
+- [ ] env.txt present
+- [ ] summary.md links every artifact
+- [ ] (release) SHA256SUMS.txt (+ provenance.json)
 
-### Find Next Task
+## HALT Conditions (agent MUST stop, rollback, report)
+| Condition | Action | Exit |
+|---|---|---|
+| Missing discovery/baseline/final | `git restore . ; create HALT_REPORT.md` | 20 |
+| Lint/typecheck/tests fail | rollback; attach logs; HALT_REPORT | 21 |
+| Acceptance unmet | rollback; propose fix plan | 22 |
+| Scope drift | rollback; request approval | 23 |
+| Audit worsened | rollback; open security issue | 24 |
+| Integrity/provenance missing | rollback; regenerate | 25 |
+| AGENTS.md >200 lines | reduce; re-run checks | 27 |
 
+## Validation Snippets (copy/paste; save outputs)
 ```bash
-npm run state:show      # Current status + pending actions
-npm run state:next:dry  # Preview the auto-suggested next step
-npm run state:next      # Execute the suggested step (requires confirmation)
+rg -n "<target>" src/ services/ | tee .automation/evidence/$TASK/discovery.txt
+node scripts/metrics.js --out .automation/evidence/$TASK/baseline.json
+# implement change
+node scripts/metrics.js --out .automation/evidence/$TASK/final.json
+npm run lint   | tee .automation/evidence/$TASK/valid/lint.txt
+npm run typecheck | tee .automation/evidence/$TASK/valid/typecheck.txt
+npm test -- --reporter=json > .automation/evidence/$TASK/valid/tests.json
+git diff --name-only | xargs -r sha256sum > .automation/evidence/$TASK/artifacts.sha256
+sha256sum -c .automation/evidence/$TASK/artifacts.sha256
+{ node -v; npm -v; git rev-parse HEAD; } > .automation/evidence/$TASK/env.txt
+wc -l AGENTS.md | tee .automation/evidence/$TASK/agents_linecount.txt
 ```
 
-- Commands live in `package.json` scripts; they orchestrate gate + contract state.
-- Always review the dry run output before executing the suggested task.
-- Capture any evidence or artifacts the step requests before moving on.
+## Anti-Patterns (regex-detectable; forbidden)
+| Pattern | Regex | Violation |
+|---|---|---|
+| Path guessing | `(?i)\b(think\|probably\|should be at)\b` | Claims w/o evidence |
+| Deep relative import | `(\.\./){3,}` | Fragile structure creep |
+| Hardcoded success | `return\s*\{\s*success:\s*true\s*\}` | Fake green |
+| TypeScript any | `:\s*any\b` | Type unsafety |
+| TODO/FIXME left | `(?i)\bTODO\b\|\bFIXME\b` | Incomplete work |
+| Noisy prod log | `src/.*console\.log` | Undisciplined logging |
 
----
-
-## Stack & Constraints
-
-### Allowed Technology
-- **Language:** TypeScript/JavaScript ONLY
-- **Backend:** Node.js 20+ with Express
-- **Frontend:** Vanilla JS/CSS under `/public` directory - NO frameworks
-- **Testing:** Vitest with 80% line coverage, 75% branch coverage
-- **Linting:** ESLint with zero warnings
-
-### Forbidden Technology
-- ❌ **No Python** anywhere in this project
-- ❌ **No frontend frameworks** (React, Vue, Angular, etc.) in `/public`
-- ❌ **No new dependencies** without explicit justification (see Phase 19 contract for approved deps)
-- ❌ **No breaking changes** to existing APIs
-
----
-
-## Feature Flags (Phase 19+)
-
-Phase 19+ work uses feature flags for safe, incremental rollout:
-
-| Flag | Default | Purpose | Docs |
-|------|---------|---------|------|
-| `AGENTS_RUNTIME` | `stepqueue` | Enable LangGraph orchestrator when set to `langgraph` | ADR-019 |
-| `OTEL_ENABLED` | `false` | Enable OpenTelemetry GenAI span tracing | Phase 19 T0 |
-| `ACTION_LOG_JSONL` | `false` | Dual-write JSONL action logs to `.automation/actions.jsonl` | Phase 19 T0 |
-| `GATE_AUTO_UPDATE` | `enabled` (set `0` to opt out) | Allow workflow tooling to write `.automation/GATES_LEDGER.md`; dry-runs always permitted | Phase 5 Auto-Update |
-| `PROBLEM_DETAILS_ENABLED` | Auto (on in dev/test, off in prod) | Use RFC 9457 problem details error format | Phase 19 T0 |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4318/v1/traces` | OpenTelemetry collector endpoint | Optional |
-
-**Testing feature flags:**
-```bash
-# Enable LangGraph runtime
-export AGENTS_RUNTIME=langgraph
-npm run dev
-
-# Enable OpenTelemetry tracing
-export OTEL_ENABLED=1
-npm run dev
-
-# Enable action log dual-write
-export ACTION_LOG_JSONL=1
-npm run dev
-
-# Opt out of gate auto-update writes (default: enabled)
-export GATE_AUTO_UPDATE=0
+## PR Template (machine-checkable)
+```
+[TASK:$TASK] $TITLE
+Scope: (from Recent_Status.md)
+Summary: what changed, why
+Evidence:
+- discovery.txt
+- baseline.json → final.json (delta OK)
+- lint.txt / typecheck.txt / tests.json
+- artifacts.sha256 (verified)
+- audit.json (no new high/critical)
+- api_smoke.txt (if touched)
+- (release) SHA256SUMS.txt / provenance.json
+Risks/Follow-ups:
 ```
 
-**Opt-out / Rollback:**
-```bash
-unset AGENTS_RUNTIME  # or set to "stepqueue"
-unset OTEL_ENABLED
-unset ACTION_LOG_JSONL
-export GATE_AUTO_UPDATE=0  # Keep gate updates read-only (dry runs still available)
-```
-
----
-
-## Discovery-First Protocol
-
-Before making ANY code changes:
-
-1. **Discover Integration Points**
-   - Identify exact file + line + function where code will integrate
-   - Document current implementation with code snippets (±10 lines)
-   - List all dependencies and potential impacts
-   - Verify stack compliance against `ai-stack.json`
-
-2. **Create Discovery Note**
-   - Output: `.automation/phase*_discovery.json` and `.md`
-   - Must include: integration points, snippets, justification, compliance check
-   - Review discovery note before proceeding
-
-3. **No Assumptions**
-   - Never assume file structure or function names
-   - Always grep/search to find actual locations
-   - Document what you found, not what you expected
-
----
-
-## Commands (Run These Exactly)
-
-### Validation Commands (Must Pass Before Merge)
-```bash
-npm run lint              # ESLint - must exit 0, no warnings
-npm run typecheck         # TypeScript - must exit 0
-npm test                  # Vitest - must exit 0, coverage thresholds met
-npm run contract:check    # Contract schema validation - must exit 0
-npm run sbom              # Generate SPDX SBOM artifact
-npm run sbom:cyclonedx    # Generate CycloneDX SBOM (Phase 19+)
-npm run sbom:all          # Generate both SPDX + CycloneDX (Phase 19+)
-npm run provenance        # Generate SLSA v1.0 provenance (Phase 19+)
-```
-
-### Build & Run
-```bash
-npm run build             # TypeScript compilation
-npm run dev               # Development server with watch
-npm test -- --watch       # Test watch mode
-```
-
----
-
-## Evidence Requirements
-
-Every PR must include:
-
-1. **Discovery Note**
-   - Path: `.automation/phase*_discovery_note.md`
-   - Contents: Integration points with code snippets
-   - Justification for chosen approach
-
-2. **Test Evidence**
-   - All tests passing (exit 0)
-   - Coverage thresholds met
-   - No skipped tests without explanation
-
-3. **Contract Validation**
-   - `npm run contract:check` passes
-   - Contract JSON validates against schema
-
-4. **SBOM Artifacts** (Phase 19+)
-   - SPDX: Generated via `npm run sbom` → `sbom.spdx.json`
-   - CycloneDX: Generated via `npm run sbom:cyclonedx` → `sbom.cdx.json` (Phase 19 T0)
-   - SLSA Provenance: Generated via `npm run provenance` → `provenance.intoto.jsonl` (Phase 19 T0)
-   - All uploaded in CI pipeline
-
-5. **Error Handling** (Phase 19+)
-   - Use RFC 9457 problem details via `respondWithProblem()` helper in `src/middleware/problemDetails.ts`
-   - Test with `PROBLEM_DETAILS_ENABLED=1` (default in dev/test)
-   - Documentation: `docs/api/problem_types.md`
-   - RFC: https://www.rfc-editor.org/rfc/rfc9457.html
-
-6. **Stack Compliance**
-   - No forbidden file extensions (.py, etc.)
-   - Frontend changes only under `/public`
-   - No new frameworks introduced
-
----
-
-## Protected Files (CODEOWNERS Approval Required)
-
-Changes to these require explicit approval:
-- `ai-stack.json`
-- `.github/copilot-instructions.md`
-- `.github/workflows/*`
-- `contracts/schemas/*`
-- `.github/CODEOWNERS`
-
----
-
-## Anti-Drift Rules
-
-### DO
-✅ Follow patterns established in existing code  
-✅ Add tests for all new functionality  
-✅ Document integration points before changing code  
-✅ Run all validation commands before creating PR  
-✅ Keep changes focused and minimal  
-
-### DON'T
-❌ Add Python code for any reason  
-❌ Introduce frontend frameworks in `/public`  
-❌ Make breaking changes to APIs  
-❌ Skip discovery phase  
-❌ Commit without passing all validation  
-❌ Modify protected files without approval  
-
----
-
-## Quality Standards
-
-### Code Quality
-- **Coverage:** 80% line, 75% branch minimum
-- **Warnings:** Zero tolerance
-- **Errors:** Must fix before PR
-- **Style:** ESLint enforced automatically
-
-### Contract Quality
-- **Validation:** Must pass schema check
-- **Completeness:** All required fields present
-- **Evidence:** All claims backed by artifacts
-- **Traceability:** Clear decision reasoning
-
----
-
-## Execution Flow
-
-1. **Phase Verification** → Confirm prerequisites complete
-2. **Discovery Phase** → Map integration points (mandatory)
-3. **Win Implementation** → Execute with discovered integration points
-4. **Evidence Collection** → Generate all required artifacts
-5. **Validation Gate** → All checks pass before merge
-
----
-
-## Error Handling
-
-If any step fails:
-
-1. **HALT immediately** - do not proceed
-2. **Document the failure** in trace file
-3. **Report to human** with diagnostic info
-4. **Wait for guidance** - no assumptions
-
----
-
-## Integration Guidelines
-
-### Frontend Changes (`/public/*`)
-- Pure vanilla JS - no transpilation needed
-- CSS changes go in existing `.css` files
-- Test in browser manually before marking complete
-- Verify no console errors
-
-### Backend Changes (`src/*`)
-- TypeScript with full type safety
-- Unit tests required for all functions
-- Integration tests for API endpoints
-- Error handling on all async operations
-
-### Schema Changes (`contracts/schemas/*`)
-- Requires CODEOWNERS approval
-- Must be backwards compatible
-- Validate against existing contracts
-- Document breaking changes
-
----
-
-## When In Doubt
-
-1. **Stop and ask** - don't guess
-2. **Check ai-stack.json** for constraints
-3. **Review discovery phase** if stuck on integration
-4. **Run validation commands** to catch issues early
-5. **Read existing code** for patterns to follow
-
----
-
-**Remember:** Quality over speed. Ship perfect or never.
-
----
-
-## Contact & Governance
-
-- **Owner:** @yousefbaragji
-- **Protected Files:** Require CODEOWNERS approval
-- **Stack Drift:** Automatically rejected by CI
-- **Evidence Missing:** PR blocked until artifacts present
-
-This file enforces the Contract-Driven Integration (CDI) pattern for AI-powered development.
+## References
+* SSDF SP 800-218 (PS.2/PS.3 release integrity & archiving).
+* SLSA v1.0 (provenance definition & verification).
+* OWASP ASVS 5.0 (verification baseline).
