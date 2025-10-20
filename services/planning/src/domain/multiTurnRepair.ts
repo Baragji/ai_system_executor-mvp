@@ -1,3 +1,3 @@
 // Local adapter to avoid deep imports in context.ts
-export { multiTurnRepair } from "../../../../src/repair/multiTurnRepair.js";
+export { multiTurnRepair, type MultiTurnContext } from "../../../../src/repair/multiTurnRepair.js";
 

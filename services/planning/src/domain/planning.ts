@@ -2,12 +2,12 @@ export {
   decomposeTask,
   ClarificationRequiredError,
   SimplePromptBypassError,
-} from "../../../../src/planning/decomposeTask.js";
+} from "./decomposeTask.js";
 
-export { executeTaskPlan } from "../../../../src/planning/executeTaskPlan.js";
-export { estimateCompletion } from "../../../../src/planning/estimateCompletion.js";
+export { executeTaskPlan } from "./executeTaskPlan.js";
+export { estimateCompletion } from "./estimateCompletion.js";
 
-export { TaskPlanValidationError } from "../../../../src/planning/types.js";
+export { TaskPlanValidationError } from "./types.js";
 
 export type {
   TaskPlan,
@@ -17,6 +17,6 @@ export type {
   TimeEstimate,
   PlanExecutionContext,
   SubtaskPromptRequest,
-} from "../../../../src/planning/types.js";
+} from "./types.js";
 
 export type { ClarificationResponse } from "../../../../src/clarification/types.js";

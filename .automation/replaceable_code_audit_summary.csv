@@ -1,0 +1,13 @@
+Category,Status,Priority,Custom LOC,Replaceable,Recommended Replacement,Time Savings (Hours),Effort (Days),Files Affected
+"Authentication & Security",Minimal,Low,0,No,N/A,0,0,"None"
+"Logging & Monitoring",Custom,Medium,116,Yes,"winston or pino",15-20,1,"src/telemetry/events.ts"
+"HTTP Client & API",Custom,High,150,Yes,"got + p-retry",30-40,1,"src/utils/curlFetch.ts, src/llm/index.ts (retry)"
+"Database & ORM",N/A,Low,0,No,N/A,0,0,"None (file-based storage)"
+"Caching & Storage",Minimal,Low,20,No,"Keep as-is",0,0,"src/llm/providers/choose.ts"
+"Validation & Serialization",Mixed,Low,29,Partial,"Keep Ajv, consolidate file validation",5-10,0.5,"src/utils/validateFiles.ts"
+"Task Queues & Workers",Underutilized,Medium,0,Decision,"Implement or remove BullMQ",0,0.5,"package.json, type definitions"
+"Real-time Communication",Custom,Low,50,Yes,"express-sse or @fastify/sse",10-15,0.5,"src/server.ts (SSE logic)"
+"AI/ML Integrations",Heavy Custom,Critical,500,Yes,"LangChain (already installed!)",80-100,2-3,"src/llm/index.ts (334 lines), src/llm/providers/, src/llm/tools/"
+"UI Components & Styling",Massive,High,1813,Yes,"Alpine.js or Lit Web Components",50-70,3-4,"public/script.js (1813 lines)"
+
+Total,,,2678,75%,,185-245,8-10,10+ files

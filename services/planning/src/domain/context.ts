@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { withTraceContext } from "../telemetry/trace.js";
+import { withTraceContext } from "../domain/llmTrace.js";
 import { generateSubtaskOutputWithRetry } from "../domain/generateSubtaskOutput.js";
 import { writeFiles } from "../domain/writeFiles.js";
 import { ensureDefaultExportForApp } from "../domain/normalizeExports.js";
