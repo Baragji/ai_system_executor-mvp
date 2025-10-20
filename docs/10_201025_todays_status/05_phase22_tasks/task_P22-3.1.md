@@ -7,7 +7,7 @@
 - Estimated Time: 30-45 minutes
 
 ## Required Context Files (Read Before Starting)
-1. `CLAUDE.md`
+1. `AGENTS.md`
 2. `ai-stack.json`
 
 ## Setup (If Fresh Environment)

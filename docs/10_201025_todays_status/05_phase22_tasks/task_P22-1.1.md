@@ -7,7 +7,7 @@
 - Estimated Time: 30-45 minutes
 
 ## Required Context Files (Read Before Starting)
-1. `CLAUDE.md` — Project overview, discovery protocol, stack constraints
+1. `AGENTS.md` — Project overview, discovery protocol, stack constraints
 2. `ai-stack.json` — Technology lock (TypeScript only, no Python)
 3. `contracts/Roadmap_execution/22_phase22_service_extraction_contract.json` — Phase contract
 4. `.automation/refactor_services_discovery.json` — Discovery artifact with integration points

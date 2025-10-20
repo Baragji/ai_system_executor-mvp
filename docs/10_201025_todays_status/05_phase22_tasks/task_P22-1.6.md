@@ -7,7 +7,7 @@
 - Estimated Time: 30-45 minutes
 
 ## Required Context Files (Read Before Starting)
-1. `CLAUDE.md`
+1. `AGENTS.md`
 2. `ai-stack.json`
 3. `contracts/Roadmap_execution/22_phase22_service_extraction_contract.json`
 4. `.automation/refactor_services_discovery.json`
