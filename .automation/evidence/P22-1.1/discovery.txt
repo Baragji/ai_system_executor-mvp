@@ -1,0 +1,42 @@
+services/repair/src/routes/repair.ts:3:import { multiTurnRepair, type MultiTurnContext } from "../../../../src/repair/multiTurnRepair.js";
+services/repair/src/routes/repair.ts:4:import { repairOnce, type RepairOnceArgs, type RepairOutcome } from "../../../../src/repair/repairOnce.js";
+services/repair/src/routes/repair.ts:5:import type { RunResult } from "../../../../src/contracts/validators.js";
+services/repair/src/routes/repair.ts:6:import type { RepairHistory } from "../../../../src/contracts/repairHistoryValidator.js";
+services/repair/src/routes/repair.ts:7:import type { ExecutorFile } from "../../../../src/executor/types.js";
+services/repair/src/routes/analyze.ts:3:import { analyzeFailure } from "../../../../src/repair/analyzeFailure.js";
+services/repair/src/routes/analyze.ts:5:import type { FailureAnalysis } from "../../../../src/contracts/repairHistoryValidator.js";
+services/repair/tests/routes/repair.test.ts:4:vi.mock("../../../../src/repair/multiTurnRepair.js", () => ({
+services/repair/tests/routes/repair.test.ts:8:vi.mock("../../../../src/repair/repairOnce.js", () => ({
+services/repair/tests/routes/repair.test.ts:12:import { multiTurnRepair } from "../../../../src/repair/multiTurnRepair.js";
+services/repair/tests/routes/repair.test.ts:13:import { repairOnce, type RepairOutcome } from "../../../../src/repair/repairOnce.js";
+services/repair/tests/routes/repair.test.ts:14:import type { RepairHistory } from "../../../../src/contracts/repairHistoryValidator.js";
+services/repair/tests/routes/repair.test.ts:15:import type { RunResult } from "../../../../src/contracts/validators.js";
+services/planning/src/domain/context.ts:3:import { withTraceContext } from "../../../../src/llm/trace.js";
+services/planning/src/domain/context.ts:4:import { generateSubtaskOutputWithRetry } from "../../../../src/planning/generateSubtaskOutput.js";
+services/planning/src/domain/context.ts:8:import { runInSandbox } from "../../../../src/runner/runInSandbox.js";
+services/planning/src/domain/context.ts:9:import { multiTurnRepair } from "../../../../src/repair/multiTurnRepair.js";
+services/planning/src/domain/context.ts:14:} from "../../../../src/orchestrator/abortSignal.js";
+services/planning/src/domain/context.ts:15:import type { ClarificationResponse } from "../../../../src/clarification/types.js";
+services/planning/src/domain/context.ts:16:import type { PlanExecutionContext, SubtaskPromptRequest } from "../../../../src/planning/types.js";
+services/planning/src/domain/planning.ts:5:} from "../../../../src/planning/decomposeTask.js";
+services/planning/src/domain/planning.ts:7:export { executeTaskPlan } from "../../../../src/planning/executeTaskPlan.js";
+services/planning/src/domain/planning.ts:8:export { estimateCompletion } from "../../../../src/planning/estimateCompletion.js";
+services/planning/src/domain/planning.ts:10:export { TaskPlanValidationError } from "../../../../src/planning/types.js";
+services/planning/src/domain/planning.ts:19:} from "../../../../src/planning/types.js";
+services/planning/src/domain/planning.ts:21:export type { ClarificationResponse } from "../../../../src/clarification/types.js";
+services/executor/src/routes/generate.ts:5:import { sanitizeExecutorOutput } from "../../../../src/executor/outputProcessing.js";
+services/executor/src/routes/generate.ts:6:import { validateExecutorOutput } from "../../../../src/executor/schema.js";
+services/executor/src/routes/generate.ts:7:import { writeFiles } from "../../../../src/executor/writeFiles.js";
+services/executor/src/routes/generate.ts:8:import type { ExecutorOutput } from "../../../../src/executor/types.js";
+services/executor/src/routes/validate.ts:5:import { validateFilesNonEmpty } from "../../../../src/utils/validateFiles.js";
+services/executor/tests/routes/generate.test.ts:6:vi.mock("../../../../src/executor/writeFiles.js", () => ({
+services/executor/tests/routes/generate.test.ts:10:import { writeFiles } from "../../../../src/executor/writeFiles.js";
+services/runner/src/domain/runner.ts:1:export { runInSandbox } from "../../../../src/runner/runInSandbox.js";
+services/runner/src/domain/runner.ts:2:export type { RunInSandboxOptions } from "../../../../src/runner/runInSandbox.js";
+services/runner/src/domain/runner.ts:4:export { ensureDependencies } from "../../../../src/runner/installDeps.js";
+services/runner/src/domain/runner.ts:5:export type { EnsureDependenciesResult } from "../../../../src/runner/installDeps.js";
+services/runner/src/domain/runner.ts:7:export { logEvent } from "../../../../src/telemetry/events.js";
+services/clarification/src/routes/clarify.ts:5:import { detectMissing } from "../../../../src/clarification/detectMissing.js";
+services/clarification/src/routes/clarify.ts:6:import { generateQuestions } from "../../../../src/clarification/generateQuestions.js";
+services/clarification/src/routes/clarify.ts:7:import type { ClarificationQuestion } from "../../../../src/clarification/types.js";
+services/clarification/src/routes/clarify.ts:8:import { validateClarificationRequest } from "../../../../src/contracts/validators.js";

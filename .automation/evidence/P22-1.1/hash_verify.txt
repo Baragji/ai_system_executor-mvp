@@ -1,0 +1,5 @@
+.automation/evaluation_results.json: OK
+.automation/execution_trace.jsonl: OK
+.telemetry/events.log: OK
+services/planning/src/domain/context.ts: OK
+services/planning/src/domain/planning.ts: OK

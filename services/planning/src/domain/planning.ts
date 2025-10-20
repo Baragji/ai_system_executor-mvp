@@ -16,6 +16,7 @@ export type {
   ProgressSnapshot,
   TimeEstimate,
   PlanExecutionContext,
+  SubtaskPromptRequest,
 } from "../../../../src/planning/types.js";
 
 export type { ClarificationResponse } from "../../../../src/clarification/types.js";

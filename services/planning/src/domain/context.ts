@@ -1,19 +1,16 @@
 import path from "node:path";
 
-import { withTraceContext } from "../../../../src/llm/trace.js";
-import { generateSubtaskOutputWithRetry } from "../../../../src/planning/generateSubtaskOutput.js";
+import { withTraceContext } from "../telemetry/trace.js";
+import { generateSubtaskOutputWithRetry } from "../domain/generateSubtaskOutput.js";
 import { writeFiles } from "../domain/writeFiles.js";
 import { ensureDefaultExportForApp } from "../domain/normalizeExports.js";
 import { ensureJsonHealthOnDisk } from "../domain/normalizeHealth.js";
-import { runInSandbox } from "../../../../src/runner/runInSandbox.js";
-import { multiTurnRepair } from "../../../../src/repair/multiTurnRepair.js";
+import { runInSandbox } from "../domain/runInSandbox.js";
+import { multiTurnRepair } from "../domain/multiTurnRepair.js";
 import { logEvent } from "../telemetry/events.js";
 import { writeFixture } from "../domain/fixtures.js";
-import {
-  throwIfAborted,
-} from "../../../../src/orchestrator/abortSignal.js";
-import type { ClarificationResponse } from "../../../../src/clarification/types.js";
-import type { PlanExecutionContext, SubtaskPromptRequest } from "../../../../src/planning/types.js";
+import { throwIfAborted } from "../domain/abortSignal.js";
+import type { ClarificationResponse, PlanExecutionContext, SubtaskPromptRequest } from "../domain/planning.js";
 
 async function captureFixture(
   sessionId: string | undefined,

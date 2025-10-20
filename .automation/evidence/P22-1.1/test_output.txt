@@ -1,0 +1,18 @@
+
+ RUN  v2.1.9 /Users/Yousef_1/Downloads/ai_system_executor-mvp/services/planning
+      Coverage enabled with v8
+
+ ✓ tests/httpClient.test.ts (3 tests) 26ms
+ ✓ tests/server.test.ts (11 tests) 34ms
+
+ Test Files  2 passed (2)
+      Tests  14 passed (14)
+   Start at  21:07:13
+   Duration  793ms (transform 307ms, setup 0ms, collect 674ms, tests 59ms, environment 0ms, prepare 114ms)
+
+ % Coverage report from v8
+----------|---------|----------|---------|---------|-------------------
+File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+----------|---------|----------|---------|---------|-------------------
+All files |       0 |        0 |       0 |       0 |                   
+----------|---------|----------|---------|---------|-------------------

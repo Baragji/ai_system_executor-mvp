@@ -1,0 +1,8 @@
+{
+  "task": "P22-1.1",
+  "files_modified": [ ".automation/evaluation_results.json" ,".automation/execution_trace.jsonl" ,".telemetry/events.log" ,"services/planning/src/domain/context.ts" ,"services/planning/src/domain/planning.ts" ],
+  "hashes_file": "artifacts.sha256",
+  "tests": "valid/tests.json",
+  "env": "env.txt",
+  "timestamp": "2025-10-20T19:08:54Z"
+}
