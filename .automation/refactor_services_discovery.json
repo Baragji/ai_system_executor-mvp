@@ -1,0 +1,202 @@
+{
+  "discovery_type": "microservices_refactoring",
+  "date": "2025-10-20",
+  "services": [
+    {
+      "name": "clarification",
+      "deep_imports": [
+        {"file": "services/clarification/src/routes/clarify.ts", "line": 5, "import": "../../../../src/clarification/detectMissing.js"},
+        {"file": "services/clarification/src/routes/clarify.ts", "line": 6, "import": "../../../../src/clarification/generateQuestions.js"},
+        {"file": "services/clarification/src/routes/clarify.ts", "line": 7, "import": "../../../../src/clarification/types.js"},
+        {"file": "services/clarification/src/routes/clarify.ts", "line": 8, "import": "../../../../src/contracts/validators.js"}
+      ],
+      "dependencies": [
+        "express", "dotenv",
+        "@opentelemetry/exporter-trace-otlp-http",
+        "@opentelemetry/instrumentation-http",
+        "@opentelemetry/resources",
+        "@opentelemetry/sdk-node",
+        "@opentelemetry/semantic-conventions"
+      ],
+      "environment_vars": [
+        "NODE_ENV", "PORT", "SERVICE_NAME",
+        "OTEL_ENABLED", "OTEL_EXPORTER_OTLP_ENDPOINT",
+        "PROBLEM_DETAILS_ENABLED"
+      ],
+      "routes_impacted": ["POST /clarify", "GET /healthz"],
+      "risk_assessment": "MEDIUM"
+    },
+    {
+      "name": "executor",
+      "deep_imports": [
+        {"file": "services/executor/src/routes/generate.ts", "line": 5, "import": "../../../../src/executor/outputProcessing.js"},
+        {"file": "services/executor/src/routes/generate.ts", "line": 6, "import": "../../../../src/executor/schema.js"},
+        {"file": "services/executor/src/routes/generate.ts", "line": 7, "import": "../../../../src/executor/writeFiles.js"},
+        {"file": "services/executor/src/routes/generate.ts", "line": 8, "import": "../../../../src/executor/types.js"},
+        {"file": "services/executor/src/routes/validate.ts", "line": 5, "import": "../../../../src/utils/validateFiles.js"}
+      ],
+      "dependencies": [
+        "express", "dotenv",
+        "@opentelemetry/api",
+        "@opentelemetry/exporter-trace-otlp-http",
+        "@opentelemetry/instrumentation-http",
+        "@opentelemetry/resources",
+        "@opentelemetry/sdk-node",
+        "@opentelemetry/semantic-conventions"
+      ],
+      "environment_vars": [
+        "NODE_ENV", "PORT", "SERVICE_NAME",
+        "OTEL_ENABLED", "OTEL_EXPORTER_OTLP_ENDPOINT",
+        "PROBLEM_DETAILS_ENABLED"
+      ],
+      "routes_impacted": ["POST /generate", "POST /validate", "GET /healthz"],
+      "risk_assessment": "MEDIUM"
+    },
+    {
+      "name": "llm-gateway",
+      "deep_imports": [],
+      "dependencies": [
+        "express", "dotenv",
+        "openai",
+        "@opentelemetry/exporter-trace-otlp-http",
+        "@opentelemetry/instrumentation-http",
+        "@opentelemetry/resources",
+        "@opentelemetry/sdk-node",
+        "@opentelemetry/semantic-conventions"
+      ],
+      "environment_vars": [
+        "NODE_ENV", "PORT", "SERVICE_NAME",
+        "OTEL_ENABLED", "OTEL_EXPORTER_OTLP_ENDPOINT",
+        "PROBLEM_DETAILS_ENABLED",
+        "LLM_GATEWAY_PROVIDER", "LLM_GATEWAY_LOG_EVENTS",
+        "OPENAI_API_KEY", "LLM_MODEL",
+        "LLM_MAX_RETRIES", "LLM_INITIAL_BACKOFF_MS", "LLM_MAX_BACKOFF_MS",
+        "LLM_PROVIDER_DEBUG"
+      ],
+      "routes_impacted": ["POST /complete", "POST /stream", "GET /healthz"],
+      "risk_assessment": "MEDIUM"
+    },
+    {
+      "name": "orchestrator",
+      "deep_imports": [],
+      "dependencies": [
+        "express", "dotenv",
+        "@opentelemetry/exporter-trace-otlp-http",
+        "@opentelemetry/instrumentation-http",
+        "@opentelemetry/resources",
+        "@opentelemetry/sdk-node",
+        "@opentelemetry/semantic-conventions"
+      ],
+      "environment_vars": [
+        "NODE_ENV", "PORT", "SERVICE_NAME",
+        "OTEL_ENABLED", "OTEL_EXPORTER_OTLP_ENDPOINT",
+        "PROBLEM_DETAILS_ENABLED"
+      ],
+      "routes_impacted": ["POST /execute", "GET /executions/:id", "GET /healthz"],
+      "risk_assessment": "LOW"
+    },
+    {
+      "name": "planning",
+      "deep_imports": [
+        {"file": "services/planning/src/domain/context.ts", "line": 3, "import": "../../../../src/llm/trace.js"},
+        {"file": "services/planning/src/domain/context.ts", "line": 4, "import": "../../../../src/planning/generateSubtaskOutput.js"},
+        {"file": "services/planning/src/domain/context.ts", "line": 5, "import": "../../../../src/executor/writeFiles.js"},
+        {"file": "services/planning/src/domain/context.ts", "line": 6, "import": "../../../../src/utils/normalizeExports.js"},
+        {"file": "services/planning/src/domain/context.ts", "line": 7, "import": "../../../../src/utils/normalizeHealth.js"},
+        {"file": "services/planning/src/domain/context.ts", "line": 8, "import": "../../../../src/runner/runInSandbox.js"},
+        {"file": "services/planning/src/domain/context.ts", "line": 9, "import": "../../../../src/repair/multiTurnRepair.js"},
+        {"file": "services/planning/src/domain/context.ts", "line": 10, "import": "../../../../src/telemetry/events.js"},
+        {"file": "services/planning/src/domain/context.ts", "line": 11, "import": "../../../../src/fixtures/index.js"},
+        {"file": "services/planning/src/domain/context.ts", "line": 14, "import": "../../../../src/orchestrator/abortSignal.js"},
+        {"file": "services/planning/src/domain/context.ts", "line": 15, "import": "../../../../src/clarification/types.js"},
+        {"file": "services/planning/src/domain/context.ts", "line": 16, "import": "../../../../src/planning/types.js"},
+        {"file": "services/planning/src/domain/planning.ts", "line": 5, "import": "../../../../src/planning/decomposeTask.js"},
+        {"file": "services/planning/src/domain/planning.ts", "line": 7, "import": "../../../../src/planning/executeTaskPlan.js"},
+        {"file": "services/planning/src/domain/planning.ts", "line": 8, "import": "../../../../src/planning/estimateCompletion.js"},
+        {"file": "services/planning/src/domain/planning.ts", "line": 10, "import": "../../../../src/planning/types.js"},
+        {"file": "services/planning/src/domain/planning.ts", "line": 19, "import": "../../../../src/planning/types.js"},
+        {"file": "services/planning/src/domain/planning.ts", "line": 21, "import": "../../../../src/clarification/types.js"}
+      ],
+      "dependencies": [
+        "express", "dotenv",
+        "@opentelemetry/exporter-trace-otlp-http",
+        "@opentelemetry/instrumentation-http",
+        "@opentelemetry/resources",
+        "@opentelemetry/sdk-node",
+        "@opentelemetry/semantic-conventions"
+      ],
+      "environment_vars": [
+        "NODE_ENV", "PORT", "SERVICE_NAME",
+        "OTEL_ENABLED", "OTEL_EXPORTER_OTLP_ENDPOINT",
+        "PROBLEM_DETAILS_ENABLED",
+        "SUBTASK_TIMEOUT_MS", "CAPTURE_FIXTURES_IN_TESTS"
+      ],
+      "routes_impacted": ["POST /decompose", "POST /execute-plan", "GET /healthz"],
+      "risk_assessment": "HIGH"
+    },
+    {
+      "name": "repair",
+      "deep_imports": [
+        {"file": "services/repair/src/routes/analyze.ts", "line": 3, "import": "../../../../src/repair/analyzeFailure.js"},
+        {"file": "services/repair/src/routes/analyze.ts", "line": 5, "import": "../../../../src/contracts/repairHistoryValidator.js"},
+        {"file": "services/repair/src/routes/repair.ts", "line": 3, "import": "../../../../src/repair/multiTurnRepair.js"},
+        {"file": "services/repair/src/routes/repair.ts", "line": 4, "import": "../../../../src/repair/repairOnce.js"},
+        {"file": "services/repair/src/routes/repair.ts", "line": 5, "import": "../../../../src/contracts/validators.js"},
+        {"file": "services/repair/src/routes/repair.ts", "line": 6, "import": "../../../../src/contracts/repairHistoryValidator.js"},
+        {"file": "services/repair/src/routes/repair.ts", "line": 7, "import": "../../../../src/executor/types.js"}
+      ],
+      "dependencies": [
+        "express", "dotenv",
+        "@opentelemetry/api",
+        "@opentelemetry/exporter-trace-otlp-http",
+        "@opentelemetry/instrumentation-http",
+        "@opentelemetry/resources",
+        "@opentelemetry/sdk-node",
+        "@opentelemetry/semantic-conventions"
+      ],
+      "environment_vars": [
+        "NODE_ENV", "PORT", "SERVICE_NAME",
+        "OTEL_ENABLED", "OTEL_EXPORTER_OTLP_ENDPOINT",
+        "PROBLEM_DETAILS_ENABLED"
+      ],
+      "routes_impacted": ["POST /repair", "POST /analyze", "GET /healthz"],
+      "risk_assessment": "MEDIUM"
+    },
+    {
+      "name": "runner",
+      "deep_imports": [
+        {"file": "services/runner/src/domain/runner.ts", "line": 1, "import": "../../../../src/runner/runInSandbox.js"},
+        {"file": "services/runner/src/domain/runner.ts", "line": 2, "import": "../../../../src/runner/runInSandbox.js"},
+        {"file": "services/runner/src/domain/runner.ts", "line": 4, "import": "../../../../src/runner/installDeps.js"},
+        {"file": "services/runner/src/domain/runner.ts", "line": 5, "import": "../../../../src/runner/installDeps.js"},
+        {"file": "services/runner/src/domain/runner.ts", "line": 7, "import": "../../../../src/telemetry/events.js"}
+      ],
+      "dependencies": [
+        "express", "dotenv", "slugify",
+        "@opentelemetry/exporter-trace-otlp-http",
+        "@opentelemetry/instrumentation-http",
+        "@opentelemetry/resources",
+        "@opentelemetry/sdk-node",
+        "@opentelemetry/semantic-conventions"
+      ],
+      "environment_vars": [
+        "NODE_ENV", "PORT", "SERVICE_NAME",
+        "OTEL_ENABLED", "OTEL_EXPORTER_OTLP_ENDPOINT",
+        "PROBLEM_DETAILS_ENABLED"
+      ],
+      "routes_impacted": ["POST /run", "POST /test", "POST /install", "GET /healthz"],
+      "risk_assessment": "MEDIUM"
+    }
+  ],
+  "stack_compliance": {
+    "typescript_only": true,
+    "no_python": true,
+    "no_frontend_frameworks": true
+  },
+  "evidence": {
+    "deep_imports_grep_command": "rg -n '\\.{2}\\/\\.{2}\\/\\.{2}\\/\\.{2}\\/src\\/' services | sort",
+    "absolute_imports_grep_command": "rg -n 'from \u0027src\\/|from \"src\\/' services | sort",
+    "notes": "See .automation/refactor_services_discovery.md for full context and snippets"
+  }
+}
+

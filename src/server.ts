@@ -1727,7 +1727,11 @@ function parsePlanningClarifications(body: unknown): ClarificationResponse | und
   if (!isPlainObject(value)) {
     throw new Error("clarifications must be a plain object when provided");
   }
-  return value as ClarificationResponse;
+  const validation = validateClarificationResponse(value);
+  if (!validation.ok) {
+    throw new Error(`invalid clarifications: ${validation.errors}`);
+  }
+  return validation.value;
 }
 
 function assertPlanPayload(value: unknown): asserts value is TaskPlan {

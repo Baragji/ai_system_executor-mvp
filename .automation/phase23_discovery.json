@@ -1,0 +1,49 @@
+{
+  "task_id": "REFACTOR-TASK-30",
+  "phase": 23,
+  "title": "Parity Validation + CI/QA + Docs (All Domain Services)",
+  "date": "2025-10-20",
+  "integration_points": [
+    {
+      "file": "eslint.config.js",
+      "line": 1,
+      "change": "Add docs/**/artifacts/** to ignores to exclude documentation TS artifacts from lint",
+      "impact": "Prevents lint failures on non-production examples; preserves zero-warning policy for source."
+    },
+    {
+      "file": "src/server.ts",
+      "line": 1722,
+      "change": "Use validateClarificationResponse() instead of raw cast in parsePlanningClarifications",
+      "impact": "Fixes TS typecheck error; enforces schema validation for planning clarifications."
+    },
+    {
+      "file": "docs/09_191025_todays_status/04_REFACTOR_STATUS_CHECKLIST.md",
+      "line": 1,
+      "change": "Add Environment Variables section documenting PLANNING_URL, REPAIR_URL, EXECUTOR_URL, CLARIFICATION_URL",
+      "impact": "Documents proxy controls for domain services."
+    }
+  ],
+  "compliance": {
+    "language": "ts/js-only",
+    "backend": "node20+",
+    "frontend": "no-frameworks",
+    "testing": "vitest, coverage >= { lines:80, branches:75 }",
+    "lint": "eslint zero warnings",
+    "deps": "no changes",
+    "protected_files": "unchanged"
+  },
+  "planned_commands": [
+    "cd services/planning && npm run validate:all && cd ../../",
+    "cd services/repair && npm run validate:all && cd ../../",
+    "cd services/executor && npm run validate:all && cd ../../",
+    "cd services/clarification && npm run validate:all && cd ../../",
+    "unset PLANNING_URL REPAIR_URL EXECUTOR_URL CLARIFICATION_URL && npm run validate:all",
+    "npm test -- tests/api/clarify-route.test.ts",
+    "npm test -- tests/api/orchestrator-proxy.test.ts",
+    "rg -n 'Task:.*(planning|repair|executor|clarification)' docs/09_191025_todays_status/04_REFACTOR_STATUS_CHECKLIST.md"
+  ],
+  "risks": [
+    "Excluding docs artifacts from lint should not mask real source issues; pattern is narrowly scoped.",
+    "Validation error messages for /decompose clarifications become more explicit — behavior compatible."
+  ]
+}

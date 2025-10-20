@@ -11,7 +11,13 @@ const baseRules = {
 
 export default [
   {
-    ignores: ["dist", "coverage", "output"]
+    ignores: [
+      "dist",
+      "coverage",
+      "output",
+      // Documentation code samples and artifacts are not production code; exclude from lint
+      "docs/**/artifacts/**"
+    ]
   },
   {
     files: ["**/*.ts"],
