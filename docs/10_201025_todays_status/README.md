@@ -37,6 +37,13 @@
 - initial_assessments/ — 5 early assessment docs
 - planning_iterations/ — early planning/validation docs
 
+### `04_active_tracking/` - Live Progress Monitoring
+Real-time batch execution status, next steps, and detailed instructions. Updated frequently during active work.
+
+- STATUS_NEXT_BATCHES.md — Current status + next 10 files/tasks
+- BATCH_*_EXECUTION.md — Detailed execution instructions per batch
+- NEXT_BATCH_*.md — Quick reference for upcoming batch
+
 ---
 
 ## Key Commands

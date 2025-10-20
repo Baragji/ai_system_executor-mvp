@@ -3,11 +3,11 @@
 Legend: [ ] not-started | [~] in-progress | [x] completed
 
 - Batch 0: Discovery — [x] (artifacts committed; validations passed)
-- Batch 1a: Validation scripts (services) — [ ]
-- Batch 1b: Validation scripts (root) — [ ]
+- Batch 1a: Validation scripts (services) — [x] (2025-10-20, all 7 services already have validate:all)
+- Batch 1b: Validation scripts (root) — [x] (2025-10-20, root validate:all already exists)
 - Batch 2a: Discovery docs index — [ ]
-- Batch 2b: Service .env templates — [ ]
-- Batch 2c: Env docs consolidation — [ ]
+- Batch 2b: Service .env templates — [x] (2025-10-20, clarified coverage and added missing clarification template)
+- Batch 2c: Env docs consolidation — [x] (2025-10-20, created docs/env/README.md with service + monolith mapping)
 - Batch 3a–3e: LLM extraction — [ ] [ ] [ ] [ ] [ ]
 - Batch 4a–4e: Planning extraction — [ ] [ ] [ ] [ ] [ ]
 - Batch 5a–5e: Repair extraction — [ ] [ ] [ ] [ ] [ ]
