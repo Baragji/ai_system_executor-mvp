@@ -9,7 +9,7 @@ Scope (complete all):
 - Document explicit rollback triggers and decision tree
 
 Notes:
-- Keep all checks lightweight and fast to preserve the 30–45 minute window.
+- Keep all checks lightweight and fast.
 - Never proceed to next batch if any validation fails.
 
 ---
@@ -124,4 +124,3 @@ Acceptance criteria:
 - [ ] Progress file present and updated
 - [ ] Regression cadence documented and observed for at least one completed batch
 
-Time budget: ~2 hours total.

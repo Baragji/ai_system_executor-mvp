@@ -7,12 +7,17 @@
 
 ## Current Work
 
-- **Active Phase**: Phase 19 (Autonomous Transition) + Phase 20 (Executions Endpoint - Complete)
-- **Contracts**:
-  - `contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json` (Trust Spine + LangGraph)
-  - `contracts/Roadmap_execution/20_phase20_langgraph_executions_contract.json` (Complete)
-- **Strategy**: `docs/Goal_&_Vision_inspirational_only/03_final_decisions/phase19_autonomous_transition_strategy.md`
-- **ADR**: `docs/Goal_&_Vision_inspirational_only/03_final_decisions/RA_Deliveries/ADR-019_LangGraph_TS_Orchestrator_2025-10-12.md`
+⚠️ **TEMPORARY OVERRIDE:** Phase 19/20 work paused for critical microservices refactoring.
+
+- **Active Work:** Microservices refactoring (monolith → 7 services)
+- **Refactoring Guidelines:** `docs/10_201025_todays_status/00_core/REFACTORING_GUIDELINES.md`
+- **Progress Tracking:** `.automation/refactor_progress.md`
+- **Next Batches:** `docs/10_201025_todays_status/00_core/batches_plan.md`
+- **Dependency Matrix:** `docs/10_201025_todays_status/00_core/dependency_matrix.md`
+- **Navigation:** `docs/10_201025_todays_status/README.md`
+
+
+When refactoring completes, this section will revert to Phase 19/20 status.
 
 ---
 

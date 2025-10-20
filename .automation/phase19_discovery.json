@@ -1,24 +1,55 @@
 {
   "phase": 19,
-  "task": "Resolve merge conflict in src/server.ts by standardizing on WorkflowMetadata",
+  "title": "Docs Reorganization (10_201025_todays_status)",
   "integration_points": [
-    { "file": "src/server.ts", "line": 85, "action": "imports -> loadPhaseState, buildWorkflowMetadata, WorkflowMetadata" },
-    { "file": "src/server.ts", "section": "workflow caches", "action": "use workflowMetadataCache and ensureWorkflowMetadataForSession()" },
-    { "file": "src/server.ts", "section": "progress snapshots", "action": "attach workflowMetadata in ProgressSnapshot" },
-    { "file": "src/server.ts", "section": "routes", "action": "ensureWorkflowMetadataForSession in execute/pause/resume" },
-    { "file": "src/server.ts", "section": "__progressTest", "action": "expose ensureMetadata, snapshot, clear for metadata cache" }
+    "docs/10_201025_todays_status",
+    "AGENTS.md",
+    ".automation/refactor_progress.md"
   ],
-  "decision": "Adopt WorkflowMetadata (buildWorkflowMetadata) over local WorkflowContext to align with state module and tests",
-  "compliance": {
-    "language": "ts/js",
-    "backend": "express",
-    "no_new_dependencies": true,
-    "no_api_break": true
+  "moves": [
+    {"from": "docs/10_201025_todays_status/REFACTORING_GUIDELINES.md", "to": "docs/10_201025_todays_status/00_core/REFACTORING_GUIDELINES.md"},
+    {"from": "docs/10_201025_todays_status/06_revised_batches_plan.md", "to": "docs/10_201025_todays_status/00_core/batches_plan.md"},
+    {"from": "docs/10_201025_todays_status/07_refactor_dependency_matrix.md", "to": "docs/10_201025_todays_status/00_core/dependency_matrix.md"},
+    {"from": "docs/10_201025_todays_status/08_rollback_triggers.md", "to": "docs/10_201025_todays_status/00_core/rollback_triggers.md"},
+    {"from": "docs/10_201025_todays_status/templates/batch_templates.md", "to": "docs/10_201025_todays_status/01_guides/batch_templates.md"},
+    {"from": "docs/10_201025_todays_status/parallel_execution_guide.md", "to": "docs/10_201025_todays_status/01_guides/parallel_execution.md"},
+    {"from": "docs/10_201025_todays_status/performance_baselines.md", "to": "docs/10_201025_todays_status/01_guides/performance_baselines.md"},
+    {"from": "docs/10_201025_todays_status/security_checklist.md", "to": "docs/10_201025_todays_status/01_guides/security_checklist.md"},
+    {"from": "docs/10_201025_todays_status/05_priority1_must_fix_instructions.md", "to": "docs/10_201025_todays_status/02_priorities/priority1_must_fix.md"},
+    {"from": "docs/10_201025_todays_status/09_priority1_completion_report.md", "to": "docs/10_201025_todays_status/02_priorities/priority1_report.md"},
+    {"from": "docs/10_201025_todays_status/06_priority2_should_fix_instructions.md", "to": "docs/10_201025_todays_status/02_priorities/priority2_should_fix.md"},
+    {"from": "docs/10_201025_todays_status/10_priority2_completion_report.md", "to": "docs/10_201025_todays_status/02_priorities/priority2_report.md"},
+    {"from": "docs/10_201025_todays_status/07_priority3_nice_to_have_instructions.md", "to": "docs/10_201025_todays_status/02_priorities/priority3_nice_to_have.md"},
+    {"from": "docs/10_201025_todays_status/11_priority3_completion_report.md", "to": "docs/10_201025_todays_status/02_priorities/priority3_report.md"},
+    {"from": "docs/10_201025_todays_status/refactor_tasks/*", "to": "docs/10_201025_todays_status/03_archive/old_task_based_approach/"},
+    {"from": "docs/10_201025_todays_status/status_context_files/*", "to": "docs/10_201025_todays_status/03_archive/initial_assessments/"},
+    {"from": "docs/10_201025_todays_status/01_refactor_validation_template.md", "to": "docs/10_201025_todays_status/03_archive/planning_iterations/01_validation_template.md"},
+    {"from": "docs/10_201025_todays_status/02_refactor_validation_complete.md", "to": "docs/10_201025_todays_status/03_archive/planning_iterations/02_validation_complete.md"},
+    {"from": "docs/10_201025_todays_status/03_codex_execution_plan.md", "to": "docs/10_201025_todays_status/03_archive/planning_iterations/03_codex_execution_plan.md"},
+    {"from": "docs/10_201025_todays_status/04_execution_plan_assessment.md", "to": "docs/10_201025_todays_status/03_archive/planning_iterations/04_execution_assessment.md"},
+    {"from": "docs/10_201025_todays_status/08_fix1_delivery_report.md", "to": "docs/10_201025_todays_status/03_archive/planning_iterations/08_fix1_delivery.md"}
+  ],
+  "post_update": {
+    "root_agents_md": {
+      "updated": true,
+      "notes": "CODEOWNERS protected; requires approval. Updated refs to 00_core/* and added Navigation to README."
+    },
+    "progress_tracker": {
+      "updated": true,
+      "notes": "References point to 00_core documents."
+    },
+    "live_docs_crosslinks": [
+      "00_core/REFACTORING_GUIDELINES.md",
+      "00_core/rollback_triggers.md",
+      "01_guides/parallel_execution.md",
+      "01_guides/security_checklist.md"
+    ]
   },
-  "validation": {
-    "lint": true,
-    "typecheck": true,
-    "tests": true
+  "compliance": {
+    "language_only_ts_js": true,
+    "frontend_no_frameworks": true,
+    "no_new_deps": true,
+    "no_api_changes": true
   }
 }
 

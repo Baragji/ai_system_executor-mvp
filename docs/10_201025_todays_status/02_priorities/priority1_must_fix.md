@@ -5,11 +5,13 @@ Goal: Resolve all blockers before any refactoring execution. This unlocks safe, 
 Scope (complete all):
 - Add Batch 0 discovery (artifacts + evidence)
 - Re-size plan to 30–45 minute batches (~51 batches)
-- Update AGENTS.md with refactoring-specific guidance (via PR; protected file)
+- Create REFACTORING_GUIDELINES.md (refactoring-specific rules, separate from AGENTS.md)
+- Update AGENTS.md "Current Work" section to point to refactoring status (via PR; protected file)
 - Publish a dependency matrix to control order/parallelization
 
 Notes:
-- Do NOT edit protected files directly. Submit changes to AGENTS.md via PR for CODEOWNERS review.
+- AGENTS.md remains general/universal - refactoring-specific guidance goes in separate doc
+- Do NOT edit protected files directly. Submit minimal AGENTS.md changes via PR for CODEOWNERS review.
 - Keep all feature flags OFF by default; monolith must remain functional at all times.
 
 ---
@@ -79,7 +81,7 @@ Rollback:
 ## 2) Re-size Plan to 30–45 Minute Batches
 
 Deliverables:
-- docs/10_201025_todays_status/06_revised_batches_plan.md
+- docs/10_201025_todays_status/00_core/batches_plan.md
 
 What to do:
 - Split each original oversized batch into atomic 30–45 minute steps.
@@ -105,36 +107,68 @@ Rollback:
 
 ---
 
-## 3) Update AGENTS.md (Refactoring Guidance) — via PR
+## 3) Create REFACTORING_GUIDELINES.md (Refactoring-Specific Rules)
 
 Deliverables:
-- Pull Request updating AGENTS.md with:
-  - Microservices Refactoring Guidelines
-  - Batch Execution Protocol
-  - Error Recovery Procedures
+- docs/10_201025_todays_status/00_core/REFACTORING_GUIDELINES.md
 
 What to do:
-- Prepare a patch (no direct write; protected by CODEOWNERS):
-  - Service extraction rules (copy/fix imports/routes/deps/test)
-  - Proxy pattern with feature flag guard
-  - Validation sequence after each batch (lint, typecheck, tests, contract:check)
-  - Strict batch limits and prohibited actions
-  - Rollback triggers and progress tracking guidance
+- Create a standalone document with refactoring-specific guidance:
+  - Service extraction pattern (copy → fix imports → routes → deps → test)
+  - Proxy implementation pattern with feature flag guards
+  - Validation sequence after each batch
+  - Batch size limits (30-45 min, ≤10 files)
+  - Prohibited actions during refactoring
+  - Rollback triggers
+  - Progress tracking (.automation/refactor_progress.md)
+  - Batch execution protocol
 
 Acceptance criteria:
-- [ ] PR opened and linked in docs/10_201025_todays_status/AGENTS_update_LINK.md
-- [ ] AGENTS.md changes reviewed by CODEOWNERS
-- [ ] No contradictions with ai-stack.json or CDI rules
+- [ ] REFACTORING_GUIDELINES.md exists in docs/10_201025_todays_status/
+- [ ] Contains concrete patterns agents can follow
+- [ ] References .automation/refactor_progress.md for status tracking
+- [ ] No contradictions with AGENTS.md universal rules
 
 Rollback:
-- If PR is rejected, incorporate feedback and resubmit.
+- If guidelines cause confusion, clarify and update. No protected files involved.
 
 ---
 
-## 4) Publish a Dependency Matrix
+## 4) Update AGENTS.md "Current Work" Section — via PR
 
 Deliverables:
-- docs/10_201025_todays_status/07_refactor_dependency_matrix.md
+- Pull Request updating ONLY the "Current Work" section of AGENTS.md
+
+What to do:
+- Prepare minimal patch (ONLY change "Current Work" section):
+  ```markdown
+  ## Current Work
+  
+  ⚠️ **TEMPORARY OVERRIDE:** Phase 19/20 work paused for critical microservices refactoring.
+  
+  **Active Work:** Microservices refactoring (monolith → 7 services)
+  **Refactoring Guidelines:** `docs/10_201025_todays_status/00_core/REFACTORING_GUIDELINES.md`
+  **Progress Tracking:** `.automation/refactor_progress.md`
+  **Next Batch Discovery:** Check progress tracker + read `docs/10_201025_todays_status/00_core/batches_plan.md`
+  
+  When refactoring complete, this section will revert to Phase 19/20 status.
+  ```
+
+Acceptance criteria:
+- [ ] PR opened with ONLY "Current Work" section changes
+- [ ] No other AGENTS.md sections modified
+- [ ] Links point to correct refactoring docs
+- [ ] CODEOWNERS review obtained
+
+Rollback:
+- If PR rejected, incorporate feedback. This is a tiny change.
+
+---
+
+## 5) Publish a Dependency Matrix
+
+Deliverables:
+- docs/10_201025_todays_status/00_core/dependency_matrix.md
 
 What to do:
 - Document dependencies among batches to enable safe parallelization.
