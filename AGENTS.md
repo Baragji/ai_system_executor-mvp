@@ -31,7 +31,7 @@
    - `npm run lint   | tee .automation/evidence/$TASK/valid/lint.txt`
    - `npm run typecheck | tee .automation/evidence/$TASK/valid/typecheck.txt`
    - `npm test -- --reporter=json > .automation/evidence/$TASK/valid/tests.json`
-   - HALT on any non-zero or missing file.
+   - If fail: Fix errors, re-run, iterate (max 3 tries). After 3 fails: report and await guidance.
 
 6. Integrity (Practical SLSA for dev tasks)
    - Hash changed files:
@@ -103,16 +103,22 @@
 - [ ] summary.md links every artifact
 - [ ] (release) SHA256SUMS.txt (+ provenance.json)
 
-## HALT Conditions (agent MUST stop, rollback, report)
+## Error Handling (iterate to fix, HALT only on massive issues)
 | Condition | Action | Exit |
 |---|---|---|
-| Missing discovery/baseline/final | `git restore . ; create HALT_REPORT.md` | 20 |
-| Lint/typecheck/tests fail | rollback; attach logs; HALT_REPORT | 21 |
-| Acceptance unmet | rollback; propose fix plan | 22 |
-| Scope drift | rollback; request approval | 23 |
-| Audit worsened | rollback; open security issue | 24 |
-| Integrity/provenance missing | rollback; regenerate | 25 |
-| AGENTS.md >200 lines | reduce; re-run checks | 27 |
+| Lint/typecheck/tests fail | Fix errors; re-run validations; iterate until pass | 0 (continue) |
+| Missing discovery/baseline/final | Generate missing artifacts; continue | 0 (continue) |
+| Acceptance unmet | Adjust implementation; re-validate | 0 (continue) |
+| Integrity/provenance missing | Regenerate hashes/provenance; continue | 0 (continue) |
+| **Scope drift (massive refactor)** | **HALT; rollback; request approval** | **23** |
+| **Audit worsened (security)** | **HALT; rollback; open security issue** | **24** |
+| **AGENTS.md >200 lines** | **HALT; reduce; re-run checks** | **27** |
+
+**Iteration Protocol:**
+1. If validation fails (lint/type/test): Fix the error, re-run, repeat until pass
+2. Max 3 iterations per error type
+3. If still failing after 3 tries: Report errors, attach logs, await guidance
+4. HALT immediately only for: scope drift, security issues, or file violations
 
 ## Validation Snippets (copy/paste; save outputs)
 ```bash

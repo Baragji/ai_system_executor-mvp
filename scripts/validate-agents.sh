@@ -25,7 +25,7 @@ REQUIRED_SECTIONS=(
   "## Critical Rules"
   "## Evidence Directory"
   "## Evidence Checklist"
-  "## HALT Conditions"
+  "## Error Handling"
   "## Validation Snippets"
   "## Anti-Patterns"
   "## PR Template"

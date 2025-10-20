@@ -2,13 +2,13 @@ import path from "node:path";
 
 import { withTraceContext } from "../../../../src/llm/trace.js";
 import { generateSubtaskOutputWithRetry } from "../../../../src/planning/generateSubtaskOutput.js";
-import { writeFiles } from "../../../../src/executor/writeFiles.js";
-import { ensureDefaultExportForApp } from "../../../../src/utils/normalizeExports.js";
-import { ensureJsonHealthOnDisk } from "../../../../src/utils/normalizeHealth.js";
+import { writeFiles } from "../domain/writeFiles.js";
+import { ensureDefaultExportForApp } from "../domain/normalizeExports.js";
+import { ensureJsonHealthOnDisk } from "../domain/normalizeHealth.js";
 import { runInSandbox } from "../../../../src/runner/runInSandbox.js";
 import { multiTurnRepair } from "../../../../src/repair/multiTurnRepair.js";
-import { logEvent } from "../../../../src/telemetry/events.js";
-import { writeFixture } from "../../../../src/fixtures/index.js";
+import { logEvent } from "../telemetry/events.js";
+import { writeFixture } from "../domain/fixtures.js";
 import {
   throwIfAborted,
 } from "../../../../src/orchestrator/abortSignal.js";
