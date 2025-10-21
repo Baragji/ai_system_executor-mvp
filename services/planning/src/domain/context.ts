@@ -5,8 +5,8 @@ import { generateSubtaskOutputWithRetry } from "../domain/generateSubtaskOutput.
 import { writeFiles } from "../domain/writeFiles.js";
 import { ensureDefaultExportForApp } from "../domain/normalizeExports.js";
 import { ensureJsonHealthOnDisk } from "../domain/normalizeHealth.js";
-import { runInSandbox } from "../domain/runInSandbox.js";
-import { multiTurnRepair } from "../domain/multiTurnRepair.js";
+import { run } from "../domain/runnerClient.js";
+import { multiTurn } from "../domain/repairClient.js";
 import { logEvent } from "../telemetry/events.js";
 import { writeFixture } from "../domain/fixtures.js";
 import { throwIfAborted } from "../domain/abortSignal.js";
@@ -152,8 +152,8 @@ export function createPlanExecutionContext({
       await ensureDefaultExportForApp(rootDir);
       await ensureJsonHealthOnDisk(rootDir);
     },
-    runTests: options => runInSandbox(options),
-    multiTurnRepair: context => multiTurnRepair(context),
+    runTests: options => run(options),
+    multiTurnRepair: context => multiTurn(context),
     logTelemetry: event =>
       logEvent("plan_progress", {
         project: slug,

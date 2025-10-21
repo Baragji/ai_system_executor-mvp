@@ -1,0 +1,126 @@
+# .aidigest - Machine-Readable AI Agent Configuration
+# This file is parsed by AI agents BEFORE any interaction
+# Format: YAML-like key-value pairs
+
+# CRITICAL: Read these files FIRST (in order)
+MUST_READ_FIRST=CONSTITUTION.md,AI_INSTRUCTIONS.md,docs/11_211025/delivery.md
+
+# Repository classification
+REPO_TYPE=enterprise-production
+ARCHITECTURE=microservices
+GOVERNANCE=strict
+
+# Supreme law
+CONSTITUTION_FILE=CONSTITUTION.md
+CONSTITUTION_ENFORCEMENT=mandatory
+VIOLATIONS_TOLERANCE=zero
+
+# Forbidden patterns (auto-reject PRs with these)
+FORBIDDEN_PATTERNS=monolith,custom-llm-wrapper,custom-http-client,custom-logger,TODO-later,will-refactor-later,prototype-first,defer-evidence,defer-contracts,defer-security,skip-tests,subjective-gates
+
+# Required patterns (auto-reject PRs without these)
+REQUIRED_PATTERNS=openapi-contract,json-schema,binary-gates,evidence-artifacts,sbom,slsa,sarif,junit,coverage-80-percent,otel-traces
+
+# Pre-approved technologies (use without approval)
+APPROVED_ORCHESTRATION=langchain,langgraph
+APPROVED_MESSAGING=nats-jetstream
+APPROVED_STORAGE=minio,s3
+APPROVED_DATABASE=postgres
+APPROVED_OBSERVABILITY=opentelemetry,grafana,tempo
+APPROVED_SECURITY=semgrep,codeql,trivy
+APPROVED_SBOM=cyclonedx
+APPROVED_PROVENANCE=slsa-github-generator
+APPROVED_LANGUAGES=typescript,python,javascript
+APPROVED_RUNTIME=nodejs,docker,kubernetes
+
+# Banned technologies (never use)
+BANNED_CUSTOM=custom-llm-orchestration,custom-message-queue,custom-tracing,custom-sbom,custom-retry,custom-http
+
+# Code quality gates (CI enforced)
+MIN_TEST_COVERAGE=80
+MAX_SECURITY_SEVERITY=medium
+REQUIRED_CHECKS=tests,coverage,lint,typecheck,semgrep,codeql,trivy,sbom,contracts
+
+# Architecture constraints
+MAX_SERVICE_SIZE_LINES=500
+SERVICES_PATTERN=microservices-from-day-1
+CONTRACTS_FIRST=true
+EVIDENCE_FIRST=true
+
+# Workflow requirements
+REQUIRE_ADR_FOR=new-service,new-technology,contract-change,architecture-change
+REQUIRE_APPROVAL_FOR=custom-code,contract-breaking-change,constitution-amendment
+AUTO_REJECT_FOR=constitution-violation,missing-evidence,missing-contracts,forbidden-pattern
+
+# Evidence requirements (every execution must produce)
+EVIDENCE_REQUIRED=sbom,slsa-provenance,sarif,junit,coverage,trace-id
+
+# Gates (binary PASS/FAIL only)
+GATES=G0-requirements,G1-architecture,G2-security,G3-quality,G4-deployment,BUDGET
+GATE_ENFORCEMENT=binary-only
+SUBJECTIVE_GATES=forbidden
+
+# Version control
+IMMUTABLE_FILES=CONSTITUTION.md,.aidigest
+PROTECTED_PATHS=packages/contracts/,docs/architecture/decisions/
+REQUIRE_REVIEW_FOR=services/,apps/,packages/contracts/
+
+# AI agent behavior
+AGENT_MODE=enterprise-strict
+REFACTORING_ALLOWED=false
+PROTOTYPE_MODE=false
+MOVE_FAST_BREAK_THINGS=false
+ENTERPRISE_FROM_LINE_1=true
+
+# Error handling
+ON_CONSTITUTION_VIOLATION=reject-immediately
+ON_MISSING_EVIDENCE=block-pr
+ON_BROKEN_CONTRACT=block-pr
+ON_FAILED_GATE=halt-execution
+
+# Documentation requirements
+REQUIRE_OPENAPI=true
+REQUIRE_JSON_SCHEMA=true
+REQUIRE_README=true
+REQUIRE_ADR=conditional
+REQUIRE_MIGRATION_GUIDE=if-breaking-change
+
+# Stack constraints (microservices architecture)
+# Each service can choose appropriate tech stack
+ALLOWED_LANGUAGES=typescript,javascript,python,go,rust,java
+ALLOWED_FRAMEWORKS=react,nextjs,vue,svelte,express,fastify
+FORBIDDEN_PATTERNS=mixing-languages-in-same-service,framework-drift-within-service
+TECH_STACK_PRINCIPLE=best-tool-for-job-per-service
+
+# Repository owner
+OWNER=@yousefbaragji
+AUTHORITY=supreme
+AMENDMENT_PROCESS=owner-approval-required
+
+# Last updated
+AIDIGEST_VERSION=1.0.0
+LAST_UPDATED=2025-10-21
+NEXT_REVIEW=2026-01-21
+
+# Enforcement
+ENFORCEMENT_LEVEL=strict
+AUTO_ENFORCEMENT=true
+HUMAN_OVERRIDE=owner-only
+
+# Philosophy (one-line mantras)
+MANTRA_1=Enterprise from line 1. Always.
+MANTRA_2=Build the final architecture now, not later.
+MANTRA_3=Use battle-tested tools. Never custom.
+MANTRA_4=Contracts first. Evidence always. Gates binary.
+MANTRA_5=Refactoring is failure. Build correctly once.
+
+# Quick reference for AI agents
+IF_ADDING_SERVICE=read AI_INSTRUCTIONS.md section "Adding a New Service"
+IF_MODIFYING_SERVICE=check packages/contracts/openapi/ first
+IF_UNSURE=read CONSTITUTION.md
+IF_STUCK=ask repository owner
+IF_TEMPTED_TO_REFACTOR=re-read CONSTITUTION.md Article II
+
+# End of .aidigest
+# This file is the FIRST thing AI agents read.
+# Violations result in immediate PR rejection.

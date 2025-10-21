@@ -349,3 +349,10 @@ HTTP server closed
 c[OTel] Telemetry disabled (OTEL_ENABLED not set)
 Executor MVP listening on http://localhost:3000
 UI: http://localhost:3000/
+[0mPOST /api/executions [33m404[0m 2.105 ms - 154[0m
+[0mGET /api/executions/ [33m404[0m 2.222 ms - 154[0m
+[0mGET /api/executions//stream [33m404[0m 1.030 ms - 161[0m
+[0mGET / [36m304[0m 4.770 ms - -[0m
+[0mGET /styles.css [36m304[0m 3.681 ms - -[0m
+[0mGET /script.js [36m304[0m 0.496 ms - -[0m
+[0mGET /icons.js [36m304[0m 0.684 ms - -[0m

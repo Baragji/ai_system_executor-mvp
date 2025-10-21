@@ -1,0 +1,33 @@
+{
+  "timestamp": "2025-10-20T20:43:38.107Z",
+  "deep_imports": 44,
+  "coverage": {
+    "lines": 0,
+    "branches": 0,
+    "error": "Could not parse coverage"
+  },
+  "service_files": {
+    "planning": 23,
+    "repair": 7,
+    "executor": 7,
+    "clarification": 6,
+    "runner": 10,
+    "orchestrator": 9,
+    "llm-gateway": 10
+  },
+  "lint": {
+    "passed": true,
+    "exitCode": 0
+  },
+  "typecheck": {
+    "passed": true,
+    "exitCode": 0
+  },
+  "git": {
+    "branch": "refactoring_before_merging_to_branch_fix/wf5",
+    "commit": "6096fb333c5a01e28adf3bf94d2f937f4c529c72",
+    "uncommitted": 4
+  },
+  "node_version": "v22.18.0",
+  "npm_version": "10.9.3"
+}

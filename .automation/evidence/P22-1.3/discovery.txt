@@ -1,0 +1,5 @@
+services/planning/src/domain/runInSandbox.ts:2:export { runInSandbox, type RunInSandboxOptions } from "../../../../src/runner/runInSandbox.js";
+services/planning/src/domain/multiTurnRepair.ts:2:export { multiTurnRepair, type MultiTurnContext } from "../../../../src/repair/multiTurnRepair.js";
+\n# HEAD context.ts references (pre-edit)
+155:    runTests: options => runInSandbox(options),
+156:    multiTurnRepair: context => multiTurnRepair(context),
