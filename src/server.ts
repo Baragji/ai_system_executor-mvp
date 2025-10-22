@@ -26,18 +26,12 @@ import { fileSha256 } from "./utils/checksum.js";
 import { logEvent } from "./telemetry/events.js";
 import type { ExecutorOutput, ExecutorFile } from "./executor/types.js";
 import type { RunResult } from "./contracts/validators.js";
-import type { FailureCategory, RepairHistory, TestResultSummary } from "./contracts/repairHistoryValidator.js";
+import type { RepairHistory, TestResultSummary } from "./contracts/repairHistoryValidator.js";
 import { detectMissing } from "./clarification/detectMissing.js";
 import { generateQuestions } from "./clarification/generateQuestions.js";
 import { augmentPrompt } from "./clarification/augmentPrompt.js";
-import {
-  consumeClarificationQuestions,
-  rememberClarificationQuestions
-} from "./domains/clarify/session.js";
-import {
-  validateClarificationRequest,
-  validateClarificationResponse
-} from "./contracts/validators.js";
+import { consumeClarificationQuestions } from "./domains/clarify/session.js";
+import { validateClarificationResponse } from "./contracts/validators.js";
 import type {
   ClarificationAnswer,
   ClarificationQuestion,
@@ -51,7 +45,7 @@ import { validateDecomposition } from "./planning/validateDecomposition.js";
 import { executeTaskPlan } from "./planning/executeTaskPlan.js";
 import { generateSubtaskOutputWithRetry } from "./planning/generateSubtaskOutput.js";
 import { estimateCompletion } from "./planning/estimateCompletion.js";
-import type { PlanExecutionContext, SubtaskResult } from "./planning/types.js";
+import type { PlanExecutionContext } from "./planning/types.js";
 import {
   createAbortSignal,
   cleanupAbortSignal,
@@ -59,7 +53,7 @@ import {
   abortSession,
   PausedError
 } from "./orchestrator/abortSignal.js";
-import { writeFixture, listFixtures, readFixture } from "./fixtures/index.js";
+import { listFixtures, readFixture } from "./fixtures/index.js";
 import { buildExecutionId } from "./orchestrator/graph.js";
 import { deriveDeterministicSessionId, hashToSeedInt } from "./orchestrator/replay.js";
 import type { MultiTurnContext } from "./repair/multiTurnRepair.js";
@@ -90,6 +84,16 @@ import { runWithLangGraph } from "./orchestrator/graph.js";
 import { installProblemDetails, respondWithProblem } from "./middleware/problemDetails.js";
 import { createExecution, failExecution, getExecution } from "./orchestrator/executionsStore.js";
 import { maybeInitTelemetry, shutdownTelemetry } from "./telemetry/otel.js";
+import { mountClarifyRoutes } from "./domains/clarify/routes.js";
+import { mountProgressRoutes } from "./domains/progress/routes.js";
+import { mountExecuteRoutes } from "./domains/execute/routes.js";
+import {
+  isComplexPrompt,
+  collectPlanGeneratedFiles,
+  captureFixture,
+  buildRepairSummary,
+  buildRepairMetrics
+} from "./domains/execute/helpers.js";
 
 const IS_TEST_ENV = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
 
@@ -704,19 +708,7 @@ function gatherChangedPaths(history: RepairHistory | null | undefined): string[]
   return Array.from(paths);
 }
 
-function isComplexPrompt(prompt: string, clarifications?: ClarificationResponse): boolean {
-  const normalized = prompt.toLowerCase();
-  const featureIndicators = [" and ", " with ", "feature", "module", "api", "database", "auth", "dashboard", "workflow"];
-  const bulletLike = /\n-\s|\n\d+\./.test(prompt);
-  const multipleSentences = prompt.split(/[.!?]/).filter(chunk => chunk.trim().length > 0).length >= 2;
-  if (clarifications && clarifications.answers.length > 0) {
-    return true;
-  }
-  if (prompt.length > 180 || bulletLike || multipleSentences) {
-    return true;
-  }
-  return featureIndicators.some(indicator => normalized.includes(indicator));
-}
+// moved to domains/execute/helpers.ts: isComplexPrompt
 
 async function generateExecutorOutputFromPrompt(
   systemPrompt: string,
@@ -758,22 +750,9 @@ async function generateExecutorOutputFromPrompt(
   return output;
 }
 
-function collectPlanGeneratedFiles(results: SubtaskResult[]): string[] {
-  const files = new Set<string>();
-  results.forEach(result => {
-    result.generatedFiles.forEach(file => files.add(file));
-  });
-  return Array.from(files);
-}
+// moved to domains/execute/helpers.ts: collectPlanGeneratedFiles
 
-async function captureFixture(sessionId: string | undefined, slug: string, relPath: string, data: unknown) {
-  if (!sessionId) return;
-  try {
-    await writeFixture(slug, sessionId, relPath, data);
-  } catch (err) {
-    console.warn("Failed to write fixture", relPath, err);
-  }
-}
+// moved to domains/execute/helpers.ts: captureFixture
 
 function createPlanExecutionContext(
   params: {
@@ -1089,47 +1068,9 @@ async function executePlanFlow(params: PlanExecutionOptions): Promise<PlanExecut
   return { response: responsePayload, meta, status: planExecutionResult.status, timeEstimate, planExecutionResult };
 }
 
-function buildRepairSummary(initialRun: RunResult, history: RepairHistory) {
-  const attempted = initialRun.status !== "pass";
-  const finalAttempt = history.attempts.at(-1);
-  const finalStatus = finalAttempt?.testResult.status ?? initialRun.status;
+// moved to domains/execute/helpers.ts: buildRepairSummary
 
-  return {
-    attempted,
-    repaired: finalStatus === "pass",
-    appliedFiles: finalAttempt?.changedFiles.length ?? 0,
-    notes: [] as string[],
-    error: finalStatus === "pass" ? null : `final status: ${history.finalStatus}`,
-    artifacts: [] as unknown[]
-  };
-}
-
-function buildRepairMetrics(history: RepairHistory) {
-  const totalAttempts = history.attempts.length;
-  const successAttempt = history.successAttemptNumber;
-  const timePerAttempt = history.attempts.map(attempt => attempt.durationMs);
-  const failureTypes = history.attempts
-    .map(attempt => attempt.failureAnalysis?.category)
-    .filter((category): category is FailureCategory => Boolean(category));
-  const exhausted = history.finalStatus === "exhausted";
-  const efficiency = successAttempt && totalAttempts > 0 && !exhausted
-    ? successAttempt / totalAttempts
-    : 0;
-
-  const metrics: Record<string, unknown> = {
-    totalAttempts,
-    timePerAttempt,
-    failureTypes,
-    exhausted,
-    attemptEfficiency: Number.isFinite(efficiency) ? Number(efficiency.toFixed(2)) : 0
-  };
-
-  if (successAttempt) {
-    metrics.successAttempt = successAttempt;
-  }
-
-  return metrics;
-}
+// moved to domains/execute/helpers.ts: buildRepairMetrics
 
 async function runSingleExecution(options: SingleExecutionOptions): Promise<SingleExecutionResult> {
   const {
@@ -1501,42 +1442,12 @@ async function resolveSessionPrompts(
 // - Ensures files array contains only { path, contents } with string types
 export { sanitizeExecutorOutput } from "./executor/outputProcessing.js";
 
-app.post("/api/clarify", (req, res) => {
-  try {
-    const promptRaw = req.body?.prompt;
-    const prompt = typeof promptRaw === "string" ? promptRaw.trim() : "";
-    if (!prompt) {
-      respondWithProblem(res, 400, "BadRequest", "prompt required", req.originalUrl || req.url || "/api/clarify");
-      return;
-    }
+// Mount extracted domain routes
+mountClarifyRoutes(app);
+mountExecuteRoutes(app, { setProgress, ensureOrchestrationSession, consumeClarificationQuestions, captureFixture, stepQueue });
 
-    const missing = detectMissing(prompt);
-    const questions = generateQuestions(missing, prompt);
-    rememberClarificationQuestions(prompt, questions);
-    const payload = { questions };
-    const validation = validateClarificationRequest(payload);
-    if (!validation.ok) {
-      console.error("Clarification payload failed validation", validation.errors);
-      respondWithProblem(
-        res,
-        500,
-        "ClarificationContractViolation",
-        "clarification contract violation",
-        req.originalUrl || req.url || "/api/clarify"
-      );
-      return;
-    }
-
-    return res.json(payload);
-  } catch (err: unknown) {
-    console.error(err);
-    const message = err instanceof Error ? err.message : "internal error";
-    respondWithProblem(res, 500, "InternalServerError", message, req.originalUrl || req.url || "/api/clarify");
-    return;
-  }
-});
-
-app.post("/api/execute", async (req, res) => {
+// moved to src/domains/execute/routes.ts
+/* app.post("/api/execute", async (req, res) => {
   const instance = req.originalUrl || req.url || "/api/execute";
   const runtime = (process.env.AGENTS_RUNTIME || "").toLowerCase();
   const useLangGraph = runtime === "langgraph";
@@ -1830,7 +1741,7 @@ app.post("/api/execute", async (req, res) => {
       cleanupAbortSignal(sessionId);
     }
   }
-});
+}); */
 
 app.post("/api/run-tests", async (req, res) => {
   try {
@@ -2273,26 +2184,7 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
   }
 });
 
-app.get("/api/progress/:sessionId", (req, res) => {
-  const { sessionId } = req.params as { sessionId: string };
-  openProgressStream(req, res, sessionId);
-});
-
-// JSON snapshot endpoint retained for polling fallbacks
-app.get("/api/progress/snapshot/:sessionId", (req, res) => {
-  const { sessionId } = req.params as { sessionId: string };
-  const snap = getProgress(sessionId);
-  if (!snap) {
-    return res.status(404).json({ error: "session not found" });
-  }
-  return res.json(snap);
-});
-
-// Legacy SSE alias for compatibility
-app.get("/api/progress/stream/:sessionId", (req, res) => {
-  const { sessionId } = req.params as { sessionId: string };
-  openProgressStream(req, res, sessionId);
-});
+mountProgressRoutes(app, { openProgressStream, getProgress });
 
 // File content endpoint with path sanitization
 app.get("/api/files/:project/:path(*)", async (req, res) => {

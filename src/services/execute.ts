@@ -17,6 +17,7 @@ import { generateQuestions } from "../clarification/generateQuestions.js";
 import type { StepDescriptor } from "../orchestrator/stepQueue.js";
 import type { SingleExecutionOptions, ExecutorSuccessResponse } from "../orchestrator/executionTypes.js";
 import type { StepQueue } from "../orchestrator/stepQueue.js";
+import { isComplexPrompt } from "../domains/execute/helpers.js";
 
 // Local copy of payload types to avoid circular deps
 type PlanStepPayload = {
@@ -34,26 +35,6 @@ type PlanStepPayload = {
 type SingleStepPayload = {
   singleOptions: SingleExecutionOptions;
 };
-
-function isComplexPrompt(prompt: string, clarifications?: ClarificationResponse): boolean {
-  const normalized = prompt.toLowerCase();
-  const featureIndicators = [
-    " and ",
-    " with ",
-    "feature",
-    "module",
-    "api",
-    "database",
-    "auth",
-    "dashboard",
-    "workflow"
-  ];
-  const bulletLike = /\n-\s|\n\d+\./.test(prompt);
-  const multipleSentences = prompt.split(/[.!?]/).filter(chunk => chunk.trim().length > 0).length >= 2;
-  if (clarifications && clarifications.answers.length > 0) return true;
-  if (prompt.length > 180 || bulletLike || multipleSentences) return true;
-  return featureIndicators.some(ind => normalized.includes(ind));
-}
 
 export type ExecuteDeps = {
   setProgress: (sessionId: string, stage: string, progress: number, data?: Record<string, unknown>, done?: boolean) => void;

@@ -12,6 +12,24 @@
 				"$eslint-stylish"
 			],
 			"group": "build"
+		},
+		{
+			"label": "validate-repo",
+			"type": "shell",
+			"command": "npm run -s lint && npm run -s typecheck && npm -s test",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "validate-repo",
+			"type": "shell",
+			"command": "npm run -s lint && npm run -s typecheck && npm -s test",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
 		}
 	]
 }

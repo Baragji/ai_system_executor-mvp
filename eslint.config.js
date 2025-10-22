@@ -11,7 +11,7 @@ const baseRules = {
 
 export default [
   {
-    ignores: ["dist", "coverage", "output"]
+    ignores: ["dist", "coverage", "output", "**/dist/**"]
   },
   {
     files: ["**/*.ts"],
