@@ -5,7 +5,7 @@ import cors from "cors";
 import morgan from "morgan";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { finished } from "node:stream/promises";
 import slugify from "slugify";
@@ -30,6 +30,10 @@ import type { FailureCategory, RepairHistory, TestResultSummary } from "./contra
 import { detectMissing } from "./clarification/detectMissing.js";
 import { generateQuestions } from "./clarification/generateQuestions.js";
 import { augmentPrompt } from "./clarification/augmentPrompt.js";
+import {
+  consumeClarificationQuestions,
+  rememberClarificationQuestions
+} from "./domains/clarify/session.js";
 import {
   validateClarificationRequest,
   validateClarificationResponse
@@ -377,48 +381,6 @@ function openProgressStream(req: Request, res: Response, sessionId: string): voi
 
   req.on("close", close);
   req.on("error", close);
-}
-
-const CLARIFICATION_SESSION_TTL_MS = 10 * 60 * 1000;
-
-type ClarificationSession = {
-  questions: ClarificationQuestion[];
-  storedAt: number;
-};
-
-const clarificationSessions = new Map<string, ClarificationSession>();
-
-function clarificationSessionKey(prompt: string): string | null {
-  const normalized = prompt.trim();
-  if (!normalized) return null;
-  return createHash("sha256").update(normalized).digest("hex");
-}
-
-function purgeExpiredSessions(now: number) {
-  for (const [key, entry] of clarificationSessions.entries()) {
-    if (now - entry.storedAt > CLARIFICATION_SESSION_TTL_MS) {
-      clarificationSessions.delete(key);
-    }
-  }
-}
-
-function rememberClarificationQuestions(prompt: string, questions: ClarificationQuestion[]) {
-  if (!questions || questions.length === 0) return;
-  const key = clarificationSessionKey(prompt);
-  if (!key) return;
-  const now = Date.now();
-  purgeExpiredSessions(now);
-  clarificationSessions.set(key, { questions, storedAt: now });
-}
-
-function consumeClarificationQuestions(prompt: string): ClarificationQuestion[] | undefined {
-  const key = clarificationSessionKey(prompt);
-  if (!key) return undefined;
-  purgeExpiredSessions(Date.now());
-  const entry = clarificationSessions.get(key);
-  if (!entry) return undefined;
-  clarificationSessions.delete(key);
-  return entry.questions;
 }
 
 function toPosixPath(value: string): string {

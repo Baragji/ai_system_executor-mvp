@@ -303,33 +303,42 @@ export function makeExecuteHandler(deps: ExecuteDeps) {
       }
       res.json(responsePayload);
       return;
-    } catch (err: unknown) {
-      if (useLangGraph && executionId && !delegatedToLangGraph) {
-        failExecution(executionId, err);
-      }
-      if (err instanceof PausedError) {
-        console.log(`Execution paused for session ${err.sessionId} during ${err.phase}`);
-        const workflowSteps = sessionId ? await stepQueue.getWorkflow(sessionId) : null;
-        const pausedRecord = workflowSteps?.slice().reverse().find(step => step.status === "paused");
-        const stepMeta = pausedRecord
-          ? { stepId: pausedRecord.stepId, stepType: pausedRecord.stepType, sequence: pausedRecord.sequence }
-          : { stepId: (err as any).stepId, stepType: (err as any).stepType, sequence: (err as any).sequence };
-        const payload = {
-          paused: true,
-          sessionId: (err as any).sessionId,
-          phase: (err as any).phase,
-          message: (err as Error).message,
-          ...stepMeta
-        };
-        if (wantsSse) {
-          res.status(202);
-          sendSse("paused", payload);
-          closeSse();
+      } catch (err: unknown) {
+        if (useLangGraph && executionId && !delegatedToLangGraph) {
+          failExecution(executionId, err);
+        }
+        if (err instanceof PausedError) {
+          console.log(`Execution paused for session ${err.sessionId} during ${err.phase}`);
+          const workflowSteps = sessionId ? await stepQueue.getWorkflow(sessionId) : null;
+          const pausedRecord = workflowSteps?.slice().reverse().find(step => step.status === "paused");
+          const pausedError = err as PausedError & {
+            stepId?: string;
+            stepType?: string;
+            sequence?: number;
+          };
+          const stepMeta = pausedRecord
+            ? { stepId: pausedRecord.stepId, stepType: pausedRecord.stepType, sequence: pausedRecord.sequence }
+            : {
+                stepId: pausedError.stepId,
+                stepType: pausedError.stepType,
+                sequence: pausedError.sequence
+              };
+          const payload = {
+            paused: true,
+            sessionId: pausedError.sessionId,
+            phase: pausedError.phase,
+            message: pausedError.message,
+            ...stepMeta
+          };
+          if (wantsSse) {
+            res.status(202);
+            sendSse("paused", payload);
+            closeSse();
+            return;
+          }
+          res.status(202).json(payload);
           return;
         }
-        res.status(202).json(payload);
-        return;
-      }
       console.error(err);
       const message = err instanceof Error ? err.message : "internal error";
       if (wantsSse) {
