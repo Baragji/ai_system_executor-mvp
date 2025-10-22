@@ -182,3 +182,104 @@ The original inline handler in `server.ts` is removed (now commented out for tra
 
 ## Notes
 - We also tightened ESLint ignore to exclude nested `dist` folders (`**/dist/**`) to prevent warnings from compiled artifacts in subpackages. This does not affect source linting and respects the zero-warning policy.
+
+---
+
+# Session 2 — S2-03 (Pause/Resume extraction)
+
+Last updated: 2025-10-22
+
+## Integration Points (with code snippets)
+
+### 1) Legacy pause/resume handlers in `server.ts`
+- File: `src/server.ts`
+- Lines (pre-extraction): ~1870–2160
+
+These handlers managed `POST /api/sessions/:id/pause` and `POST /api/sessions/:id/resume`, directly mutating `progressSessions` and `orchestrationSessions`. They relied on helpers such as `ensureOrchestrationSession`, `snapshotFromSession`, `raiseInterrupt`, `resumeFromCheckpoint`, `captureManifest`, `getManifest`, and the orchestrator `stepQueue` instance. The inline code also touched filesystem helpers (`fs.readFile` for the system prompt, `captureFixture`) and state machine transitions when restarting execution.
+
+### 2) New domain router: `src/domains/sessions/routes.ts`
+
+```ts
+export function mountSessionsRoutes(app: Application, deps: SessionsDeps): void {
+  app.post("/api/sessions/:id/pause", async (req, res) => {
+    const session = deps.ensureOrchestrationSession(sessionId);
+    const questions = deps.normalizeInterruptQuestions(body?.questions);
+    const checkpoint = await deps.raiseInterrupt({ sessionId, machine: session.machine, reason, questions, checkpointPayload });
+    session.paused = true;
+    deps.setProgress(sessionId, deps.stateToStage(session.machine.state), snapshot.progress, snapshot.data, false);
+    return res.status(201).json({ checkpoint });
+  });
+
+  app.post("/api/sessions/:id/resume", async (req, res) => {
+    const result = await deps.resumeFromCheckpoint(sessionId, answers, { machine: session.machine, reason });
+    const manifest = await deps.getManifest(sessionId);
+    const prompts = deps.buildResumePrompts(await deps.readSystemPrompt(), { projectSlug, checkpoint: result.checkpoint, answeredQuestions: result.answeredQuestions, manifest });
+    deps.setProgress(sessionId, deps.stateToStage(session.machine.state), snapshot.progress, data, false);
+    deps.stepQueue.runWorkflow(sessionId, descriptors, { resume: true }).catch(...);
+    return res.json({ checkpoint: result.checkpoint, answeredQuestions: result.answeredQuestions, resumed: true });
+  });
+}
+```
+
+Key DI surface (`SessionsDeps`) mirrors the server helpers so behavior remains unchanged:
+- `getProgress`, `snapshotFromSession`, `stateToStage`, `setProgress`
+- `ensureOrchestrationSession`, `getOrchestrationSession`
+- `raiseInterrupt`, `resumeFromCheckpoint`
+- `captureManifest`, `getManifest`, `buildResumePrompts`
+- `normalizeInterruptQuestions`, `normalizeResumeAnswers`
+- `captureFixture`, `slugify`, `stepQueue`
+- `createAbortSignal`, `cleanupAbortSignal`
+- `readSystemPrompt` (wrapper over `fs.readFile`)
+- `resolveSessionPrompts` (accesses saved clarify fixture / session cache)
+
+### 3) Mount point in `server.ts`
+
+```ts
+import { mountSessionsRoutes } from "./domains/sessions/routes.js";
+
+mountSessionsRoutes(app, {
+  getProgress,
+  ensureOrchestrationSession,
+  getOrchestrationSession,
+  snapshotFromSession,
+  stateToStage,
+  setProgress,
+  abortSession,
+  raiseInterrupt,
+  resumeFromCheckpoint,
+  captureManifest,
+  getManifest,
+  buildResumePrompts,
+  normalizeInterruptQuestions,
+  normalizeResumeAnswers,
+  captureFixture,
+  slugify,
+  stepQueue,
+  createAbortSignal,
+  cleanupAbortSignal,
+  readSystemPrompt: () => fs.readFile("src/executor/systemPrompt.md", "utf-8"),
+  resolveSessionPrompts
+});
+```
+
+## Tests & Coverage
+- New unit suite: `tests/domains/sessions/routes.test.ts` exercises pause/resume happy paths, DI error handling, queue metadata branches, manifest capture, workflow failure scenarios, and validation guards.
+- The suite stubs every injected dependency, verifying call contracts and ensuring 100% coverage on `src/domains/sessions/routes.ts`.
+
+## Compliance Check
+- Language / platform unchanged (TypeScript on Express) — OK
+- No new dependencies introduced — OK
+- API surface preserved (`/api/sessions/:id/pause`, `/api/sessions/:id/resume`) — OK
+- Feature flag usage untouched (AGENTS_RUNTIME, PROBLEM_DETAILS) — OK
+- Error shapes match legacy JSON responses — OK
+
+## Validation Gates
+- `npm run -s lint`
+- `npm run -s typecheck`
+- `npm -s test`
+- `npm run -s contract:check`
+- `npm run -s sbom`
+- `npm run -s sbom:cyclonedx`
+- `npm run -s provenance`
+
+All gates must return green prior to PR.

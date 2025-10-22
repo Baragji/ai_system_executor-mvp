@@ -5,7 +5,6 @@ import cors from "cors";
 import morgan from "morgan";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { finished } from "node:stream/promises";
 import slugify from "slugify";
@@ -27,11 +26,7 @@ import { logEvent } from "./telemetry/events.js";
 import type { ExecutorOutput, ExecutorFile } from "./executor/types.js";
 import type { RunResult } from "./contracts/validators.js";
 import type { RepairHistory, TestResultSummary } from "./contracts/repairHistoryValidator.js";
-import { detectMissing } from "./clarification/detectMissing.js";
-import { generateQuestions } from "./clarification/generateQuestions.js";
-import { augmentPrompt } from "./clarification/augmentPrompt.js";
 import { consumeClarificationQuestions } from "./domains/clarify/session.js";
-import { validateClarificationResponse } from "./contracts/validators.js";
 import type {
   ClarificationAnswer,
   ClarificationQuestion,
@@ -54,46 +49,29 @@ import {
   PausedError
 } from "./orchestrator/abortSignal.js";
 import { listFixtures, readFixture } from "./fixtures/index.js";
-import { buildExecutionId } from "./orchestrator/graph.js";
-import { deriveDeterministicSessionId, hashToSeedInt } from "./orchestrator/replay.js";
 import type { MultiTurnContext } from "./repair/multiTurnRepair.js";
-import {
-  type CheckpointPayload,
-  type PendingQuestion
-} from "./orchestrator/checkpoints.js";
+import { type PendingQuestion } from "./orchestrator/checkpoints.js";
 import { raiseInterrupt, type InterruptQuestionInput } from "./orchestrator/interrupts.js";
 import { OrchestratorStateMachine, type OrchestratorState } from "./orchestrator/stateMachine.js";
-import {
-  resumeFromCheckpoint,
-  ResumeValidationError,
-  ResumeStateError,
-  type ResumeAnswer
-} from "./orchestrator/resume.js";
+import { resumeFromCheckpoint, type ResumeAnswer } from "./orchestrator/resume.js";
 import { captureManifest, getManifest } from "./orchestrator/workspaceManifest.js";
 import { buildResumePrompts } from "./orchestrator/resumePrompt.js";
-import { StepQueue, type StepDescriptor, type StepHandler } from "./orchestrator/stepQueue.js";
+import { StepQueue, type StepHandler } from "./orchestrator/stepQueue.js";
 import type {
   ExecutorSuccessResponse,
   PlanExecutionJobResult,
   PlanExecutionOptions,
-  ResumeContextFixture,
   SingleExecutionOptions,
   SingleExecutionResult
 } from "./orchestrator/executionTypes.js";
-import { runWithLangGraph } from "./orchestrator/graph.js";
 import { installProblemDetails, respondWithProblem } from "./middleware/problemDetails.js";
-import { createExecution, failExecution, getExecution } from "./orchestrator/executionsStore.js";
+import { getExecution } from "./orchestrator/executionsStore.js";
 import { maybeInitTelemetry, shutdownTelemetry } from "./telemetry/otel.js";
 import { mountClarifyRoutes } from "./domains/clarify/routes.js";
 import { mountProgressRoutes } from "./domains/progress/routes.js";
 import { mountExecuteRoutes } from "./domains/execute/routes.js";
-import {
-  isComplexPrompt,
-  collectPlanGeneratedFiles,
-  captureFixture,
-  buildRepairSummary,
-  buildRepairMetrics
-} from "./domains/execute/helpers.js";
+import { mountSessionsRoutes } from "./domains/sessions/routes.js";
+import { collectPlanGeneratedFiles, captureFixture, buildRepairSummary, buildRepairMetrics } from "./domains/execute/helpers.js";
 
 const IS_TEST_ENV = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
 
@@ -1445,6 +1423,29 @@ export { sanitizeExecutorOutput } from "./executor/outputProcessing.js";
 // Mount extracted domain routes
 mountClarifyRoutes(app);
 mountExecuteRoutes(app, { setProgress, ensureOrchestrationSession, consumeClarificationQuestions, captureFixture, stepQueue });
+mountSessionsRoutes(app, {
+  getProgress,
+  ensureOrchestrationSession,
+  getOrchestrationSession,
+  snapshotFromSession,
+  stateToStage,
+  setProgress,
+  abortSession,
+  raiseInterrupt,
+  resumeFromCheckpoint,
+  captureManifest,
+  getManifest,
+  buildResumePrompts,
+  normalizeInterruptQuestions,
+  normalizeResumeAnswers,
+  captureFixture,
+  slugify,
+  stepQueue,
+  createAbortSignal,
+  cleanupAbortSignal,
+  readSystemPrompt: () => fs.readFile("src/executor/systemPrompt.md", "utf-8"),
+  resolveSessionPrompts
+});
 
 // moved to src/domains/execute/routes.ts
 /* app.post("/api/execute", async (req, res) => {
@@ -1866,321 +1867,6 @@ app.post("/api/plan/:project/retest-subtask", async (req, res) => {
   } catch (err) {
     const message = (err as Error).message || 'internal error';
     return res.status(500).json({ error: message });
-  }
-});
-
-// Pause/resume session orchestration
-app.post("/api/sessions/:id/pause", async (req, res) => {
-  try {
-    const { id } = req.params as { id: string };
-    const sessionId = id.trim();
-    if (!sessionId) {
-      return res.status(400).json({ error: "session id required" });
-    }
-
-    const current = getProgress(sessionId);
-    if (!current) {
-      return res.status(404).json({ error: "session not found" });
-    }
-
-    const session = ensureOrchestrationSession(sessionId);
-    if (session.paused) {
-      return res.status(409).json({ error: "session already paused" });
-    }
-
-    const reasonRaw = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
-    const reason = reasonRaw || "Manual pause requested";
-
-    const normalizedQuestions = normalizeInterruptQuestions(req.body?.questions);
-    const defaultQuestion: InterruptQuestionInput = {
-      question: "Please provide guidance to continue execution.",
-      type: "AMBIGUITY"
-    };
-    const questions: InterruptQuestionInput[] = normalizedQuestions.length > 0
-      ? normalizedQuestions
-      : [defaultQuestion];
-
-    let machineContext: Record<string, unknown> | undefined;
-    if (req.body?.context !== undefined) {
-      if (req.body.context === null || isPlainObject(req.body.context)) {
-        machineContext = req.body.context ?? undefined;
-      } else {
-        return res.status(400).json({ error: "context must be a plain object" });
-      }
-    }
-
-    let checkpointPayload: Omit<CheckpointPayload, "pendingQuestions"> | undefined;
-    if (req.body?.payload !== undefined) {
-      if (!isPlainObject(req.body.payload)) {
-        return res.status(400).json({ error: "payload must be a plain object" });
-      }
-      checkpointPayload = req.body.payload as Omit<CheckpointPayload, "pendingQuestions">;
-    }
-
-    if (session.projectSlug) {
-      checkpointPayload = {
-        ...(checkpointPayload ?? {}),
-        executor: {
-          ...(checkpointPayload?.executor ?? {}),
-          projectSlug: session.projectSlug
-        }
-      };
-    }
-
-    // Abort the in-flight execution
-    const aborted = abortSession(sessionId);
-    console.log(`[Pause] Session ${sessionId} abort signal sent: ${aborted}`);
-
-    const checkpoint = await raiseInterrupt({
-      sessionId,
-      machine: session.machine,
-      reason,
-      questions,
-      machineContext,
-      checkpointPayload
-    });
-
-    session.paused = true;
-    session.questions = checkpoint.payload?.pendingQuestions ?? [];
-    session.checkpointUpdatedAt = checkpoint.updatedAt;
-
-    if (session.projectSlug) {
-      try {
-        await captureManifest(sessionId, session.projectSlug);
-      } catch (error) {
-        console.warn(`[Pause] Failed to capture manifest for session ${sessionId}:`, error);
-      }
-    }
-
-    const snapshot = snapshotFromSession(sessionId, current);
-    snapshot.stage = stateToStage(session.machine.state);
-    snapshot.paused = true;
-    snapshot.questions = session.questions;
-    snapshot.checkpointUpdatedAt = checkpoint.updatedAt;
-    snapshot.done = false;
-    snapshot.updatedAt = Date.now();
-    progressSessions.set(sessionId, snapshot);
-
-    return res.status(201).json({ checkpoint });
-  } catch (error) {
-    if (error instanceof Error && /Cannot raise interrupt/.test(error.message)) {
-      return res.status(409).json({ error: error.message });
-    }
-    if (error instanceof Error) {
-      return res.status(400).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "unknown error" });
-  }
-});
-
-app.post("/api/sessions/:id/resume", async (req, res) => {
-  try {
-    const { id } = req.params as { id: string };
-    const sessionId = id.trim();
-    if (!sessionId) {
-      return res.status(400).json({ error: "session id required" });
-    }
-
-    const session = getOrchestrationSession(sessionId);
-    if (!session) {
-      return res.status(404).json({ error: "session not found" });
-    }
-
-    const answers = normalizeResumeAnswers(req.body?.answers);
-    // Explicit validation: require at least one answer when resuming
-    if (!Array.isArray(answers) || answers.length === 0) {
-      return res.status(400).json({ error: "answers must include at least one entry" });
-    }
-    const reasonRaw = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
-    const adjustmentRaw = typeof req.body?.adjustment === "string" ? req.body.adjustment.trim() : "";
-
-    const result = await resumeFromCheckpoint(sessionId, answers, {
-      machine: session.machine,
-      reason: reasonRaw || undefined
-    });
-
-    session.paused = false;
-    session.questions = [];
-    session.checkpointUpdatedAt = result.checkpoint.updatedAt;
-    session.machine = result.machine;
-    const resumedSlug = result.checkpoint.payload?.executor?.projectSlug;
-    if (typeof resumedSlug === "string" && resumedSlug.trim()) {
-      session.projectSlug = resumedSlug.trim();
-    }
-
-    const fallbackSlug = slugify(sessionId, { lower: true, strict: true }) || sessionId;
-    const projectSlug = (session.projectSlug ?? resumedSlug ?? fallbackSlug).trim();
-    session.projectSlug = projectSlug;
-
-    const manifest = await getManifest(sessionId);
-    const systemPrompt = await fs.readFile("src/executor/systemPrompt.md", "utf-8");
-    const promptSnapshot = await resolveSessionPrompts(sessionId, session, projectSlug);
-    const prompts = buildResumePrompts(systemPrompt, {
-      projectSlug,
-      originalPrompt: promptSnapshot.original,
-      effectivePrompt: promptSnapshot.effective,
-      adjustment: adjustmentRaw,
-      checkpoint: result.checkpoint,
-      answeredQuestions: result.answeredQuestions,
-      manifest
-    });
-
-    session.effectivePrompt = prompts.userPrompt;
-
-    const snapshot = snapshotFromSession(sessionId, progressSessions.get(sessionId) ?? null);
-    snapshot.stage = stateToStage(session.machine.state);
-    snapshot.paused = false;
-    snapshot.questions = [];
-    snapshot.checkpointUpdatedAt = result.checkpoint.updatedAt;
-    snapshot.updatedAt = Date.now();
-    snapshot.done = false;
-    snapshot.data = {
-      ...(snapshot.data ?? {}),
-      resume: true,
-      ...(adjustmentRaw ? { adjustment: adjustmentRaw } : {})
-    };
-    progressSessions.set(sessionId, snapshot);
-
-    const resumeFixture: ResumeContextFixture = {
-      adjustment: adjustmentRaw || undefined,
-      answeredQuestions: result.answeredQuestions.map(item => ({
-        id: item.id,
-        question: item.question,
-        answer: item.answer
-      })),
-      manifestSummary: manifest?.summary
-        ? {
-            totalFiles: manifest.summary.totalFiles,
-            totalSize: manifest.summary.totalSize,
-            topFiles: manifest.summary.topFiles.slice(0, 10)
-          }
-        : null,
-      checkpoint: { state: result.checkpoint.state, updatedAt: result.checkpoint.updatedAt },
-      prompt: { system: prompts.systemPrompt, user: prompts.userPrompt }
-    };
-
-    const progressMetadata = {
-      resume: true,
-      ...(adjustmentRaw ? { adjustment: adjustmentRaw } : {})
-    };
-
-    const providerConfigured = Boolean(process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY);
-
-    if (!providerConfigured) {
-      try {
-        await captureFixture(sessionId, projectSlug, path.join("resume", "context.json"), resumeFixture);
-      } catch (error) {
-        console.warn("[Resume] Failed to persist resume context without provider:", error);
-      }
-      console.warn(`[Resume] No LLM provider configured; skipping automatic resume for ${sessionId}`);
-    } else {
-      createAbortSignal(sessionId);
-
-      const resumeOptions: SingleExecutionOptions = {
-        sessionId,
-        systemPrompt: prompts.systemPrompt,
-        executorPrompt: prompts.userPrompt,
-        originalPrompt: promptSnapshot.original,
-        projectNameHint: session.projectName ?? projectSlug,
-        clarifications: undefined,
-        clarificationsUsed: false,
-        clarificationQuestions: [],
-        clarificationAsked: false,
-        preserveWorkspace: true,
-        slugOverride: projectSlug,
-        resumeFixture,
-        tracePhase: "resume",
-        progressMetadata
-      };
-
-      if (stepQueue.mode === "bullmq") {
-        resumeOptions.progressMetadata = { ...progressMetadata, queued: true, mode: "queue" };
-      }
-
-      const plannedSteps = await stepQueue.getPlannedSteps(sessionId);
-
-      type PlanEntry = {
-        order: number;
-        stepType: string;
-        optional: boolean;
-        stopOnSuccess: boolean;
-        payload?: Record<string, unknown>;
-      };
-
-      const orderedPlan: PlanEntry[] = plannedSteps && plannedSteps.length > 0
-        ? plannedSteps
-            .slice()
-            .sort((a, b) => a.order - b.order)
-            .map(entry => ({
-              order: entry.order,
-              stepType: entry.stepType,
-              optional: entry.optional,
-              stopOnSuccess: entry.stopOnSuccess,
-              payload: entry.payload
-                ? (JSON.parse(JSON.stringify(entry.payload)) as Record<string, unknown>)
-                : undefined
-            }))
-        : [
-            {
-              order: 0,
-              stepType: "single",
-              optional: false,
-              stopOnSuccess: true,
-              payload: { singleOptions: resumeOptions }
-            }
-          ];
-
-      const descriptors: StepDescriptor[] = orderedPlan.map(entry => {
-        const basePayload = entry.payload ? { ...entry.payload } : undefined;
-        if (entry.stepType === "single") {
-          const payload: Record<string, unknown> = basePayload ? { ...basePayload } : {};
-          payload.singleOptions = resumeOptions;
-          return {
-            type: entry.stepType as StepDescriptor["type"],
-            payload,
-            optional: entry.optional,
-            stopOnSuccess: entry.stopOnSuccess
-          };
-        }
-        return {
-          type: entry.stepType as StepDescriptor["type"],
-          payload: basePayload,
-          optional: entry.optional,
-          stopOnSuccess: entry.stopOnSuccess
-        };
-      });
-
-      stepQueue
-        .runWorkflow(sessionId, descriptors, { resume: true })
-        .catch(error => {
-          if (error instanceof PausedError) {
-            return;
-          }
-          const message = error instanceof Error ? error.message : "resume execution failed";
-          console.error(`[Resume] Execution failed for session ${sessionId}:`, error);
-          setProgress(sessionId, "finalizing", 100, { resume: true, error: message }, true);
-        })
-        .finally(() => {
-          cleanupAbortSignal(sessionId);
-        });
-    }
-
-    return res.json({
-      checkpoint: result.checkpoint,
-      answeredQuestions: result.answeredQuestions,
-      resumed: true
-    });
-  } catch (error) {
-    if (error instanceof ResumeValidationError) {
-      return res.status(400).json({ error: error.message, issues: error.issues });
-    }
-    if (error instanceof ResumeStateError) {
-      return res.status(409).json({ error: error.message });
-    }
-    if (error instanceof Error) {
-      return res.status(500).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "unknown error" });
   }
 });
 
