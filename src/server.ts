@@ -1387,7 +1387,8 @@ const singleStepHandler: StepHandler = async ({ payload, queueMode }) => {
   };
 };
 
-const stepQueue = await StepQueue.create();
+// In tests, force inline queue to avoid external Redis/BullMQ overhead and flakiness
+const stepQueue = await StepQueue.create({ mode: process.env.NODE_ENV === "test" ? "inline" : "auto" });
 stepQueue.registerHandler("plan", planStepHandler);
 stepQueue.registerHandler("single", singleStepHandler);
 
