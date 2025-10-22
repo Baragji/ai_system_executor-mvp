@@ -2114,6 +2114,10 @@ app.post("/api/sessions/:id/resume", async (req, res) => {
     }
 
     const answers = normalizeResumeAnswers(req.body?.answers);
+    // Explicit validation: require at least one answer when resuming
+    if (!Array.isArray(answers) || answers.length === 0) {
+      return res.status(400).json({ error: "answers must include at least one entry" });
+    }
     const reasonRaw = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
     const adjustmentRaw = typeof req.body?.adjustment === "string" ? req.body.adjustment.trim() : "";
 

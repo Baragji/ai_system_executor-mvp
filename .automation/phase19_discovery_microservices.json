@@ -1,0 +1,47 @@
+{
+  "phase": 19,
+  "purpose": "Monolith → feature-flagged extraction (discovery-only)",
+  "integration_points": [
+    {"file": "src/server.ts", "start": 447, "end": 468, "description": "health + executions status"},
+    {"file": "src/server.ts", "start": 461, "end": 707, "description": "output archive + directory listing"},
+    {"file": "src/server.ts", "start": 675, "end": 676, "description": "static asset serving"},
+    {"file": "src/server.ts", "start": 1542, "end": 1574, "description": "clarification API"},
+    {"file": "src/server.ts", "start": 1577, "end": 1846, "description": "execute API (runtime switch via AGENTS_RUNTIME)"},
+    {"file": "src/server.ts", "start": 1873, "end": 1896, "description": "run-tests API"},
+    {"file": "src/server.ts", "start": 1898, "end": 2047, "description": "fixtures + repair/subtask replay"},
+    {"file": "src/server.ts", "start": 1963, "end": 2000, "description": "plan helpers: list failed subtasks"},
+    {"file": "src/server.ts", "start": 1984, "end": 1999, "description": "plan helpers: retest subtask"},
+    {"file": "src/server.ts", "start": 2000, "end": 2102, "description": "sessions: pause"},
+    {"file": "src/server.ts", "start": 2103, "end": 2310, "description": "sessions: resume"},
+    {"file": "src/server.ts", "start": 2310, "end": 2339, "description": "progress: SSE + snapshot + alias"},
+    {"file": "src/middleware/problemDetails.ts", "start": 1, "end": 120, "description": "RFC 9457 enablement + responder"},
+    {"file": "src/telemetry/otel.ts", "start": 1, "end": 140, "description": "OTel init (OTEL_ENABLED)"},
+    {"file": "src/telemetry/events.ts", "start": 1, "end": 120, "description": "JSONL traces + ACTION_LOG_JSONL dual-write"},
+    {"file": "src/orchestrator/adapter.ts", "start": 1, "end": 120, "description": "LangGraph adapter stub (not wired)"}
+  ],
+  "flags": {
+    "PROBLEM_DETAILS_ENABLED": "auto-on in dev/test",
+    "OTEL_ENABLED": "off by default, enables OTel when truthy",
+    "ACTION_LOG_JSONL": "off by default, dual-writes actions.jsonl when truthy",
+    "AGENTS_RUNTIME": "stepqueue|langgraph (switch in /api/execute)"
+  },
+  "constraints": {
+    "language": "ts/js only",
+    "backend": "Node 20 + Express",
+    "frontend": "vanilla /public",
+    "tests": ">=80% lines, >=75% branches",
+    "lint": "0 warnings",
+    "new_dependencies": "avoid; stage 1 uses HTTP-only seams"
+  },
+  "proposed_seams": [
+    { "name": "execute", "module": "src/services/execute.ts", "behavior_change": false },
+    { "name": "replay", "module": "src/services/replay.ts", "behavior_change": false },
+    { "name": "fixtures", "module": "src/services/fixtures.ts", "behavior_change": false },
+    { "name": "sessions", "module": "src/services/sessions.ts", "behavior_change": false }
+  ],
+  "next_steps": [
+    "Factor handlers into modules (pure refactor)",
+    "Swap routes to call modules",
+    "Add adapter call behind AGENTS_RUNTIME for future microservice hop"
+  ]
+}
