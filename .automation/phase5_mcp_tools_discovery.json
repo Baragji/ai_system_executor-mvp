@@ -1,0 +1,27 @@
+{
+  "phase": "5_mcp_tools",
+  "date": "2025-10-11",
+  "change": "Add MCP-style filesystem tools, manifest capture, and tool-aware LLM orchestration for pause/resume continuity.",
+  "integration_points": [
+    { "file": "src/llm/index.ts", "line_hint": 8, "why": "generateJSON is the central LLM wrapper where tool execution must run" },
+    { "file": "src/llm/providers/openai.ts", "line_hint": 1, "why": "OpenAI client needs tool schema + tool call support" },
+    { "file": "src/llm/providers/anthropic.ts", "line_hint": 1, "why": "Anthropic provider must gracefully handle no-tool / unsupported tooling" },
+    { "file": "src/server.ts", "line_hint": 1298, "why": "Pause endpoint will capture workspace manifests alongside checkpoints" }
+  ],
+  "new_files": [
+    "src/llm/tools/fsTools.ts",
+    "src/orchestrator/workspaceManifest.ts",
+    "src/workspace/manifest.ts",
+    "tests/llm/tools/fsTools.test.ts",
+    "tests/orchestrator/workspaceManifest.test.ts"
+  ],
+  "non_breaking": true,
+  "new_dependencies": false,
+  "validation_gate": {
+    "lint": true,
+    "typecheck": true,
+    "tests": true,
+    "contracts": true,
+    "sbom": true
+  }
+}

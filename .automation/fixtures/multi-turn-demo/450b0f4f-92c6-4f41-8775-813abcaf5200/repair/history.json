@@ -1,0 +1,26 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "pass",
+      "startedAt": "2025-10-11T23:31:05.614Z",
+      "finishedAt": "2025-10-11T23:31:05.614Z",
+      "changedFiles": [
+        "src/index.ts"
+      ],
+      "summary": "Repair success",
+      "testResult": {
+        "status": "pass",
+        "passCount": 2,
+        "failCount": 0,
+        "durationMs": 700,
+        "logsPath": "logs/attempt1.log"
+      },
+      "durationMs": 700,
+      "cumulativeTime": 700
+    }
+  ],
+  "finalStatus": "pass",
+  "totalAttempts": 1,
+  "successAttemptNumber": 1
+}

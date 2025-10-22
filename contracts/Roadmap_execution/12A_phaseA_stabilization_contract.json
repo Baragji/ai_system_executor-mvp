@@ -1,0 +1,39 @@
+{
+  "contract_version": "12A.0.0",
+  "phase": "A-STABILIZATION",
+  "purpose": "Tighten A-FIX outcome truthfulness and reduce confusion before Phase B (Trust Engine)",
+  "wins": [
+    {
+      "id": "S1",
+      "title": "Outcome mapping correctness",
+      "description": "Map success/partial/error based on executed tests: success=pass & counts>0; partial=fail & counts>0; error=else (not-run/system error/files=0)",
+      "changes": [
+        { "file": "public/script.js", "note": "Fix computeOutcome + adjust error copy for not-run" },
+        { "file": "tests/outcome-state-machine.test.ts", "note": "Align expectations" }
+      ],
+      "validation": [
+        { "cmd": "npm run lint" },
+        { "cmd": "npm run typecheck" },
+        { "cmd": "npm test" },
+        { "cmd": "npm run test:ui -- --reporter=list" }
+      ]
+    },
+    {
+      "id": "S2",
+      "title": "Repair artifact completeness retry",
+      "description": "Auto re-ask exactly once when artifacts omit file contents (Missing contents …)",
+      "changes": [
+        { "file": "src/repair/multiTurnRepair.ts", "note": "Retry path + stricter prompt" }
+      ],
+      "validation": [
+        { "cmd": "npm run lint" },
+        { "cmd": "npm test" }
+      ]
+    }
+  ],
+  "gate": {
+    "must_pass": ["lint", "typecheck", "unit", "ui"],
+    "evidence": [".automation/phase_a_fix_screenshots/*", "coverage/index.html", "sbom.spdx.json"]
+  }
+}
+

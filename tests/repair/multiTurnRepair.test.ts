@@ -443,6 +443,52 @@ describe("multiTurnRepair", () => {
     expect(history.finalStatus).toBe("pass");
   });
 
+  it("retries once when artifacts miss contents and succeeds on retry", async () => {
+    const { projectRoot, filePath, initialRun } = await createTempProject();
+
+    // First response: artifact without file contents
+    generateJSONMock
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          artifacts: [{ path: filePath, action: "modify" }],
+          files: [],
+          notes: []
+        })
+      )
+      // Second response (retry): proper files included
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          artifacts: [{ path: filePath, action: "modify" }],
+          files: [{ path: filePath, contents: "export const value = 99;\n" }],
+          notes: ["retry"]
+        })
+      );
+
+    const passLog = await createLog(projectRoot, "attempt-pass.log", "PASS after retry\n");
+    runInSandboxMock.mockResolvedValueOnce({
+      status: "pass",
+      passCount: 1,
+      failCount: 0,
+      durationMs: 100,
+      logsPath: passLog,
+      timestamp: new Date().toISOString(),
+      startedAt: new Date().toISOString(),
+      finishedAt: new Date().toISOString()
+    });
+
+    const history = await multiTurnRepair({
+      projectPath: projectRoot,
+      projectSlug: "retry-missing-contents",
+      originalPrompt: "Fix missing contents",
+      generatedFiles: [filePath],
+      initialTestResult: initialRun
+    });
+
+    expect(history.finalStatus).toBe("pass");
+    expect(history.attempts).toHaveLength(1);
+    expect(runInSandboxMock).toHaveBeenCalledTimes(1);
+  });
+
   it("produces histories that validate against the schema", async () => {
     const { projectRoot, filePath, initialRun } = await createTempProject();
 

@@ -1,0 +1,243 @@
+{
+  "contract_version": "1.0.0",
+  "contract_meta": {
+    "created": "2025-10-22",
+    "phase": "21",
+    "phase_name": "Modular Extraction (Monolith to Domains) — Sessions 1-3",
+    "prerequisite_phase": "20",
+    "rationale": "Safely extract logical domains from the modular monolith (`src/server.ts`) in small, verified slices with zero behavior change and green gates after every slice.",
+    "references": [
+      "AGENTS.md",
+      ".github/copilot-instructions.md",
+      "docs/Goal_&_Vision_inspirational_only/03_final_decisions/ADR-019_LangGraph_TS_Orchestrator_2025-10-12.md"
+    ]
+  },
+  "project": {
+    "name": "executor-mvp",
+    "current_phase": "21",
+    "goal": "Refactor the monolith into domain modules without breaking APIs or tests.",
+    "scope": "Extract 6 domains: clarify, progress, execute, sessions, fixtures, files. Keep feature flags and endpoints unchanged.",
+    "out_of_scope": [
+      "Microservice deployment",
+      "New dependencies",
+      "API changes",
+      "Frontend framework introduction"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "observe_evaluate_proceed",
+    "description": "After each slice: lint + typecheck + tests must pass. If any fail, halt and fix before proceeding.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true
+  },
+  "constraints": {
+    "language": "TypeScript/Node 20",
+    "forbidden": ["Python", "New dependencies", "Frontend frameworks in /public"],
+    "feature_flags": ["AGENTS_RUNTIME", "OTEL_ENABLED", "ACTION_LOG_JSONL", "PROBLEM_DETAILS_ENABLED"],
+    "apis": "No breaking changes to existing endpoints"
+  },
+  "global_quality_standards": {
+    "lint": { "command": "npm run -s lint", "must_pass": true, "max_warnings": 0 },
+    "typecheck": { "command": "npm run -s typecheck", "must_pass": true },
+    "tests": {
+      "command": "npm -s test",
+      "expected": { "exit_code": 0, "no_failed_suites": true },
+      "coverage": { "min_line_pct": 80, "min_branch_pct": 75 }
+    }
+  },
+  "high_level_stages": [
+    "baseline_verification",
+    "session_1",
+    "session_2",
+    "session_3",
+    "phase21_validation"
+  ],
+  "observability": {
+    "trace_file": ".automation/execution_trace.jsonl",
+    "log_fields": ["timestamp", "slice_id", "action", "cmd", "exit_code", "stdout_excerpt", "stderr_excerpt"],
+    "halt_on_security_violation": true
+  },
+  "tasks": [
+    {
+      "id": "P20-V01",
+      "stage": "baseline_verification",
+      "title": "Verify Phase 20 baseline is green",
+      "type": "validation",
+      "actions": [
+        { "type": "run", "cmd": "npm run -s lint", "expect_exit_code": 0 },
+        { "type": "run", "cmd": "npm run -s typecheck", "expect_exit_code": 0 },
+        { "type": "run", "cmd": "npm -s test", "expect_exit_code": 0 }
+      ],
+      "success_criteria": ["All validations pass", "No warnings", "No failed tests"]
+    },
+
+    { "id": "P21-S1-00", "stage": "session_1", "title": "Create domain structure", "type": "win",
+      "actions": [
+        { "type": "mkdir", "path": "src/domains/clarify" },
+        { "type": "mkdir", "path": "src/domains/progress" },
+        { "type": "mkdir", "path": "src/domains/execute" },
+        { "type": "mkdir", "path": "src/domains/sessions" },
+        { "type": "mkdir", "path": "src/domains/fixtures" },
+        { "type": "mkdir", "path": "src/domains/files" }
+      ],
+      "validation": [ { "cmd": "test -d src/domains/clarify && test -d src/domains/progress", "expect_exit_code": 0 } ],
+      "success_criteria": ["Directories exist"]
+    },
+
+    { "id": "P21-S1-01", "stage": "session_1", "title": "Extract Clarify helpers (389–420)", "type": "win",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/domains/clarify/session.ts",
+          "content_spec": "Copy exact code lines 389–420 from src/server.ts (clarificationSessions map + purge/remember/consume helpers). Export rememberClarificationQuestions and consumeClarificationQuestions."
+        },
+        {
+          "type": "edit",
+          "file": "src/server.ts",
+          "content_spec": "Add import: import { rememberClarificationQuestions, consumeClarificationQuestions } from './domains/clarify/session.js';"
+        },
+        {
+          "type": "edit",
+          "file": "src/server.ts",
+          "content_spec": "Delete lines 389–420 (moved helpers)."
+        }
+      ],
+      "validation": [
+        { "cmd": "npm run -s lint", "expect_exit_code": 0 },
+        { "cmd": "npm run -s typecheck", "expect_exit_code": 0 },
+        { "cmd": "npm -s test", "expect_exit_code": 0 }
+      ],
+      "success_criteria": ["Build green", "Tests green", "No behavior change"]
+    },
+
+    { "id": "P21-S1-02", "stage": "session_1", "title": "Extract Clarify route (1542–1572)", "type": "win",
+      "actions": [
+        { "type": "create_file", "file": "src/domains/clarify/routes.ts", "content_spec": "Create mountClarifyRoutes(app: express.Express) that contains the exact code from src/server.ts lines 1542–1572; import respondWithProblem, detectMissing, generateQuestions, validateClarificationRequest, rememberClarificationQuestions, consumeClarificationQuestions. Export mountClarifyRoutes." },
+        { "type": "edit", "file": "src/server.ts", "content_spec": "Add import: import { mountClarifyRoutes } from './domains/clarify/routes.js'; Then call mountClarifyRoutes(app) near other route registrations." },
+        { "type": "edit", "file": "src/server.ts", "content_spec": "Delete lines 1542–1572 (moved route)." }
+      ],
+      "validation": [
+        { "cmd": "npm run -s lint", "expect_exit_code": 0 },
+        { "cmd": "npm run -s typecheck", "expect_exit_code": 0 },
+        { "cmd": "npm -s test", "expect_exit_code": 0 }
+      ],
+      "success_criteria": ["Clarify endpoint unchanged", "Tests green"]
+    },
+
+    { "id": "P21-S1-03", "stage": "session_1", "title": "Extract Progress routes (2314, 2320, 2330)", "type": "win",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "src/domains/progress/routes.ts",
+          "content_spec": "Create mountProgressRoutes(app: express.Express, deps: { openProgressStream: Function; getProgress: Function }) that contains exact code from lines 2314, 2320, 2330; replace direct calls with deps.openProgressStream and deps.getProgress where used. Export mountProgressRoutes."
+        },
+        { "type": "edit", "file": "src/server.ts", "content_spec": "Add import: import { mountProgressRoutes } from './domains/progress/routes.js'; Then call mountProgressRoutes(app, { openProgressStream, getProgress })." },
+        { "type": "edit", "file": "src/server.ts", "content_spec": "Delete lines 2314, 2320, 2330 (moved routes)." }
+      ],
+      "validation": [
+        { "cmd": "npm run -s lint", "expect_exit_code": 0 },
+        { "cmd": "npm run -s typecheck", "expect_exit_code": 0 },
+        { "cmd": "npm -s test", "expect_exit_code": 0 }
+      ],
+      "success_criteria": ["Progress endpoints unchanged", "Tests green"]
+    },
+
+    { "id": "P21-GATE-S1", "stage": "session_1", "title": "Session 1 validation gate", "type": "validation",
+      "actions": [ { "type": "run", "cmd": "npm run -s lint && npm run -s typecheck && npm -s test", "expect_exit_code": 0 } ],
+      "success_criteria": ["No regressions after Session 1"]
+    },
+
+    { "id": "P21-S2-01", "stage": "session_2", "title": "Extract Execute helpers (745–846, 807–...)", "type": "win",
+      "actions": [
+        { "type": "create_file", "file": "src/domains/execute/helpers.ts", "content_spec": "Copy exact helpers used by /api/execute: lines 745 (isComplexPrompt) block; 807 (captureFixture) block; any additional pure helpers referenced inside 1577–1872 (e.g., collectPlanGeneratedFiles at 799, createPlanExecutionContext at 816–825, executePlanFlow at 912–1127 if used externally). Export symbols with identical names." },
+        { "type": "edit", "file": "src/server.ts", "content_spec": "Add imports from './domains/execute/helpers.js' for all moved helpers. Remove the original helper blocks that were moved." }
+      ],
+      "validation": [ { "cmd": "npm -s test", "expect_exit_code": 0 } ],
+      "success_criteria": ["Helpers compile and tests remain green"]
+    },
+
+    { "id": "P21-S2-02", "stage": "session_2", "title": "Extract Execute route (1577–1872)", "type": "win",
+      "actions": [
+        { "type": "create_file", "file": "src/domains/execute/routes.ts", "content_spec": "Create mountExecuteRoutes(app: express.Express, deps: { stepQueue: StepQueue }) that contains exact code from 1577–1872 with no behavior changes. Import from existing modules where present: orchestrator/graph.buildExecutionId, orchestrator/graph.runWithLangGraph, orchestrator/graph.createExecution/failExecution; orchestrator/abortSignal (createAbortSignal, cleanupAbortSignal, abortSession); respondWithProblem; fixtures/index (readFixture/writeFixture); planning types; utils; plus helpers from './helpers.js'. Use injected deps.stepQueue instead of the local variable. Export mountExecuteRoutes." },
+        { "type": "edit", "file": "src/server.ts", "content_spec": "Add import: import { mountExecuteRoutes } from './domains/execute/routes.js'; Then replace inline route with: mountExecuteRoutes(app, { stepQueue });" },
+        { "type": "edit", "file": "src/server.ts", "content_spec": "Delete lines 1577–1872 (moved route)." }
+      ],
+      "validation": [
+        { "cmd": "npm run -s lint", "expect_exit_code": 0 },
+        { "cmd": "npm run -s typecheck", "expect_exit_code": 0 },
+        { "cmd": "npm -s test", "expect_exit_code": 0 }
+      ],
+      "success_criteria": ["/api/execute unchanged in behavior", "Tests green"]
+    },
+
+    { "id": "P21-S2-03", "stage": "session_2", "title": "Extract Sessions pause/resume (2000–2312)", "type": "win",
+      "actions": [
+        { "type": "create_file", "file": "src/domains/sessions/routes.ts", "content_spec": "Create mountSessionRoutes(app: express.Express, deps: { getProgress: Function; ensureOrchestrationSession: Function; getOrchestrationSession: Function; normalizeResumeAnswers: Function; buildResumePrompts: Function; resumeFromCheckpoint: Function; PausedError: any; createAbortSignal: Function; cleanupAbortSignal: Function; abortSession: Function; setProgress: Function; readFixture: Function; writeFiles: Function; ensureDefaultExportForApp: Function; runInSandbox: Function; captureManifest: Function; getManifest: Function; resolveSessionPrompts: Function; stepQueue: StepQueue }) and move exact code blocks: 2000–2101 (pause) and 2103–2312 (resume), adjusting references to use deps.* where needed. Export mountSessionRoutes." },
+        { "type": "edit", "file": "src/server.ts", "content_spec": "Add import: import { mountSessionRoutes } from './domains/sessions/routes.js'; Then call mountSessionRoutes(app, { ...inject required functions..., stepQueue });" },
+        { "type": "edit", "file": "src/server.ts", "content_spec": "Delete lines 2000–2312 (moved routes)." }
+      ],
+      "validation": [ { "cmd": "npm -s test", "expect_exit_code": 0 } ],
+      "success_criteria": ["Sessions endpoints unchanged", "Tests green"]
+    },
+
+    { "id": "P21-GATE-S2", "stage": "session_2", "title": "Session 2 validation gate", "type": "validation",
+      "actions": [ { "type": "run", "cmd": "npm run -s lint && npm run -s typecheck && npm -s test", "expect_exit_code": 0 } ],
+      "success_criteria": ["No regressions after Session 2"]
+    },
+
+    { "id": "P21-S3-01", "stage": "session_3", "title": "Extract Fixtures/Replay/Plan routes (1873–1997)", "type": "win",
+      "actions": [
+        { "type": "create_file", "file": "src/domains/fixtures/routes.ts", "content_spec": "Create mountFixtureRoutes(app: express.Express) and move exact blocks: 1873–1895 (/api/run-tests), 1898–1908 (/api/fixtures/:project), 1911–1960 (/api/replay/repair and /api/replay/subtask), 1963–1997 (/api/plan endpoints). Import runInSandbox, listFixtures, readFixture, writeFiles, ensureDefaultExportForApp, logEvent, slugify, fs, path, OUTPUT_DIR as needed from existing modules. Export mountFixtureRoutes." },
+        { "type": "edit", "file": "src/server.ts", "content_spec": "Add import: import { mountFixtureRoutes } from './domains/fixtures/routes.js'; Then call mountFixtureRoutes(app)." },
+        { "type": "edit", "file": "src/server.ts", "content_spec": "Delete lines 1873–1997 (moved routes)." }
+      ],
+      "validation": [ { "cmd": "npm -s test", "expect_exit_code": 0 } ],
+      "success_criteria": ["Fixtures/replay/plan endpoints unchanged", "Tests green"]
+    },
+
+    { "id": "P21-S3-02", "stage": "session_3", "title": "Extract Files/Health/Executions routes (447, 450–458, 461–673, 2336–2363)", "type": "win",
+      "actions": [
+        { "type": "create_file", "file": "src/domains/files/routes.ts", "content_spec": "Create mountFileRoutes(app: express.Express) and move exact blocks: 447 (/healthz), 450–458 (/api/executions/:id), 461–557 (/output-archive), 560–673 (/output listing), 2336–2363 (/api/files/:project/:path(*)). Import required utilities (fs, path, slugify, OUTPUT_DIR, createReadStream, set headers) from existing modules. Export mountFileRoutes." },
+        { "type": "edit", "file": "src/server.ts", "content_spec": "Add import: import { mountFileRoutes } from './domains/files/routes.js'; Then call mountFileRoutes(app)." },
+        { "type": "edit", "file": "src/server.ts", "content_spec": "Delete lines 447, 450–458, 461–557, 560–673, 2336–2363 (moved routes)." }
+      ],
+      "validation": [
+        { "cmd": "npm run -s lint", "expect_exit_code": 0 },
+        { "cmd": "npm run -s typecheck", "expect_exit_code": 0 },
+        { "cmd": "npm -s test", "expect_exit_code": 0 }
+      ],
+      "success_criteria": ["File/health/executions endpoints unchanged", "Tests green"]
+    },
+
+    { "id": "P21-GATE-S3", "stage": "session_3", "title": "Phase 21 validation gate", "type": "validation",
+      "actions": [
+        { "type": "run", "cmd": "npm run -s lint", "expect_exit_code": 0 },
+        { "type": "run", "cmd": "npm run -s typecheck", "expect_exit_code": 0 },
+        { "type": "run", "cmd": "npm -s test", "expect_exit_code": 0 }
+      ],
+      "success_criteria": ["All validations pass", "Coverage >= thresholds", "No API changes"]
+    }
+  ],
+  "execution_order": [
+    "P20-V01",
+    "P21-S1-00",
+    "P21-S1-01",
+    "P21-S1-02",
+    "P21-S1-03",
+    "P21-GATE-S1",
+    "P21-S2-01",
+    "P21-S2-02",
+    "P21-S2-03",
+    "P21-GATE-S2",
+    "P21-S3-01",
+    "P21-S3-02",
+    "P21-GATE-S3"
+  ],
+  "completion_criteria": {
+    "all_tests_pass": true,
+    "coverage_maintained": true,
+    "no_api_changes": true,
+    "feature_flags_unchanged": true
+  }
+}

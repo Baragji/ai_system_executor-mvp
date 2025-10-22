@@ -1,0 +1,42 @@
+{
+  "project_name": "express-tailwind-app",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"express-tailwind-app\",\n  \"version\": \"0.1.0\",\n  \"private\": true,\n  \"scripts\": {\n    \"build\": \"tsc -p tsconfig.json\",\n    \"start\": \"npm run build && node dist/server.js\",\n    \"test\": \"npm run build && mocha \\\"tests/**/*.test.js\\\"\"\n  },\n  \"dependencies\": {\n    \"express\": \"^4.19.2\"\n  },\n  \"devDependencies\": {\n    \"@types/express\": \"^4.17.21\",\n    \"@types/node\": \"^20.11.30\",\n    \"chai\": \"^4.3.10\",\n    \"mocha\": \"^10.4.0\",\n    \"supertest\": \"^6.3.3\",\n    \"typescript\": \"^5.4.3\"\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2020\",\n    \"module\": \"CommonJS\",\n    \"lib\": [\"ES2020\"],\n    \"outDir\": \"dist\",\n    \"rootDir\": \"src\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"skipLibCheck\": true\n  },\n  \"include\": [\"src/**/*\"]\n}\n"
+    },
+    {
+      "path": "src/app.ts",
+      "contents": "import express from 'express';\nimport path from 'path';\n\nconst app = express();\n\n// Serve static assets from the public directory\nconst publicDir = path.join(__dirname, '..', 'public');\napp.use(express.static(publicDir));\n\n// Explicitly serve index.html at root\napp.get('/', (_req, res) => {\n  res.sendFile(path.join(publicDir, 'index.html'));\n});\n\nexport default app;\n"
+    },
+    {
+      "path": "src/server.ts",
+      "contents": "import app from './app';\n\nconst PORT = Number(process.env.PORT) || 3000;\n\napp.listen(PORT, () => {\n  console.log(`Server listening on http://localhost:${PORT}`);\n});\n"
+    },
+    {
+      "path": "public/index.html",
+      "contents": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Hello World App</title>\n    <!-- Tailwind CSS via CDN for quick start -->\n    <script src=\"https://cdn.tailwindcss.com\"></script>\n  </head>\n  <body class=\"min-h-screen bg-gray-100 flex items-center justify-center\">\n    <main class=\"text-center p-6 bg-white rounded-lg shadow\">\n      <h1 class=\"text-4xl font-bold text-blue-600\">Hello World</h1>\n      <p class=\"text-gray-600 mt-2\">Served by Express. Styled with Tailwind.</p>\n    </main>\n    <script src=\"/app.js\" defer></script>\n  </body>\n</html>\n"
+    },
+    {
+      "path": "public/app.js",
+      "contents": "/* Simple client-side script to confirm static asset serving */\nconsole.log('App JS loaded');\n"
+    },
+    {
+      "path": "tests/server.test.js",
+      "contents": "const request = require('supertest');\nconst { expect } = require('chai');\n\n// Import compiled app from dist\nconst appModule = require('../dist/app');\nconst app = appModule.default || appModule;\n\ndescribe('Express server', () => {\n  it('serves index.html at GET /', async () => {\n    const res = await request(app).get('/');\n    expect(res.status).to.equal(200);\n    expect(res.headers['content-type']).to.match(/html/);\n    expect(res.text).to.include('Hello World');\n  });\n\n  it('serves a static asset at /app.js', async () => {\n    const res = await request(app).get('/app.js');\n    expect(res.status).to.equal(200);\n    expect(res.headers['content-type']).to.match(/javascript|ecmascript/);\n    expect(res.text).to.include('App JS loaded');\n  });\n});\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# Express + Tailwind (CDN) Starter\n\nThis project initializes an Express server with TypeScript, serving a static `index.html` (styled with Tailwind via CDN) and other assets from the `public/` folder.\n\n## Prerequisites\n- Node.js 18+ recommended\n\n## Install\n- npm install\n\n## Run\n- npm start\n- Open http://localhost:3000\n\n## Development\n- Edit files in `src/` for server code and `public/` for static assets.\n- The server listens on port 3000 by default. Override with `PORT` environment variable when starting (e.g., `PORT=4000 npm start`).\n\n## Test\n- npm test\n\n## Project Structure\n- src/app.ts: Express app setup (static serving and routes)\n- src/server.ts: Server bootstrap\n- public/: Static assets (index.html, app.js)\n- tests/: Automated tests using Mocha, Chai, and Supertest\n"
+    }
+  ],
+  "notes": [
+    "Run npm start to build and serve the app at http://localhost:3000.",
+    "Tests compile the TypeScript sources before running Mocha."
+  ],
+  "hasTests": true
+}

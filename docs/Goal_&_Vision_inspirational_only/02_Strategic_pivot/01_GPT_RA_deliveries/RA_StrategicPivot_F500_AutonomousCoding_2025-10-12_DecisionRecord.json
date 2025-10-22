@@ -1,0 +1,235 @@
+{
+  "briefId": "StrategicPivot_F500_AutonomousCoding",
+  "date": "2025-10-12T00:00:00Z",
+  "constraints": {
+    "stack": "TypeScript/Node 20, Express, no Python",
+    "nonNegotiables": [
+      "Quality>Speed",
+      "CDI contracts + validation"
+    ],
+    "compliance": [
+      "ASVS v5.0",
+      "LLM Top-10 (2025)",
+      "NIST CSF 2.0",
+      "NIST SSDF (SP 800-218/218A)",
+      "ISO/IEC 42001",
+      "EU AI Act"
+    ]
+  },
+  "successCriteria": [
+    "Gates ledger complete (G0\u2013G4 for pilot)",
+    "Human approvals at G1 and G4 captured",
+    "CycloneDX 1.6 SBOM + SLSA v1.0 provenance emitted in CI",
+    "Orchestration overhead < 500 ms per transition",
+    "All tests pass; zero critical vulns; coverage >=85%"
+  ],
+  "options": [
+    {
+      "name": "Option 1 \u2014 Continue Current Contracts (Single\u2011Executor)",
+      "version": "Current",
+      "security": {
+        "mapping": "Partial CDI; gaps vs ASVS/SLSA/CycloneDX/ISO 42001/EU AI Act"
+      },
+      "perf": {
+        "notes": "No specialization; single\u2011agent ceiling"
+      },
+      "tco": {
+        "model": "Parametric: Staff_time + LLM_API + CI_Compute; no re\u2011platforming"
+      },
+      "risk": "HIGH",
+      "sources": [
+        "https://owasp.org/www-project-application-security-verification-standard/",
+        "https://www.nist.gov/cyberframework",
+        "https://csrc.nist.gov/pubs/sp/800/218/a/final",
+        "https://www.iso.org/standard/81230.html",
+        "https://artificial-intelligence-legislation.ec.europa.eu/",
+        "https://langchain-ai.github.io/langgraph/"
+      ]
+    },
+    {
+      "name": "Option 2 \u2014 Research Roadmaps Adapted to CDI (SSOT v1.2 + MCA)",
+      "version": "v1",
+      "security": {
+        "mapping": "Strong; add SBOM/provenance"
+      },
+      "perf": {
+        "notes": "Agent specialization; orchestrated flow"
+      },
+      "tco": {
+        "model": "Parametric: Moderate build + reusable governance artifacts"
+      },
+      "risk": "MEDIUM",
+      "sources": [
+        "file:///mnt/data/CDI_INFRASTRUCTURE.md",
+        "file:///mnt/data/autonomous_ai_coding_system_taxonomy_ssot_1.2.md",
+        "file:///mnt/data/08_master_coordinator_agent_MCA.md",
+        "https://owasp.org/www-project-application-security-verification-standard/",
+        "https://csrc.nist.gov/pubs/sp/800/218/a/final"
+      ]
+    },
+    {
+      "name": "Option 3 \u2014 Reactive + Enhancements",
+      "version": "v1",
+      "security": {
+        "mapping": "Better than Opt1 but ad\u2011hoc"
+      },
+      "perf": {
+        "notes": "Incremental gains; risk of drift"
+      },
+      "tco": {
+        "model": "Parametric: Cheap now; costly rework later"
+      },
+      "risk": "MEDIUM",
+      "sources": [
+        "file:///mnt/data/repo.md",
+        "https://owasp.org/www-project-application-security-verification-standard/",
+        "https://csrc.nist.gov/pubs/sp/800/218/a/final"
+      ]
+    },
+    {
+      "name": "Option 4 \u2014 Evidence\u2011Based Hybrid (Recommended)",
+      "version": "v1",
+      "security": {
+        "mapping": "Best coverage; human gates + supply\u2011chain attestations"
+      },
+      "perf": {
+        "notes": "Small overhead; higher first\u2011pass quality"
+      },
+      "tco": {
+        "model": "Parametric: Balanced cost; avoids future re\u2011platform"
+      },
+      "risk": "MEDIUM",
+      "sources": [
+        "file:///mnt/data/autonomous_ai_coding_system_taxonomy_ssot_1.2.md",
+        "file:///mnt/data/08_master_coordinator_agent_MCA.md",
+        "https://langchain-ai.github.io/langgraph/",
+        "https://microsoft.github.io/autogen/0.2/blog",
+        "https://arxiv.org/abs/2406.04692",
+        "https://arxiv.org/abs/2307.07924"
+      ]
+    }
+  ],
+  "recommendation": {
+    "name": "Option 4 \u2014 Evidence\u2011Based Hybrid",
+    "version": "v1",
+    "rationale": "Resolves roadmap conflicts, preserves stack, enforces evidence\u2011backed gates, and utilizes multi\u2011agent specialization tied to human approvals.",
+    "confidence": "MEDIUM"
+  },
+  "risks": [
+    {
+      "risk": "Orchestration complexity raises failure modes",
+      "mitigation": "Use MCA gates; deterministic state machine; time\u2011boxed pilot"
+    },
+    {
+      "risk": "Standards overhang (ASVS v5.0 scope) increases work",
+      "mitigation": "Stage controls by gate; focus G0\u2013G4 first"
+    },
+    {
+      "risk": "Budget unknown \u2192 TCO uncertain",
+      "mitigation": "Run parametric TCO model; lock budget after pilot"
+    }
+  ],
+  "validation": [
+    "Run CI with CycloneDX 1.6 + SLSA provenance",
+    "E2E tests: pause/resume, chat approvals, multi\u2011agent orchestration",
+    "Security scans: SAST/DAST; zero critical issues"
+  ],
+  "sources": [
+    {
+      "title": "OWASP Application Security Verification Standard (ASVS)",
+      "publisher": "OWASP",
+      "date": "2025-05-01",
+      "url": "https://owasp.org/www-project-application-security-verification-standard/"
+    },
+    {
+      "title": "NIST Cybersecurity Framework (CSF) 2.0",
+      "publisher": "NIST",
+      "date": "2024-02-26",
+      "url": "https://www.nist.gov/cyberframework"
+    },
+    {
+      "title": "NIST SP 800-218A Secure Software Development Practices for Generative AI",
+      "publisher": "NIST",
+      "date": "2024-07-26",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/a/final"
+    },
+    {
+      "title": "ISO/IEC 42001:2023 Artificial intelligence \u2014 Management system",
+      "publisher": "ISO",
+      "date": "2023-12-18",
+      "url": "https://www.iso.org/standard/81230.html"
+    },
+    {
+      "title": "EU AI Act \u2014 obligations & timeline",
+      "publisher": "European Commission",
+      "date": "2024-07-12",
+      "url": "https://artificial-intelligence-legislation.ec.europa.eu/"
+    },
+    {
+      "title": "LangGraph \u2014 Agentic design patterns",
+      "publisher": "LangChain",
+      "date": "2025-01-15",
+      "url": "https://langchain-ai.github.io/langgraph/"
+    },
+    {
+      "title": "AutoGen Framework (multi\u2011agent)",
+      "publisher": "Microsoft",
+      "date": "2024-11-14",
+      "url": "https://microsoft.github.io/autogen/0.2/blog"
+    },
+    {
+      "title": "Mixture\u2011of\u2011Agents Enhances LLM Capabilities",
+      "publisher": "arXiv",
+      "date": "2024-06-07",
+      "url": "https://arxiv.org/abs/2406.04692"
+    },
+    {
+      "title": "Communicative Agents for Software Development (ChatDev)",
+      "publisher": "arXiv",
+      "date": "2023-08-28",
+      "url": "https://arxiv.org/abs/2307.07924"
+    },
+    {
+      "title": "CDI Infrastructure \u2013 UMCA (internal)",
+      "publisher": "UMCA",
+      "date": "2025-10-08",
+      "url": "file:///mnt/data/CDI_INFRASTRUCTURE.md"
+    },
+    {
+      "title": "Executor MVP Repo Status (internal)",
+      "publisher": "UMCA",
+      "date": "2025-01-09",
+      "url": "file:///mnt/data/repo.md"
+    },
+    {
+      "title": "SSOT v1.2 \u2014 Autonomous AI Coding System Taxonomy (internal)",
+      "publisher": "UMCA",
+      "date": "2025-09-30",
+      "url": "file:///mnt/data/autonomous_ai_coding_system_taxonomy_ssot_1.2.md"
+    },
+    {
+      "title": "Autonomous Coding Taxonomy\u20112 (internal)",
+      "publisher": "UMCA",
+      "date": "2025-??-??",
+      "url": "file:///mnt/data/autonomous_coding_taxonomy-2.md"
+    },
+    {
+      "title": "MCA \u2014 Master Coordinator Assistant (internal)",
+      "publisher": "UMCA",
+      "date": "2025-08-13",
+      "url": "file:///mnt/data/08_master_coordinator_agent_MCA.md"
+    },
+    {
+      "title": "Phase E Hardening Contract (internal)",
+      "publisher": "UMCA",
+      "date": "2025-10-11",
+      "url": "file:///mnt/data/15_Phase_E_Hardening.json"
+    },
+    {
+      "title": "Phase 16 Accessibility/Pause Contract (internal)",
+      "publisher": "UMCA",
+      "date": "2025-10-11",
+      "url": "file:///mnt/data/16_phaseA_accessibility_pause_contract.json"
+    }
+  ]
+}

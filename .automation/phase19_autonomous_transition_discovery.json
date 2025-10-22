@@ -1,0 +1,116 @@
+{
+  "phaseId": "phase19",
+  "title": "Transition to Autonomous AI-Driven Coding (TS-only)",
+  "date": "2025-10-12",
+  "integrationPoints": [
+    {
+      "file": "src/server.ts",
+      "line": 1508,
+      "symbol": "app.post('/api/execute', …)",
+      "rationale": "Feature-flagged orchestrator switch (retain StepQueue default)"
+    },
+    {
+      "file": "src/server.ts",
+      "line": 2173,
+      "symbol": "app.get('/api/progress/stream/:sessionId', …)",
+      "rationale": "SSE progress and HITL stream"
+    },
+    {
+      "file": "src/llm/index.ts",
+      "line": 88,
+      "symbol": "generateJSON(…)",
+      "rationale": "OTel GenAI spans + tool context; Langfuse optional"
+    },
+    {
+      "file": "src/planning/decomposeTask.ts",
+      "line": 195,
+      "symbol": "decomposeTask(…)",
+      "rationale": "Planner node: plan-then-execute graph step"
+    },
+    {
+      "file": "src/contracts/validators.ts",
+      "line": 86,
+      "symbol": "validateExecutorOutput(…)",
+      "rationale": "Implementer output validation (no contract change)"
+    },
+    {
+      "file": "src/runner/runInSandbox.ts",
+      "line": 78,
+      "symbol": "runInSandbox(…)",
+      "rationale": "Tester node: test execution + metrics"
+    },
+    {
+      "file": "src/orchestrator/abortSignal.ts",
+      "line": 1,
+      "symbol": "PausedError + createAbortSignal",
+      "rationale": "HITL pause/resume integration"
+    },
+    {
+      "file": "src/telemetry/events.ts",
+      "line": 70,
+      "symbol": "logEvent(…)",
+      "rationale": "Dual-write JSONL action log (feature-flagged)"
+    }
+  ],
+  "stackCompliance": {
+    "language": "TypeScript",
+    "node": ">=20",
+    "frontend": "public (vanilla JS/CSS)",
+    "testing": "Vitest >=80%/75%",
+    "lint": "ESLint 0 warnings",
+    "forbidden": [".py"],
+    "notes": [
+      "No code changes committed in discovery",
+      "Clarification templates mention Python frameworks (text only); to be cleaned in implementation"
+    ]
+  },
+  "dependencies": {
+    "new": [
+      {
+        "name": "@langchain/langgraph",
+        "reason": "Controllable graph orchestration; feature-flagged",
+        "status": "proposed"
+      },
+      {
+        "name": "@opentelemetry/api|sdk-node|instrumentation-openai",
+        "reason": "GenAI spans for LLM/tool calls",
+        "status": "proposed"
+      },
+      {
+        "name": "@langfuse/node",
+        "reason": "Optional tracing UI integration",
+        "status": "optional"
+      },
+      {
+        "name": "@modelcontextprotocol/sdk",
+        "reason": "MCP tool interoperability (later phase)",
+        "status": "scaffold"
+      },
+      {
+        "name": "@cyclonedx/cyclonedx-npm",
+        "reason": "CycloneDX 1.6 SBOM alongside SPDX",
+        "status": "optional"
+      }
+    ],
+    "policy": "No breaking changes; feature flags control activation"
+  },
+  "decision": {
+    "runtime": "Keep StepQueue default; add LangGraph runtime behind AGENTS_RUNTIME=langgraph",
+    "observability": "Enable OTel baseline by env flag; add spans at LLM and step boundaries",
+    "hitl": "Reuse SSE; add minimal chat UI under /public for clarify/pause/resume",
+    "tools": "Prepare MCP server skeleton with strict policy (read-only FS/Git/HTTP)"
+  },
+  "risks": [
+    { "id": "R1", "name": "Orchestrator learning curve", "mitigation": "Feature flag, parity tests, phased rollout" },
+    { "id": "R2", "name": "Telemetry overhead", "mitigation": "Env-gated OTel, lightweight exporters initially" },
+    { "id": "R3", "name": "Policy/tool sprawl", "mitigation": "MCP allow-lists, start read-only, incremental enable" },
+    { "id": "R4", "name": "Prompt drift (Python hints)", "mitigation": "Clean templates, add unit tests enforcing TS-only options" }
+  ],
+  "evidence": [
+    "docs/Goal_&_Vision_inspirational_only/03_final_decisions/01a_final_research_Claude.md:1",
+    "docs/Goal_&_Vision_inspirational_only/03_final_decisions/01b_final_research_GPT_RA.md:1",
+    "docs/Goal_&_Vision_inspirational_only/03_final_decisions/01c_final_research_GPT_HIGH.md:1",
+    "CDI_INFRASTRUCTURE.md:1"
+  ]
+}
+

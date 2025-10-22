@@ -1,0 +1,378 @@
+{
+  "contract_version": "E.1.0",
+  "contract_meta": {
+    "created": "2025-10-10",
+    "phase": "E",
+    "phase_name": "Stateful Orchestration with Pause/Resume",
+    "prerequisite_phase": "A",
+    "enhancement": "Human-in-the-loop pause/resume with checkpointed state",
+    "rationale": "Current system is fire-and-forget with no mid-execution pause capability. When hitting ambiguity or blockers, the system burns tokens on blind repair attempts instead of asking the user. Production systems (Temporal, Step Functions, Durable Functions, LangGraph) solve this with stateful orchestration: pause on uncertainty, checkpoint state, ask targeted questions, resume exactly where paused. This architectural foundation enables autonomous generation with human guidance, eliminating token waste on wrong assumptions.",
+    "references": [
+      "ai-stack.json",
+      "src/clarification/detectMissing.ts",
+      ".automation/execution_trace.jsonl",
+      "docs/101025_todays_status/consultation.md",
+      "docs/101025_todays_status/action_plan.md"
+    ]
+  },
+  "project": {
+    "name": "UMCA Executor MVP",
+    "current_phase": "E - Stateful Orchestration",
+    "goal": "Enable mid-execution pause/resume with checkpointed state so the system can ask clarifying questions during generation and resume exactly where it paused",
+    "scope": "Backend orchestration spine with checkpoint/resume primitives; minimal UI for pause/resume controls",
+    "estimated_time": "1-3 sessions",
+    "work_profile": "Discovery-first with incremental wins; each win independently testable",
+    "out_of_scope": [
+      "UI polish beyond minimal controls",
+      "Performance optimization",
+      "Multi-user session management"
+    ]
+  },
+  "execution_model": {
+    "type": "discovery_then_autonomous",
+    "verification_strategy": "Unit tests for state machine + checkpoints; integration tests for pause/resume; E2E test with mid-flight question",
+    "description": "Build orchestration primitives incrementally with deterministic tests proving pause/resume preserves execution semantics",
+    "failure_mode": "HALT on checkpoint validation failure",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "ai-stack.json",
+    "language": "TypeScript/JavaScript",
+    "frameworks": [
+      "Express"
+    ],
+    "test_command": "vitest run --reporter=default",
+    "constraints": [
+      "No Python",
+      "No frontend frameworks under /public",
+      "No new dependencies without justification",
+      "No breaking API changes"
+    ]
+  },
+  "observability": {
+    "description": "Record checkpoint creation, pause events, resume events for audit trail",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "discovery_file": ".automation/phase5_discovery_note.md",
+    "evidence_file": ".automation/phase5_validation_report.md",
+    "monitoring": {},
+    "logging": {},
+    "evaluation": {}
+  },
+  "high_level_stages": [
+    "Discovery",
+    "Core Primitives",
+    "Interrupt System",
+    "Resume Logic",
+    "API Endpoints",
+    "Minimal UI",
+    "Evidence & Validation"
+  ],
+  "tasks": [
+    {
+      "id": "WA1",
+      "stage": "Discovery",
+      "title": "Map existing state and identify integration points",
+      "type": "discovery",
+      "description": "Document current execution flow, identify checkpoint boundaries, design checkpoint schema",
+      "time_estimate_minutes": 60,
+      "actions": [
+        "Trace execution flow from /api/execute",
+        "Identify checkpoint insertion points",
+        "Design checkpoint schema",
+        "Document integration points"
+      ],
+      "validation": [
+        "Discovery note exists"
+      ],
+      "success_criteria": [
+        "Clear execution flow documented",
+        "Checkpoint points identified",
+        "Schema draft validated"
+      ]
+    },
+    {
+      "id": "WA2",
+      "stage": "Core Primitives",
+      "title": "Implement state machine with PAUSED state",
+      "type": "win",
+      "description": "Create finite-state machine with CLARIFYING, PLANNING, GENERATING, PAUSED, DONE states",
+      "time_estimate_minutes": 60,
+      "actions": [
+        "Create src/orchestrator/stateMachine.ts",
+        "Implement transition guards",
+        "Add event emitter",
+        "Create unit tests"
+      ],
+      "validation": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test"
+      ],
+      "success_criteria": [
+        "All valid transitions work",
+        "Invalid transitions throw",
+        "State change events logged"
+      ],
+      "deliverables": [
+        {
+          "path": "src/orchestrator/stateMachine.ts",
+          "validation_method": "file_exists"
+        }
+      ]
+    },
+    {
+      "id": "WA3",
+      "stage": "Core Primitives",
+      "title": "Implement checkpoint write/read with schema validation",
+      "type": "win",
+      "description": "Create checkpoint persistence to .automation/checkpoints with schema validation",
+      "time_estimate_minutes": 60,
+      "actions": [
+        "Create checkpoint schema",
+        "Implement writeCheckpoint with atomic write",
+        "Implement readCheckpoint with validation",
+        "Add version compatibility check"
+      ],
+      "validation": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test"
+      ],
+      "success_criteria": [
+        "Checkpoints persist with correct schema",
+        "Read validates and rejects invalid",
+        "Version check refuses incompatible"
+      ],
+      "deliverables": [
+        {
+          "path": "src/orchestrator/checkpoints.ts",
+          "validation_method": "file_exists"
+        }
+      ]
+    },
+    {
+      "id": "WA4",
+      "stage": "Interrupt System",
+      "title": "Define interrupt taxonomy and question bundles",
+      "type": "win",
+      "description": "Create interrupt reasons (AMBIGUITY, APPROVAL, BUDGET_RISK) and question bundle schema",
+      "time_estimate_minutes": 60,
+      "actions": [
+        "Create src/orchestrator/interrupts.ts",
+        "Define QuestionBundle schema",
+        "Implement raiseInterrupt",
+        "Store interrupt in checkpoint"
+      ],
+      "validation": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test"
+      ],
+      "success_criteria": [
+        "All interrupt reasons defined",
+        "Question bundles validate",
+        "raiseInterrupt pauses state machine"
+      ],
+      "deliverables": [
+        {
+          "path": "src/orchestrator/interrupts.ts",
+          "validation_method": "file_exists"
+        }
+      ]
+    },
+    {
+      "id": "WA5",
+      "stage": "Resume Logic",
+      "title": "Implement deterministic resume from checkpoint",
+      "type": "win",
+      "description": "Create resume logic that loads checkpoint, validates answers, continues from pause point",
+      "time_estimate_minutes": 20,
+      "actions": [
+        "Create src/orchestrator/resume.ts",
+        "Load and validate checkpoint",
+        "Validate answers against schema",
+        "Restore state and continue execution"
+      ],
+      "validation": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test"
+      ],
+      "success_criteria": [
+        "Resume loads correct checkpoint",
+        "Answers validate correctly",
+        "Execution continues from pause point"
+      ],
+      "deliverables": [
+        {
+          "path": "src/orchestrator/resume.ts",
+          "validation_method": "file_exists"
+        }
+      ]
+    },
+    {
+      "id": "WA6",
+      "stage": "API Endpoints",
+      "title": "Add pause/resume API endpoints",
+      "type": "win",
+      "description": "Create POST /api/sessions/:id/pause, POST /api/sessions/:id/resume, GET /api/progress/:id (SSE)",
+      "time_estimate_minutes": 20,
+      "actions": [
+        "Add pause endpoint",
+        "Add resume endpoint with answers",
+        "Add session state endpoint",
+        "Add SSE progress stream"
+      ],
+      "validation": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test"
+      ],
+      "success_criteria": [
+        "All endpoints return correct status",
+        "Resume validates and resumes",
+        "SSE emits state changes"
+      ],
+      "deliverables": [
+        {
+          "path": "src/server.ts",
+          "validation_method": "modified"
+        }
+      ]
+    },
+    {
+      "id": "WA7",
+      "stage": "Minimal UI",
+      "title": "Add pause/resume UI controls",
+      "type": "win",
+      "description": "Add Pause button, Questions drawer, Resume button, SSE client for real-time updates",
+      "time_estimate_minutes": 25,
+      "actions": [
+        "Add Pause button",
+        "Add Questions drawer",
+        "Add Resume button with answer submission",
+        "Add SSE client"
+      ],
+      "validation": [
+        "npm run lint",
+        "npm run typecheck",
+        "Manual UI test"
+      ],
+      "success_criteria": [
+        "Pause button works",
+        "Questions show when paused",
+        "Resume submits and continues"
+      ],
+      "deliverables": [
+        {
+          "path": "public/script.js",
+          "validation_method": "modified"
+        }
+      ]
+    },
+    {
+      "id": "WA8",
+      "stage": "Evidence & Validation",
+      "title": "Refactor clarification to use orchestration",
+      "type": "win",
+      "description": "Refactor clarification system to use orchestration primitives as special case of pause/resume",
+      "time_estimate_minutes": 20,
+      "actions": [
+        "Update detectMissing to raise INTERRUPT",
+        "Update clarification API to use checkpoints",
+        "Ensure existing tests pass"
+      ],
+      "validation": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test"
+      ],
+      "success_criteria": [
+        "Clarification uses orchestration",
+        "Existing behavior preserved",
+        "No breaking changes"
+      ]
+    },
+    {
+      "id": "WA9",
+      "stage": "Evidence & Validation",
+      "title": "E2E validation and evidence generation",
+      "type": "validation",
+      "description": "Run E2E test: prompt \u2192 pause on ambiguity \u2192 answer \u2192 resume \u2192 complete. Generate evidence bundle",
+      "time_estimate_minutes": 20,
+      "actions": [
+        "Run E2E with deliberate ambiguity",
+        "Verify pause and resume",
+        "Capture screenshots",
+        "Generate validation report"
+      ],
+      "validation": [
+        "All validation commands pass",
+        "E2E demonstrates pause/resume"
+      ],
+      "success_criteria": [
+        "E2E test completes",
+        "System pauses and resumes correctly",
+        "Evidence bundle complete"
+      ]
+    }
+  ],
+  "execution_order": [
+    "WA1",
+    "WA2",
+    "WA3",
+    "WA4",
+    "WA5",
+    "WA6",
+    "WA7",
+    "WA8",
+    "WA9"
+  ],
+  "execution_semantics": {
+    "win_isolation": {
+      "each_win_independently_testable": true
+    },
+    "gate_enforcement": {
+      "halt_on_failure": true
+    },
+    "evidence_backed": {
+      "required": true
+    },
+    "discovery_first": {
+      "required": true
+    }
+  },
+  "completion_criteria": {
+    "all_tests_pass": true,
+    "lint_passes": true,
+    "typecheck_passes": true,
+    "e2e_pause_resume_demonstrated": true
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Discovery note",
+      "path": ".automation/phase5_discovery_note.md",
+      "must_exist": true
+    },
+    {
+      "name": "State machine",
+      "path": "src/orchestrator/stateMachine.ts",
+      "must_exist": true
+    },
+    {
+      "name": "Validation report",
+      "path": ".automation/phase5_validation_report.md",
+      "must_exist": true
+    }
+  ],
+  "ai_executor_guidelines": {
+    "small_wins": "Each win 10-60 min; independently testable",
+    "no_new_deps": "Use Node built-ins + existing stack",
+    "tests_first": "Write tests with implementation",
+    "determinism_critical": "Resume must match continuous run"
+  },
+  "governance_note": {
+    "for_human": "This establishes architectural foundation for autonomous generation with human guidance, eliminating token waste. Proven pattern from Temporal, Step Functions, Durable Functions, LangGraph."
+  }
+}

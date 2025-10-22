@@ -1,0 +1,20 @@
+{
+  "originalPrompt": "Create a simple flash card app, using only red, black, and white colors. Make it minimal, and simple. add the function to add/delete/modify. frontend + backend needed\n",
+  "effectivePrompt": "Framework: Express, Port: 1222, Styling: Tailwind CSS\n\nOriginal request: Create a simple flash card app, using only red, black, and white colors. Make it minimal, and simple. add the function to add/delete/modify. frontend + backend needed\n",
+  "clarifications": {
+    "answers": [
+      {
+        "questionId": "framework",
+        "value": "Express"
+      },
+      {
+        "questionId": "port",
+        "value": 1222
+      },
+      {
+        "questionId": "styling",
+        "value": "Tailwind CSS"
+      }
+    ]
+  }
+}

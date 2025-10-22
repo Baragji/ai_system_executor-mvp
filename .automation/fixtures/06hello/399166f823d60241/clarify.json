@@ -1,0 +1,50 @@
+{
+  "originalPrompt": "hello world with frontend backend and logic to to click add delete and update things. minimal but functional and interactive. ",
+  "effectivePrompt": "Framework: Express, Port: 4445, Styling: Tailwind CSS\n\nOriginal request: hello world with frontend backend and logic to to click add delete and update things. minimal but functional and interactive. ",
+  "clarifications": {
+    "answers": [
+      {
+        "questionId": "framework",
+        "value": "Express"
+      },
+      {
+        "questionId": "port",
+        "value": 4445
+      },
+      {
+        "questionId": "styling",
+        "value": "Tailwind CSS"
+      }
+    ]
+  },
+  "clarificationQuestions": [
+    {
+      "id": "framework",
+      "text": "Which framework should power this project?",
+      "type": "choice",
+      "options": [
+        "FastAPI",
+        "Flask",
+        "Express",
+        "Django"
+      ]
+    },
+    {
+      "id": "port",
+      "text": "Which port should the service listen on? (default 8000)",
+      "type": "number"
+    },
+    {
+      "id": "styling",
+      "text": "What styling approach should the UI use?",
+      "type": "choice",
+      "options": [
+        "Tailwind CSS",
+        "Bootstrap",
+        "Chakra UI",
+        "No preference"
+      ]
+    }
+  ],
+  "clarificationsAsked": true
+}

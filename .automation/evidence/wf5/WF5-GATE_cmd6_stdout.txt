@@ -1,0 +1,11 @@
+
+> executor-mvp@0.1.0 provenance
+> node scripts/generate-provenance.js
+
+[Provenance] Starting SLSA v1.0 provenance generation...
+[Provenance] Scanning dist/ for build artifacts...
+[Provenance] Found 2 artifacts
+[Provenance] ✅ SLSA v1.0 provenance generated: provenance.intoto.jsonl
+[Provenance] Artifacts: 2
+[Provenance] Git commit: 83b0465f
+[Provenance] Predicate type: https://slsa.dev/provenance/v1

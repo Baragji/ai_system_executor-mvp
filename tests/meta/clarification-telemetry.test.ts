@@ -6,6 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { app } from "../../src/server.js";
 import type { RunResult } from "../../src/contracts/validators.js";
+import type { ExecutorSuccessResponse } from "../../src/orchestrator/executionTypes.js";
+import { postExecuteAndWait } from "../helpers/execute.js";
 
 const OUTPUT_DIR = path.resolve("output");
 const PROJECT_DIR = path.join(OUTPUT_DIR, "telemetry-demo");
@@ -83,12 +85,15 @@ describe("clarification telemetry meta", () => {
         return { questionId: question.id, value: "PostgreSQL" };
       });
 
-    const executeRes = await request(app)
-      .post("/api/execute")
-      .send({ prompt, clarifications: { answers } });
+    const executeResult = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt,
+      clarifications: { answers }
+    });
 
-    expect(executeRes.status).toBe(200);
-    const meta = await readMeta(executeRes.body.project);
+    expect(executeResult.finalStatus).toBe(200);
+    expect([200, 202]).toContain(executeResult.initialStatus);
+    const payload = executeResult.payload;
+    const meta = await readMeta(payload.project);
     expect(meta.clarification.asked).toBe(true);
     expect(meta.clarification.questions.map((q: { id: string }) => q.id)).toEqual(
       questions.map(question => question.id)
@@ -117,11 +122,14 @@ describe("clarification telemetry meta", () => {
       .filter(question => question.id === "framework")
       .map(question => ({ questionId: question.id, value: "Express" }));
 
-    const executeRes = await request(app)
-      .post("/api/execute")
-      .send({ prompt, clarifications: { answers } });
+    const executeResult = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), {
+      prompt,
+      clarifications: { answers }
+    });
 
-    const meta = await readMeta(executeRes.body.project);
+    expect(executeResult.finalStatus).toBe(200);
+    const payload = executeResult.payload;
+    const meta = await readMeta(payload.project);
     expect(meta.clarification.asked).toBe(true);
     expect(meta.clarification.improvedSuccess).toBe(false);
   });
@@ -130,11 +138,11 @@ describe("clarification telemetry meta", () => {
     const prompt = "Build a Python API";
     await request(app).post("/api/clarify").send({ prompt });
 
-    const executeRes = await request(app)
-      .post("/api/execute")
-      .send({ prompt });
+    const executeResult = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), { prompt });
 
-    const meta = await readMeta(executeRes.body.project);
+    expect(executeResult.finalStatus).toBe(200);
+    const payload = executeResult.payload;
+    const meta = await readMeta(payload.project);
     expect(meta.clarification.asked).toBe(true);
     expect(meta.clarification.answers).toEqual([]);
     expect(meta.clarification.improvedSuccess).toBe(false);
@@ -142,11 +150,11 @@ describe("clarification telemetry meta", () => {
 
   it("keeps clarification false when no clarifications needed", async () => {
     const prompt = "Explain the art of pottery";
-    const executeRes = await request(app)
-      .post("/api/execute")
-      .send({ prompt });
+    const executeResult = await postExecuteAndWait<ExecutorSuccessResponse>(request(app), { prompt });
 
-    const meta = await readMeta(executeRes.body.project);
+    expect(executeResult.finalStatus).toBe(200);
+    const payload = executeResult.payload;
+    const meta = await readMeta(payload.project);
     expect(meta.clarification.asked).toBe(false);
     expect(meta.clarification.questions).toEqual([]);
     expect(meta.clarification.answers).toEqual([]);

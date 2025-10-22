@@ -5,7 +5,10 @@ vi.mock("../../src/llm/index.js", () => ({
 }));
 
 import { generateJSON } from "../../src/llm/index.js";
-import { decomposeTask } from "../../src/planning/decomposeTask.js";
+import {
+  decomposeTask,
+  SimplePromptBypassError
+} from "../../src/planning/decomposeTask.js";
 import { TaskPlanValidationError } from "../../src/planning/types.js";
 
 const generateJSONMock = vi.mocked(generateJSON);
@@ -41,7 +44,7 @@ describe("decomposeTask", () => {
     vi.clearAllMocks();
   });
 
-  it("decomposes a simple prompt", async () => {
+  it("decomposes a moderately detailed prompt", async () => {
     generateJSONMock.mockResolvedValueOnce(
       buildResponse([
         { id: "setup" },
@@ -49,7 +52,7 @@ describe("decomposeTask", () => {
       ])
     );
 
-    const plan = await decomposeTask("build Flask hello world");
+    const plan = await decomposeTask("build flask hello world with integration tests and deployment notes");
     expect(plan.subtasks).toHaveLength(2);
     expect(plan.totalSubtasks).toBe(2);
   });
@@ -86,7 +89,7 @@ describe("decomposeTask", () => {
       ])
     );
 
-    const plan = await decomposeTask("build e-commerce site");
+    const plan = await decomposeTask("build e-commerce site with checkout and payment processing");
     expect(plan.subtasks).toHaveLength(10);
     expect(plan.subtasks[0].id).toBe("requirements");
   });
@@ -127,7 +130,7 @@ describe("decomposeTask", () => {
         ])
       );
 
-    const plan = await decomposeTask("build flask hello world");
+    const plan = await decomposeTask("build flask hello world with database migrations");
     expect(plan.subtasks).toHaveLength(2);
     expect(generateJSONMock).toHaveBeenCalledTimes(2);
   });
@@ -167,5 +170,12 @@ describe("decomposeTask", () => {
   it("suggests clarification for vague prompt", async () => {
     await expect(() => decomposeTask("build an app"))
       .rejects.toThrow(/clarifications/i);
+  });
+
+  it("skips decomposition for simple prompts", async () => {
+    await expect(() =>
+      decomposeTask("Create a minimal Node+TS Hello World project with a single passing test.")
+    ).rejects.toBeInstanceOf(SimplePromptBypassError);
+    expect(generateJSONMock).not.toHaveBeenCalled();
   });
 });

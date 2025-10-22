@@ -1,0 +1,113 @@
+[
+  {
+    "task_id": "P19-V01",
+    "status": "complete",
+    "started_at": "2025-10-17T19:56:00Z",
+    "completed_at": "2025-10-17T20:00:10Z",
+    "validation_results": [
+      {
+        "cmd": "npm test -- tests/api/executions.test.ts",
+        "exit_code": 0,
+        "output_chunk": "97e479"
+      }
+    ],
+    "evidence_paths": [
+      ".automation/evidence/langgraph/P19-V01_verification.md"
+    ]
+  },
+  {
+    "task_id": "P19-V02",
+    "status": "complete",
+    "started_at": "2025-10-17T20:05:00Z",
+    "completed_at": "2025-10-17T20:12:30Z",
+    "validation_results": [
+      {
+        "cmd": "test -f package-lock.json",
+        "exit_code": 0,
+        "output_chunk": "7cfde8"
+      },
+      {
+        "cmd": "AGENTS_RUNTIME=langgraph npm test -- tests/api/executions.test.ts",
+        "exit_code": 0,
+        "output_chunk": "96e790"
+      },
+      {
+        "cmd": "npm test -- tests/orchestrator/executionsStore.test.ts tests/orchestrator/replay.test.ts",
+        "exit_code": 0,
+        "output_chunk": "29c5f8"
+      }
+    ],
+    "evidence_paths": [
+      ".automation/evidence/langgraph/P19-V02_dependencies.md",
+      ".automation/evidence/langgraph/P19-V02_implementation.md"
+    ]
+  },
+  {
+    "task_id": "P19-V03",
+    "status": "complete",
+    "started_at": "2025-10-25T20:40:00Z",
+    "completed_at": "2025-10-25T20:51:00Z",
+    "validation_results": [
+      {
+        "cmd": "npm test -- tests/orchestrator/graph.test.ts",
+        "exit_code": 0,
+        "output_chunk": "eb9b6e"
+      },
+      {
+        "cmd": "AGENTS_RUNTIME=langgraph npm test -- tests/api/executions.test.ts",
+        "exit_code": 0,
+        "output_chunk": "a862ef"
+      }
+    ],
+    "evidence_paths": [
+      ".automation/evidence/langgraph/P19-V03_implementation.md"
+    ]
+  },
+  {
+    "task_id": "P19-V04",
+    "status": "complete",
+    "started_at": "2025-10-25T21:05:00Z",
+    "completed_at": "2025-10-25T21:18:00Z",
+    "validation_results": [
+      {
+        "cmd": "grep -q 'runWithLangGraph' src/server.ts",
+        "exit_code": 0,
+        "output_chunk": "a0f1bd"
+      },
+      {
+        "cmd": "grep -q 'status: \"started\"' src/server.ts",
+        "exit_code": 0,
+        "output_chunk": "1faad3"
+      }
+    ],
+    "evidence_paths": [
+      ".automation/evidence/langgraph/P19-V04_implementation.md"
+    ]
+  },
+  {
+    "task_id": "P19-V05",
+    "status": "complete",
+    "started_at": "2025-10-25T21:18:00Z",
+    "completed_at": "2025-10-25T21:45:00Z",
+    "validation_results": [
+      {
+        "cmd": "AGENTS_RUNTIME=langgraph npm test -- -t execute",
+        "exit_code": 0,
+        "output_chunk": "63ad1b"
+      },
+      {
+        "cmd": "npm run lint",
+        "exit_code": 0,
+        "output_chunk": "709242"
+      },
+      {
+        "cmd": "npm run typecheck",
+        "exit_code": 0,
+        "output_chunk": "214a12"
+      }
+    ],
+    "evidence_paths": [
+      ".automation/evidence/langgraph/P19-V05_validation.md"
+    ]
+  }
+]

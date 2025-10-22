@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 import { generateJSON, type LLMMessage } from "../llm/index.js";
+import { withTraceContext } from "../llm/trace.js";
 import { runInSandbox } from "../runner/runInSandbox.js";
 import { analyzeFailure } from "./analyzeFailure.js";
 import {
@@ -21,7 +22,10 @@ import {
   type RepairArtifactDescription,
   type RunResult
 } from "../contracts/validators.js";
+import Ajv2020, { type JSONSchemaType } from "ajv/dist/2020.js";
+import { logEvent } from "../telemetry/events.js";
 import type { ExecutorFile } from "../executor/types.js";
+import { throwIfAborted } from "../orchestrator/abortSignal.js";
 
 export interface MultiTurnContext {
   projectPath: string;
@@ -29,6 +33,7 @@ export interface MultiTurnContext {
   originalPrompt: string;
   generatedFiles: string[];
   initialTestResult: RunResult;
+  sessionId?: string;
 }
 
 interface ParsedRepairPayload {
@@ -139,11 +144,25 @@ async function applyArtifacts(
   files: ExecutorFile[]
 ): Promise<{ changed: string[] }> {
   const changes: string[] = [];
-  const fileMap = new Map(files.map(file => [file.path, file.contents] as const));
+  // Normalize: LLM might return 'content' (singular) instead of 'contents' (plural)
+  const normalized = files.map(f => {
+    const fileObj = f as { path: string; contents?: string; content?: string };
+    return {
+      path: f.path,
+      contents: fileObj.contents ?? fileObj.content ?? ""
+    };
+  });
+  const fileMap = new Map(normalized.map(file => [file.path, file.contents] as const));
 
   for (const artifact of artifacts) {
     const targetPath = ensureInsideProject(projectRoot, artifact.path);
     if (artifact.action === "delete") {
+      // Enforce: delete only if the path exists on disk
+      try {
+        await fs.access(targetPath);
+      } catch {
+        throw new Error(`Invalid delete: path does not exist on disk (${artifact.path})`);
+      }
       await fs.rm(targetPath, { force: true });
       changes.push(artifact.path);
       continue;
@@ -151,6 +170,7 @@ async function applyArtifacts(
 
     const contents = fileMap.get(artifact.path);
     if (typeof contents !== "string") {
+      // Defer strict error to caller so they can choose a fallback strategy
       throw new Error(`Missing contents for ${artifact.path}`);
     }
 
@@ -229,7 +249,7 @@ async function recordDiffs(
   return summaries;
 }
 
-function validateHistory(history: RepairHistory): RepairHistory {
+  function validateHistory(history: RepairHistory): RepairHistory {
   const validation = validateRepairHistory(history);
   if (!validation.ok) {
     throw new Error(`Generated repair history invalid: ${validation.errors}`);
@@ -286,8 +306,11 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
   const initialLog = await readFailureLog(context.projectPath, currentRun);
   let currentFailureAnalysis: FailureAnalysis | null =
     currentRun.status === "pass" ? null : analyzeFailure(initialLog);
-
+  // Note: Deprecated health/test quick patch removed — generator is source of truth.
   for (let index = 0; index < 4; index += 1) {
+    // Check if execution was paused before starting repair attempt
+    throwIfAborted(context.sessionId, `repair_attempt_${index + 1}`);
+    
     const attemptNumber = toAttemptNumber(index);
     const attemptStart = Date.now();
     const startedAtIso = new Date(attemptStart).toISOString();
@@ -328,17 +351,119 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
 
     let lastErrorMessage: string | undefined;
     try {
-      const raw = await generateJSON(messages);
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(raw);
-      } catch (err) {
-        throw new Error(`Repair LLM returned invalid JSON: ${(err as Error).message}`);
+      async function requestPayload(withRetryHint: boolean): Promise<ParsedRepairPayload> {
+        const raw = await withTraceContext({ projectSlug: context.projectSlug, sessionId: context.sessionId, phase: "repair" }, async () => {
+          const payloadMessages = withRetryHint
+            ? ([
+                messages[0]!,
+                {
+                  role: "user" as const,
+                  content:
+                    String(messages[1]?.content ?? "") +
+                    "\n\nIMPORTANT: For every artifact with action add/modify, include the full final file contents in files[]. If you cannot provide contents, omit that artifact."
+                }
+              ] satisfies LLMMessage[])
+            : (messages as LLMMessage[]);
+          return generateJSON(payloadMessages, { sessionId: context.sessionId });
+        });
+        if (context.sessionId) {
+          throwIfAborted(context.sessionId, "post_repair_llm");
+        }
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(raw);
+        } catch (err) {
+          throw new Error(`Repair LLM returned invalid JSON: ${(err as Error).message}`);
+        }
+        return parseRepairPayload(parsed);
       }
 
-      const payload = parseRepairPayload(parsed);
+      // First attempt to parse/apply
+      let payload = await requestPayload(false);
       const previousContents = await capturePreviousContents(context.projectPath, payload.artifacts);
-      const applyResult = await applyArtifacts(context.projectPath, payload.artifacts, payload.files);
+      let applyResult: { changed: string[] };
+      try {
+        applyResult = await applyArtifacts(context.projectPath, payload.artifacts, payload.files);
+      } catch (applyErr) {
+        const msg = (applyErr as Error).message || "";
+        if (msg.includes("Missing contents for ")) {
+          // One-time retry with stricter instruction
+          payload = await requestPayload(true);
+          try {
+            applyResult = await applyArtifacts(context.projectPath, payload.artifacts, payload.files);
+          } catch (retryErr) {
+            const retryMsg = (retryErr as Error).message || "";
+            if (retryMsg.includes("Missing contents for ")) {
+              // Contract path: Ajv-validate full payload, then synthesize or fail explicitly
+              const validated = await ajvValidateRepairIntake(context.projectPath, payload).catch(err => ({ ok: false as const, error: (err as Error).message }));
+              if (!validated || ("ok" in validated && validated.ok === false)) {
+                // Synthesize from files vs disk as last resort
+                let artifacts = synthesizeArtifactsFromFiles(payload);
+                const fileSet = new Set(payload.files.map(f => f.path));
+                const filtered = artifacts.filter(a => a.action === 'delete' || fileSet.has(a.path));
+                if (filtered.length === 0 && payload.files.length > 0) {
+                  artifacts = payload.files.map(f => ({ path: f.path, action: 'modify' as const }));
+                } else {
+                  artifacts = filtered;
+                }
+                if (artifacts.length === 0 && payload.files.length === 0) {
+                  const errorSummary = 'REPAIR_INCOMPLETE_ARTIFACT: no concrete changes available after retry';
+                  await logEvent('repair_abort', { reason: 'incomplete_artifact', attempt: attemptNumber, project: context.projectSlug ?? 'project' });
+                  const record: RepairAttemptRecord = {
+                    number: attemptNumber,
+                    status: 'error',
+                    startedAt: new Date().toISOString(),
+                    finishedAt: new Date().toISOString(),
+                    changedFiles: [],
+                    summary: errorSummary,
+                    testResult: mapRunResult(currentRun),
+                    durationMs: 0,
+                    cumulativeTime
+                  };
+                  const history: RepairHistory = validateHistory({ attempts: [...attempts, record], finalStatus: 'fail', totalAttempts: attempts.length + 1, successAttemptNumber: undefined });
+                  return history;
+                }
+                applyResult = await applyArtifacts(context.projectPath, artifacts, payload.files);
+                payload.artifacts = artifacts;
+              } else {
+                // validated ok — nothing to change, rethrow to surface original missing-contents error if any
+                throw retryErr;
+              }
+            } else {
+              throw retryErr;
+            }
+          }
+        } else if (msg.startsWith("Invalid delete:")) {
+          // Contract violation: delete must target existing path → validate, attempt synthesize, else stop
+          const validated = await ajvValidateRepairIntake(context.projectPath, payload).catch(() => null);
+          if (!validated) {
+            let artifacts = synthesizeArtifactsFromFiles(payload).filter(a => a.action !== 'delete');
+            if (artifacts.length === 0 && payload.files.length === 0) {
+              const errorSummary = 'REPAIR_INCOMPLETE_ARTIFACT: invalid delete without existing path';
+              await logEvent('repair_abort', { reason: 'invalid_delete', attempt: attemptNumber, project: context.projectSlug ?? 'project' });
+              const record: RepairAttemptRecord = {
+                number: attemptNumber,
+                status: 'error',
+                startedAt: new Date().toISOString(),
+                finishedAt: new Date().toISOString(),
+                changedFiles: [],
+                summary: errorSummary,
+                testResult: mapRunResult(currentRun),
+                durationMs: 0,
+                cumulativeTime
+              };
+              const history: RepairHistory = validateHistory({ attempts: [...attempts, record], finalStatus: 'fail', totalAttempts: attempts.length + 1, successAttemptNumber: undefined });
+              return history;
+            }
+            applyResult = await applyArtifacts(context.projectPath, artifacts, payload.files);
+            payload.artifacts = artifacts;
+          } else {
+            throw applyErr;
+          }
+        } else {
+          throw applyErr;
+        }
+      }
       changedFiles = applyResult.changed;
 
       for (const file of payload.files) {
@@ -442,3 +567,93 @@ export async function multiTurnRepair(context: MultiTurnContext): Promise<Repair
 
   return validateHistory(history);
 }
+  function synthesizeArtifactsFromFiles(payload: ParsedRepairPayload): RepairArtifactDescription[] {
+    const existing = new Map(payload.artifacts.map(a => [a.path, a] as const));
+    const artifacts: RepairArtifactDescription[] = [...payload.artifacts];
+    for (const file of payload.files) {
+      if (!existing.has(file.path)) {
+        artifacts.push({ path: file.path, action: 'modify' });
+      }
+    }
+    return artifacts;
+  }
+
+// Ajv validation for full repair intake payload + runtime checks for disk state
+type RepairIntake = {
+  artifacts: { path: string; action: 'modify' | 'add' | 'delete' }[];
+  files: { path: string; contents: string }[];
+  notes?: string[];
+};
+
+const ajv = new Ajv2020({ strict: true, allErrors: true, allowUnionTypes: true, strictSchema: false });
+const repairIntakeSchema: JSONSchemaType<RepairIntake> = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  type: "object",
+  additionalProperties: false,
+  required: ["artifacts", "files"],
+  properties: {
+    artifacts: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["path", "action"],
+        properties: {
+          path: { type: "string", minLength: 1 },
+          action: { type: "string", enum: ["modify", "add", "delete"] as const },
+          description: { type: "string", nullable: true }
+        }
+      }
+    },
+    files: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["path", "contents"],
+        properties: {
+          path: { type: "string", minLength: 1 },
+          contents: { type: "string", minLength: 1 }
+        }
+      }
+    },
+    notes: { type: "array", items: { type: "string" }, nullable: true }
+  }
+};
+const validateRepairIntakeSchema = ajv.compile(repairIntakeSchema);
+
+async function ajvValidateRepairIntake(projectRoot: string, payload: ParsedRepairPayload): Promise<{ ok: true } | never> {
+  const data: RepairIntake = { artifacts: payload.artifacts.map(a => ({ path: a.path, action: a.action })), files: payload.files.map(f => ({ path: f.path, contents: f.contents })), notes: payload.notes };
+  const basicOk = validateRepairIntakeSchema(data);
+  if (!basicOk) {
+    const errs = (validateRepairIntakeSchema.errors || []).map(e => `${e.instancePath} ${e.message}`).join("; ");
+    throw new Error(`repair-intake schema violation: ${errs}`);
+  }
+  // Cross checks: add/modify must have contents; delete must exist on disk
+  const fileSet = new Set(data.files.map(f => f.path));
+  for (const a of data.artifacts) {
+    if (a.action === 'delete') {
+      const abs = path.resolve(projectRoot, a.path);
+      try { await fs.access(abs); } catch {
+        throw new Error(`repair-intake invalid delete: missing on disk (${a.path})`);
+      }
+    } else {
+      if (!fileSet.has(a.path)) {
+        throw new Error(`repair-intake missing contents for ${a.path}`);
+      }
+    }
+  }
+  return { ok: true as const };
+}
+
+// retained for reference during future tightening — not used after synthesize path was added
+// function hasIncompleteArtifacts(artifacts: RepairArtifactDescription[], files: ExecutorFile[]): string[] {
+//   const fileSet = new Set(files.map(f => f.path));
+//   const missing: string[] = [];
+//   for (const a of artifacts) {
+//     if (a.action !== 'delete' && !fileSet.has(a.path)) {
+//       missing.push(a.path);
+//     }
+//   }
+//   return missing;
+// }

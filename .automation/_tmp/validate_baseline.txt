@@ -1,0 +1,400 @@
+
+> executor-mvp@0.1.0 validate:all
+> npm run lint && npm run typecheck && npm test && npm run contract:check
+
+
+> executor-mvp@0.1.0 lint
+> eslint .
+
+
+> executor-mvp@0.1.0 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+> executor-mvp@0.1.0 test
+> node scripts/run-vitest-with-rollup-shim.mjs
+
+
+ RUN  v2.1.9 /Users/Yousef_1/Downloads/ai_system_executor-mvp
+      Coverage enabled with v8
+
+ ✓ tests/planning/executeSubtask.test.ts (7 tests) 9ms
+ ✓ tests/scripts/update-gate.test.ts (11 tests) 39ms
+ ✓ tests/validation/dependencyPreflight.test.ts (12 tests) 103ms
+ ✓ tests/planning/executeTaskPlan.test.ts (8 tests) 5ms
+ ✓ tests/contracts/repair-history.test.ts (12 tests) 4ms
+ ✓ tests/repair/multiTurnRepair.test.ts (9 tests) 190ms
+ ✓ tests/orchestrator/abortSignal.test.ts (26 tests) 12ms
+ ✓ tests/state/sync.test.ts (2 tests) 77ms
+stdout | tests/meta/repair-metrics.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/api/execute-multi-turn.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/api/execute-with-planning.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [32m200[0m 130.019 ms - 1067[0m
+ ✓ tests/planning/validateDecomposition.test.ts (7 tests) 67ms
+[0mPOST /api/execute [32m200[0m 151.212 ms - 1223[0m
+[0mPOST /api/execute [32m200[0m 157.962 ms - 1679[0m
+stderr | tests/api/execute-with-planning.test.ts > POST /api/execute with planning > executes plan for complex prompt
+Failed to transition orchestrator for 4c9a65c8-54f2-45f4-971d-33c21019845a: Error: Invalid transition: CLARIFYING -> DONE (allowed: PLANNING, GENERATING, PAUSED)
+    at OrchestratorStateMachine.transition (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stateMachine.ts:70:13)
+    at setProgress (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:224:25)
+    at executePlanFlow (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1083:5)
+    at planStepHandler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1439:24)
+    at StepQueue.handle (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:22)
+    at InlineExecutionQueue.handler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+    at StepQueue.runWorkflow (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24)
+    at /Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1716:22
+
+[0mPOST /api/execute [32m200[0m 33.450 ms - 1485[0m
+[0mPOST /api/execute [32m200[0m 35.106 ms - 1286[0m
+[0mPOST /api/execute [32m200[0m 51.648 ms - 2544[0m
+[0mPOST /api/execute [32m200[0m 43.716 ms - 1093[0m
+[0mPOST /api/execute [32m200[0m 32.352 ms - 1943[0m
+[0mPOST /api/execute [32m200[0m 22.452 ms - 1195[0m
+[0mPOST /api/execute [32m200[0m 23.140 ms - 1415[0m
+stderr | tests/api/execute-with-planning.test.ts > POST /api/execute with planning > returns partial status when plan execution fails
+Failed to transition orchestrator for 0a124fbc-8743-4915-8b82-e14948befd32: Error: Invalid transition: CLARIFYING -> DONE (allowed: PLANNING, GENERATING, PAUSED)
+    at OrchestratorStateMachine.transition (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stateMachine.ts:70:13)
+    at setProgress (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:224:25)
+    at executePlanFlow (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1083:5)
+    at planStepHandler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1439:24)
+    at StepQueue.handle (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:22)
+    at InlineExecutionQueue.handler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+    at StepQueue.runWorkflow (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24)
+    at /Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1716:22
+
+[0mPOST /api/execute [32m200[0m 21.221 ms - 2242[0m
+ ✓ tests/meta/repair-metrics.test.ts (3 tests) 281ms
+ ✓ tests/api/execute-with-planning.test.ts (4 tests) 288ms
+ ✓ tests/runner/installDeps.test.ts (8 tests) 1016ms
+   ✓ ensureDependencies > runs npm ci with --ignore-scripts when modules missing 301ms
+   ✓ ensureDependencies > falls back to npm install when npm ci reports lockfile mismatch 422ms
+[0mPOST /api/execute [32m200[0m 143.879 ms - 1284[0m
+ ✓ tests/planning/estimateCompletion.test.ts (6 tests) 4ms
+[0mPOST /api/execute [32m200[0m 117.967 ms - 1284[0m
+ ✓ tests/api/execute-multi-turn.test.ts (6 tests) 599ms
+ ✓ tests/orchestrator/stepQueue.test.ts (6 tests) 72ms
+ ✓ tests/repair/analyzeFailure.test.ts (7 tests) 12ms
+stdout | tests/meta/clarification-telemetry.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/clarify [32m200[0m 3.615 ms - 539[0m
+ ✓ tests/contracts/task-plan.test.ts (8 tests) 5ms
+stdout | tests/api/execute-with-clarifications.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+ ✓ tests/contracts/ui-validation-result.test.ts (6 tests) 5ms
+stderr | tests/api/execute-with-clarifications.test.ts > POST /api/execute with clarifications > works without clarifications
+Planning execution failed, falling back to single execution Error: Skip planning in clarification tests
+    at Proxy.<anonymous> (/Users/Yousef_1/Downloads/ai_system_executor-mvp/tests/api/execute-with-clarifications.test.ts:31:11)
+    at Proxy.mockCall (file:///Users/Yousef_1/Downloads/ai_system_executor-mvp/node_modules/@vitest/spy/dist/index.js:61:17)
+    at Proxy.spy (file:///Users/Yousef_1/Downloads/ai_system_executor-mvp/node_modules/tinyspy/dist/index.js:45:80)
+    at /Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1412:7
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Module.withTraceContext (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/llm/trace.ts:13:18)
+    at planStepHandler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1411:24)
+    at StepQueue.handle (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:28)
+    at InlineExecutionQueue.handler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+
+[0mPOST /api/execute [32m200[0m 63.761 ms - 1199[0m
+stderr | tests/api/execute-with-clarifications.test.ts > POST /api/execute with clarifications > uses augmented prompt when clarifications provided
+Planning execution failed, falling back to single execution Error: Skip planning in clarification tests
+    at Proxy.<anonymous> (/Users/Yousef_1/Downloads/ai_system_executor-mvp/tests/api/execute-with-clarifications.test.ts:31:11)
+    at Proxy.mockCall (file:///Users/Yousef_1/Downloads/ai_system_executor-mvp/node_modules/@vitest/spy/dist/index.js:61:17)
+    at Proxy.spy (file:///Users/Yousef_1/Downloads/ai_system_executor-mvp/node_modules/tinyspy/dist/index.js:45:80)
+    at /Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1412:7
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Module.withTraceContext (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/llm/trace.ts:13:18)
+    at planStepHandler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1411:24)
+    at StepQueue.handle (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:28)
+    at InlineExecutionQueue.handler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+
+[0mPOST /api/execute [32m200[0m 62.175 ms - 1258[0m
+[0mPOST /api/execute [33m400[0m 1.039 ms - 270[0m
+ ✓ tests/api/execute-with-clarifications.test.ts (3 tests) 176ms
+stdout | tests/api/sessions-pause-resume.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > pauses a session and persists pending questions
+[Pause] Session session-001 abort signal sent: false
+
+[0mPOST /api/sessions/session-001/pause [32m201[0m 16.502 ms - 554[0m
+[0mGET /api/progress/snapshot/session-001 [32m200[0m 19.633 ms - 246[0m
+stdout | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > resumes a paused session when answers provided
+[Pause] Session session-002 abort signal sent: false
+
+[0mPOST /api/sessions/session-002/pause [32m201[0m 20.053 ms - 576[0m
+ ✓ tests/contracts/repair-history.adaptive.test.ts (3 tests) 57ms
+[0mPOST /api/sessions/session-002/resume [32m200[0m 8.138 ms - 945[0m
+[0mGET /api/progress/snapshot/session-002 [32m200[0m 0.636 ms - 198[0m
+stderr | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > resumes a paused session when answers provided
+[Resume] Execution failed for session session-002: Error: ENOENT: no such file or directory, mkdir '/Users/Yousef_1/Downloads/ai_system_executor-mvp/.automation/checkpoints/step-workflows'
+    at Object.mkdir (node:internal/fs/promises:858:10)
+    at ensureRoot (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/checkpointStore.ts:79:3)
+    at Module.recordStepQueued (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/checkpointStore.ts:234:3)
+    at StepQueue.enqueueStep (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:231:5)
+    at StepQueue.runWorkflow (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'mkdir',
+  path: '/Users/Yousef_1/Downloads/ai_system_executor-mvp/.automation/checkpoints/step-workflows'
+}
+
+stdout | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > rejects resume when missing answers
+[Pause] Session session-003 abort signal sent: false
+
+[0mPOST /api/sessions/session-003/pause [32m201[0m 3.400 ms - 578[0m
+[0mPOST /api/sessions/session-003/resume [33m400[0m 2.297 ms - 107[0m
+stdout | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > returns 409 when pausing an already paused session
+[Pause] Session session-004 abort signal sent: false
+
+[0mPOST /api/sessions/session-004/pause [32m201[0m 1.918 ms - 570[0m
+[0mPOST /api/sessions/session-004/pause [33m409[0m 0.212 ms - 34[0m
+ ✓ tests/api/sessions-pause-resume.test.ts (4 tests) 139ms
+ ✓ tests/orchestrator/interrupts.test.ts (5 tests) 27ms
+ ✓ tests/planning/progressTracker.test.ts (8 tests) 13ms
+stderr | tests/meta/clarification-telemetry.test.ts > clarification telemetry meta > meta file includes clarification data when clarifications used
+Planning execution failed, falling back to single execution TaskPlanValidationError: /subtasks must NOT have fewer than 2 items; /totalSubtasks must be >= 2
+    at Module.decomposeTask (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/planning/decomposeTask.ts:237:19)
+    at planStepHandler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1411:18)
+    at StepQueue.handle (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:22)
+    at InlineExecutionQueue.handler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+    at StepQueue.runWorkflow (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24)
+    at /Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1716:22 {
+  issues: []
+}
+
+[0mPOST /api/execute [32m200[0m 922.491 ms - 1299[0m
+[0mPOST /api/clarify [32m200[0m 0.327 ms - 416[0m
+ ✓ tests/orchestrator/jobQueue.test.ts (2 tests) 9ms
+stdout | tests/e2e/phase1.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+ ✓ tests/evaluation/logResults.test.ts (3 tests) 19ms
+[0mPOST /api/execute [31m500[0m 31.149 ms - 276[0m
+stderr | tests/e2e/phase1.test.ts > phase1 e2e flow > runs execute endpoint with repair timeline
+Error: ENOENT: no such file or directory, mkdir '/Users/Yousef_1/Downloads/ai_system_executor-mvp/.automation/checkpoints/step-workflows'
+    at Object.mkdir (node:internal/fs/promises:858:10)
+    at ensureRoot (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/checkpointStore.ts:79:3)
+    at writeWorkflow (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/checkpointStore.ts:120:3)
+    at Module.recordStepQueued (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/checkpointStore.ts:255:3)
+    at StepQueue.enqueueStep (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:231:5)
+    at StepQueue.runWorkflow (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24)
+    at /Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1716:22 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'mkdir',
+  path: '/Users/Yousef_1/Downloads/ai_system_executor-mvp/.automation/checkpoints/step-workflows'
+}
+
+ ✓ tests/orchestrator/checkpoints.test.ts (8 tests) 54ms
+ ❯ tests/e2e/phase1.test.ts (1 test | 1 failed) 64ms
+   × phase1 e2e flow > runs execute endpoint with repair timeline 63ms
+     → expected 500 to be 200 // Object.is equality
+ ✓ tests/planning/decomposeTask.test.ts (7 tests) 1470ms
+   ✓ decomposeTask > retries when LLM returns invalid JSON 728ms
+   ✓ decomposeTask > throws when validation fails after retries 735ms
+ ✓ tests/workflow/detectEvidence.test.ts (10 tests) 9ms
+ ✓ tests/state/phaseState.test.ts (6 tests) 40ms
+stderr | tests/meta/clarification-telemetry.test.ts > clarification telemetry meta > sets improvedSuccess false when tests fail
+Planning execution failed, falling back to single execution TaskPlanValidationError: /subtasks must NOT have fewer than 2 items; /totalSubtasks must be >= 2
+    at Module.decomposeTask (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/planning/decomposeTask.ts:237:19)
+    at planStepHandler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1411:18)
+    at StepQueue.handle (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:22)
+    at InlineExecutionQueue.handler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+    at StepQueue.runWorkflow (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24)
+    at /Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1716:22 {
+  issues: []
+}
+
+[0mPOST /api/execute [32m200[0m 884.171 ms - 2874[0m
+[0mPOST /api/clarify [32m200[0m 0.726 ms - 416[0m
+ ✓ tests/runner/runInSandbox.abort.test.ts (1 test) 97ms
+ ✓ tests/runner/runInSandbox.integration.test.ts (2 tests) 39ms
+ ✓ tests/orchestrator/stateMachine.test.ts (11 tests) 14ms
+stderr | tests/planning/executeTaskPlan.duration.test.ts > executeTaskPlan duration limit > halts quickly when PLAN_MAX_DURATION_MS is small
+Plan halted: UI timeout guard at 0s (PLAN_MAX_DURATION_MS=100). Completed 0/2.
+
+ ✓ tests/planning/executeTaskPlan.duration.test.ts (1 test) 11ms
+ ✓ tests/llm/providers/choose.test.ts (8 tests) 6ms
+ ✓ tests/repair/missing-contents-fallback.test.ts (1 test) 28ms
+stdout | tests/api/executions.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+ ✓ tests/orchestrator/resume.test.ts (3 tests) 25ms
+[0mPOST /api/execute [32m202[0m 46.561 ms - 79[0m
+[0mGET /api/executions/graph-96e554e0-58da-45e0-a499-f801c909a08f [32m200[0m 5.844 ms - 1339[0m
+stderr | tests/meta/clarification-telemetry.test.ts > clarification telemetry meta > marks clarification asked when user skips answers
+Planning execution failed, falling back to single execution TaskPlanValidationError: /subtasks must NOT have fewer than 2 items; /totalSubtasks must be >= 2
+    at Module.decomposeTask (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/planning/decomposeTask.ts:237:19)
+    at planStepHandler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1411:18)
+    at StepQueue.handle (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:22)
+    at InlineExecutionQueue.handler (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+    at StepQueue.runWorkflow (/Users/Yousef_1/Downloads/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24)
+    at /Users/Yousef_1/Downloads/ai_system_executor-mvp/src/server.ts:1716:22 {
+  issues: []
+}
+
+[0mGET /api/executions/graph-96e554e0-58da-45e0-a499-f801c909a08f [32m200[0m 0.140 ms - 1339[0m
+[0mGET /api/executions/does-not-exist [33m404[0m 0.258 ms - 171[0m
+[0mPOST /api/execute [32m200[0m 843.552 ms - 1209[0m
+[0mPOST /api/execute [32m200[0m 27.312 ms - 1217[0m
+ ✓ tests/api/executions.test.ts (2 tests) 116ms
+ ✓ tests/meta/clarification-telemetry.test.ts (4 tests) 2750ms
+   ✓ clarification telemetry meta > meta file includes clarification data when clarifications used 961ms
+   ✓ clarification telemetry meta > sets improvedSuccess false when tests fail 894ms
+   ✓ clarification telemetry meta > marks clarification asked when user skips answers 860ms
+ ✓ tests/planning/executeSubtask.resilience.test.ts (2 tests) 46ms
+ ✓ tests/telemetry/dual-write.test.ts (4 tests) 90ms
+ ✓ tests/clarification/detectMissing.test.ts (7 tests) 3ms
+stderr | tests/runner/logStream-error.test.ts > runInSandbox log stream error handling > returns results even if log stream fails
+Log stream error for /var/folders/x2/f1vmvt6j2t33s61mh088mvfr0000gn/T/sandbox-log-rETY82/logs/demo_last_test_run_7068f0a0-3153-486c-b4e0-20308d0e9bb5.log: disk full
+
+ ✓ tests/runner/logStream-error.test.ts (1 test) 56ms
+ ✓ tests/repair/buildRepairPrompt.test.ts (4 tests) 3ms
+ ✓ tests/planning/analyzeDependencies.test.ts (5 tests) 6ms
+ ✓ tests/scripts/detect-evidence.test.ts (5 tests) 5ms
+ ✓ tests/contracts/clarification-validators.test.ts (10 tests) 4ms
+ ✓ tests/orchestrator/resumePrompt.test.ts (1 test) 2ms
+ ✓ tests/clarification/augmentPrompt.test.ts (6 tests) 4ms
+ ✓ tests/clarification/generateQuestions.test.ts (6 tests) 4ms
+ ✓ tests/repair/repairOnce.test.ts (2 tests) 18ms
+ ✓ tests/llm/tools/fsTools.test.ts (4 tests) 47ms
+ ✓ tests/repair/generateDiff.test.ts (3 tests) 7ms
+ ✓ tests/repair/buildRepairPrompt.adaptive.test.ts (3 tests) 2ms
+ ✓ tests/repair/delete-validation.test.ts (1 test) 48ms
+stdout | tests/api/files.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mGET /api/files/api-files-test/src%2Findex.ts [32m200[0m 5.992 ms - 96[0m
+[0mGET /api/files/api-files-test/nope.txt [33m404[0m 2.527 ms - 21[0m
+[0mGET /api/files/api-files-test/..%2F..%2Fetc%2Fpasswd [33m403[0m 0.735 ms - 21[0m
+[0mGET /output-archive/api-files-test [32m200[0m 1.740 ms - -[0m
+ ✓ tests/outcome-state-machine.test.ts (5 tests) 2ms
+[0mGET /output-archive/api-files-test?format=tar [32m200[0m 29.435 ms - -[0m
+ ✓ tests/api/files.test.ts (5 tests) 76ms
+ ✓ tests/telemetry/plan-trace.test.ts (1 test) 112ms
+ ✓ tests/orchestrator/workspaceManifest.test.ts (1 test) 39ms
+ ✓ tests/planning/generateSubtaskOutput.test.ts (3 tests) 8ms
+ ✓ tests/runner/detectTestCommand.test.ts (5 tests) 12ms
+ ✓ tests/state/execute-next-action.test.ts (18 tests) 6119ms
+   ✓ execute-next-action script > shows help with --help flag 360ms
+   ✓ execute-next-action script > runs in dry-run mode without executing commands 356ms
+   ✓ execute-next-action script > shows current workflow state 351ms
+   ✓ execute-next-action script > suggests an action based on workflow state 336ms
+   ✓ execute-next-action script > exits cleanly when NO_ACTION suggested 340ms
+   ✓ execute-next-action script > does not execute destructive commands 311ms
+   ✓ execute-next-action script > provides reasoning for suggested action 311ms
+   ✓ execute-next-action script > shows phase and gate information 359ms
+   ✓ execute-next-action script > detects uncommitted changes 492ms
+   ✓ execute-next-action script > formats output with emojis for readability 540ms
+   ✓ execute-next-action script > accepts --dry-run short form -n 331ms
+   ✓ execute-next-action script > accepts --help short form -h 310ms
+   ✓ execute-next-action script > script is executable with tsx 303ms
+   ✓ execute-next-action script > shows command to execute in dry-run mode 407ms
+   ✓ execute-next-action script > includes safety documentation in help 308ms
+   ✓ execute-next-action script > validates action command exists before execution 329ms
+   ✓ execute-next-action script > omits legacy workflow metadata fields from CLI output 363ms
+ ✓ tests/repair/strategySelector.test.ts (6 tests) 2ms
+ ✓ tests/contracts/validators.test.ts (6 tests) 13ms
+ ✓ tests/state/snapshot.test.ts (1 test) 94ms
+ ✓ tests/llm/retry.test.ts (2 tests) 19ms
+ ✓ tests/executor/writeFiles.security.test.ts (4 tests) 15ms
+ ✓ tests/llm/abortSignal.test.ts (1 test) 7ms
+ ✓ tests/clarification/suggestDefaults.test.ts (6 tests) 4ms
+ ✓ tests/utils/normalizeExports.test.ts (2 tests) 18ms
+ ✓ tests/workspace/manifest.test.ts (2 tests) 3ms
+ ✓ tests/utils/validateFiles.test.ts (3 tests) 24ms
+ ✓ tests/workflow/gateCriteria.test.ts (2 tests) 4ms
+ ✓ tests/llm/timeout-retry.test.ts (3 tests) 3279ms
+   ✓ LLM timeout and retry behavior > should retry on timeout with exponential backoff 550ms
+   ✓ LLM timeout and retry behavior > should fail after max retries exceeded 691ms
+   ✓ LLM timeout and retry behavior > should handle long-running successful calls within timeout 2035ms
+stdout | tests/api/problem-details.test.ts > problem+json envelope > returns legacy error body when disabled
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [33m400[0m 5.232 ms - 27[0m
+ ✓ tests/runner/runInSandbox.test.ts (3 tests) 967ms
+   ✓ runInSandbox > returns pass status for passing projects 349ms
+   ✓ runInSandbox > returns fail status for failing projects 327ms
+ ✓ tests/utils/seedTests.test.ts (2 tests) 5ms
+stdout | tests/api/clarify-route.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/clarify [32m200[0m 3.517 ms - 16[0m
+ ✓ tests/utils/fixtures.test.ts (1 test) 16ms
+[0mPOST /api/clarify [32m200[0m 0.600 ms - 396[0m
+[0mPOST /api/clarify [33m400[0m 0.542 ms - 151[0m
+stdout | tests/api/problem-details.test.ts > problem+json envelope > returns RFC 9457 problem when enabled
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [33m400[0m 5.164 ms - 151[0m
+ ✓ tests/api/clarify-route.test.ts (3 tests) 38ms
+ ✓ tests/api/problem-details.test.ts (2 tests) 1256ms
+   ✓ problem+json envelope > returns legacy error body when disabled 846ms
+   ✓ problem+json envelope > returns RFC 9457 problem when enabled 410ms
+ ✓ tests/contracts/execution-trace.test.ts (2 tests) 2ms
+stdout | tests/run-tests-route.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/run-tests [33m404[0m 1.788 ms - 29[0m
+stdout | tests/api/progress.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/executor/sanitizeOutput.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mGET /api/progress/snapshot/wf-test-session [32m200[0m 3.657 ms - 124[0m
+ ✓ tests/executor/sanitizeOutput.test.ts (1 test) 4ms
+ ✓ tests/api/progress.test.ts (2 tests) 19ms
+stdout | tests/meta/progress-ttl.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/run-tests [32m200[0m 273.636 ms - 295[0m
+ ✓ tests/meta/progress-ttl.test.ts (1 test) 1ms
+ ✓ tests/run-tests-route.test.ts (2 tests) 330ms
+stdout | tests/api/fixtures-route.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mGET /api/fixtures/passing [32m200[0m 2.755 ms - 73[0m
+[0mPOST /api/replay/repair [33m404[0m 0.649 ms - 44[0m
+ ✓ tests/api/fixtures-route.test.ts (2 tests) 21ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/e2e/phase1.test.ts > phase1 e2e flow > runs execute endpoint with repair timeline
+AssertionError: expected 500 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 500
+
+ ❯ tests/e2e/phase1.test.ts:114:32
+    112|     });
+    113| 
+    114|     expect(result.finalStatus).toBe(200);
+       |                                ^
+    115|     expect([200, 202]).toContain(result.initialStatus);
+    116|     const payload = result.payload;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed | 84 passed (85)
+      Tests  1 failed | 401 passed (402)
+   Start at  06:45:07
+   Duration  9.88s (transform 1.46s, setup 0ms, collect 21.37s, tests 20.80s, environment 17ms, prepare 6.29s)
+

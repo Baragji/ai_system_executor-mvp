@@ -1,0 +1,39 @@
+{
+  "date": "2025-10-25",
+  "task": "P19-V04",
+  "scope": "Wire /api/execute flag path to LangGraph runtime",
+  "integration_points": [
+    {
+      "file": "src/server.ts",
+      "lines": [1550, 1795],
+      "note": "Feature-flagged /api/execute handler that initializes executions and dispatches runWithLangGraph"
+    },
+    {
+      "file": "src/orchestrator/graph.ts",
+      "lines": [1, 140],
+      "note": "Provides buildExecutionId and runWithLangGraph used by the server"
+    },
+    {
+      "file": "src/orchestrator/executionsStore.ts",
+      "lines": [1, 160],
+      "note": "Execution store helpers invoked during LangGraph orchestration"
+    },
+    {
+      "file": "tests/api/executions.test.ts",
+      "lines": [1, 120],
+      "note": "Integration coverage for the LangGraph execution pathway"
+    }
+  ],
+  "commands_run": [],
+  "risks": [
+    "Need to fail execution records if delegation errors occur before async task is launched",
+    "Detached async LangGraph task must swallow errors to avoid unhandled rejection noise",
+    "Do not regress StepQueue SSE streaming when feature flag is disabled"
+  ],
+  "next_steps": [
+    "Audit the /api/execute branch for correct execution-store lifecycle",
+    "Confirm fallback StepQueue path remains unchanged",
+    "Augment or refresh tests to assert HTTP 202 + Location semantics",
+    "Capture implementation evidence and update progress tracker"
+  ]
+}

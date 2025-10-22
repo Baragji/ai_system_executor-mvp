@@ -1,0 +1,42 @@
+{
+  "project_name": "flashcards-express-tailwind",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\"name\":\"flashcards-express-tailwind\",\"version\":\"0.1.0\",\"private\":true,\"description\":\"Minimal Express + Tailwind starter for a flash card app\",\"scripts\":{\"dev\":\"concurrently -n server,css -c red,black -k \\\"nodemon src/server.js\\\" \\\"tailwindcss -i ./src/styles/input.css -o ./public/styles.css --watch\\\"\",\"start\":\"node src/server.js\",\"build:css\":\"tailwindcss -i ./src/styles/input.css -o ./public/styles.css --minify\",\"test\":\"node --test\"},\"dependencies\":{\"cors\":\"^2.8.5\",\"express\":\"^4.18.2\"},\"devDependencies\":{\"concurrently\":\"^8.2.0\",\"nodemon\":\"^3.0.1\",\"tailwindcss\":\"^3.4.1\"},\"engines\":{\"node\":\">=18.0.0\"}}"
+    },
+    {
+      "path": "README.md",
+      "contents": "# Flash Cards App (Express + Tailwind)\n\nMinimal starter initialized for the Flash Cards app.\n\nRequirements\n- Node.js 18 or newer\n\nSetup\n1) Install dependencies:\n   npm install\n\n2) Start development (server + Tailwind watch):\n   npm run dev\n   Open http://localhost:4566\n\n3) Run tests:\n   npm test\n\n4) Build CSS for production:\n   npm run build:css\n\nNotes\n- The server listens on port 4566.\n- Static assets are served from ./public.\n- Tailwind CSS is compiled from src/styles/input.css to public/styles.css.\n"
+    },
+    {
+      "path": "src/server.js",
+      "contents": "'use strict';\nconst express = require('express');\nconst cors = require('cors');\nconst path = require('path');\n\nconst app = express();\n\n// Middlewares\napp.use(cors());\napp.use(express.json());\n\n// Static files from ./public\napp.use(express.static(path.join(__dirname, '..', 'public')));\n\n// Health check endpoint\napp.get('/health', (req, res) => {\n  res.json({ status: 'ok' });\n});\n\n// Listen explicitly on port 4566\nconst PORT = 4566;\napp.listen(PORT, () => {\n  console.log(`Server listening on http://localhost:${PORT}`);\n});\n\nmodule.exports = app;\n"
+    },
+    {
+      "path": "src/styles/input.css",
+      "contents": "@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n@layer base {\n  body { @apply bg-white text-black; }\n  a { @apply text-red-600; }\n}\n"
+    },
+    {
+      "path": "public/index.html",
+      "contents": "<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <title>Flash Cards</title>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <link href=\"/styles.css\" rel=\"stylesheet\">\n</head>\n<body class=\"bg-white text-black\">\n  <header class=\"p-4 border-b-2 border-black\">\n    <h1 class=\"text-2xl font-bold text-red-600\">Flash Cards</h1>\n  </header>\n  <main class=\"p-4\">\n    <p class=\"text-black\">Server and static hosting are configured.</p>\n  </main>\n</body>\n</html>\n"
+    },
+    {
+      "path": "public/styles.css",
+      "contents": "/* Placeholder CSS. For full styles, run `npm run build:css` or `npm run dev`. */\nbody { background: #ffffff; color: #000000; }\nh1 { color: #dc2626; }\n"
+    },
+    {
+      "path": "tailwind.config.js",
+      "contents": "module.exports = {\n  content: [\"./public/**/*.html\", \"./src/**/*.js\"],\n  theme: { extend: {} },\n  plugins: []\n};\n"
+    },
+    {
+      "path": "tests/server.test.js",
+      "contents": "const { test } = require('node:test');\nconst assert = require('node:assert');\nconst { spawn } = require('node:child_process');\nconst { setTimeout: delay } = require('node:timers/promises');\n\nasync function waitForHealth(url, retries = 50, intervalMs = 100) {\n  for (let i = 0; i < retries; i++) {\n    try {\n      const res = await fetch(url);\n      if (res.ok) {\n        return res;\n      }\n    } catch (_) {}\n    await delay(intervalMs);\n  }\n  throw new Error('Server did not become healthy in time');\n}\n\ntest('server starts on 4566, /health ok, and serves index.html', async () => {\n  const child = spawn(process.execPath, ['src/server.js'], { stdio: ['ignore', 'pipe', 'pipe'] });\n\n  try {\n    // Wait for health endpoint\n    const healthRes = await waitForHealth('http://localhost:4566/health');\n    const healthJson = await healthRes.json();\n    assert.strictEqual(healthJson.status, 'ok');\n\n    // Fetch index.html\n    const indexRes = await fetch('http://localhost:4566/');\n    assert.strictEqual(indexRes.status, 200);\n    const html = await indexRes.text();\n    assert.match(html, /Flash Cards/);\n  } finally {\n    child.kill('SIGTERM');\n    await delay(100);\n  }\n});\n"
+    }
+  ],
+  "notes": [
+    "Run `npm install` then `npm run dev` to start the server on http://localhost:4566 and watch Tailwind CSS.",
+    "Tests use Node's built-in test runner and verify /health and static index serving."
+  ],
+  "hasTests": true
+}

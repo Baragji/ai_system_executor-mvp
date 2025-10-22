@@ -1,0 +1,12 @@
+{
+  "originalPrompt": "Build a Node API",
+  "effectivePrompt": "Framework: Express\n\nOriginal request: Build a Node API",
+  "clarifications": {
+    "answers": [
+      {
+        "questionId": "framework",
+        "value": "Express"
+      }
+    ]
+  }
+}

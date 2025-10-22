@@ -1,0 +1,47 @@
+{
+  "project_name": "lab-tech-landing",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"lab-tech-landing\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"description\": \"Minimal production-ready landing page for a lab technician using Express, plain HTML/CSS/JS.\",\n  \"main\": \"server.js\",\n  \"scripts\": {\n    \"start\": \"node server.js\",\n    \"dev\": \"nodemon server.js\",\n    \"test\": \"jest\"\n  },\n  \"dependencies\": {\n    \"express\": \"^4.18.2\"\n  },\n  \"devDependencies\": {\n    \"jest\": \"^29.7.0\",\n    \"supertest\": \"^6.3.3\",\n    \"jsdom\": \"^22.1.0\",\n    \"nodemon\": \"^3.0.1\"\n  }\n}\n"
+    },
+    {
+      "path": "server.js",
+      "contents": "const path = require('path');\nconst express = require('express');\n\nconst app = express();\n\n// Serve static assets\napp.use(express.static(path.join(__dirname, 'public')));\n\n// Health endpoint for uptime checks and tests\napp.get('/health', (req, res) => {\n  res.status(200).json({ status: 'ok' });\n});\n\n// Fallback to index.html for any other route\napp.get('*', (req, res) => {\n  res.sendFile(path.join(__dirname, 'public', 'index.html'));\n});\n\n// Start server only when run directly\nif (require.main === module) {\n  const PORT = process.env.PORT || 3000;\n  app.listen(PORT, () => {\n    console.log(`Server running on http://localhost:${PORT}`);\n  });\n}\n\nmodule.exports = app;\n"
+    },
+    {
+      "path": "public/index.html",
+      "contents": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <title>Lab Technician - Landing</title>\n    <link rel=\"stylesheet\" href=\"/styles.css\" />\n  </head>\n  <body>\n    <header class=\"hero\">\n      <h1 id=\"hero-title\">Lab Technician</h1>\n      <p class=\"subtitle\">Precision. Safety. Results.</p>\n    </header>\n\n    <script src=\"/app.js\" defer></script>\n  </body>\n</html>\n"
+    },
+    {
+      "path": "public/styles.css",
+      "contents": ":root {\n  --red: #d32f2f;\n  --black: #000000;\n  --white: #ffffff;\n}\n\n* { box-sizing: border-box; }\n\nhtml, body {\n  margin: 0;\n  padding: 0;\n}\n\nbody {\n  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\";\n  background: var(--white);\n  color: var(--black);\n  line-height: 1.5;\n}\n\n.hero {\n  padding: 4rem 1rem;\n  text-align: center;\n  background: var(--black);\n  color: var(--white);\n}\n\n.hero #hero-title {\n  margin: 0 0 0.5rem 0;\n  font-size: clamp(2rem, 6vw, 3rem);\n  color: var(--red);\n}\n\n.subtitle {\n  margin: 0;\n  opacity: 0.9;\n}\n"
+    },
+    {
+      "path": "public/app.js",
+      "contents": "document.addEventListener('DOMContentLoaded', () => {\n  // Placeholder for client-side interactions (validation will be added later)\n  // Keeping palette strictly red/black/white is handled in CSS.\n  // This log is useful during dev and harmless in production.\n  // eslint-disable-next-line no-console\n  console.log('App initialized');\n});\n"
+    },
+    {
+      "path": "tests/health.test.js",
+      "contents": "const request = require('supertest');\nconst app = require('../server');\n\ndescribe('Health endpoint', () => {\n  it('GET /health -> { status: \"ok\" }', async () => {\n    const res = await request(app).get('/health');\n    expect(res.status).toBe(200);\n    expect(res.body).toEqual({ status: 'ok' });\n  });\n});\n"
+    },
+    {
+      "path": "tests/hero.test.js",
+      "contents": "const fs = require('fs');\nconst path = require('path');\nconst { JSDOM } = require('jsdom');\n\ndescribe('Hero title in index.html', () => {\n  it('contains the expected hero title text', () => {\n    const htmlPath = path.join(__dirname, '..', 'public', 'index.html');\n    const html = fs.readFileSync(htmlPath, 'utf8');\n    const dom = new JSDOM(html);\n    const heroTitle = dom.window.document.querySelector('#hero-title');\n    expect(heroTitle).toBeTruthy();\n    expect(heroTitle.textContent.trim()).toBe('Lab Technician');\n  });\n});\n"
+    },
+    {
+      "path": "jest.config.js",
+      "contents": "module.exports = {\n  testEnvironment: 'node',\n  roots: ['<rootDir>/tests']\n};\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# Lab Technician Landing Page\n\nA minimal, production-ready landing page served by Express with plain HTML/CSS/JS.\n\n## Quick Start\n\n1. Install dependencies:\n   npm install\n\n2. Run in development (auto-restarts on changes):\n   npm run dev\n\n3. Start in production mode:\n   npm start\n\n4. Run tests:\n   npm test\n\n## Endpoints\n\n- GET /health -> { \"status\": \"ok\" }\n- GET / -> Serves the landing page from public/\n\n## Project Structure\n\n- server.js: Express server serving static files and health endpoint\n- public/: Static assets (index.html, styles.css, app.js)\n- tests/: Jest tests (Supertest for server, JSDOM for HTML)\n\n## Notes\n\n- Frontend uses only red/black/white palette.\n- No frontend frameworks; plain CSS and JavaScript.\n"
+    }
+  ],
+  "notes": [
+    "After creating these files, run `npm install` to install dependencies.",
+    "Use `npm run dev` for hot-reloading via nodemon while developing.",
+    "Tests can be run with `npm test` and are located in the tests/ directory."
+  ],
+  "hasTests": true
+}

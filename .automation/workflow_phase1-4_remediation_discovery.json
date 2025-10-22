@@ -1,0 +1,158 @@
+{
+  "phase": "workflow_phase1-4_remediation",
+  "createdAt": "2025-10-15T12:28:36Z",
+  "tasks": [
+    {
+      "id": "WF5-V01",
+      "title": "Confirm contamination baseline",
+      "objective": "Document existing workflow metadata exposure through the Express server and regression tests before remediation.",
+      "integrationPoints": [
+        {
+          "file": "src/server.ts",
+          "line": 154,
+          "symbol": "workflowMetadataCache",
+          "rationale": "Product server caches workflow metadata and merges it into progress payloads; baseline must confirm exposure before removal."
+        },
+        {
+          "file": "src/server.ts",
+          "line": 2305,
+          "symbol": "app.get('/api/workflow/status', …)",
+          "rationale": "Dedicated endpoint surfaces workflow metadata to clients; reproducing its response confirms contamination."
+        },
+        {
+          "file": "tests/api/workflow-status.test.ts",
+          "line": 4,
+          "symbol": "describe('GET /api/workflow/status', …)",
+          "rationale": "Vitest suite exercises the contaminated endpoint and will capture baseline behavior before deletion."
+        }
+      ],
+      "stackCompliance": {
+        "language": "TypeScript/JavaScript",
+        "tests": "npm test -- tests/api/workflow-status.test.ts"
+      }
+    },
+    {
+      "id": "WF5-W51",
+      "title": "Remove workflow metadata from product runtime",
+      "objective": "Strip workflow caching and status exposure from the Express server so progress payloads contain only product state.",
+      "integrationPoints": [
+        {
+          "file": "src/server.ts",
+          "line": 231,
+          "symbol": "setProgress",
+          "rationale": "Progress snapshots previously merged workflowMetadata into SSE payloads; removing the merge isolates product fields."
+        },
+        {
+          "file": "src/server.ts",
+          "line": 1536,
+          "symbol": "app.post('/api/execute', …)",
+          "rationale": "Session bootstrap no longer primes workflow caches before orchestrating executions."
+        },
+        {
+          "file": "tests/api/progress.test.ts",
+          "line": 18,
+          "symbol": "describe('progress payloads', …)",
+          "rationale": "Regression coverage updated to assert workflow metadata is absent from REST snapshots."
+        }
+      ],
+      "stackCompliance": {
+        "language": "TypeScript/JavaScript",
+        "tests": "npm test"
+      }
+    },
+    {
+      "id": "WF5-W52",
+      "title": "Isolate workflow state module",
+      "objective": "Move the workflow state synthesizer out of src/, repoint CLI tooling, and ensure tests import the isolated module path.",
+      "integrationPoints": [
+        {
+          "file": "src/state/phaseState.ts",
+          "line": 105,
+          "symbol": "loadPhaseState",
+          "rationale": "Shared workflow synthesizer currently lives under src/ and must relocate to a workflow-specific directory."
+        },
+        {
+          "file": "scripts/execute-next-action.js",
+          "line": 22,
+          "symbol": "import { loadPhaseState, buildWorkflowMetadata }",
+          "rationale": "CLI next-action helper imports the shared module directly from src/; path must update after relocation."
+        },
+        {
+          "file": "tests/state/phaseState.test.ts",
+          "line": 17,
+          "symbol": "import {...} from \"../../src/state/phaseState.js\"",
+          "rationale": "Regression suite validates workflow module behavior and needs to reference the new workflow/ location."
+        },
+        {
+          "file": "tests/api/workflow-status.test.ts",
+          "line": 4,
+          "symbol": "WorkflowMetadata type import",
+          "rationale": "Type import should track the new module path to keep legacy endpoint coverage compiling while route is removed."
+        }
+      ],
+      "stackCompliance": {
+        "language": "TypeScript/JavaScript",
+        "tests": "npm test -- tests/state/phaseState.test.ts"
+      }
+    },
+    {
+      "id": "WF5-W53",
+      "title": "Persist contract validation evidence",
+      "objective": "Augment the contract sync script so validation command outputs are preserved in the contract and enforce the behavior with targeted tests.",
+      "integrationPoints": [
+        {
+          "file": "scripts/sync-contract-status.js",
+          "line": 95,
+          "symbol": "runTaskValidations",
+          "rationale": "Validation executor currently discards stdout/stderr; it must capture command results for validation_results persistence."
+        },
+        {
+          "file": "scripts/sync-contract-status.js",
+          "line": 156,
+          "symbol": "validateTask",
+          "rationale": "Task evaluation needs to return validation evidence data alongside status updates."
+        },
+        {
+          "file": "scripts/sync-contract-status.js",
+          "line": 211,
+          "symbol": "syncContract",
+          "rationale": "Contract writer must merge new validation_results into task records when syncing Phase 19."
+        },
+        {
+          "file": "tests/state/sync.test.ts",
+          "line": 51,
+          "symbol": "it(\"marks Phase 19 tasks complete when evidence checks pass\")",
+          "rationale": "Regression test needs to assert validation_results arrays are populated after sync completes."
+        }
+      ],
+      "stackCompliance": {
+        "language": "TypeScript/JavaScript",
+        "tests": "npm test -- tests/state/sync.test.ts"
+      }
+    },
+    {
+      "id": "WF5-W54",
+      "title": "Retire contaminated API test & reinforce CLI coverage",
+      "objective": "Eliminate the deprecated workflow status API test and assert the CLI exercises sanitized workflow metadata from the isolated module.",
+      "integrationPoints": [
+        {
+          "file": "tests/api/workflow-status.test.ts",
+          "line": 1,
+          "symbol": "describe(\"GET /api/workflow/status\")",
+          "rationale": "Legacy Vitest suite still references the removed endpoint and workflow metadata payloads; it must be deleted to prevent contamination."
+        },
+        {
+          "file": "tests/state/execute-next-action.test.ts",
+          "line": 8,
+          "symbol": "describe(\"execute-next-action script\")",
+          "rationale": "CLI regression coverage should import from workflow/lib and assert no workflowMetadata leakage in the command output."
+        }
+      ],
+      "stackCompliance": {
+        "language": "TypeScript/JavaScript",
+        "tests": "npm test -- tests/state/execute-next-action.test.ts"
+      }
+    }
+  ],
+  "notes": "Baseline verification requires observing server imports and executing the workflow status API test without modification."
+}

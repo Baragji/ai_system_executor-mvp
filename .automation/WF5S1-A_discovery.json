@@ -1,0 +1,47 @@
+{
+  "date": "2025-10-16",
+  "task": "WF5S1-A",
+  "scope": "Canonicalize detector criteria using ledger-derived constants",
+  "integration_points": [
+    {
+      "file": ".automation/GATES_LEDGER.md",
+      "lines": [55, 143],
+      "note": "Gate acceptance checkboxes (G2 SBOM/provenance, G3 LangGraph integration) provide canonical strings"
+    },
+    {
+      "file": "workflow/lib/gateCriteria.ts",
+      "note": "New helper to parse ledger acceptance criteria and expose lookup functions"
+    },
+    {
+      "file": "scripts/detect-evidence.js",
+      "lines": [30, 340],
+      "note": "Replace hard-coded criterion strings, adjust Trust Spine aggregation"
+    },
+    {
+      "file": "tests/scripts/detect-evidence.test.ts",
+      "lines": [1, 160],
+      "note": "Update expectations to ledger-derived text"
+    },
+    {
+      "file": "tests/scripts/update-gate.test.ts",
+      "lines": [1, 220],
+      "note": "Sample ledger needs canonical criterion text for LangGraph integration"
+    }
+  ],
+  "risks": [
+    "Optional helper scripts referenced in contract (list-gate-criteria) do not exist; detector must not depend on them",
+    "Ledger acceptance text may change; helper should surface missing criteria clearly"
+  ],
+  "commands_run": [
+    {
+      "command": "node scripts/list-gate-criteria.js --gate G3 --json",
+      "result": "failed (module not found)"
+    }
+  ],
+  "next_steps": [
+    "Implement gateCriteria helper (ts + js)",
+    "Update detector to import canonical strings, drop placeholder criteria",
+    "Refresh tests to cover new mapping",
+    "Document behaviour in discovery + trace"
+  ]
+}

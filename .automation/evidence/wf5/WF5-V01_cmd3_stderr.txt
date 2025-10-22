@@ -1,0 +1,75 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+stderr | tests/runner/installDeps.test.ts > ensureDependencies > runs npm ci with --ignore-scripts when modules missing
+[ensureDependencies] registry unavailable, continuing without remote validation [ 'express@^4.0.0' ]
+
+stderr | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > resumes a paused session when answers provided
+[Resume] No LLM provider configured; skipping automatic resume for session-002
+
+stderr | tests/api/execute-with-clarifications.test.ts > POST /api/execute with clarifications > works without clarifications
+Planning execution failed, falling back to single execution Error: Skip planning in clarification tests
+    at Proxy.<anonymous> (/workspace/ai_system_executor-mvp/tests/api/execute-with-clarifications.test.ts:31:11)
+    at Proxy.mockCall (file:///workspace/ai_system_executor-mvp/node_modules/@vitest/spy/dist/index.js:61:17)
+    at Proxy.spy (file:///workspace/ai_system_executor-mvp/node_modules/tinyspy/dist/index.js:45:80)
+    at /workspace/ai_system_executor-mvp/src/server.ts:1449:7
+    at AsyncLocalStorage.run (node:async_hooks:346:14)
+    at Module.withTraceContext (/workspace/ai_system_executor-mvp/src/llm/trace.ts:13:18)
+    at planStepHandler (/workspace/ai_system_executor-mvp/src/server.ts:1448:24)
+    at StepQueue.handle (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:28)
+    at InlineExecutionQueue.handler (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+
+stderr | tests/api/execute-with-clarifications.test.ts > POST /api/execute with clarifications > uses augmented prompt when clarifications provided
+Planning execution failed, falling back to single execution Error: Skip planning in clarification tests
+    at Proxy.<anonymous> (/workspace/ai_system_executor-mvp/tests/api/execute-with-clarifications.test.ts:31:11)
+    at Proxy.mockCall (file:///workspace/ai_system_executor-mvp/node_modules/@vitest/spy/dist/index.js:61:17)
+    at Proxy.spy (file:///workspace/ai_system_executor-mvp/node_modules/tinyspy/dist/index.js:45:80)
+    at /workspace/ai_system_executor-mvp/src/server.ts:1449:7
+    at AsyncLocalStorage.run (node:async_hooks:346:14)
+    at Module.withTraceContext (/workspace/ai_system_executor-mvp/src/llm/trace.ts:13:18)
+    at planStepHandler (/workspace/ai_system_executor-mvp/src/server.ts:1448:24)
+    at StepQueue.handle (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:28)
+    at InlineExecutionQueue.handler (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+
+stderr | tests/meta/clarification-telemetry.test.ts > clarification telemetry meta > meta file includes clarification data when clarifications used
+Planning execution failed, falling back to single execution TaskPlanValidationError: /subtasks must NOT have fewer than 2 items; /totalSubtasks must be >= 2
+    at Module.decomposeTask (/workspace/ai_system_executor-mvp/src/planning/decomposeTask.ts:237:19)
+    at planStepHandler (/workspace/ai_system_executor-mvp/src/server.ts:1448:18)
+    at StepQueue.handle (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:22)
+    at InlineExecutionQueue.handler (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+    at StepQueue.runWorkflow (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24)
+    at /workspace/ai_system_executor-mvp/src/server.ts:1759:22 {
+  issues: []
+}
+
+stderr | tests/meta/clarification-telemetry.test.ts > clarification telemetry meta > sets improvedSuccess false when tests fail
+Planning execution failed, falling back to single execution TaskPlanValidationError: /subtasks must NOT have fewer than 2 items; /totalSubtasks must be >= 2
+    at Module.decomposeTask (/workspace/ai_system_executor-mvp/src/planning/decomposeTask.ts:237:19)
+    at planStepHandler (/workspace/ai_system_executor-mvp/src/server.ts:1448:18)
+    at StepQueue.handle (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:22)
+    at InlineExecutionQueue.handler (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+    at StepQueue.runWorkflow (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24)
+    at /workspace/ai_system_executor-mvp/src/server.ts:1759:22 {
+  issues: []
+}
+
+stderr | tests/meta/clarification-telemetry.test.ts > clarification telemetry meta > marks clarification asked when user skips answers
+Planning execution failed, falling back to single execution TaskPlanValidationError: /subtasks must NOT have fewer than 2 items; /totalSubtasks must be >= 2
+    at Module.decomposeTask (/workspace/ai_system_executor-mvp/src/planning/decomposeTask.ts:237:19)
+    at planStepHandler (/workspace/ai_system_executor-mvp/src/server.ts:1448:18)
+    at StepQueue.handle (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:22)
+    at InlineExecutionQueue.handler (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+    at StepQueue.runWorkflow (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24)
+    at /workspace/ai_system_executor-mvp/src/server.ts:1759:22 {
+  issues: []
+}
+
+stderr | tests/planning/executeTaskPlan.duration.test.ts > executeTaskPlan duration limit > halts quickly when PLAN_MAX_DURATION_MS is small
+Plan execution halted after 0s to avoid browser timeout. Completed 0/2 subtasks.
+
+stderr | tests/runner/logStream-error.test.ts > runInSandbox log stream error handling > returns results even if log stream fails
+Log stream error for /tmp/sandbox-log-iH10gX/logs/demo_last_test_run_be81bff6-4c16-4ac8-aa85-e1326d57a841.log: disk full
+

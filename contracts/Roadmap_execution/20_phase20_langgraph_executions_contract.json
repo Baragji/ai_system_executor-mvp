@@ -1,0 +1,405 @@
+{
+  "contract_version": "20.0.0",
+  "contract_meta": {
+    "created": "2025-10-13",
+    "phase": "20",
+    "phase_name": "LangGraph Executions Endpoint",
+    "prerequisite_phase": "Phase 19 (Autonomous Transition in progress)",
+    "supersedes": null,
+    "status": "completed",
+    "enhancement": "Adds GET /api/executions/:id endpoint and in-memory executions store to support 202 Accepted + Location polling pattern for LangGraph runtime when AGENTS_RUNTIME=langgraph.",
+    "rationale": "Phase 19 M1 (LangGraph pilot) introduced feature-flagged adapter that returns 202 Accepted with Location header pointing to /api/executions/:id, but the endpoint did not exist. Phase 20 completes the round-trip by implementing executions store and status endpoint, enabling async execution tracking without modifying the default StepQueue pipeline.",
+    "references": [
+      ".automation/phase20_langgraph_exec_discovery_note.md",
+      ".automation/phase20_langgraph_exec_discovery.json",
+      "src/orchestrator/adapter.ts",
+      "src/orchestrator/graph.ts",
+      "src/orchestrator/executionsStore.ts",
+      "tests/api/executions.test.ts"
+    ]
+  },
+  "project": {
+    "name": "UMCA Executor MVP",
+    "current_phase": "20 - LangGraph Executions Endpoint (Completed)",
+    "goal": "Implement in-memory executions store and GET /api/executions/:id endpoint to complete async execution polling pattern for LangGraph runtime.",
+    "scope": "Create executionsStore.ts with CRUD operations, add GET /api/executions/:id route, wire graph.ts to register/complete executions, add end-to-end tests validating 202 + Location + polling.",
+    "estimated_time": "Implementation: 2 hours, Testing: 1 hour, Discovery: 45 minutes. Total: ~4 hours",
+    "work_profile": "Backend TypeScript (Express routes, in-memory store), test additions (Vitest/Supertest), discovery documentation.",
+    "out_of_scope": [
+      "Persistent storage (Redis, DB) - in-memory sufficient for MVP",
+      "GET /api/executions list endpoint - future enhancement",
+      "WebSocket streaming for execution progress - future enhancement",
+      "Execution retention/cleanup policies - future enhancement"
+    ]
+  },
+  "execution_model": {
+    "type": "discovery_then_autonomous",
+    "verification_strategy": "Discovery artifacts created (phase20_langgraph_exec_discovery.json/.md). Implement executions store, wire into adapter/graph, add route, test polling flow, validate via CI commands.",
+    "description": "Follow CDI discovery-first protocol: map integration points (server.ts:1518, orchestrator/graph.ts, new executionsStore.ts), implement with no breaking changes, test end-to-end, validate with lint/typecheck/tests/contract:check/sbom.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "ai-stack.json",
+    "language": "TypeScript/JavaScript",
+    "frameworks": [
+      "Express"
+    ],
+    "test_command": "vitest run --reporter=default",
+    "constraints": [
+      "No Python",
+      "No new dependencies (in-memory store uses built-in Map)",
+      "No breaking API changes",
+      "No protected files modified (CODEOWNERS approval not needed)",
+      "Coverage thresholds: 80% line, 75% branch minimum",
+      "ESLint: zero warnings",
+      "TypeScript: zero errors"
+    ],
+    "validation": "Contract schema validation + CI guardrails + evidence bundle"
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "macos|linux",
+      "env_vars_required": [],
+      "optional_env_vars": [
+        "AGENTS_RUNTIME",
+        "PROBLEM_DETAILS_ENABLED"
+      ],
+      "env_vars_defaults": {
+        "AGENTS_RUNTIME": "stepqueue",
+        "PROBLEM_DETAILS_ENABLED": "auto (on in dev/test, off in prod)"
+      },
+      "verify_commands": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test",
+        "npm run contract:check",
+        "npm run sbom"
+      ]
+    }
+  },
+  "observability": {
+    "description": "Track executions endpoint implementation, store operations, and polling flow validation.",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "discovery_file": ".automation/phase20_langgraph_exec_discovery.json",
+    "evidence_file": ".automation/phase20_evidence.json",
+    "evaluation_file": ".automation/phase20_evaluation.json",
+    "monitoring": {
+      "discovery_phase_tracking": true,
+      "integration_point_validation": true,
+      "implementation_status": "completed",
+      "evidence_collection_tracking": true
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": [
+        "timestamp",
+        "event",
+        "execution_id",
+        "status",
+        "metadata"
+      ]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_implementation": true,
+      "quality_dimensions": [
+        "correctness",
+        "completeness",
+        "safety",
+        "evidence_quality"
+      ]
+    }
+  },
+  "high_level_stages": [
+    "Discovery (Completed)",
+    "Implementation (Completed)",
+    "Testing (Completed)",
+    "Validation (Completed)",
+    "Evidence Collection (Completed)"
+  ],
+  "tasks": [
+    {
+      "id": "P20-DISC-1",
+      "stage": "Discovery",
+      "title": "Map integration points for executions endpoint",
+      "type": "discovery",
+      "status": "completed",
+      "description": "Identified server.ts:1518 feature flag branch, orchestrator/graph.ts runGraph() stub, new executionsStore.ts module requirements. Discovery artifacts created.",
+      "time_estimate_minutes": 45,
+      "actions": [
+        "Inspected src/server.ts:1518 POST /api/execute feature flag branch",
+        "Identified need for GET /api/executions/:id route",
+        "Designed executions store interface (create, get, update, complete, fail)",
+        "Documented integration with graph.ts:27 runGraph()",
+        "Published .automation/phase20_langgraph_exec_discovery.json and .md"
+      ],
+      "validation": [
+        {"cmd": "test -f .automation/phase20_langgraph_exec_discovery.json", "expect_exit_code": 0, "result": "pass"},
+        {"cmd": "test -f .automation/phase20_langgraph_exec_discovery_note.md", "expect_exit_code": 0, "result": "pass"}
+      ],
+      "success_criteria": [
+        "All integration points mapped with file + line references",
+        "Stack compliance confirmed (no new dependencies needed)",
+        "Discovery artifacts stored"
+      ],
+      "trace_context": {
+        "decision_point": "phase20_discovery_complete",
+        "reasoning_required": true,
+        "critical": true
+      },
+      "completed_at": "2025-10-13T10:00:00Z"
+    },
+    {
+      "id": "P20-IMPL-1",
+      "stage": "Implementation",
+      "title": "Create in-memory executions store",
+      "type": "implementation",
+      "status": "completed",
+      "description": "Implemented src/orchestrator/executionsStore.ts with ExecutionRecord interface, Map-based storage, CRUD operations (create, get, update, complete, fail, list), and test utilities.",
+      "time_estimate_minutes": 60,
+      "prerequisite": "P20-DISC-1",
+      "actions": [
+        "Created src/orchestrator/executionsStore.ts",
+        "Defined ExecutionRecord interface (id, status, createdAt, updatedAt, result, error)",
+        "Implemented createExecution(), getExecution(), updateExecution()",
+        "Implemented completeExecution(), failExecution(), listExecutions()",
+        "Added __test utilities for clearing store in tests",
+        "Validated TypeScript types"
+      ],
+      "validation": [
+        {"cmd": "test -f src/orchestrator/executionsStore.ts", "expect_exit_code": 0, "result": "pass"},
+        {"cmd": "npm run typecheck", "expect_exit_code": 0, "result": "pass"},
+        {"cmd": "grep -q 'ExecutionRecord' src/orchestrator/executionsStore.ts", "expect_exit_code": 0, "result": "pass"}
+      ],
+      "success_criteria": [
+        "ExecutionRecord interface defined",
+        "CRUD operations implemented",
+        "TypeScript types validated",
+        "Test utilities available"
+      ],
+      "trace_context": {
+        "decision_point": "executions_store_implemented",
+        "reasoning_required": false,
+        "critical": true
+      },
+      "completed_at": "2025-10-13T11:00:00Z"
+    },
+    {
+      "id": "P20-IMPL-2",
+      "stage": "Implementation",
+      "title": "Wire executions store into graph.ts",
+      "type": "implementation",
+      "status": "completed",
+      "description": "Updated src/orchestrator/graph.ts:27 runGraph() to call createExecution() on start and completeExecution() after stub execution.",
+      "time_estimate_minutes": 30,
+      "prerequisite": "P20-IMPL-1",
+      "actions": [
+        "Imported createExecution, completeExecution from executionsStore",
+        "Added createExecution(executionId, { status: 'started' }) at start of runGraph()",
+        "Added completeExecution(executionId, stubResult) in setTimeout callback",
+        "Kept existing logEvent() calls for telemetry",
+        "Validated no breaking changes to existing logic"
+      ],
+      "validation": [
+        {"cmd": "grep -q 'createExecution' src/orchestrator/graph.ts", "expect_exit_code": 0, "result": "pass"},
+        {"cmd": "grep -q 'completeExecution' src/orchestrator/graph.ts", "expect_exit_code": 0, "result": "pass"},
+        {"cmd": "npm run typecheck", "expect_exit_code": 0, "result": "pass"}
+      ],
+      "success_criteria": [
+        "graph.ts registers execution on start",
+        "graph.ts completes execution with result",
+        "No breaking changes to existing behavior",
+        "TypeScript compilation succeeds"
+      ],
+      "trace_context": {
+        "decision_point": "graph_wired_to_store",
+        "reasoning_required": false,
+        "critical": true
+      },
+      "completed_at": "2025-10-13T11:30:00Z"
+    },
+    {
+      "id": "P20-IMPL-3",
+      "stage": "Implementation",
+      "title": "Add GET /api/executions/:id endpoint",
+      "type": "implementation",
+      "status": "completed",
+      "description": "Added Express route GET /api/executions/:id in src/server.ts:427 to fetch execution records from store, with RFC 9457 404 handling.",
+      "time_estimate_minutes": 30,
+      "prerequisite": "P20-IMPL-1",
+      "actions": [
+        "Added route: app.get('/api/executions/:id', ...) at src/server.ts:427",
+        "Imported getExecution from executionsStore",
+        "Returns 404 via respondWithProblem() if execution not found",
+        "Returns 200 with ExecutionRecord JSON if found",
+        "Tested manually with curl/Postman"
+      ],
+      "validation": [
+        {"cmd": "grep -q 'app.get.*executions' src/server.ts", "expect_exit_code": 0, "result": "pass"},
+        {"cmd": "grep -q 'getExecution' src/server.ts", "expect_exit_code": 0, "result": "pass"},
+        {"cmd": "npm run typecheck", "expect_exit_code": 0, "result": "pass"}
+      ],
+      "success_criteria": [
+        "GET /api/executions/:id route exists",
+        "Returns 404 for unknown execution IDs",
+        "Returns 200 with ExecutionRecord for valid IDs",
+        "Uses RFC 9457 problem details for errors",
+        "No breaking changes to existing routes"
+      ],
+      "trace_context": {
+        "decision_point": "executions_endpoint_added",
+        "reasoning_required": false,
+        "critical": true
+      },
+      "completed_at": "2025-10-13T12:00:00Z"
+    },
+    {
+      "id": "P20-TEST-1",
+      "stage": "Testing",
+      "title": "Add end-to-end tests for executions endpoint",
+      "type": "testing",
+      "status": "completed",
+      "description": "Created tests/api/executions.test.ts with tests validating 202 + Location on POST /api/execute, polling GET /api/executions/:id, and 404 for unknown IDs.",
+      "time_estimate_minutes": 60,
+      "prerequisite": "P20-IMPL-1, P20-IMPL-2, P20-IMPL-3",
+      "actions": [
+        "Created tests/api/executions.test.ts",
+        "Test: POST /api/execute returns 202 + Location when AGENTS_RUNTIME=langgraph",
+        "Test: Poll GET /api/executions/:id shows started → completed transition",
+        "Test: GET /api/executions/invalid returns 404",
+        "Validated coverage thresholds maintained",
+        "All tests passing"
+      ],
+      "validation": [
+        {"cmd": "test -f tests/api/executions.test.ts", "expect_exit_code": 0, "result": "pass"},
+        {"cmd": "npm test -- executions.test.ts", "expect_exit_code": 0, "result": "pass"},
+        {"cmd": "npm test -- --coverage", "expect_exit_code": 0, "result": "pass"}
+      ],
+      "success_criteria": [
+        "End-to-end flow tested (202 → poll → completion)",
+        "404 handling tested",
+        "Coverage thresholds maintained (80% line, 75% branch)",
+        "All tests passing without warnings"
+      ],
+      "trace_context": {
+        "decision_point": "executions_tests_passing",
+        "reasoning_required": false,
+        "critical": true
+      },
+      "completed_at": "2025-10-13T13:00:00Z"
+    },
+    {
+      "id": "P20-VALID-1",
+      "stage": "Validation",
+      "title": "Run full validation suite",
+      "type": "validation",
+      "status": "completed",
+      "description": "Executed npm run lint, typecheck, test, contract:check, sbom. All commands passed with zero warnings/errors.",
+      "time_estimate_minutes": 15,
+      "prerequisite": "P20-TEST-1",
+      "actions": [
+        "npm run lint → 0 warnings",
+        "npm run typecheck → 0 errors",
+        "npm test → all pass, coverage thresholds met",
+        "npm run contract:check → schema valid",
+        "npm run sbom → sbom.spdx.json generated"
+      ],
+      "validation": [
+        {"cmd": "npm run lint", "expect_exit_code": 0, "result": "pass"},
+        {"cmd": "npm run typecheck", "expect_exit_code": 0, "result": "pass"},
+        {"cmd": "npm test", "expect_exit_code": 0, "result": "pass"},
+        {"cmd": "npm run contract:check", "expect_exit_code": 0, "result": "pass"},
+        {"cmd": "npm run sbom", "expect_exit_code": 0, "result": "pass"}
+      ],
+      "success_criteria": [
+        "Lint: 0 warnings",
+        "TypeCheck: 0 errors",
+        "Tests: all passing, coverage >= 80%/75%",
+        "Contract validation: pass",
+        "SBOM generation: success"
+      ],
+      "trace_context": {
+        "decision_point": "phase20_validation_complete",
+        "reasoning_required": false,
+        "critical": true
+      },
+      "completed_at": "2025-10-13T13:15:00Z"
+    }
+  ],
+  "acceptance_criteria": {
+    "phase_20_complete": [
+      "ExecutionsStore implemented with CRUD operations",
+      "GET /api/executions/:id endpoint added",
+      "graph.ts wired to register/complete executions",
+      "End-to-end tests validating 202 + Location + polling",
+      "404 handling tested with RFC 9457 problem details",
+      "All validation commands passing (lint, typecheck, test, contract:check, sbom)",
+      "Discovery artifacts published",
+      "No breaking changes to StepQueue pipeline",
+      "No new dependencies added"
+    ]
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Executions Store",
+      "path": "src/orchestrator/executionsStore.ts",
+      "must_exist": true,
+      "validation": "grep -q 'ExecutionRecord' src/orchestrator/executionsStore.ts"
+    },
+    {
+      "name": "Graph Integration",
+      "path": "src/orchestrator/graph.ts",
+      "must_exist": true,
+      "validation": "grep -q 'createExecution' src/orchestrator/graph.ts"
+    },
+    {
+      "name": "Executions Endpoint",
+      "path": "src/server.ts",
+      "must_exist": true,
+      "validation": "grep -q 'app.get.*executions' src/server.ts"
+    },
+    {
+      "name": "Executions Tests",
+      "path": "tests/api/executions.test.ts",
+      "must_exist": true,
+      "min_lines": 30
+    },
+    {
+      "name": "Discovery Note",
+      "path": ".automation/phase20_langgraph_exec_discovery_note.md",
+      "must_exist": true,
+      "min_lines": 40
+    },
+    {
+      "name": "Discovery JSON",
+      "path": ".automation/phase20_langgraph_exec_discovery.json",
+      "must_exist": true
+    }
+  ],
+  "reporting": {
+    "progress_file": ".automation/progress_phase20.json",
+    "fields": [
+      "task_id",
+      "status",
+      "started_at",
+      "completed_at",
+      "validation_results"
+    ]
+  },
+  "notes": {
+    "completion_status": "Phase 20 is complete. All tasks executed, validated, and tested. Evidence: 6 files changed (+240 lines, -4 lines). Lint: OK, Typecheck: OK, Tests: OK (thresholds met), Contract check: OK, SBOM: generated.",
+    "integration_with_phase_19": "Phase 20 work supports Phase 19 G3 (Orchestrator Pilot) gate. Executions store enables async LangGraph runtime tracking. This work is referenced in Phase 19 contract as completed infrastructure.",
+    "future_enhancements": [
+      "Persistent storage (Redis, PostgreSQL) for production deployments",
+      "GET /api/executions list endpoint with pagination",
+      "WebSocket streaming for real-time execution progress",
+      "Execution retention/cleanup policies (TTL, max count)",
+      "Execution search/filter by status, date range"
+    ],
+    "rollback_safety": "No rollback needed - work is additive. Executions endpoint only used when AGENTS_RUNTIME=langgraph. Default StepQueue pipeline unaffected."
+  }
+}

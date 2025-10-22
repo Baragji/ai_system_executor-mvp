@@ -5,6 +5,7 @@ const TELEMETRY_DIR = path.resolve(".telemetry");
 const TELEMETRY_FILE = path.join(TELEMETRY_DIR, "events.log");
 const AUTOMATION_DIR = path.resolve(".automation");
 const TRACE_FILE = path.join(AUTOMATION_DIR, "execution_trace.jsonl");
+const ACTION_LOG_FILE = path.join(AUTOMATION_DIR, "actions.jsonl");
 
 interface ExecutionTraceEntry {
   timestamp: string;
@@ -17,6 +18,16 @@ interface ExecutionTraceEntry {
   stderr_excerpt?: string;
   subtask_id?: string;
   progress_pct?: number;
+}
+
+/**
+ * Check if JSONL action log dual-write is enabled (Phase 19 T0)
+ */
+function actionLogEnabled(): boolean {
+  const env = process.env.ACTION_LOG_JSONL;
+  if (!env) return false;
+  const v = env.trim().toLowerCase();
+  return v === '1' || v === 'true' || v === 'yes';
 }
 
 function extractString(value: unknown): string | undefined {
@@ -84,6 +95,12 @@ export async function logEvent(name: string, payload?: Record<string, unknown>):
     const traceEntry = buildTraceEntry(event);
     await fs.mkdir(AUTOMATION_DIR, { recursive: true });
     await fs.appendFile(TRACE_FILE, `${JSON.stringify(traceEntry)}\n`, "utf-8");
+
+    // Phase 19 T0: Dual-write to actions.jsonl when ACTION_LOG_JSONL=1
+    // This provides SIEM-compatible audit logs for Trust Spine compliance
+    if (actionLogEnabled()) {
+      await fs.appendFile(ACTION_LOG_FILE, `${JSON.stringify(traceEntry)}\n`, "utf-8");
+    }
   } catch (err) {
     console.warn("Failed to write execution trace entry", err);
   }

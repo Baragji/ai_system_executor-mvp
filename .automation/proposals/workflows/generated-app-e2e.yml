@@ -1,0 +1,75 @@
+name: Generated App E2E
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  e2e-generate-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build server (if needed)
+        run: npm run build --if-present
+
+      - name: Start executor server
+        run: |
+          node dist/server.js &
+          echo $! > server_pid.txt
+          sleep 2
+
+      - name: Generate project via API
+        id: generate
+        run: |
+          set -e
+          SESSION_ID=$(node -e "console.log(require('crypto').randomBytes(8).toString('hex'))")
+          echo "SESSION_ID=$SESSION_ID" >> $GITHUB_OUTPUT
+          curl -s -X POST http://localhost:3000/api/execute \
+            -H 'Content-Type: application/json' \
+            -d '{"projectName":"lab-tech-landing-ci","sessionId":"'$SESSION_ID'","prompt":"Create a minimal production-ready landing page for a lab technician. Single HTML page served by Express; responsive layout; hero with title/subtitle; services list; contact form (client-side alert only); palette strictly red/black/white; README with run/build/test; npm scripts: start, dev, test; tests using Jest to verify hero title and /health JSON endpoint."}' \
+            | tee e2e_execute_response.json
+
+      - name: Determine slug
+        id: slug
+        run: |
+          SLUG=$(node -e "const fs=require('fs');const r=JSON.parse(fs.readFileSync('e2e_execute_response.json','utf8'));process.stdout.write(r.project||'lab-tech-landing-ci');")
+          echo "SLUG=$SLUG" >> $GITHUB_OUTPUT
+
+      - name: Run tests inside generated app
+        run: |
+          set -e
+          cd output/${{ steps.slug.outputs.SLUG }}
+          npm ci
+          npm test | tee ../../generated-app-test.log
+
+      - name: Generate SBOM for generated app
+        run: |
+          cd output/${{ steps.slug.outputs.SLUG }}
+          npm sbom --sbom-format=spdx --omit=dev > ../../generated-app.sbom.spdx.json
+
+      - name: Upload artifacts (proof bundle)
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-app-proof-bundle
+          path: |
+            e2e_execute_response.json
+            generated-app-test.log
+            generated-app.sbom.spdx.json
+            .automation/fixtures/${{ steps.slug.outputs.SLUG }}/
+
+      - name: Stop server
+        if: always()
+        run: |
+          if [ -f server_pid.txt ]; then kill -9 $(cat server_pid.txt) || true; fi
+

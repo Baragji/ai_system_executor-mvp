@@ -1,0 +1,22 @@
+{
+  "phase": 2,
+  "date": "2025-10-10",
+  "change": "Add LLM per-call trace capture into fixtures using AsyncLocalStorage context.",
+  "integration_points": [
+    { "file": "src/llm/index.ts", "line_hint": 6, "why": "All LLM calls flow through generateJSON" },
+    { "file": "src/llm/trace.ts", "why": "Provides withTraceContext/getTraceContext using AsyncLocalStorage" },
+    { "file": "src/server.ts", "why": "Wrap decompose, single exec, and subtask generations with context; pass sessionId to repair" },
+    { "file": "src/repair/multiTurnRepair.ts", "why": "Wrap repair LLM calls, extend context with sessionId" }
+  ],
+  "writes_to": ".automation/fixtures/<slug>/<sessionId>/llm/<timestamp>_<phase>_<subtaskId>.json",
+  "non_breaking": true,
+  "new_dependencies": false,
+  "validation_gate": {
+    "lint": true,
+    "typecheck": true,
+    "tests": true,
+    "contracts": true,
+    "sbom": true
+  }
+}
+

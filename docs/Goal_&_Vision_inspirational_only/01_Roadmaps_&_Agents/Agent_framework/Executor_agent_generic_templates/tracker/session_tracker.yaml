@@ -1,0 +1,14 @@
+schema: executor_ai.tracker.v1
+project: "Universal Executor Project"
+sessions:
+  # This list will be appended to by the Executor AI after each session.
+  #
+  # Example entry:
+  # - id: "S1-INIT"
+  #   title: "Initialize project structure and install dependencies"
+  #   status: "SUCCESS"
+  #   span_root: "executor.session.s1-init.20250829164500"
+  #   started_at: "2025-08-29T14:45:00Z"
+  #   completed_at: "2025-08-29T14:50:00Z"
+  #   commit_sha: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+  #   report: "sessions/S1-INIT.md"

@@ -1,0 +1,40 @@
+{
+  "project_name": "small-add-lib",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"small-add-lib\",\n  \"version\": \"0.1.0\",\n  \"description\": \"A tiny TypeScript library with one function and tests.\",\n  \"main\": \"dist/index.js\",\n  \"types\": \"dist/index.d.ts\",\n  \"scripts\": {\n    \"build\": \"tsc -p tsconfig.json\",\n    \"test\": \"jest --colors\",\n    \"prepare\": \"npm run build\"\n  },\n  \"keywords\": [],\n  \"author\": \"\",\n  \"license\": \"MIT\",\n  \"devDependencies\": {\n    \"typescript\": \"^5.2.2\",\n    \"jest\": \"^29.6.1\",\n    \"ts-jest\": \"^29.1.0\",\n    \"@types/jest\": \"^29.5.3\"\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2019\",\n    \"module\": \"commonjs\",\n    \"declaration\": true,\n    \"outDir\": \"dist\",\n    \"rootDir\": \"src\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"forceConsistentCasingInFileNames\": true\n  },\n  \"include\": [\"src\"],\n  \"exclude\": [\"node_modules\", \"dist\"]\n}\n"
+    },
+    {
+      "path": "jest.config.cjs",
+      "contents": "module.exports = {\n  preset: 'ts-jest',\n  testEnvironment: 'node',\n  roots: ['<rootDir>/tests'],\n  transform: { '^.+\\\\.tsx?$': 'ts-jest' },\n  testMatch: ['**/?(*.)+(test|spec).ts']\n};\n"
+    },
+    {
+      "path": "src/index.ts",
+      "contents": "/**\n * add - return the sum of two numbers\n */\nexport function add(a: number, b: number): number {\n  return a + b;\n}\n"
+    },
+    {
+      "path": "tests/index.test.ts",
+      "contents": "import { add } from '../src/index';\n\ndescribe('add', () => {\n  test('adds two numbers', () => {\n    expect(add(1, 2)).toBe(3);\n  });\n});\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# small-add-lib\n\nA minimal TypeScript library that exposes one function and a unit test.\n\nSetup\n\n1. Install dependencies:\n\n   npm install\n\n2. Run tests:\n\n   npm test\n\nBuild\n\n- Compile TypeScript to JavaScript:\n\n  npm run build\n\nNotes\n\n- This repository includes a minimal simulated .git directory to indicate an initialized repository.\n- Tests are written with Jest + ts-jest. The test runner will pick up files under the `tests/` folder.\n"
+    },
+    {
+      "path": "LICENSE",
+      "contents": "MIT License\n\nCopyright (c) 2025\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  ],
+  "notes": [
+    "Install dependencies with: npm install",
+    "Run tests with: npm test",
+    "Build with: npm run build",
+    "A minimal .git directory is included to represent an initialized repository."
+  ],
+  "hasTests": true
+}

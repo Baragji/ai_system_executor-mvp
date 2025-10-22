@@ -5,7 +5,8 @@ export type RepairStrategy =
   | "timeout_focus"
   | "assertion_focus"
   | "exception_hardening"
-  | "multiple_prioritize";
+  | "multiple_prioritize"
+  | "scaffold_repair";
 
 const baseStrategyByCategory: Record<Exclude<FailureCategory, "multiple">, RepairStrategy> = {
   syntax: "syntax_focus",
@@ -17,9 +18,14 @@ const baseStrategyByCategory: Record<Exclude<FailureCategory, "multiple">, Repai
 const lateAttemptThreshold = 3;
 
 export function selectStrategy(
-  category: FailureCategory,
+  category: FailureCategory | 'MISSING_SCAFFOLD',
   attempt: 1 | 2 | 3 | 4
 ): RepairStrategy {
+  // Special handling for scaffold validation failures (A-FIX W30)
+  if (category === 'MISSING_SCAFFOLD') {
+    // Dedicated strategy to request minimal scaffold (package.json + scripts)
+    return 'scaffold_repair';
+  }
   if (category === "multiple") {
     return "multiple_prioritize";
   }
@@ -61,6 +67,12 @@ const guidanceByStrategy: Record<RepairStrategy, string> = {
       "Multiple signals are failing—rank them and address the most deterministic one first.",
       "Stabilize prior modifications before layering new fixes to avoid compounding errors.",
       "Document what you are deferring so later attempts remain focused." 
+    ].join(" "),
+  scaffold_repair:
+    [
+      "Missing scaffold detected (e.g., package.json absent or invalid).",
+      "Generate minimal package.json with name, version, and scripts, then re-run tests.",
+      "Avoid broad changes—only scaffold essentials to unblock the toolchain."
     ].join(" ")
 };
 

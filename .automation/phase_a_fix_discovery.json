@@ -1,0 +1,57 @@
+{
+  "wins": {
+    "W25_outcome_state_machine": {
+      "integration_points": [
+        { "file": "public/script.js:1339", "function": "executeRequest", "note": "Route rendering via computeOutcome()" },
+        { "file": "public/script.js", "function": "computeOutcome", "note": "Added authoritative state mapping" },
+        { "file": "public/script.js", "function": "renderPartialCard", "note": "New modern card for partial outcome" }
+      ]
+    },
+    "W26_presentation_policy": {
+      "integration_points": [
+        { "file": "public/index.html", "element": "<details id=\"debugDisclosure\">", "note": "Wrap task plan and test controls" },
+        { "file": "public/styles.css", "selector": "#debugDisclosure", "note": "Disclosure styling" },
+        { "file": "public/script.js", "functions": ["hideDebugDisclosure", "revealDebugDisclosure"], "note": "Closed by default" }
+      ]
+    },
+    "W27_modern_cards": {
+      "integration_points": [
+        { "file": "public/icons.js", "exports": ["successIcon", "partialIcon", "errorIcon"], "note": "SVG icons" },
+        { "file": "public/styles.css", "selectors": [".outcome-card", ".outcome-card--success", ".outcome-card--partial", ".outcome-card--error"], "note": "Accessible cards" }
+      ]
+    },
+    "W28_file_preview": {
+      "integration_points": [
+        { "file": "public/index.html", "element": "#filePreviewPanel", "note": "File preview container" },
+        { "file": "public/script.js", "function": "renderFilePreview", "note": "Tree + Prism highlight" },
+        { "file": "src/server.ts", "route": "GET /api/files/:project/:path(*)", "note": "Content with traversal protection" }
+      ]
+    },
+    "W29_progress_stages": {
+      "integration_points": [
+        { "file": "public/script.js", "function": "renderProgressStages", "note": "Staged progress UI" },
+        { "file": "src/server.ts", "routes": ["GET /api/progress/:sessionId", "GET /api/progress/stream/:sessionId"], "note": "Polling + SSE support" },
+        { "file": "src/server.ts", "note": "/api/execute publishes snapshots via sessionId" }
+      ]
+    },
+    "W30_validate_scaffold": {
+      "integration_points": [
+        { "file": "src/validation/validateScaffold.ts", "function": "validateScaffold", "note": "Checks package.json existence + fields" },
+        { "file": "src/server.ts", "note": "Post-write validation and minimal fallback package.json" }
+      ]
+    },
+    "W31_ui_validation": {
+      "integration_points": [
+        { "file": "playwright.config.ts", "note": "3 browsers configured" },
+        { "file": "tests/ui/*.spec.ts", "note": "Outcome cards, disclosure, preview, loading, a11y" },
+        { "file": "tests/api/files.test.ts", "note": "/api/files endpoint tests" }
+      ]
+    }
+  },
+  "stack_compliance": {
+    "language": "TypeScript/JavaScript only",
+    "frontend_frameworks": "None added",
+    "no_python": true,
+    "prism_cdn": true
+  }
+}

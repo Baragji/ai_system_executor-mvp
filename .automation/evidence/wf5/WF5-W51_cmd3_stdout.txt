@@ -1,0 +1,278 @@
+
+> executor-mvp@0.1.0 test
+> node scripts/run-vitest-with-rollup-shim.mjs tests/api/workflow-status.test.ts
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/workspace/ai_system_executor-mvp[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32m✓[39m tests/repair/multiTurnRepair.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 316[2mms[22m[39m
+ [32m✓[39m tests/validation/dependencyPreflight.test.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 134[2mms[22m[39m
+[90mstdout[2m | tests/api/execute-multi-turn.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [32m200[0m 113.325 ms - 1208[0m
+[0mPOST /api/execute [32m200[0m 85.369 ms - 1271[0m
+[0mPOST /api/execute [32m200[0m 41.629 ms - 1928[0m
+[0mPOST /api/execute [32m200[0m 34.730 ms - 2227[0m
+[0mPOST /api/execute [32m200[0m 26.012 ms - 1269[0m
+[0mPOST /api/execute [32m200[0m 34.913 ms - 1269[0m
+ [32m✓[39m tests/api/execute-multi-turn.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 551[2mms[22m[39m
+ [32m✓[39m tests/planning/executeSubtask.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 31[2mms[22m[39m
+ [32m✓[39m tests/planning/executeTaskPlan.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 17[2mms[22m[39m
+[90mstdout[2m | tests/api/execute-with-planning.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [32m200[0m 43.052 ms - 1052[0m
+[0mPOST /api/execute [32m200[0m 18.996 ms - 1451[0m
+[0mPOST /api/execute [32m200[0m 18.942 ms - 1078[0m
+[0mPOST /api/execute [32m200[0m 11.542 ms - 1381[0m
+ [32m✓[39m tests/api/execute-with-planning.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 199[2mms[22m[39m
+ [32m✓[39m tests/runner/installDeps.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 258[2mms[22m[39m
+[90mstdout[2m | tests/meta/repair-metrics.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [32m200[0m 57.813 ms - 1664[0m
+[0mPOST /api/execute [32m200[0m 67.691 ms - 2529[0m
+ [32m✓[39m tests/contracts/repair-history.test.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 25[2mms[22m[39m
+[0mPOST /api/execute [32m200[0m 15.719 ms - 1180[0m
+ [32m✓[39m tests/meta/repair-metrics.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 297[2mms[22m[39m
+ [32m✓[39m tests/orchestrator/abortSignal.test.ts [2m([22m[2m26 tests[22m[2m)[22m[90m 38[2mms[22m[39m
+[90mstdout[2m | tests/api/workflow-status.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mGET /api/workflow/status [33m404[0m 9.275 ms - 158[0m
+[0mGET /api/workflow/status [33m404[0m 15.193 ms - 158[0m
+[0mGET /api/workflow/status [33m404[0m 0.701 ms - 158[0m
+[0mGET /api/workflow/status [33m404[0m 0.916 ms - 158[0m
+[0mGET /api/workflow/status [33m404[0m 0.644 ms - 158[0m
+[0mGET /api/workflow/status [33m404[0m 0.795 ms - 158[0m
+[0mGET /api/workflow/status [33m404[0m 0.995 ms - 158[0m
+[0mGET /api/workflow/status [33m404[0m 0.810 ms - 158[0m
+[0mGET /api/workflow/status [33m404[0m 0.844 ms - 158[0m
+[0mGET /api/workflow/status [33m404[0m 0.840 ms - 158[0m
+[0mGET /api/workflow/status [33m404[0m 31.322 ms - 158[0m
+ [31m❯[39m tests/api/workflow-status.test.ts [2m([22m[2m11 tests[22m[2m | [22m[31m11 failed[39m[2m)[22m[90m 187[2mms[22m[39m
+[31m   [31m×[31m GET /api/workflow/status[2m > [22mreturns workflow metadata with phase information[90m 58[2mms[22m[31m[39m
+[31m     → expected 200 "OK", got 404 "Not Found"[39m
+[31m   [31m×[31m GET /api/workflow/status[2m > [22mincludes gates summary with status[90m 21[2mms[22m[31m[39m
+[31m     → expected 200 "OK", got 404 "Not Found"[39m
+[31m   [31m×[31m GET /api/workflow/status[2m > [22mincludes currentGate identification[90m 5[2mms[22m[31m[39m
+[31m     → expected 200 "OK", got 404 "Not Found"[39m
+[31m   [31m×[31m GET /api/workflow/status[2m > [22mincludes tasks array with status[90m 4[2mms[22m[31m[39m
+[31m     → expected 200 "OK", got 404 "Not Found"[39m
+[31m   [31m×[31m GET /api/workflow/status[2m > [22mincludes current and next task identification[90m 4[2mms[22m[31m[39m
+[31m     → expected 200 "OK", got 404 "Not Found"[39m
+[31m   [31m×[31m GET /api/workflow/status[2m > [22mincludes suggested next action[90m 5[2mms[22m[31m[39m
+[31m     → expected 200 "OK", got 404 "Not Found"[39m
+[31m   [31m×[31m GET /api/workflow/status[2m > [22mincludes human-readable summary[90m 5[2mms[22m[31m[39m
+[31m     → expected 200 "OK", got 404 "Not Found"[39m
+[31m   [31m×[31m GET /api/workflow/status[2m > [22mincludes validations snapshot (may be null)[90m 5[2mms[22m[31m[39m
+[31m     → expected 200 "OK", got 404 "Not Found"[39m
+[31m   [31m×[31m GET /api/workflow/status[2m > [22mincludes uncommitted changes array[90m 5[2mms[22m[31m[39m
+[31m     → expected 200 "OK", got 404 "Not Found"[39m
+[31m   [31m×[31m GET /api/workflow/status[2m > [22mincludes computed timestamp[90m 5[2mms[22m[31m[39m
+[31m     → expected 200 "OK", got 404 "Not Found"[39m
+[31m   [31m×[31m GET /api/workflow/status[2m > [22mhandles errors gracefully[90m 67[2mms[22m[31m[39m
+[31m     → expected [ 200, 500 ] to include 404[39m
+ [32m✓[39m tests/planning/validateDecomposition.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 38[2mms[22m[39m
+ [32m✓[39m tests/planning/estimateCompletion.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+ [32m✓[39m tests/orchestrator/stepQueue.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 133[2mms[22m[39m
+ [32m✓[39m tests/state/sync.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 139[2mms[22m[39m
+ [32m✓[39m tests/planning/decomposeTask.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 1424[2mms[22m[39m
+   [33m[2m✓[22m[39m decomposeTask[2m > [22mretries when LLM returns invalid JSON [33m717[2mms[22m[39m
+   [33m[2m✓[22m[39m decomposeTask[2m > [22mthrows when validation fails after retries [33m680[2mms[22m[39m
+[90mstdout[2m | tests/api/sessions-pause-resume.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[90mstdout[2m | tests/api/sessions-pause-resume.test.ts[2m > [22m[2msession pause/resume APIs[2m > [22m[2mpauses a session and persists pending questions
+[22m[39m[Pause] Session session-001 abort signal sent: false
+
+[0mPOST /api/sessions/session-001/pause [32m201[0m 22.333 ms - 554[0m
+[0mGET /api/progress/snapshot/session-001 [32m200[0m 9.037 ms - 246[0m
+[90mstdout[2m | tests/api/sessions-pause-resume.test.ts[2m > [22m[2msession pause/resume APIs[2m > [22m[2mresumes a paused session when answers provided
+[22m[39m[Pause] Session session-002 abort signal sent: false
+
+[0mPOST /api/sessions/session-002/pause [32m201[0m 4.866 ms - 576[0m
+[0mPOST /api/sessions/session-002/resume [32m200[0m 8.566 ms - 945[0m
+[0mGET /api/progress/snapshot/session-002 [32m200[0m 11.327 ms - 198[0m
+[90mstdout[2m | tests/api/sessions-pause-resume.test.ts[2m > [22m[2msession pause/resume APIs[2m > [22m[2mrejects resume when missing answers
+[22m[39m[Pause] Session session-003 abort signal sent: false
+
+[0mPOST /api/sessions/session-003/pause [32m201[0m 4.159 ms - 578[0m
+[0mPOST /api/sessions/session-003/resume [33m400[0m 1.436 ms - 107[0m
+[90mstdout[2m | tests/api/sessions-pause-resume.test.ts[2m > [22m[2msession pause/resume APIs[2m > [22m[2mreturns 409 when pausing an already paused session
+[22m[39m[Pause] Session session-004 abort signal sent: false
+
+[0mPOST /api/sessions/session-004/pause [32m201[0m 16.878 ms - 570[0m
+[0mPOST /api/sessions/session-004/pause [33m409[0m 0.411 ms - 34[0m
+ [32m✓[39m tests/api/sessions-pause-resume.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 213[2mms[22m[39m
+ [32m✓[39m tests/repair/analyzeFailure.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+[90mstdout[2m | tests/api/execute-with-clarifications.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [32m200[0m 129.698 ms - 1184[0m
+[0mPOST /api/execute [32m200[0m 52.612 ms - 1243[0m
+[0mPOST /api/execute [33m400[0m 1.558 ms - 270[0m
+ [32m✓[39m tests/api/execute-with-clarifications.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 319[2mms[22m[39m
+ [32m✓[39m tests/state/execute-next-action.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 20418[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22mshows help with --help flag [33m1302[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22mruns in dry-run mode without executing commands [33m1300[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22mshows current workflow state [33m1289[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22msuggests an action based on workflow state [33m1338[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22mexits cleanly when NO_ACTION suggested [33m1302[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22mdoes not execute destructive commands [33m1416[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22mprovides reasoning for suggested action [33m1004[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22mshows phase and gate information [33m890[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22mdetects uncommitted changes [33m1392[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22mformats output with emojis for readability [33m1397[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22maccepts --dry-run short form -n [33m1289[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22maccepts --help short form -h [33m1212[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22mscript is executable with tsx [33m1383[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22mshows command to execute in dry-run mode [33m1266[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22mincludes safety documentation in help [33m1242[2mms[22m[39m
+   [33m[2m✓[22m[39m execute-next-action script[2m > [22mvalidates action command exists before execution [33m1393[2mms[22m[39m
+[90mstdout[2m | tests/meta/clarification-telemetry.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/clarify [32m200[0m 8.083 ms - 539[0m
+ [32m✓[39m tests/contracts/task-plan.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+[0mPOST /api/execute [32m200[0m 782.536 ms - 1284[0m
+[0mPOST /api/clarify [32m200[0m 0.852 ms - 416[0m
+ [32m✓[39m tests/contracts/ui-validation-result.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+[0mPOST /api/execute [32m200[0m 940.229 ms - 2862[0m
+[0mPOST /api/clarify [32m200[0m 0.480 ms - 416[0m
+ [32m✓[39m tests/contracts/repair-history.adaptive.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 42[2mms[22m[39m
+[0mPOST /api/execute [32m200[0m 1011.595 ms - 1194[0m
+[0mPOST /api/execute [32m200[0m 45.881 ms - 1202[0m
+ [32m✓[39m tests/meta/clarification-telemetry.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 3002[2mms[22m[39m
+   [33m[2m✓[22m[39m clarification telemetry meta[2m > [22mmeta file includes clarification data when clarifications used [33m890[2mms[22m[39m
+   [33m[2m✓[22m[39m clarification telemetry meta[2m > [22msets improvedSuccess false when tests fail [33m1030[2mms[22m[39m
+   [33m[2m✓[22m[39m clarification telemetry meta[2m > [22mmarks clarification asked when user skips answers [33m1027[2mms[22m[39m
+ [32m✓[39m tests/orchestrator/interrupts.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 45[2mms[22m[39m
+[90mstdout[2m | tests/e2e/phase1.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [32m200[0m 84.107 ms - 1578[0m
+ [32m✓[39m tests/e2e/phase1.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 192[2mms[22m[39m
+ [32m✓[39m tests/planning/progressTracker.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 19[2mms[22m[39m
+ [32m✓[39m tests/orchestrator/jobQueue.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m tests/orchestrator/checkpoints.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 46[2mms[22m[39m
+ [32m✓[39m tests/evaluation/logResults.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 65[2mms[22m[39m
+ [32m✓[39m tests/runner/runInSandbox.abort.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 89[2mms[22m[39m
+ [32m✓[39m tests/runner/runInSandbox.integration.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 91[2mms[22m[39m
+ [32m✓[39m tests/state/phaseState.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 27[2mms[22m[39m
+ [32m✓[39m tests/orchestrator/stateMachine.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 22[2mms[22m[39m
+ [32m✓[39m tests/repair/missing-contents-fallback.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 65[2mms[22m[39m
+ [32m✓[39m tests/llm/providers/choose.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+ [32m✓[39m tests/planning/executeTaskPlan.duration.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 24[2mms[22m[39m
+ [32m✓[39m tests/orchestrator/resume.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 26[2mms[22m[39m
+ [32m✓[39m tests/llm/timeout-retry.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 3770[2mms[22m[39m
+   [33m[2m✓[22m[39m LLM timeout and retry behavior[2m > [22mshould retry on timeout with exponential backoff [33m1004[2mms[22m[39m
+   [33m[2m✓[22m[39m LLM timeout and retry behavior[2m > [22mshould fail after max retries exceeded [33m707[2mms[22m[39m
+   [33m[2m✓[22m[39m LLM timeout and retry behavior[2m > [22mshould handle long-running successful calls within timeout [33m2055[2mms[22m[39m
+ [32m✓[39m tests/planning/executeSubtask.resilience.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 49[2mms[22m[39m
+ [32m✓[39m tests/telemetry/dual-write.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 38[2mms[22m[39m
+ [32m✓[39m tests/runner/logStream-error.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 58[2mms[22m[39m
+ [32m✓[39m tests/clarification/detectMissing.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+ [32m✓[39m tests/repair/buildRepairPrompt.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m tests/planning/analyzeDependencies.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m tests/contracts/clarification-validators.test.ts [2m([22m[2m10 tests[22m[2m)[22m[90m 39[2mms[22m[39m
+ [32m✓[39m tests/repair/repairOnce.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 22[2mms[22m[39m
+ [32m✓[39m tests/orchestrator/resumePrompt.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 5[2mms[22m[39m
+[90mstdout[2m | tests/api/files.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mGET /api/files/api-files-test/src%2Findex.ts [32m200[0m 12.727 ms - 96[0m
+[0mGET /api/files/api-files-test/nope.txt [33m404[0m 2.301 ms - 21[0m
+[0mGET /api/files/api-files-test/..%2F..%2Fetc%2Fpasswd [33m403[0m 0.833 ms - 21[0m
+[0mGET /output-archive/api-files-test [32m200[0m 3.994 ms - -[0m
+[0mGET /output-archive/api-files-test?format=tar [32m200[0m 30.478 ms - -[0m
+ [32m✓[39m tests/api/files.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 132[2mms[22m[39m
+ [32m✓[39m tests/repair/delete-validation.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 40[2mms[22m[39m
+ [32m✓[39m tests/clarification/augmentPrompt.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m tests/clarification/generateQuestions.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m tests/llm/tools/fsTools.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 97[2mms[22m[39m
+ [32m✓[39m tests/repair/buildRepairPrompt.adaptive.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m tests/repair/generateDiff.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+ [32m✓[39m tests/planning/generateSubtaskOutput.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 21[2mms[22m[39m
+ [32m✓[39m tests/outcome-state-machine.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+[90mstdout[2m | tests/api/executions.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [32m202[0m 39.496 ms - 79[0m
+[0mGET /api/executions/graph-27336e03-969e-4c6f-9066-acf9549225bb [32m200[0m 1.194 ms - 280[0m
+[0mGET /api/executions/graph-27336e03-969e-4c6f-9066-acf9549225bb [32m200[0m 0.398 ms - 280[0m
+[0mGET /api/executions/does-not-exist [33m404[0m 0.791 ms - 171[0m
+ [32m✓[39m tests/api/executions.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 157[2mms[22m[39m
+ [32m✓[39m tests/telemetry/plan-trace.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 387[2mms[22m[39m
+   [33m[2m✓[22m[39m plan progress telemetry[2m > [22mrecords trace entries with subtask and progress [33m383[2mms[22m[39m
+ [32m✓[39m tests/orchestrator/workspaceManifest.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 70[2mms[22m[39m
+ [32m✓[39m tests/runner/detectTestCommand.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 36[2mms[22m[39m
+ [32m✓[39m tests/repair/strategySelector.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m tests/llm/retry.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 23[2mms[22m[39m
+ [32m✓[39m tests/contracts/validators.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 62[2mms[22m[39m
+ [32m✓[39m tests/runner/runInSandbox.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 2610[2mms[22m[39m
+   [33m[2m✓[22m[39m runInSandbox[2m > [22mreturns pass status for passing projects [33m1099[2mms[22m[39m
+   [33m[2m✓[22m[39m runInSandbox[2m > [22mreturns fail status for failing projects [33m1223[2mms[22m[39m
+ [32m✓[39m tests/state/snapshot.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 401[2mms[22m[39m
+   [33m[2m✓[22m[39m state snapshot (read-only)[2m > [22mprints a valid JSON snapshot with expected keys [33m397[2mms[22m[39m
+ [32m✓[39m tests/llm/abortSignal.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 14[2mms[22m[39m
+ [32m✓[39m tests/executor/writeFiles.security.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 23[2mms[22m[39m
+[90mstdout[2m | tests/api/problem-details.test.ts[2m > [22m[2mproblem+json envelope[2m > [22m[2mreturns legacy error body when disabled
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [33m400[0m 14.295 ms - 27[0m
+[90mstdout[2m | tests/api/problem-details.test.ts[2m > [22m[2mproblem+json envelope[2m > [22m[2mreturns RFC 9457 problem when enabled
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [33m400[0m 8.092 ms - 151[0m
+ [32m✓[39m tests/api/problem-details.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 3518[2mms[22m[39m
+   [33m[2m✓[22m[39m problem+json envelope[2m > [22mreturns legacy error body when disabled [33m2854[2mms[22m[39m
+   [33m[2m✓[22m[39m problem+json envelope[2m > [22mreturns RFC 9457 problem when enabled [33m661[2mms[22m[39m
+ [32m✓[39m tests/clarification/suggestDefaults.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 25[2mms[22m[39m
+ [32m✓[39m tests/utils/normalizeExports.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 51[2mms[22m[39m
+[90mstdout[2m | tests/api/clarify-route.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/clarify [32m200[0m 6.512 ms - 16[0m
+[0mPOST /api/clarify [32m200[0m 2.032 ms - 396[0m
+[0mPOST /api/clarify [33m400[0m 0.761 ms - 151[0m
+ [32m✓[39m tests/workspace/manifest.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m tests/api/clarify-route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 86[2mms[22m[39m
+ [32m✓[39m tests/utils/validateFiles.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 27[2mms[22m[39m
+[90mstdout[2m | tests/run-tests-route.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/run-tests [33m404[0m 20.700 ms - 29[0m
+[90mstdout[2m | tests/api/progress.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mGET /api/progress/snapshot/wf-test-session [32m200[0m 11.227 ms - 124[0m
+ [32m✓[39m tests/api/progress.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 80[2mms[22m[39m
+[0mPOST /api/run-tests [32m200[0m 1058.608 ms - 296[0m
+ [32m✓[39m tests/run-tests-route.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 1218[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/run-tests[2m > [22mruns tests for an existing project [33m1068[2mms[22m[39m
+ [32m✓[39m tests/utils/seedTests.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m tests/utils/fixtures.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 57[2mms[22m[39m
+[90mstdout[2m | tests/executor/sanitizeOutput.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+ [32m✓[39m tests/executor/sanitizeOutput.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m tests/contracts/execution-trace.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+[90mstdout[2m | tests/meta/progress-ttl.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+ [32m✓[39m tests/meta/progress-ttl.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 5[2mms[22m[39m
+[90mstdout[2m | tests/api/fixtures-route.test.ts
+[22m[39m[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mGET /api/fixtures/passing [32m200[0m 11.690 ms - 73[0m
+[0mPOST /api/replay/repair [33m404[0m 2.164 ms - 44[0m
+ [32m✓[39m tests/api/fixtures-route.test.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 68[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m81 passed[39m[22m[90m (82)[39m
+[2m      Tests [22m [1m[31m11 failed[39m[22m[2m | [22m[1m[32m372 passed[39m[22m[90m (383)[39m
+[2m   Start at [22m 12:53:28
+[2m   Duration [22m 87.44s[2m (transform 3.85s, setup 0ms, collect 59.56s, tests 41.89s, environment 90ms, prepare 17.47s)[22m
+

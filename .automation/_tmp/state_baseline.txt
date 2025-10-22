@@ -1,0 +1,122 @@
+
+> executor-mvp@0.1.0 state:show
+> node scripts/snapshot-state.js --print
+
+{
+  "generated_at": "2025-10-17T04:45:40.193Z",
+  "data_sources": {
+    "gates": ".automation/GATES_LEDGER.md",
+    "contract": "contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json",
+    "git": "git status --porcelain"
+  },
+  "current_phase": {
+    "id": "19",
+    "name": "Autonomous Transition — Trust Spine & LangGraph Foundation",
+    "contract_path": "contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json"
+  },
+  "gates_summary": {
+    "G0": "passed",
+    "G1": "passed",
+    "G2": "passed",
+    "G3": "partial",
+    "G4": "not_started"
+  },
+  "validation_summary": {
+    "last_run": null,
+    "lint": "skipped",
+    "typecheck": "skipped",
+    "test": "skipped",
+    "contract_check": "skipped"
+  },
+  "uncommitted_changes": [
+    "M .automation/evaluation_results.json",
+    "M .automation/execution_trace.jsonl",
+    "M .telemetry/events.log",
+    "?? .automation/_tmp/"
+  ],
+  "sync_status": {
+    "last_sync": "2025-10-15T18:04:17.351Z",
+    "contract_stale": false,
+    "stale_tasks": []
+  },
+  "suggested_next_action": {
+    "action": "COMMIT_PENDING_CHANGES",
+    "reasoning": "Uncommitted changes detected. Commit to persist progress.",
+    "command": "git add -A && git commit -m 'chore: persist progress'"
+  },
+  "tasks": [
+    {
+      "id": "T0-DOC-1",
+      "title": "Update AGENTS.md with Phase 19 requirements",
+      "status": "complete",
+      "completed_at": "2025-10-14T14:20:30.565Z"
+    },
+    {
+      "id": "T0-DOC-2",
+      "title": "Update CDI_INFRASTRUCTURE.md for Phase 19/20",
+      "status": "complete",
+      "completed_at": "2025-10-14T14:20:30.565Z"
+    },
+    {
+      "id": "T0-DOC-3",
+      "title": "Create contracts/README.md with naming standard",
+      "status": "complete",
+      "completed_at": "2025-10-14T14:20:30.565Z"
+    },
+    {
+      "id": "T0-DOC-4",
+      "title": "Create docs/api/problem_types.md for RFC 9457",
+      "status": "complete",
+      "completed_at": "2025-10-14T14:20:30.565Z"
+    },
+    {
+      "id": "T0-IMPL-1",
+      "title": "Implement CycloneDX SBOM generation",
+      "status": "complete",
+      "completed_at": "2025-10-14T14:20:30.565Z"
+    },
+    {
+      "id": "T0-IMPL-2",
+      "title": "Implement SLSA provenance generation",
+      "status": "complete",
+      "completed_at": "2025-10-14T14:20:30.565Z"
+    },
+    {
+      "id": "T0-IMPL-3",
+      "title": "Implement JSONL action log dual-write",
+      "status": "complete",
+      "completed_at": "2025-10-14T14:20:30.565Z"
+    },
+    {
+      "id": "T0-IMPL-4",
+      "title": "Implement OpenTelemetry GenAI spans",
+      "status": "complete",
+      "completed_at": "2025-10-14T14:20:30.565Z"
+    },
+    {
+      "id": "T0-IMPL-5",
+      "title": "Fix RFC 9457 problem details implementation",
+      "status": "complete",
+      "completed_at": "2025-10-14T14:20:30.565Z"
+    },
+    {
+      "id": "T0-TEST-1",
+      "title": "Add tests for Trust Spine components",
+      "status": "complete",
+      "completed_at": "2025-10-14T14:20:30.565Z"
+    },
+    {
+      "id": "T0-EVID-1",
+      "title": "Collect evidence bundle for Gate G2",
+      "status": "complete",
+      "completed_at": "2025-10-14T14:22:51.785Z"
+    },
+    {
+      "id": "T0-GATE-1",
+      "title": "Update GATES_LEDGER with G2 completion",
+      "status": "complete",
+      "completed_at": "2025-10-14T14:20:30.565Z"
+    }
+  ],
+  "human_readable_summary": "Phase 19 — Autonomous Transition — Trust Spine & LangGraph Foundation | Gates: G0=passed, G1=passed, G2=passed, G3=partial, G4=not_started | Validations: lint=skipped, typecheck=skipped, test=skipped, contract=skipped | Uncommitted: 4 | Next: COMMIT_PENDING_CHANGES"
+}

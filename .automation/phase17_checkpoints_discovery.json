@@ -1,0 +1,34 @@
+{
+  "title": "Phase 17 – Checkpoint Store Concurrency Hardening",
+  "date": "2025-10-12",
+  "summary": "Fix ENOENT/ENOTEMPTY failures in tests by making checkpoint writes resilient to concurrent directory deletion.",
+  "integration_points": [
+    {
+      "file": "src/orchestrator/checkpointStore.ts:112",
+      "function": "writeWorkflow(workflow)",
+      "snippet": "async function writeWorkflow(workflow: StepWorkflow): Promise<void> {\n  await ensureRoot();\n  const safeId = sanitizeSessionId(workflow.sessionId);\n  const filePath = path.join(WORKFLOW_ROOT, `${safeId}.json`);\n  const payload = JSON.stringify(workflow, null, 2);\n  await fs.writeFile(filePath, payload, \"utf-8\");\n}",
+      "reason": "Single write can fail with ENOENT when .automation/checkpoints is concurrently removed by other tests. Add ENOENT retry after re-creating the directory."
+    }
+  ],
+  "observed_failures": [
+    {
+      "test": "tests/api/execute-multi-turn.test.ts",
+      "error": "ENOENT: no such file or directory, open '.automation/checkpoints/step-workflows/<id>.json'",
+      "impact": "500 response instead of 200 from /api/execute"
+    },
+    {
+      "test": "tests/api/sessions-pause-resume.test.ts",
+      "error": "ENOTEMPTY: directory not empty, rmdir '.automation/checkpoints'",
+      "impact": "afterEach cleanup flakiness due to concurrent writes"
+    }
+  ],
+  "approach": "Wrap checkpoint write with try/catch, detect ENOENT, call ensureRoot()+retry once. No API or contract changes.",
+  "stack_compliance_check": {
+    "language": "TypeScript",
+    "files_touched": ["src/orchestrator/checkpointStore.ts", ".automation/phase17_checkpoints_discovery_note.md", ".automation/phase17_checkpoints_discovery.json"],
+    "forbidden": "No Python, no frontend frameworks",
+    "dependencies": "No new dependencies",
+    "contracts": "No changes"
+  }
+}
+

@@ -1,0 +1,24 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "pass",
+      "startedAt": "2025-10-11T08:58:41.163Z",
+      "finishedAt": "2025-10-11T08:58:50.580Z",
+      "changedFiles": [],
+      "summary": "Initial test run passed - no repair needed.",
+      "testResult": {
+        "status": "pass",
+        "passCount": 1,
+        "failCount": 0,
+        "durationMs": 9417,
+        "logsPath": "logs/demo-project_last_test_run_3b6e035e-c14c-479c-bb16-3b50d753ef95.log"
+      },
+      "durationMs": 9417,
+      "cumulativeTime": 9417
+    }
+  ],
+  "finalStatus": "pass",
+  "totalAttempts": 1,
+  "successAttemptNumber": 1
+}

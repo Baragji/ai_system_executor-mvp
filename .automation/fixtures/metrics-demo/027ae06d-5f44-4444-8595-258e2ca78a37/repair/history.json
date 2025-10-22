@@ -1,0 +1,50 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "fail",
+      "startedAt": "2025-10-11T23:09:47.738Z",
+      "finishedAt": "2025-10-11T23:09:47.738Z",
+      "changedFiles": [
+        "src/index.ts"
+      ],
+      "summary": "Attempt 1 fail",
+      "testResult": {
+        "status": "fail",
+        "passCount": 1,
+        "failCount": 1,
+        "durationMs": 800,
+        "logsPath": "logs/attempt1.log"
+      },
+      "failureAnalysis": {
+        "category": "assertion",
+        "failedTests": [],
+        "totalFailed": 1
+      },
+      "durationMs": 800,
+      "cumulativeTime": 800
+    },
+    {
+      "number": 2,
+      "status": "pass",
+      "startedAt": "2025-10-11T23:09:47.738Z",
+      "finishedAt": "2025-10-11T23:09:47.738Z",
+      "changedFiles": [
+        "src/index.ts"
+      ],
+      "summary": "Attempt succeeded",
+      "testResult": {
+        "status": "pass",
+        "passCount": 2,
+        "failCount": 0,
+        "durationMs": 900,
+        "logsPath": "logs/attempt2.log"
+      },
+      "durationMs": 900,
+      "cumulativeTime": 1800
+    }
+  ],
+  "finalStatus": "pass",
+  "totalAttempts": 2,
+  "successAttemptNumber": 2
+}

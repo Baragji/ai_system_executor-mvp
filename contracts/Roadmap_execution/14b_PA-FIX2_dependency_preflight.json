@@ -1,0 +1,306 @@
+{
+  "contract_version": "A.2.0",
+  "contract_meta": {
+    "created": "2025-10-10",
+    "phase": "A",
+    "phase_name": "Dependency Validation Preflight",
+    "prerequisite_phase": "A-FIX-1",
+    "enhancement": "Fail-fast dependency validation before npm install to prevent GPT-5-mini hallucinations",
+    "rationale": "GPT-5-mini frequently generates invalid dependency versions (e.g., tailwindcss@^3.5.0 doesn't exist in npm registry), causing installation failures after expensive LLM generation. This wastes tokens and prevents validation of timeout fixes. Industry best practice (npm registry API, semver validation, exact pins) ensures dependencies exist before install. Aligns with consultant recommendation for immediate Phase A-FIX-2 win before Phase 5.",
+    "references": [
+      "output/12testartifact/_executor_meta.json",
+      "docs/101025_todays_status/04_conusltation_Again.md",
+      "https://docs.npmjs.com/cli/v8/commands/npm-view",
+      "https://docs.npmjs.com/cli/v8/commands/npm-deprecate"
+    ]
+  },
+  "project": {
+    "name": "UMCA Executor MVP",
+    "current_phase": "A-FIX-2 - Dependency Preflight",
+    "goal": "Validate all package.json dependencies exist in npm registry before running npm install, fail fast with structured error on invalid versions",
+    "scope": "Dependency validation module with npm registry API integration, wired into task execution before install step",
+    "estimated_time": "2-3 hours",
+    "work_profile": "Single focused win with unit tests and integration validation",
+    "out_of_scope": [
+      "License validation (Phase B - Trust Engine)",
+      "Security auditing (Phase B - Trust Engine)",
+      "Dependency graph analysis",
+      "Alternative package suggestions beyond deprecation warnings"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "Unit tests with npm registry mock fixtures; integration test with real invalid version; E2E test with GPT-5-mini generation",
+    "description": "Build dependency validator with npm registry API, wire into executeTaskPlan before npm install, validate with real generation run",
+    "failure_mode": "HALT on npm registry API failure or validation logic error",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "ai-stack.json",
+    "language": "TypeScript/JavaScript",
+    "frameworks": [
+      "Express"
+    ],
+    "test_command": "vitest run --reporter=default",
+    "constraints": [
+      "No Python",
+      "No new dependencies without justification",
+      "No breaking API changes"
+    ]
+  },
+  "observability": {
+    "description": "Log dependency validation results, registry API calls, deprecation warnings to trace file",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "discovery_file": ".automation/phase_a_fix2_discovery_note.md",
+    "evidence_file": ".automation/phase_a_fix2_validation_report.md",
+    "monitoring": {},
+    "logging": {},
+    "evaluation": {}
+  },
+  "execution_semantics": {
+    "win_isolation": {
+      "no_cross_cutting_changes": true
+    },
+    "gate_enforcement": {
+      "halt_on_failure": true
+    },
+    "evidence_generation": {
+      "required_artifacts": [
+        "tests/validation/dependencyPreflight.test.ts",
+        "docs/101025_todays_status/Phase_A_FIX2_Dependency_Preflight.md",
+        "output/13testartifact/_executor_meta.json"
+      ]
+    },
+    "contract_fidelity": {
+      "no_scope_drift": true
+    }
+  },
+  "high_level_stages": [
+    "Discovery",
+    "Implementation",
+    "Integration",
+    "Validation"
+  ],
+  "tasks": [
+    {
+      "id": "WA10",
+      "stage": "Discovery",
+      "title": "Map integration points for dependency validation",
+      "type": "discovery",
+      "description": "Identify exact location in executeTaskPlan where npm install occurs, design validation interface, document current flow",
+      "time_estimate_minutes": 30,
+      "actions": [
+        "Grep for npm install/ci in src/planning/",
+        "Read executeTaskPlan.ts to find install step",
+        "Document current error handling",
+        "Design validateDependencies() interface"
+      ],
+      "validation": [
+        "Discovery note with code snippets exists"
+      ],
+      "success_criteria": [
+        "Integration point identified with line numbers",
+        "Interface design documented",
+        "Error flow understood"
+      ]
+    },
+    {
+      "id": "WA11",
+      "stage": "Implementation",
+      "title": "Create dependencyPreflight module with npm registry API",
+      "type": "win",
+      "description": "Implement dependency validator that checks npm registry for version existence, handles deprecations, validates semver ranges",
+      "time_estimate_minutes": 90,
+      "actions": [
+        "Create src/validation/dependencyPreflight.ts",
+        "Implement fetchPackageMetadata() using npm registry API",
+        "Implement validateDependencies() with semver checks",
+        "Handle deprecation warnings",
+        "Add Tailwind v4 specific rules",
+        "Create error types for structured failures"
+      ],
+      "validation": [
+        "npm run lint",
+        "npm run typecheck"
+      ],
+      "success_criteria": [
+        "Module compiles with no errors",
+        "All functions typed correctly",
+        "Error types exported"
+      ],
+      "deliverables": [
+        {
+          "path": "src/validation/dependencyPreflight.ts",
+          "validation_method": "file_exists"
+        }
+      ]
+    },
+    {
+      "id": "WA12",
+      "stage": "Implementation",
+      "title": "Add unit tests for dependency validation",
+      "type": "win",
+      "description": "Create comprehensive test suite with npm registry mock fixtures covering success, 404, deprecated, invalid semver cases",
+      "time_estimate_minutes": 60,
+      "actions": [
+        "Create tests/validation/dependencyPreflight.test.ts",
+        "Mock npm registry API responses",
+        "Test valid version resolution",
+        "Test 404 (package not found)",
+        "Test deprecated package warning",
+        "Test invalid semver range",
+        "Test Tailwind v4 rules"
+      ],
+      "validation": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test -- tests/validation/dependencyPreflight.test.ts"
+      ],
+      "success_criteria": [
+        "All test cases pass",
+        "Edge cases covered",
+        "Mock fixtures realistic"
+      ],
+      "deliverables": [
+        {
+          "path": "tests/validation/dependencyPreflight.test.ts",
+          "validation_method": "file_exists"
+        }
+      ]
+    },
+    {
+      "id": "WA13",
+      "stage": "Integration",
+      "title": "Wire dependency preflight into executeTaskPlan",
+      "type": "win",
+      "description": "Integrate validateDependencies() call before npm install step in task execution, fail fast on validation errors",
+      "time_estimate_minutes": 45,
+      "actions": [
+        "Import dependencyPreflight in executeTaskPlan.ts",
+        "Add validation call before install step",
+        "Handle validation errors with structured abort",
+        "Log validation results to trace file",
+        "Update tests to cover validation path"
+      ],
+      "validation": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test"
+      ],
+      "success_criteria": [
+        "Validation runs before install",
+        "Invalid deps abort with clear error",
+        "Trace file logs validation event",
+        "All 244+ tests still pass"
+      ],
+      "deliverables": [
+        {
+          "path": "src/planning/executeTaskPlan.ts",
+          "validation_method": "grep",
+          "pattern": "validateDependencies"
+        }
+      ]
+    },
+    {
+      "id": "WA14",
+      "stage": "Validation",
+      "title": "Run E2E validation with GPT-5-mini (13testartifact)",
+      "type": "validation",
+      "description": "Execute new task generation with GPT-5-mini to confirm dependency preflight blocks invalid versions and timeout math works",
+      "time_estimate_minutes": 30,
+      "actions": [
+        "Run npm run dev in background",
+        "Execute POST /api/execute with 13testartifact prompt",
+        "Monitor for dependency validation errors",
+        "Confirm timeout hierarchy (180s < 900s < 3600s) works",
+        "Verify successful completion if deps valid"
+      ],
+      "validation": [
+        "output/13testartifact/_executor_meta.json exists",
+        "execution_trace.jsonl shows dependency validation",
+        "No npm install failures"
+      ],
+      "success_criteria": [
+        "Invalid deps caught before install",
+        "Valid deps install successfully",
+        "Timeout math validated (no premature aborts)",
+        "Clean completion or structured failure"
+      ],
+      "deliverables": [
+        {
+          "path": "output/13testartifact/_executor_meta.json",
+          "validation_method": "file_exists"
+        }
+      ]
+    },
+    {
+      "id": "WA15",
+      "stage": "Validation",
+      "title": "Generate evidence document and mark Phase A complete",
+      "type": "evidence",
+      "description": "Document validation results, timeout behavior, dependency preflight outcomes in evidence markdown",
+      "time_estimate_minutes": 30,
+      "actions": [
+        "Create docs/101025_todays_status/Phase_A_FIX2_Dependency_Preflight.md",
+        "Document test results (all gates passing)",
+        "Include 13testartifact execution metadata",
+        "Capture dependency validation examples",
+        "Update Phase A contract status"
+      ],
+      "validation": [
+        "Evidence document exists",
+        "All artifacts referenced",
+        "Validation gates documented"
+      ],
+      "success_criteria": [
+        "Clear evidence of preflight working",
+        "Phase A marked as harden complete",
+        "Ready for Phase 5 execution"
+      ],
+      "deliverables": [
+        {
+          "path": "docs/101025_todays_status/Phase_A_FIX2_Dependency_Preflight.md",
+          "validation_method": "file_exists"
+        }
+      ]
+    }
+  ],
+  "execution_order": [
+    "WA10",
+    "WA11",
+    "WA12",
+    "WA13",
+    "WA14",
+    "WA15"
+  ],
+  "completion_criteria": {
+    "all_tests_pass": true,
+    "lint_passes": true,
+    "typecheck_passes": true,
+    "contract_validated": true,
+    "e2e_validation_complete": true
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Dependency preflight module",
+      "path": "src/validation/dependencyPreflight.ts",
+      "must_exist": true
+    },
+    {
+      "name": "Unit tests",
+      "path": "tests/validation/dependencyPreflight.test.ts",
+      "must_exist": true
+    },
+    {
+      "name": "Evidence document",
+      "path": "docs/101025_todays_status/Phase_A_FIX2_Dependency_Preflight.md",
+      "must_exist": true
+    },
+    {
+      "name": "E2E validation artifact",
+      "path": "output/13testartifact/_executor_meta.json",
+      "must_exist": true
+    }
+  ]
+}

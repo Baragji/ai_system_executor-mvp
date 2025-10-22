@@ -1,0 +1,12 @@
+{
+  "status": "fail",
+  "passCount": 0,
+  "failCount": 0,
+  "durationMs": 268,
+  "logsPath": "logs/lab-tech-landing-trace_last_test_run_e02f8ad8-c66e-4079-90e3-d11c3892f905.log",
+  "timestamp": "2025-10-10T10:09:53.007Z",
+  "command": "npm test",
+  "exitCode": 1,
+  "startedAt": "2025-10-10T10:09:52.739Z",
+  "finishedAt": "2025-10-10T10:09:53.007Z"
+}

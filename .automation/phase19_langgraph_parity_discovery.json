@@ -1,0 +1,35 @@
+{
+  "phase": "19",
+  "title": "LangGraph parity for /api/execute",
+  "goal": "Ensure POST /api/execute maintains legacy response contract while AGENTS_RUNTIME=langgraph by recording results in the executions store and returning 202 + Location.",
+  "integration_points": [
+    {
+      "file": "src/server.ts:1536",
+      "function": "POST /api/execute",
+      "snippet": "if ((process.env.AGENTS_RUNTIME || \"\").toLowerCase() === \"langgraph\") {\n      await executeAdapterLanggraph(req, res);\n      return; // do not continue into default StepQueue pipeline\n    }"
+    },
+    {
+      "file": "src/orchestrator/executionsStore.ts:1",
+      "function": "Execution store helpers",
+      "snippet": "export function createExecution(id: string, initial?: Partial<Omit<ExecutionRecord, \"id\">>): ExecutionRecord {\n  const ts = now();\n  const record: ExecutionRecord = { id, status: initial?.status ?? \"started\", createdAt: initial?.createdAt ?? ts, updatedAt: initial?.updatedAt ?? ts, ...(initial?.result !== undefined ? { result: initial.result } : {}) };\n  executions.set(id, record);\n  return record;\n}"
+    },
+    {
+      "file": "tests/api/execute-multi-turn.test.ts:68",
+      "function": "POST /api/execute multi-turn integration",
+      "snippet": "const res = await request(app)\n  .post(\"/api/execute\")\n  .send({ prompt: \"build demo\", projectName: \"multi-turn-demo\" });\n\nexpect(res.status).toBe(200);"
+    }
+  ],
+  "dependencies": [],
+  "impacts": [
+    "LangGraph feature flag no longer bypasses multi-turn/clarification flows",
+    "Executions store receives completed payloads for parity polling",
+    "Tests will need helper to follow 202 responses"
+  ],
+  "stack_compliance": {
+    "language": "TypeScript",
+    "backend": "Express on Node 20",
+    "frontend": "unchanged",
+    "testing": "Vitest (existing suites updated)",
+    "lint": "ESLint applies"
+  }
+}

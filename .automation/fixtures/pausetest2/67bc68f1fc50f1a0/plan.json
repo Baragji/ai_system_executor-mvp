@@ -1,0 +1,71 @@
+{
+  "originalPrompt": "create hello world app with color picker",
+  "subtasks": [
+    {
+      "id": "setup-project",
+      "title": "Project initialization",
+      "description": "Initialize a new project repository, set up build tools, and create a basic file structure for the app.",
+      "status": "in_progress",
+      "estimatedComplexity": "low",
+      "successCriteria": "Repository created with README, package files (or equivalent), and starter files; project builds without errors."
+    },
+    {
+      "id": "create-ui",
+      "title": "Create Hello World UI",
+      "description": "Implement the main UI containing a visible \"Hello World\" text element and a layout placeholder for controls.",
+      "status": "pending",
+      "dependencies": [
+        "setup-project"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "\"Hello World\" text renders correctly in the app and layout reserves space for controls."
+    },
+    {
+      "id": "implement-color-picker",
+      "title": "Add color picker control",
+      "description": "Add a color picker component or input to the UI enabling users to choose colors (native or library-based).",
+      "status": "pending",
+      "dependencies": [
+        "create-ui"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Color picker appears in the UI, opens/operates, and provides a selected color value programmatically."
+    },
+    {
+      "id": "bind-color-to-text",
+      "title": "Bind color selection to text",
+      "description": "Connect the color picker's selected value to the Hello World text color so the text updates live when a color is chosen.",
+      "status": "pending",
+      "dependencies": [
+        "implement-color-picker"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Selecting a color immediately updates the Hello World text color across supported platforms/browsers."
+    },
+    {
+      "id": "add-persistence",
+      "title": "Persist selected color",
+      "description": "Implement simple persistence (local storage, user defaults, or file) so the chosen color is retained between app sessions.",
+      "status": "pending",
+      "dependencies": [
+        "bind-color-to-text"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "After restarting the app, the previously selected color is restored and applied to the Hello World text."
+    },
+    {
+      "id": "test-and-deploy",
+      "title": "Test and deliver",
+      "description": "Run functional tests, fix issues, document usage, and produce a build or deployment artifact for release.",
+      "status": "pending",
+      "dependencies": [
+        "add-persistence",
+        "bind-color-to-text"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "All core flows (display, color selection, persistence) pass manual or automated tests and a build is produced for distribution."
+    }
+  ],
+  "totalSubtasks": 6,
+  "decompositionStrategy": "Top-down incremental: create a minimal working UI first, then add the color picker, bind functionality, persist state, and finish with testing/deployment."
+}

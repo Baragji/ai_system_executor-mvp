@@ -1,0 +1,22 @@
+{
+  "phase": "B",
+  "work_area": "WA1-replay-v1",
+  "title": "Fixture-based replay (test/repair)",
+  "date": "2025-10-09",
+  "integration_points": [
+    { "file": "src/server.ts:241", "note": "createPlanExecutionContext wrapper: capture subtask prompt/output; pass sessionId" },
+    { "file": "src/planning/executeSubtask.ts:120", "note": "capture initial RunResult and repair context/history" },
+    { "file": "src/server.ts:690", "note": "single-path capture initial run + repair history" },
+    { "file": "src/server.ts:/api/fixtures/:project", "note": "list fixtures endpoint" },
+    { "file": "src/server.ts:/api/replay/repair", "note": "replay repair using captured context" },
+    { "file": "src/fixtures/index.ts", "note": "fixtures utility (write/list/read)" }
+  ],
+  "justification": "Avoid full 10-minute regeneration cycles by capturing step artifacts and enabling targeted replays for rapid validation after fixes.",
+  "stack_compliance": {
+    "language": "TS/JS only",
+    "frontend": "No changes under /public",
+    "deps": "No new deps",
+    "apis": "No breaking changes"
+  }
+}
+

@@ -1,0 +1,12 @@
+{
+  "status": "pass",
+  "passCount": 1,
+  "failCount": 0,
+  "durationMs": 7562,
+  "logsPath": "logs/hello-server_last_test_run_e37ba543-b75e-4d1b-9374-8918d3babc5f.log",
+  "timestamp": "2025-10-11T09:01:08.613Z",
+  "command": "npm test",
+  "exitCode": 0,
+  "startedAt": "2025-10-11T09:01:01.051Z",
+  "finishedAt": "2025-10-11T09:01:08.613Z"
+}

@@ -1,0 +1,40 @@
+{
+  "win_a1_integration": {
+    "file": "public/script.js",
+    "function": "executeRequest",
+    "line": 677,
+    "current_implementation": "    resultEl.textContent = JSON.stringify(data, null, 2);",
+    "proposed_hook": "Replace JSON assignment with renderSuccessCard(data) and fallback to JSON details",
+    "dependencies": ["resultEl DOM element", "data response structure", "renderTaskPlan usage"],
+    "breaking_changes": "none - enhances rendering"
+  },
+  "win_a2_integration": {
+    "file": "public/script.js",
+    "function": "executeRequest",
+    "line": 648,
+    "current_implementation": "  resultEl.textContent = \"Planning and executing your project... This may take several minutes for complex requests.\";",
+    "proposed_hook": "Initialize loading phase state and call updateLoadingPhase() before fetch, updating every 10s",
+    "dependencies": ["resultEl", "interval timer", "try/finally cleanup"],
+    "breaking_changes": "none"
+  },
+  "win_a3_integration": {
+    "file": "public/script.js",
+    "function": "catch blocks in executeRequest and startClarificationFlow",
+    "lines": [690, 736],
+    "current_implementation": "    resultEl.textContent = String(err);",
+    "proposed_hook": "Replace plain text errors with formatted HTML from formatError(err)",
+    "dependencies": ["Error object stringification", "resultEl"],
+    "breaking_changes": "none"
+  },
+  "css_integration": {
+    "file": "public/styles.css",
+    "append_location": "end of file",
+    "new_classes": [".success-card", ".spinner", ".error-card"]
+  },
+  "stack_compliance_check": {
+    "typescript": "confirmed - working in existing JS file",
+    "no_python": "confirmed - repository has no .py additions",
+    "frontend_only": "confirmed - changes scoped to /public",
+    "no_frameworks": "confirmed - vanilla JS/CSS"
+  }
+}

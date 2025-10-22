@@ -1,0 +1,388 @@
+{
+  "contract_version": "4.0.0",
+  "contract_meta": {
+    "created": "2025-10-14",
+    "phase": "4",
+    "phase_name": "Workflow Phase 4 — Autonomous Executor & Safe Actions",
+    "prerequisite_phase": "Workflow Phase 3 (Runtime Integration)",
+    "enhancement": "Add a governed automation layer that executes the workflow engine's recommended next actions (lint, tests, contract sync, git commits) with dry-run guardrails and rollback visibility.",
+    "rationale": "With runtime parity achieved in Phase 3, the remaining blocker for autonomous developer operations is executing the suggested next actions without manual babysitting. This phase delivers a safe executor that reuses the shared PhaseState heuristics, performs validations, and applies commits only when guardrails confirm success—eliminating the human bottleneck called out in the audit logs.",
+    "references": [
+      "docs/04_141024_todays_status.md/01_autonomous_state_plan_log.md",
+      "docs/04_141024_todays_status.md/06_confusion_analysis.md",
+      "docs/04_141024_todays_status.md/07_documentation_update.md",
+      "WHAT_IS_WHAT.md",
+      "src/state/phaseState.ts"
+    ]
+  },
+  "project": {
+    "name": "Autonomous Workflow System",
+    "current_phase": "Workflow Phase 4 — Autonomous Executor",
+    "goal": "Provide a governed CLI (`npm run state:next`) that reads PhaseState, runs required validations, commits passing work, and produces auditable logs so developers and agents can advance roadmap tasks without manual intervention.",
+    "scope": "Implement autonomous executor CLI with dry-run mode, validation + git automation, evidence logging, and integration with runtime workflow metadata.",
+    "estimated_time": "1-2 hours of scripting plus 1 hour for tests and documentation",
+    "work_profile": "Node.js automation scripts, git integration, Vitest coverage, documentation",
+    "out_of_scope": [
+      "Product orchestrator automation",
+      "New roadmap contract authoring",
+      "CI pipeline triggers",
+      "Feature flag rollout of LangGraph"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "Confirm Phase 3 artifacts are active, then iteratively build the autonomous executor with validations at each milestone.",
+    "description": "Leverage shared PhaseState heuristics to execute safe actions (lint/typecheck/test/contract sync/git commit) via a CLI entrypoint with dry-run preview, evidence logging, and rollback guidance.",
+    "failure_mode": "halt_and_report_with_diff",
+    "no_assumptions": true,
+    "evidence_required": true
+  },
+  "stack_compliance": {
+    "enforced_by": "ai-stack.json + AGENTS.md",
+    "language": "TypeScript/JavaScript",
+    "frameworks": [
+      "Vitest"
+    ],
+    "test_command": "npm test -- tests/state/stateNext.test.ts",
+    "constraints": [
+      "No Python files",
+      "No new npm dependencies",
+      "Use git CLI available in repo environment",
+      "Coverage ≥ 80% line / 75% branch",
+      "ESLint warnings forbidden"
+    ],
+    "validation": "npm run contract:check"
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "macos|linux",
+      "verify_commands": [
+        "npm run lint",
+        "npm run typecheck",
+        "npm test -- tests/state/stateNext.test.ts",
+        "npm run contract:check"
+      ]
+    }
+  },
+  "observability": {
+    "description": "Measure autonomous executor runs, validations, and git operations for auditability.",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "discovery_file": ".automation/phase4_autonomous_executor_discovery.json",
+    "evidence_file": ".automation/phase4_autonomous_executor_evidence.json",
+    "evaluation_file": ".automation/phase4_autonomous_executor_evaluation.json",
+    "monitoring": {
+      "discovery_phase_tracking": true,
+      "dry_run_executed": false,
+      "live_run_executed": false,
+      "commit_created": false
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": [
+        "timestamp",
+        "task_id",
+        "action",
+        "status",
+        "command",
+        "stdout_excerpt",
+        "stderr_excerpt"
+      ]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_each_win": true,
+      "quality_dimensions": [
+        "correctness",
+        "completeness",
+        "safety"
+      ]
+    }
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npm run lint",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "must_pass": true
+    },
+    "tests": {
+      "command": "npm test",
+      "expected": {
+        "exit_code": 0,
+        "no_failed_suites": true
+      },
+      "coverage": {
+        "min_line_pct": 80,
+        "min_branch_pct": 75
+      }
+    },
+    "contract_schema": {
+      "command": "npm run contract:check",
+      "must_pass": true
+    }
+  },
+  "high_level_stages": [
+    "phase3_verification",
+    "executor_foundation",
+    "automation_pipeline",
+    "evidence_and_gate"
+  ],
+  "tasks": [
+    {
+      "id": "WF4-V01",
+      "stage": "phase3_verification",
+      "title": "Confirm runtime exposes workflow metadata",
+      "type": "verification",
+      "description": "Block autonomous execution until Phase 3 integration is active and emitting workflow metadata.",
+      "actions": [
+        {
+          "type": "run",
+          "cmd": "npm run state:show"
+        },
+        {
+          "type": "manual_test",
+          "description": "Start npm run dev and verify /api/progress includes workflowMetadata.currentGate and suggestedNextAction."
+        }
+      ],
+      "evaluation": {
+        "intent": "Guarantee Phase 4 builds on top of a synchronized runtime + CLI view",
+        "success_criteria": "CLI and runtime both show suggested_next_action"
+      },
+      "trace_context": {
+        "decision_point": "wf4_phase3_verification",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "WF4-W41",
+      "stage": "executor_foundation",
+      "title": "Create state:next CLI with dry-run",
+      "type": "win",
+      "description": "Add scripts/state-next.js that loads PhaseState, prints recommended action, and simulates the steps without modifying the workspace.",
+      "time_estimate_minutes": 40,
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "scripts/state-next.js",
+          "content_spec": "ESM module exporting runStateNext({ dryRun }) and CLI entrypoint supporting --dry-run (default true)."
+        },
+        {
+          "type": "edit",
+          "file": "package.json",
+          "description": "Add npm script `state:next`: `node scripts/state-next.js`."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "node scripts/state-next.js --dry-run"
+        }
+      ],
+      "success_criteria": [
+        "CLI prints recommended action with no mutations",
+        "Dry-run default prevents git operations",
+        "Package.json exposes npm run state:next"
+      ],
+      "trace_context": {
+        "decision_point": "wf4_cli_scaffold",
+        "win_number": "41"
+      }
+    },
+    {
+      "id": "WF4-W42",
+      "stage": "automation_pipeline",
+      "title": "Implement validation + git automation",
+      "type": "win",
+      "description": "Teach state:next to run lint/typecheck/tests, call npm run state:sync on success, and create a git branch + commit with evidence summary when not in dry-run mode.",
+      "time_estimate_minutes": 60,
+      "actions": [
+        {
+          "type": "edit",
+          "file": "scripts/state-next.js",
+          "description": "Execute validations sequentially with detailed logging and bail out on first failure."
+        },
+        {
+          "type": "edit",
+          "file": "scripts/state-next.js",
+          "description": "Integrate git add/commit operations using the suggested action metadata (e.g., task id in commit message)."
+        },
+        {
+          "type": "edit",
+          "file": "scripts/state-next.js",
+          "description": "Write execution details to .automation/actions.jsonl for audit trails."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "node scripts/state-next.js --dry-run"
+        },
+        {
+          "cmd": "node scripts/state-next.js"
+        }
+      ],
+      "success_criteria": [
+        "Validations run before any git mutation",
+        "On success, git commit uses suggested task id",
+        "All operations logged to .automation/actions.jsonl"
+      ],
+      "trace_context": {
+        "decision_point": "wf4_automation_pipeline",
+        "win_number": "42"
+      }
+    },
+    {
+      "id": "WF4-W43",
+      "stage": "automation_pipeline",
+      "title": "Add Vitest coverage for autonomous executor",
+      "type": "win",
+      "description": "Cover dry-run and live-run paths with mocks for git + child_process, ensuring safety rails and logging.",
+      "time_estimate_minutes": 45,
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "tests/state/stateNext.test.ts",
+          "content_spec": "Vitest suite mocking child_process to assert command order, dry-run guard, and logging output."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "npm test -- tests/state/stateNext.test.ts"
+        }
+      ],
+      "success_criteria": [
+        "Tests fail if executor runs git commit before validations",
+        "Dry-run path skips mutations",
+        "Coverage ≥ 80% for scripts/state-next.js"
+      ],
+      "trace_context": {
+        "decision_point": "wf4_executor_tests",
+        "win_number": "43"
+      }
+    },
+    {
+      "id": "WF4-GATE",
+      "stage": "evidence_and_gate",
+      "title": "Workflow Phase 4 validation gate",
+      "type": "validation",
+      "description": "Certify autonomous executor readiness and evidence capture before declaring workflow track complete.",
+      "actions": [
+        {
+          "type": "validate",
+          "cmd": "npm run lint"
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run typecheck"
+        },
+        {
+          "type": "validate",
+          "cmd": "npm test"
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run contract:check"
+        },
+        {
+          "type": "manual_test",
+          "description": "Run npm run state:next --dry-run (expect preview only) then npm run state:next (expect validations + commit)."
+        }
+      ],
+      "evaluation": {
+        "intent": "Ensure automation operates safely with full evidence trail",
+        "success_criteria": "All validations pass, manual run generates commit + log entry"
+      },
+      "trace_context": {
+        "decision_point": "wf4_gate",
+        "reasoning_required": true,
+        "critical": true,
+        "gate_type": "go_no_go"
+      }
+    }
+  ],
+  "execution_order": [
+    "WF4-V01",
+    "WF4-W41",
+    "WF4-W42",
+    "WF4-W43",
+    "WF4-GATE"
+  ],
+  "execution_semantics": {
+    "win_isolation": {
+      "description": "Validate dry-run behavior before enabling live mutations.",
+      "implementation": "Keep live-run disabled until WF4-W41 + WF4-W42 validations succeed."
+    },
+    "gate_enforcement": {
+      "WF4-GATE": {
+        "required": true,
+        "on_fail": "Halt automation; revert git mutations and capture diagnostics in .automation/phase4_autonomous_executor_evaluation.json",
+        "report": "Summarize failure, remediation, and retest plan"
+      }
+    },
+    "phase_specific_constraints": {
+      "dry_run_default": "state-next must default to dry-run unless --live flag passed.",
+      "audit_logging_required": "Every action must append to .automation/actions.jsonl"
+    }
+  },
+  "completion_criteria": {
+    "phase3_verified": true,
+    "cli_available": true,
+    "validations_automated": true,
+    "git_commit_on_success": true,
+    "audit_logs_written": true,
+    "all_tests_pass": true,
+    "coverage_maintained": true
+  },
+  "fallback_policies": {
+    "dry_run_failure": "Stop and inspect PhaseState heuristics; do not attempt live mode until resolved.",
+    "validation_failure": "Abort automation, fix underlying lint/type/test issue, rerun dry-run.",
+    "git_error": "Abort and run git reset --hard HEAD && git clean -fd before retrying."
+  },
+  "reporting": {
+    "progress_file": ".automation/workflow_phase4_progress.json",
+    "fields": [
+      "task_id",
+      "status",
+      "started_at",
+      "completed_at",
+      "elapsed_ms",
+      "notes"
+    ],
+    "status_values": [
+      "pending",
+      "running",
+      "succeeded",
+      "blocked"
+    ],
+    "phase_report": {
+      "file": ".automation/workflow_phase4_completion_report.json",
+      "fields": [
+        "wins_completed",
+        "gate_passed",
+        "timestamp",
+        "automation_runs_recorded"
+      ]
+    }
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Autonomous executor script",
+      "path": "scripts/state-next.js",
+      "must_include_regex": "runStateNext"
+    },
+    {
+      "name": "Executor tests",
+      "path": "tests/state/stateNext.test.ts",
+      "must_include_regex": "state:next"
+    },
+    {
+      "name": "Actions log",
+      "path": ".automation/actions.jsonl",
+      "must_include_regex": "state-next"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "projectPath": "/Users/Yousef_1/Downloads/ai_system_executor-mvp/output/create-a-small-library-with-one-function-and-a-unit-test",
+  "projectSlug": "create-a-small-library-with-one-function-and-a-unit-test",
+  "originalPrompt": "Create a small library with one function and a unit test.",
+  "generatedFiles": [
+    "pyproject.toml",
+    "README.md",
+    "requirements-dev.txt",
+    "DESIGN.md",
+    "src/smalllib/__init__.py",
+    "tests/conftest.py",
+    "tests/test_add.py"
+  ],
+  "initialTestResult": {
+    "status": "fail",
+    "passCount": 13,
+    "failCount": 1,
+    "durationMs": 2775,
+    "logsPath": "logs/create-a-small-library-with-one-function-and-a-unit-test_last_test_run_eb606aee-b22f-476a-b3e6-f2648932b5f8.log",
+    "timestamp": "2025-10-11T19:57:20.778Z",
+    "command": "npm test",
+    "exitCode": 1,
+    "startedAt": "2025-10-11T19:57:18.003Z",
+    "finishedAt": "2025-10-11T19:57:20.778Z"
+  },
+  "sessionId": "a43ff77f984103e6"
+}

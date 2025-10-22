@@ -1,0 +1,35 @@
+{
+  "project_name": "flashcard-app",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"flashcard-app\",\n  \"version\": \"0.1.0\",\n  \"private\": true,\n  \"description\": \"Minimal Express server base for flash card app\",\n  \"scripts\": {\n    \"start\": \"node server.js\",\n    \"dev\": \"nodemon server.js\",\n    \"test\": \"jest --runInBand\"\n  },\n  \"dependencies\": {\n    \"express\": \"^4.19.2\"\n  },\n  \"devDependencies\": {\n    \"jest\": \"^29.7.0\",\n    \"supertest\": \"^6.3.4\",\n    \"nodemon\": \"^3.1.0\"\n  },\n  \"jest\": {\n    \"testEnvironment\": \"node\"\n  }\n}\n"
+    },
+    {
+      "path": "server.js",
+      "contents": "const app = require('./app');\n\nconst PORT = process.env.PORT || 7995;\n\napp.listen(PORT, () => {\n  console.log(`Server listening on http://localhost:${PORT}`);\n});\n"
+    },
+    {
+      "path": "app.js",
+      "contents": "const express = require('express');\nconst path = require('path');\n\nconst app = express();\n\n// Parse JSON bodies\napp.use(express.json());\n\n// Serve static files from public/\nconst publicDir = path.join(__dirname, 'public');\napp.use(express.static(publicDir));\n\n// Health check endpoint\napp.get('/health', (_req, res) => {\n  res.status(200).json({ status: 'ok' });\n});\n\nmodule.exports = app;\n"
+    },
+    {
+      "path": "public/index.html",
+      "contents": "<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  <title>Flashcard App (Base)</title>\n  <style>\n    :root { color-scheme: light dark; }\n    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; background: #fff; color: #000; }\n    header { padding: 2rem; text-align: center; background: #000; color: #fff; }\n    .accent { color: #c00; }\n    main { padding: 2rem; }\n    a { color: #c00; }\n  </style>\n</head>\n<body>\n  <header>\n    <h1>Flashcard <span class=\"accent\">App</span></h1>\n  </header>\n  <main>\n    <p>Static hosting is working. Visit <code>/health</code> for a JSON health check.</p>\n  </main>\n</body>\n</html>\n"
+    },
+    {
+      "path": "tests/server.test.js",
+      "contents": "const request = require('supertest');\nconst app = require('../app');\n\ndescribe('Express base server', () => {\n  it('GET /health returns 200 with {status:\"ok\"}', async () => {\n    const res = await request(app).get('/health');\n    expect(res.status).toBe(200);\n    expect(res.body).toEqual({ status: 'ok' });\n  });\n\n  it('serves public/index.html at /', async () => {\n    const res = await request(app).get('/');\n    expect(res.status).toBe(200);\n    expect(res.text).toMatch(/Flashcard\\s+App/i);\n  });\n});\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# Flashcard App — Base Express Setup\n\nMinimal Express server foundation for the Flashcard app.\n\nRun locally:\n\n1) Install dependencies\n   npm install\n\n2) Start in dev mode (auto-restarts on changes)\n   npm run dev\n\n3) Or start normally\n   npm start\n\nServer will listen on:\nhttp://localhost:7995\n\nEndpoints:\n- GET /health -> 200 { \"status\": \"ok\" }\n- Static files served from ./public (open / in browser)\n\nTesting:\n- Run tests: npm test\n"
+    }
+  ],
+  "notes": [
+    "Start the server with npm run dev and visit http://localhost:7995/health to verify a 200 response.",
+    "Static files are served from the public/ directory; public/index.html is included.",
+    "Tests use Jest and Supertest; run with npm test."
+  ],
+  "hasTests": true
+}

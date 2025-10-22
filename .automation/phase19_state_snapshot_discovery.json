@@ -1,0 +1,66 @@
+{
+  "phase": "19",
+  "title": "Phase 19 – Read-Only State Snapshot (WHERE_AM_I.json)",
+  "date": "2025-10-14",
+  "integration_points": [
+    {
+      "file": "scripts/snapshot-state.js",
+      "purpose": "Generate synthesized read-only snapshot from authoritative sources",
+      "notes": "ESM, no deps. Optional validations via --validate flag. Adds human_readable_summary."
+    },
+    {
+      "file": "AGENTS.md",
+      "line_hint": 20,
+      "purpose": "Minimal Quick Status Check reference under Current Work",
+      "snippet": "npm run state:show  # Generates and displays .automation/WHERE_AM_I.json"
+    },
+    {
+      "file": "package.json",
+      "purpose": "Add npm scripts: state:snapshot, state:show, state:show:validate",
+      "snippet": "\"state:snapshot\": \"node scripts/snapshot-state.js\", \"state:show\": \"node scripts/snapshot-state.js --print\", \"state:show:validate\": \"node scripts/snapshot-state.js --print --validate\""
+    },
+    {
+      "file": ".gitignore",
+      "purpose": "Ignore generated .automation/WHERE_AM_I.json",
+      "snippet": ".automation/WHERE_AM_I.json"
+    },
+    {
+      "file": ".automation/GATES_LEDGER.md",
+      "purpose": "Gate status source (parse Status lines)",
+      "snippet": "## Gate G2: ...\n**Status:** ✅ PASSED"
+    },
+    {
+      "file": "contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json",
+      "purpose": "Phase 19 contract path surfaced in snapshot",
+      "snippet": "\"contract_meta\": { ... \"phase_name\": \"Autonomous Transition — Trust Spine & LangGraph Foundation\" }"
+    },
+    {
+      "file": "scripts/validate-contract.js",
+      "purpose": "Reference patterns for Ajv usage; used only when --validate flag is set",
+      "snippet": "const SCHEMA_PATH = 'contracts/schemas/roadmap_phase.schema.json';"
+    },
+    {
+      "file": "src/state/phaseState.ts",
+      "purpose": "Shared state synthesizer (Phase 3 scaffold)",
+      "notes": "Exports loadPhaseState, suggestNextAction, formatHumanSummary for reuse across runtime and scripts."
+    }
+  ],
+  "dependencies": [],
+  "feature_flags": [],
+  "impacts": {
+    "apis": "none",
+    "runtime": "none (read-only)",
+    "ci": "none; optional validations triggered only by flag",
+    "contracts": "none (no write-back)"
+  },
+  "compliance_check": {
+    "language": "TypeScript/JavaScript only",
+    "backend": "Node.js 20+",
+    "frontend": "none",
+    "testing": "Vitest (tests/state/snapshot.test.ts, tests/state/phaseState.test.ts)",
+    "lint": "ESLint zero warnings (verified)",
+    "no_new_dependencies": true
+  },
+  "justification": "Addresses 'where am I?' gap with a safe, read-only, regenerable snapshot. Avoids state drift and circular writes while providing immediate value. Adds human_readable_summary and shared state module scaffolding.",
+  "rollback": "Delete scripts/snapshot-state.js, src/state/phaseState.ts and npm scripts; no persistent data."
+}

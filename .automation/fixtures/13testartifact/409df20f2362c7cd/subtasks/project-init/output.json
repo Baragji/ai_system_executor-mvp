@@ -1,0 +1,49 @@
+{
+  "project_name": "hello-world-express-tailwind",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"hello-world-express-tailwind\",\n  \"version\": \"0.1.0\",\n  \"private\": true,\n  \"description\": \"Minimal Express + TypeScript + Tailwind project (initialization)\",\n  \"main\": \"dist/index.js\",\n  \"scripts\": {\n    \"dev:css\": \"tailwindcss -i ./src/styles/tailwind.css -o ./public/styles.css --watch\",\n    \"dev:server\": \"nodemon --watch src --exec ts-node ./src/index.ts\",\n    \"dev\": \"concurrently \\\"npm:dev:css\\\" \\\"npm:dev:server\\\"\",\n    \"build:css\": \"tailwindcss -i ./src/styles/tailwind.css -o ./public/styles.css --minify\",\n    \"build\": \"npm run build:css && tsc\",\n    \"start\": \"node ./dist/index.js\",\n    \"test\": \"jest --passWithNoTests\"\n  },\n  \"dependencies\": {\n    \"autoprefixer\": \"^10.4.14\",\n    \"express\": \"^4.18.2\",\n    \"postcss\": \"^8.4.21\",\n    \"tailwindcss\": \"^3.4.0\",\n    \"nodemon\": \"^2.0.22\",\n    \"concurrently\": \"^8.0.1\"\n  },\n  \"devDependencies\": {\n    \"@types/express\": \"^4.17.17\",\n    \"@types/jest\": \"^29.5.2\",\n    \"@types/node\": \"^20.5.1\",\n    \"@types/supertest\": \"^2.0.13\",\n    \"jest\": \"^29.6.1\",\n    \"supertest\": \"^6.4.2\",\n    \"ts-jest\": \"^29.1.0\",\n    \"ts-node\": \"^10.9.1\",\n    \"typescript\": \"^5.1.6\"\n  },\n  \"jest\": {\n    \"preset\": \"ts-jest\",\n    \"testEnvironment\": \"node\",\n    \"moduleFileExtensions\": [\n      \"ts\",\n      \"js\",\n      \"json\"\n    ],\n    \"testMatch\": [\n      \"**/?(*.)+(spec|test).[tj]s?(x)\"\n    ]\n  }\n}\n"
+    },
+    {
+      "path": "tsconfig.json",
+      "contents": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2019\",\n    \"module\": \"CommonJS\",\n    \"outDir\": \"dist\",\n    \"rootDir\": \"src\",\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"skipLibCheck\": true\n  },\n  \"include\": [\"src/**/*\"],\n  \"exclude\": [\"node_modules\", \"dist\", \"tests\"]\n}\n"
+    },
+    {
+      "path": "tailwind.config.js",
+      "contents": "module.exports = {\n  content: [\n    './public/**/*.html',\n    './src/**/*.{ts,js}'\n  ],\n  theme: {\n    extend: {}\n  },\n  plugins: []\n};\n"
+    },
+    {
+      "path": "postcss.config.js",
+      "contents": "module.exports = {\n  plugins: {\n    tailwindcss: {},\n    autoprefixer: {}\n  }\n};\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# Hello World Express + Tailwind (Initialization)\n\nThis repository is the initial setup for a small Express + TypeScript application styled with Tailwind CSS.\n\nKey pieces:\n- Express server in TypeScript (src/index.ts)\n- Tailwind CSS entry (src/styles/tailwind.css)\n- Tailwind/PostCSS configuration\n- Dev scripts to run both the Tailwind watcher and the server concurrently\n- A basic API route and a tiny frontend placeholder in public/index.html\n- Tests using Jest + Supertest\n\nGetting started\n\n1. Install dependencies\n   npm install\n\n2. Run in development (runs Tailwind watcher and server together):\n   npm run dev\n\n   - Tailwind will build ./public/styles.css\n   - Express server will serve the public folder and an API at /api/hello\n\n3. Build for production (compile TypeScript and build CSS):\n   npm run build\n\n4. Start the built app:\n   npm start\n\n5. Run tests:\n   npm test\n\nNotes\n- The dev script uses concurrently to run both the Tailwind watcher and the nodemon server.\n- Tailwind CSS will output to public/styles.css; that file is ignored from git because it is generated.\n"
+    },
+    {
+      "path": "src/index.ts",
+      "contents": "import express from 'express';\nimport path from 'path';\n\nconst app = express();\nconst port = process.env.PORT || 3000;\n\n// Serve static frontend (built CSS will be placed in public/styles.css)\napp.use(express.static(path.join(__dirname, '..', 'public')));\n\napp.get('/api/hello', (_req, res) => {\n  res.json({ message: 'Hello World' });\n});\n\nif (process.env.NODE_ENV !== 'test') {\n  app.listen(port, () => {\n    console.log(`Server listening on http://localhost:${port}`);\n  });\n}\n\nexport default app;\n"
+    },
+    {
+      "path": "src/styles/tailwind.css",
+      "contents": "@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n/* Add any project specific utilities or components below */\n"
+    },
+    {
+      "path": "public/index.html",
+      "contents": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />\n    <title>Hello World App</title>\n    <link rel=\"stylesheet\" href=\"/styles.css\">\n  </head>\n  <body class=\"min-h-screen flex items-center justify-center bg-gray-50\">\n    <div class=\"p-6 bg-white rounded shadow max-w-md w-full text-center\">\n      <h1 class=\"text-2xl font-bold mb-4\">Hello World App</h1>\n      <p id=\"helloText\" class=\"text-3xl font-semibold mb-4\">Hello World</p>\n\n      <div class=\"mb-4\">\n        <label for=\"colorPicker\" class=\"block mb-2\">Change text color:</label>\n        <input id=\"colorPicker\" type=\"color\" value=\"#000000\" />\n      </div>\n\n      <p class=\"text-sm text-gray-500\">This page is a small placeholder. Tailwind CSS will be built to <code>/public/styles.css</code>.</p>\n    </div>\n\n    <script>\n      // Small client-side behavior so the UI is interactive during demos\n      const picker = document.getElementById('colorPicker');\n      const hello = document.getElementById('helloText');\n      picker.addEventListener('input', () => {\n        hello.style.color = picker.value;\n      });\n    </script>\n  </body>\n</html>\n"
+    },
+    {
+      "path": "tests/server.test.ts",
+      "contents": "import request from 'supertest';\nimport app from '../src/index';\n\ndescribe('GET /api/hello', () => {\n  it('responds with Hello World JSON', async () => {\n    const res = await request(app).get('/api/hello');\n    expect(res.status).toBe(200);\n    expect(res.body).toEqual({ message: 'Hello World' });\n  });\n});\n"
+    }
+  ],
+  "notes": [
+    "Run 'npm install' to install dependencies.",
+    "Development: 'npm run dev' (runs Tailwind watcher and the TypeScript server via nodemon).",
+    "Build: 'npm run build' (builds Tailwind CSS and compiles TypeScript to dist/).",
+    "Start built app: 'npm start'.",
+    "Run tests: 'npm test'."
+  ],
+  "hasTests": true
+}

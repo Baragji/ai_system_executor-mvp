@@ -1,0 +1,23 @@
+{
+  "originalPrompt": "Build a simple todo app with express backend",
+  "effectivePrompt": "Build a simple todo app with express backend",
+  "clarificationQuestions": [
+    {
+      "id": "port",
+      "text": "Which port should the service listen on? (default 8000)",
+      "type": "number"
+    },
+    {
+      "id": "styling",
+      "text": "What styling approach should the UI use?",
+      "type": "choice",
+      "options": [
+        "Tailwind CSS",
+        "Bootstrap",
+        "Chakra UI",
+        "No preference"
+      ]
+    }
+  ],
+  "clarificationsAsked": true
+}

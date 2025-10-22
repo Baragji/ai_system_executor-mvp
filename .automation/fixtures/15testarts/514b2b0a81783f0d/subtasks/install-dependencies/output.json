@@ -1,0 +1,44 @@
+{
+  "project_name": "hello-colors-app",
+  "files": [
+    {
+      "path": "package.json",
+      "contents": "{\n  \"name\": \"hello-colors-app\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Express + Tailwind project (install server and build dependencies)\",\n  \"main\": \"src/index.js\",\n  \"scripts\": {\n    \"start\": \"node src/index.js\",\n    \"dev\": \"concurrently \\\"nodemon src/index.js\\\" \\\"tailwindcss -i ./src/styles.css -o ./public/styles.css --watch\\\"\",\n    \"build:css\": \"tailwindcss -i ./src/styles.css -o ./public/styles.css --minify\",\n    \"test\": \"node ./tests/test.js\"\n  },\n  \"keywords\": [],\n  \"author\": \"\",\n  \"license\": \"MIT\",\n  \"dependencies\": {\n    \"express\": \"^4.18.2\"\n  },\n  \"devDependencies\": {\n    \"tailwindcss\": \"^3.4.6\",\n    \"postcss\": \"^8.4.21\",\n    \"autoprefixer\": \"^10.4.14\",\n    \"nodemon\": \"^2.0.22\",\n    \"concurrently\": \"^8.0.1\"\n  }\n}\n"
+    },
+    {
+      "path": "README.md",
+      "contents": "# Hello Colors App\n\nThis project is an Express + Tailwind app skeleton that will let you change the \"hello world\" text colors from a frontend UI.\n\nCurrent subtask: install server and build dependencies (express, tailwindcss, postcss, autoprefixer) and developer tools (nodemon, concurrently).\n\nRun steps:\n\n1. Install dependencies:\n\n   npm install\n\n2. Build Tailwind CSS once (produces public/styles.css):\n\n   npm run build:css\n\n3. Start the server:\n\n   npm start\n\n4. For development (auto-restart server + watch Tailwind):\n\n   npm run dev\n\n5. Run tests (automated checks for this subtask):\n\n   npm test\n\nNotes:\n- Tailwind build command expects src/styles.css as input and writes to public/styles.css.\n- This subtask adds configuration files tailwind.config.js and postcss.config.js and a minimal Express server in src/index.js.\n"
+    },
+    {
+      "path": "tests/test.js",
+      "contents": "const fs = require('fs');\nconst assert = require('assert');\n\n// Check package.json exists and has expected name\nconst pkgRaw = fs.readFileSync('package.json', 'utf8');\nconst pkg = JSON.parse(pkgRaw);\nassert.strictEqual(pkg.name, 'hello-colors-app', 'package.json name should be hello-colors-app');\n\n// Check dependencies exist in package.json\nassert.ok(pkg.dependencies && typeof pkg.dependencies === 'object', 'package.json should have dependencies');\nconst deps = pkg.dependencies;\n['express'].forEach(d => {\n  assert.ok(deps[d], `dependency ${d} should be listed in package.json`);\n});\n\n// Check devDependencies\nassert.ok(pkg.devDependencies && typeof pkg.devDependencies === 'object', 'package.json should have devDependencies');\nconst devs = pkg.devDependencies;\n['tailwindcss','postcss','autoprefixer','nodemon','concurrently'].forEach(d => {\n  assert.ok(devs[d], `devDependency ${d} should be listed in package.json`);\n});\n\n// Check scripts\nassert.ok(pkg.scripts && pkg.scripts.start, 'start script should exist');\nassert.ok(pkg.scripts.dev, 'dev script should exist');\nassert.ok(pkg.scripts['build:css'], 'build:css script should exist');\nassert.ok(pkg.scripts.test, 'test script should exist');\n\n// Check config files exist\nassert.ok(fs.existsSync('tailwind.config.js'), 'tailwind.config.js should exist');\nassert.ok(fs.existsSync('postcss.config.js'), 'postcss.config.js should exist');\n\n// Check src files\nassert.ok(fs.existsSync('src/index.js'), 'src/index.js should exist');\nconst serverSrc = fs.readFileSync('src/index.js', 'utf8');\nassert.ok(serverSrc.includes(\"express\"), 'src/index.js should reference express');\n\n// Check styles and public assets\nassert.ok(fs.existsSync('src/styles.css'), 'src/styles.css should exist');\nconst styles = fs.readFileSync('src/styles.css', 'utf8');\nassert.ok(styles.includes('@tailwind base'), 'src/styles.css should include Tailwind directives');\n\nassert.ok(fs.existsSync('public/index.html'), 'public/index.html should exist');\nconst indexHtml = fs.readFileSync('public/index.html', 'utf8');\nassert.ok(indexHtml.includes('Hello Colors App'), 'public/index.html should mention project name');\n\nconsole.log('All checks passed.');\n"
+    },
+    {
+      "path": "src/index.js",
+      "contents": "const express = require('express');\nconst path = require('path');\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\n// Serve static files from public\napp.use(express.static(path.join(__dirname, '..', 'public')));\n\n// Simple API endpoint (future use)\napp.get('/api/hello', (req, res) => {\n  res.json({ message: 'Hello World' });\n});\n\napp.listen(PORT, () => {\n  console.log(`Server listening on http://localhost:${PORT}`);\n});\n"
+    },
+    {
+      "path": "src/styles.css",
+      "contents": "@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n/* Add any custom styles here. The frontend UI will let you change text color classes. */\n"
+    },
+    {
+      "path": "public/index.html",
+      "contents": "<!doctype html>\n<html>\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />\n    <title>Hello Colors App</title>\n    <link rel=\"stylesheet\" href=\"/styles.css\">\n  </head>\n  <body class=\"p-8\">\n    <h1 class=\"text-3xl font-bold\">Hello Colors App</h1>\n    <p id=\"hello\" class=\"text-xl text-red-500 mt-4\">Hello World</p>\n    <!-- Frontend UI for changing colors will be added in later subtasks -->\n  </body>\n</html>\n"
+    },
+    {
+      "path": "tailwind.config.js",
+      "contents": "module.exports = {\n  content: [\n    './public/**/*.html',\n    './src/**/*.{js,ts}'\n  ],\n  theme: {\n    extend: {},\n  },\n  plugins: [],\n}\n"
+    },
+    {
+      "path": "postcss.config.js",
+      "contents": "module.exports = {\n  plugins: {\n    tailwindcss: {},\n    autoprefixer: {},\n  }\n}\n"
+    }
+  ],
+  "notes": [
+    "Run `npm install` to install express, tailwindcss, postcss, autoprefixer, nodemon, and concurrently.",
+    "Build Tailwind CSS with `npm run build:css` (writes public/styles.css).",
+    "Start the server with `npm start`, or use `npm run dev` to run nodemon plus Tailwind watch.",
+    "Tests assert that package.json lists the required dependencies and that configuration files exist. Run `npm test`."
+  ],
+  "hasTests": true
+}

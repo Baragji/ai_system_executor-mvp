@@ -1,0 +1,12 @@
+{
+  "status": "fail",
+  "passCount": 0,
+  "failCount": 1,
+  "durationMs": 2119,
+  "logsPath": "logs/03testartifact_last_test_run_f025b163-8d73-437f-8cbc-fb50c3891720.log",
+  "timestamp": "2025-10-12T04:46:19.739Z",
+  "command": "npm test",
+  "exitCode": 1,
+  "startedAt": "2025-10-12T04:46:17.620Z",
+  "finishedAt": "2025-10-12T04:46:19.739Z"
+}

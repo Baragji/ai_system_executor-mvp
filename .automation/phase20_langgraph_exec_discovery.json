@@ -1,0 +1,37 @@
+{
+  "phase": "20",
+  "title": "LangGraph Executions Endpoint + Runtime Store",
+  "goal": "Expose /api/executions/:id for polling status and back it with an in-memory store; wire the graph stub to register and complete executions.
+  ",
+  "integration_points": [
+    {
+      "file": "src/server.ts:1518",
+      "function": "POST /api/execute",
+      "snippet": "if ((process.env.AGENTS_RUNTIME || \"\").toLowerCase() === \"langgraph\") {\n      await executeAdapterLanggraph(req, res);\n      return;\n    }"
+    },
+    {
+      "file": "src/server.ts:426",
+      "function": "GET /api/executions/:id (new)",
+      "snippet": "app.get(\"/api/executions/:id\", (req, res) => {\n  const { id } = req.params as { id: string };\n  const record = getExecution(id);\n  if (!record) { respondWithProblem(res, 404, \"NotFound\", \"execution not found\", req.originalUrl || req.url || \"/api/executions\"); return; }\n  res.json(record);\n});"
+    },
+    {
+      "file": "src/orchestrator/graph.ts:1",
+      "function": "runGraph(args)",
+      "snippet": "createExecution(executionId, { status: \"started\" });\nconst stubResult = { message: \"LangGraph runtime stub invoked...\", prompt: args.prompt };\nsetTimeout(async () => { completeExecution(executionId, stubResult); await logEvent(\"langgraph_execution_completed\", { executionId }); }, 10);"
+    }
+  ],
+  "dependencies": [],
+  "impacts": [
+    "Adds a non-breaking GET endpoint for execution status",
+    "No schema/contract changes to existing endpoints",
+    "LangGraph adapter Location header now resolves to a real route"
+  ],
+  "stack_compliance": {
+    "language": "TypeScript",
+    "backend": "Node.js 20 + Express",
+    "frontend": "unchanged",
+    "testing": "Vitest (new API test added)",
+    "lint": "ESLint (no new rules)"
+  }
+}
+

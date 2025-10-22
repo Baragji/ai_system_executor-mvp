@@ -1,0 +1,71 @@
+{
+  "originalPrompt": "Create a small library with one function and a unit test.",
+  "subtasks": [
+    {
+      "id": "define-function-spec",
+      "title": "Define function specification",
+      "description": "Decide the function name, inputs, outputs, behavior, edge cases, error handling, and minimal API surface for the small library.",
+      "status": "pending",
+      "estimatedComplexity": "low",
+      "successCriteria": "A one-page spec exists that clearly states the function signature, examples of expected input/output, and listed edge cases to cover in tests."
+    },
+    {
+      "id": "create-project-structure",
+      "title": "Initialize project and testing framework",
+      "description": "Create repository skeleton, choose language and package manager, initialize project files (package.json/pyproject), create src and tests folders, and install a testing framework.",
+      "status": "pending",
+      "dependencies": [
+        "define-function-spec"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Repository structure with src/ and tests/ present, project metadata file initialized, and test framework added to dev dependencies."
+    },
+    {
+      "id": "implement-function",
+      "title": "Implement the function in the library",
+      "description": "Write the library function code according to the spec, include input validation and inline comments, and export the function for consumers.",
+      "status": "pending",
+      "dependencies": [
+        "create-project-structure",
+        "define-function-spec"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Function file exists in src/, passes static/lint checks (if configured), and exports the function with documented behavior."
+    },
+    {
+      "id": "write-unit-test",
+      "title": "Write unit test(s) for the function",
+      "description": "Create tests that cover normal cases, edge cases, and expected error conditions; use the chosen test framework and assert expected outputs.",
+      "status": "pending",
+      "dependencies": [
+        "implement-function"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "At least one test file exists in tests/ with multiple assertions; tests run and initially fail or pass as appropriate."
+    },
+    {
+      "id": "run-tests-and-fix",
+      "title": "Run test suite and fix issues",
+      "description": "Execute the test suite, diagnose failures, update implementation or tests until all tests pass, and ensure reproducible test runs.",
+      "status": "pending",
+      "dependencies": [
+        "write-unit-test"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Test command completes with all tests passing consistently on a clean environment."
+    },
+    {
+      "id": "document-and-package",
+      "title": "Add README and prepare packaging instructions",
+      "description": "Write README with usage examples and installation instructions, add license and contribution notes, and update package metadata for publishing if desired.",
+      "status": "pending",
+      "dependencies": [
+        "run-tests-and-fix"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "README and metadata exist with clear usage examples and instructions; project can be installed locally using documented steps."
+    }
+  ],
+  "totalSubtasks": 6,
+  "decompositionStrategy": "Top-down functional decomposition: start by defining the function spec, initialize project scaffolding, implement the function, create tests that exercise specified behavior, run and iterate until tests pass, then finalize documentation and packaging. Tasks are ordered with explicit dependencies to avoid circular references and ensure incremental verification."
+}

@@ -1,0 +1,854 @@
+{
+  "contract_version": "12.0.0",
+  "contract_meta": {
+    "created": "2025-10-09",
+    "phase": "A-FIX",
+    "phase_name": "UI Presentation Layer - Outcome Authority & Modern UX",
+    "prerequisite_phase": "Phase A (11_phaseA_contract_enhanced)",
+    "rationale": "Analysis of current UI (public/script.js lines 180-350, public/index.html lines 45-120) reveals critical UX failures: (1) Success card displays 'ERROR' text while claiming success - cognitive dissonance that destroys trust. (2) Internal system state (Task Plan Progress, Test & Repair Timeline, Repair History) is exposed to end users who don't need to see implementation details. (3) Outcome determination is inconsistent - success banner shown even when tests fail with 'Missing contents for package.json'. (4) The UI violates October 2025 UX standards: cluttered, information-dense, shows process instead of outcome. Modern app generators (Replit Agent 3, GitHub Copilot Workspace, v0.dev) show clean outcome cards with progressive disclosure for technical details. Current implementation adds MORE visual noise than the previous JSON dump. Root cause: Phase A contract (11_phaseA_contract_enhanced.json) added formatting helpers but never defined presentation policy or outcome state machine. This contract implements authoritative outcome logic, hides internal telemetry by default, and delivers a state-of-the-art October 2025 UI that respects user attention.",
+    "references": [
+      "Replit Agent 3 UI patterns (clean outcome cards, progressive disclosure)",
+      "GitHub Copilot Workspace (focus on results, not process)",
+      "v0.dev (instant preview, minimal chrome)",
+      "Material Design 3 (October 2025 guidelines)",
+      "Phase A contract (11_phaseA_contract_enhanced.json)",
+      "Current UI implementation (public/script.js, public/index.html)",
+      "Test results schema (contracts/schemas/run-result.schema.json)"
+    ]
+  },
+  "project": {
+    "name": "executor-mvp",
+    "current_phase": "A-FIX",
+    "goal": "Transform UI from 'process dump' to 'outcome authority' with state-of-the-art October 2025 presentation that shows users ONLY what they need: clean outcome cards, file previews, and actionable next steps. Hide all internal system state (task plans, repair attempts, test timelines) behind optional 'Debug' disclosure.",
+    "scope": "Wins 25-31: Outcome state machine, presentation policy enforcement, modern card-based UI, progressive disclosure, runtime bug fixes (missing package.json detection), and comprehensive UI validation",
+    "out_of_scope": [
+      "Multi-agent orchestration (Phase 5+)",
+      "Deployment integration (Phase 5+)",
+      "Advanced analytics dashboard (Phase 5+)",
+      "Voice input (Phase 6+)",
+      "Changing core generation/repair logic (already works)",
+      "Rewriting backend APIs (only UI changes + one runtime assertion)"
+    ]
+  },
+  "execution_model": {
+    "type": "autonomous_with_verification",
+    "verification_strategy": "observe_evaluate_proceed",
+    "description": "Agent verifies Phase A completion, implements outcome authority + presentation trim, validates with Playwright visual regression tests, ensures October 2025 UX standards met.",
+    "failure_mode": "halt_and_report",
+    "no_assumptions": true,
+    "quality_bar": "PERFECTION - This contract demands state-of-the-art October 2025 UI. No half-measures. Every pixel matters. Every interaction must delight."
+  },
+  "environments": {
+    "dev": {
+      "node_version": ">=20.10.0 <21",
+      "package_manager": "npm",
+      "os": "linux|macos",
+      "env_vars_required": [],
+      "optional_env_vars": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"],
+      "verify_commands": [
+        {
+          "cmd": "node -v",
+          "expect_regex": "^v20\\.",
+          "on_fail": "HALT - Phase A must be complete before A-FIX"
+        },
+        {
+          "cmd": "test -f public/script.js && grep -q 'renderSuccessCard' public/script.js",
+          "expect_exit_code": 0,
+          "on_fail": "HALT - Phase A helpers (renderSuccessCard) must exist"
+        },
+        {
+          "cmd": "npm test -- --run 2>&1 | grep -q 'Tests.*pass'",
+          "expect_exit_code": 0,
+          "on_fail": "HALT - All existing tests must pass before A-FIX"
+        }
+      ],
+      "trace_context": {
+        "decision_point": "phase_a_verification",
+        "reasoning_required": true,
+        "critical": true
+      }
+    }
+  },
+  "observability": {
+    "description": "Comprehensive UI validation with Playwright visual regression, accessibility audits, and interaction testing",
+    "trace_file": ".automation/execution_trace.jsonl",
+    "evaluation_file": ".automation/evaluation_results.json",
+    "monitoring": {
+      "task_status_tracking": true,
+      "verification_pass_fail": true,
+      "elapsed_time_per_task": true,
+      "ui_validation_screenshots": true
+    },
+    "logging": {
+      "format": "jsonl",
+      "fields": ["timestamp", "task_id", "action", "status", "cmd", "exit_code", "screenshot_path"]
+    },
+    "evaluation": {
+      "continuous": true,
+      "evaluate_after_each_win": true,
+      "quality_dimensions": ["correctness", "completeness", "visual_quality", "accessibility", "user_delight"]
+    },
+    "governance": {
+      "halt_on_security_violation": true,
+      "require_explicit_verification": true,
+      "ui_must_pass_lighthouse": true
+    }
+  },
+  "global_quality_standards": {
+    "lint": {
+      "command": "npm run lint",
+      "must_pass": true,
+      "max_warnings": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "must_pass": true
+    },
+    "tests": {
+      "command": "npm test",
+      "expected": {
+        "exit_code": 0,
+        "no_failed_suites": true
+      },
+      "coverage": {
+        "min_line_pct": 80,
+        "min_branch_pct": 75
+      }
+    },
+    "ui_validation": {
+      "command": "npm run test:ui",
+      "accessibility_score": ">=95",
+      "performance_score": ">=90",
+      "visual_regression": "zero_unintended_changes"
+    }
+  },
+  "high_level_stages": [
+    "phase_a_verification",
+    "outcome_authority",
+    "presentation_policy",
+    "modern_ui_implementation",
+    "runtime_hardening",
+    "ui_validation",
+    "phase_a_fix_gate"
+  ],
+  "tasks": [
+    {
+      "id": "A-V01",
+      "stage": "phase_a_verification",
+      "title": "Verify Phase A completion and current UI state",
+      "type": "verification",
+      "description": "Confirm Phase A artifacts exist (renderSuccessCard, formatError, updateLoadingPhase in public/script.js). Capture screenshots of current UI showing the problems: success+ERROR confusion, Task Plan exposure, Test Timeline verbosity.",
+      "verification_mode": "observe_only",
+      "actions": [
+        {
+          "type": "observe",
+          "cmd": "grep -n 'renderSuccessCard\\|formatError\\|updateLoadingPhase' public/script.js",
+          "capture_output": true,
+          "expect_exit_code": 0
+        },
+        {
+          "type": "observe",
+          "cmd": "grep -n 'taskPlanSection\\|testControls\\|repairHistory' public/index.html",
+          "capture_output": true
+        },
+        {
+          "type": "screenshot",
+          "description": "Launch dev server, generate test project, capture UI state showing Task Plan + Test Timeline sections"
+        }
+      ],
+      "evaluation": {
+        "intent": "Document current UI problems with visual evidence before fixes",
+        "success_criteria": "Screenshots captured showing: (1) Success+ERROR confusion (2) Task Plan Progress visible (3) Test Timeline visible (4) Repair History visible",
+        "on_fail": "Cannot proceed - must have Phase A baseline to improve from"
+      },
+      "trace_context": {
+        "decision_point": "baseline_capture",
+        "reasoning_required": true,
+        "critical": true
+      }
+    },
+    {
+      "id": "W25",
+      "stage": "outcome_authority",
+      "title": "Win #25: Implement Outcome State Machine",
+      "type": "win",
+      "description": "Create authoritative outcome determination logic in public/script.js that maps generation results to exactly ONE of three states: SUCCESS (tests pass), PARTIAL (files created but tests failed), ERROR (generation failed). This replaces ad-hoc success/failure checks scattered through the code.",
+      "time_estimate_minutes": "45",
+      "actions": [
+        {
+          "type": "create_function",
+          "file": "public/script.js",
+          "content_spec": "Add function computeOutcome(data) that returns 'success' | 'partial' | 'error'. Logic: (1) If data.error or !data.files or data.files.length === 0 → 'error'. (2) If data.testResults?.executed && data.testResults?.status === 'PASS' → 'success'. (3) If data.files.length > 0 && data.testResults?.executed && data.testResults?.status !== 'PASS' → 'partial'. (4) Else → 'error'. MUST validate against run-result.schema.json status field."
+        },
+        {
+          "type": "edit",
+          "file": "public/script.js",
+          "content_spec": "In handleExecuteSuccess() and handleClarifySuccess(), replace direct renderSuccessCard() calls with: const outcome = computeOutcome(data); switch(outcome) { case 'success': renderSuccessCard(data); break; case 'partial': renderPartialCard(data); break; case 'error': renderErrorCard(formatError(data)); break; }"
+        },
+        {
+          "type": "create_function",
+          "file": "public/script.js",
+          "content_spec": "Add renderPartialCard(data) function. Shows: Title 'Project Created - Tests Failed', yellow accent color, message 'Files generated successfully but X tests failed. Review failures below and fix manually or re-run.', file list, 'View Failures' button (expands test output), 'Open Project' and 'Re-run' action buttons."
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/ui/outcome-state-machine.test.ts",
+          "content_spec": "Unit tests for computeOutcome(): (1) No files → error, (2) Files + tests pass → success, (3) Files + tests fail → partial, (4) Files + no test execution → error, (5) Generation error → error. Assert return values match expected strings."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'function computeOutcome' public/script.js",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'function renderPartialCard' public/script.js",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- outcome-state-machine.test.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "computeOutcome() function exists and returns 'success' | 'partial' | 'error'",
+        "renderPartialCard() function exists with yellow styling",
+        "All outcome logic routed through state machine (no ad-hoc checks)",
+        "Unit tests pass for all 5 outcome scenarios",
+        "TypeScript compiles without errors"
+      ],
+      "trace_context": {
+        "decision_point": "outcome_authority_implementation",
+        "win_number": "25"
+      }
+    },
+    {
+      "id": "W26",
+      "stage": "presentation_policy",
+      "title": "Win #26: Hide Internal System State (Task Plan, Test Timeline, Repair History)",
+      "type": "win",
+      "description": "Remove Task Plan Progress, Test & Repair Timeline, and Repair History sections from default user view. Move them into collapsible 'Debug Info' disclosure that is CLOSED by default. Users should see OUTCOME, not PROCESS.",
+      "time_estimate_minutes": "40",
+      "actions": [
+        {
+          "type": "edit",
+          "file": "public/index.html",
+          "content_spec": "Wrap <div id='taskPlanSection'>, <div id='testControls'>, and any repair history display in a new <details id='debugDisclosure'> element with <summary>🔧 Debug Info (Advanced)</summary>. Ensure details element is NOT open by default. Apply CSS to make summary subtle (gray text, small font)."
+        },
+        {
+          "type": "edit",
+          "file": "public/styles.css",
+          "content_spec": "Add #debugDisclosure { margin-top: 2rem; }. Add #debugDisclosure summary { color: #6b7280; font-size: 0.875rem; cursor: pointer; user-select: none; }. Add #debugDisclosure summary:hover { color: #374151; }. Add #debugDisclosure[open] summary { margin-bottom: 1rem; font-weight: 500; }"
+        },
+        {
+          "type": "edit",
+          "file": "public/script.js",
+          "content_spec": "In functions that render task plan/test timeline, ensure they append to #debugDisclosure content area, not to main result area. Default state: debugDisclosure.removeAttribute('open') to ensure closed on page load."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q '<details id=\"debugDisclosure\"' public/index.html",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q '#debugDisclosure' public/styles.css",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f tests/ui/presentation-policy.playwright.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Task Plan, Test Timeline, Repair History wrapped in <details> element",
+        "Debug disclosure is CLOSED by default (verified visually and in DOM)",
+        "Summary styled subtly (gray, small text)",
+        "Clicking summary reveals internal state",
+        "Main result area shows ONLY outcome card + file list + actions"
+      ],
+      "trace_context": {
+        "decision_point": "presentation_policy_enforcement",
+        "win_number": "26"
+      }
+    },
+    {
+      "id": "W27",
+      "stage": "modern_ui_implementation",
+      "title": "Win #27: Modern Card-Based UI (October 2025 Standards)",
+      "type": "win",
+      "description": "Redesign outcome cards (success/partial/error) to meet October 2025 UX standards: clean typography, subtle shadows, appropriate color psychology, micro-interactions, accessibility. Inspired by Replit Agent 3, GitHub Copilot Workspace, v0.dev.",
+      "time_estimate_minutes": "50",
+      "actions": [
+        {
+          "type": "edit",
+          "file": "public/styles.css",
+          "content_spec": "Rewrite .success-card, add .partial-card, update .error-card with: Modern shadows (box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)), Rounded corners (border-radius: 0.75rem), Proper spacing (padding: 1.5rem), Color system: success=#10b981 (green-500), partial=#f59e0b (amber-500), error=#ef4444 (red-500), Accent bar on left (border-left: 4px solid), Typography: title 1.25rem font-weight 600, body 0.875rem line-height 1.5, Smooth transitions (transition: all 0.2s ease)"
+        },
+        {
+          "type": "edit",
+          "file": "public/script.js",
+          "content_spec": "Update renderSuccessCard() to use: ✓ icon (Unicode ✓ or SVG), Title 'Project Generated Successfully', Subtitle showing file count + test status, File list with hover states, Primary CTA button 'Open Project' (green-600 bg, white text, hover:green-700), Secondary button 'View Files' (gray-200 bg, hover:gray-300)"
+        },
+        {
+          "type": "edit",
+          "file": "public/script.js",
+          "content_spec": "Update renderPartialCard() to use: ⚠ icon, Title 'Project Created - Tests Need Attention', Message explaining X tests failed, File list, 'View Test Results' button (expands failures with syntax highlighting), Action buttons: 'Open Project' (primary), 'Fix & Re-run' (secondary)"
+        },
+        {
+          "type": "edit",
+          "file": "public/script.js",
+          "content_spec": "Update renderErrorCard() to use: ✕ icon, Title 'Generation Failed', Error message with formatError() (friendly language, no stack traces unless in Debug), Suggested actions list (bullet points with → arrows), 'Try Again' button (primary), 'Report Issue' link (secondary)"
+        },
+        {
+          "type": "create_file",
+          "file": "public/icons.js",
+          "content_spec": "SVG icon library: successIcon (checkmark in circle), partialIcon (exclamation in triangle), errorIcon (X in circle), fileIcon, folderIcon. Export as template strings. Use currentColor for fill to inherit text color."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'box-shadow.*rgba' public/styles.css",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'border-radius.*0.75rem' public/styles.css",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f public/icons.js",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "All three card types use modern shadow system",
+        "Color palette matches October 2025 standards (green-500, amber-500, red-500)",
+        "Typography hierarchy clear (1.25rem titles, 0.875rem body)",
+        "Icons integrated (SVG, not emoji)",
+        "Hover states on all interactive elements",
+        "Buttons follow primary/secondary pattern",
+        "No accessibility violations (color contrast >=4.5:1)"
+      ],
+      "trace_context": {
+        "decision_point": "modern_ui_standards",
+        "win_number": "27"
+      }
+    },
+    {
+      "id": "W28",
+      "stage": "modern_ui_implementation",
+      "title": "Win #28: File Preview with Syntax Highlighting",
+      "type": "win",
+      "description": "Add collapsible file preview panel showing generated file contents with syntax highlighting. Users can quickly verify code quality without opening external editor. Use Prism.js (lightweight, no build step needed).",
+      "time_estimate_minutes": "45",
+      "actions": [
+        {
+          "type": "edit",
+          "file": "public/index.html",
+          "content_spec": "Add <link> to Prism.js CSS CDN (prism-tomorrow theme for dark mode support). Add <script> tag for Prism.js core + common languages (js, ts, html, css, json, python). After outcome card, add <div id='filePreviewPanel' class='file-preview-panel' hidden>"
+        },
+        {
+          "type": "edit",
+          "file": "public/script.js",
+          "content_spec": "Add renderFilePreview(files) function that: Creates file tree (folders collapsible, files clickable), On file click: fetch file content from /api/files/:project/:path, Display in <pre><code class='language-*'> with Prism highlighting, Show file size + last modified, Add 'Copy' button (copies to clipboard with toast notification)"
+        },
+        {
+          "type": "edit",
+          "file": "public/styles.css",
+          "content_spec": ".file-preview-panel styles: Two-column layout (file tree left 30%, preview right 70%), Tree items with hover states, Active file highlighted, Preview area with line numbers, Copy button positioned top-right, Responsive: stack on mobile (<768px)"
+        },
+        {
+          "type": "add_route",
+          "file": "src/api/routes.ts",
+          "content_spec": "Add GET /api/files/:project/:path endpoint that: Validates project exists in ./output, Sanitizes path (prevent directory traversal), Reads file with fs.readFile, Returns {content: string, size: number, modified: Date}, Handles errors (404 if not found, 403 if outside project)"
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/api/files.test.ts",
+          "content_spec": "Integration tests for /api/files endpoint: (1) Valid file returns content, (2) Nonexistent file returns 404, (3) Path traversal blocked (../../../etc/passwd → 403), (4) Binary files handled gracefully"
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'prismjs' public/index.html",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'renderFilePreview' public/script.js",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q '/api/files/:project/:path' src/api/routes.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- files.test.ts",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Prism.js integrated via CDN (no build step)",
+        "File tree renders with folders/files structure",
+        "Clicking file loads and highlights content",
+        "Copy button works with toast notification",
+        "API endpoint validates paths (no traversal attacks)",
+        "Responsive layout works on mobile",
+        "All tests pass"
+      ],
+      "trace_context": {
+        "decision_point": "file_preview_implementation",
+        "win_number": "28"
+      }
+    },
+    {
+      "id": "W29",
+      "stage": "modern_ui_implementation",
+      "title": "Win #29: Loading States with Progress Indication",
+      "type": "win",
+      "description": "Replace generic spinner with staged progress indicator showing: Analyzing prompt → Planning tasks → Generating code → Running tests. Uses WebSocket or SSE for real-time updates (fallback to polling if not available).",
+      "time_estimate_minutes": "50",
+      "actions": [
+        {
+          "type": "edit",
+          "file": "public/script.js",
+          "content_spec": "Replace updateLoadingPhase() with renderProgressStages(currentStage, data). Stages: 'analyzing' (0-10%), 'planning' (10-30%), 'generating' (30-70%), 'testing' (70-90%), 'finalizing' (90-100%). Each stage shows: Icon (animated), Title, Subtitle (dynamic based on data), Progress bar, Estimated time remaining"
+        },
+        {
+          "type": "edit",
+          "file": "public/styles.css",
+          "content_spec": ".progress-stages styles: Vertical timeline on left (connected by animated line), Current stage highlighted (color, scale 1.1), Future stages grayed out, Past stages with checkmark, Progress bar at bottom (animated width transition), Skeleton loaders for file list during generation"
+        },
+        {
+          "type": "edit",
+          "file": "src/api/routes.ts",
+          "content_spec": "In /api/execute, emit progress events: After prompt analysis → emit {stage: 'analyzing', progress: 10}, After task planning → emit {stage: 'planning', progress: 30, tasksCount: N}, During generation → emit {stage: 'generating', progress: 50, currentTask: X}, After tests → emit {stage: 'testing', progress: 80, testResults: summary}. Use res.write() for SSE if Accept: text/event-stream, else store in session for polling."
+        },
+        {
+          "type": "add_route",
+          "file": "src/api/routes.ts",
+          "content_spec": "Add GET /api/progress/:sessionId endpoint for polling fallback. Returns current stage + progress + data. Cleanup sessions after 1 hour."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "grep -q 'renderProgressStages' public/script.js",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q '.progress-stages' public/styles.css",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'text/event-stream' src/api/routes.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Progress stages render with timeline visualization",
+        "Current stage highlighted with animation",
+        "Progress bar updates smoothly (no jumps)",
+        "SSE implementation working (or polling fallback)",
+        "Estimated time remaining updates every 5 seconds",
+        "Skeleton loaders shown during generation",
+        "All stages complete before showing outcome card"
+      ],
+      "trace_context": {
+        "decision_point": "loading_states_implementation",
+        "win_number": "29"
+      }
+    },
+    {
+      "id": "W30",
+      "stage": "runtime_hardening",
+      "title": "Win #30: Package.json Generation Validation",
+      "type": "win",
+      "description": "Fix the 'Missing contents for package.json' bug by adding preflight validation. After LLM generates files but BEFORE writing to disk, assert package.json exists and has required fields. If missing, trigger immediate ScaffoldRepair strategy.",
+      "time_estimate_minutes": "40",
+      "actions": [
+        {
+          "type": "create_function",
+          "file": "src/validation/validateScaffold.ts",
+          "content_spec": "Export validateScaffold(files: GeneratedFile[]): ValidationResult. Checks: (1) package.json exists in files array, (2) package.json content parses as valid JSON, (3) Required fields present: name, version, scripts (at minimum), (4) If tests expected: devDependencies includes test framework. Returns {valid: boolean, errors: string[], missingFiles: string[]}."
+        },
+        {
+          "type": "edit",
+          "file": "src/executor/executor.ts",
+          "content_spec": "In execute() function, after LLM returns files but before writeFilesToDisk(): Call validation = validateScaffold(files). If !validation.valid: Log validation.errors, Call repairStrategy = selectRepairStrategy({category: 'MISSING_SCAFFOLD', errors: validation.errors}), Trigger repair with ScaffoldRepair strategy (re-prompt for minimal scaffold only), Re-validate, If still invalid after 1 repair → return error outcome (don't write incomplete files)"
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/validation/validateScaffold.test.ts",
+          "content_spec": "Unit tests: (1) Valid scaffold passes, (2) Missing package.json fails, (3) Malformed package.json JSON fails, (4) Missing required fields fails, (5) Returns correct error messages. Integration test: Generate project with broken scaffold → assert repair triggered → assert final output valid."
+        },
+        {
+          "type": "edit",
+          "file": "src/repair/strategySelector.ts",
+          "content_spec": "Add MISSING_SCAFFOLD to FailureCategory enum. Add ScaffoldRepair strategy mapping: { category: 'MISSING_SCAFFOLD', strategy: 'scaffoldRepair', prompt: 'Generate ONLY minimal project scaffold: package.json with name/version/scripts, README.md, src/index file. No implementation yet. Respond with JSON only.' }"
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f src/validation/validateScaffold.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'validateScaffold' src/executor/executor.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "grep -q 'MISSING_SCAFFOLD' src/repair/strategySelector.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm test -- validateScaffold.test.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "validateScaffold() function exists and exports correct interface",
+        "Validation runs BEFORE disk write (logged in execution trace)",
+        "MISSING_SCAFFOLD repair strategy defined",
+        "Repair triggered automatically when scaffold invalid",
+        "All unit tests pass (5 scenarios covered)",
+        "Integration test passes (broken scaffold → repair → valid output)",
+        "'Missing contents for package.json' error eliminated from logs",
+        "TypeScript compiles without errors"
+      ],
+      "trace_context": {
+        "decision_point": "scaffold_validation_implementation",
+        "win_number": "30"
+      }
+    },
+    {
+      "id": "W31",
+      "stage": "ui_validation",
+      "title": "Win #31: Playwright UI Validation Suite",
+      "type": "win",
+      "description": "Comprehensive Playwright test suite that validates the entire UI flow: loading states, outcome cards, file preview, debug disclosure. Includes visual regression tests (screenshot comparison) and accessibility audits.",
+      "time_estimate_minutes": "55",
+      "actions": [
+        {
+          "type": "create_file",
+          "file": "tests/ui/playwright.config.ts",
+          "content_spec": "Playwright config: baseURL: http://localhost:3000, screenshot: 'only-on-failure', video: 'retain-on-failure', use: { viewport: {width: 1280, height: 720}, screenshot: 'on' }, projects: [chromium, firefox, webkit], testDir: './tests/ui'"
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/ui/outcome-cards.spec.ts",
+          "content_spec": "Test success card: Generate passing project → Assert success card visible, green accent, ✓ icon, 'Open Project' button, Task Plan NOT visible by default. Test partial card: Generate project with failing tests → Assert partial card visible, yellow accent, ⚠ icon, file list shown. Test error card: Send invalid prompt → Assert error card visible, red accent, ✕ icon, 'Try Again' button. Visual regression: Compare screenshots to baseline images (stored in tests/ui/snapshots/)."
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/ui/debug-disclosure.spec.ts",
+          "content_spec": "Test debug disclosure closed by default: Generate project → Assert <details id='debugDisclosure'> has NO 'open' attribute, Task Plan/Test Timeline not visible in viewport. Test debug disclosure opens: Click summary → Assert details[open], internal state now visible. Test debug content: Expand disclosure → Assert Task Plan renders, Test Timeline renders, Repair History renders (if applicable)."
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/ui/file-preview.spec.ts",
+          "content_spec": "Test file tree renders: Generate project → Assert file tree shows folders + files. Test file click: Click on file → Assert content loads, syntax highlighting applied (check for .language-* class), line numbers visible. Test copy button: Click copy → Assert clipboard contains file content, toast notification appears. Test responsive layout: Resize to 600px width → Assert file tree stacks above preview."
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/ui/loading-states.spec.ts",
+          "content_spec": "Test progress stages: Submit prompt → Assert 'analyzing' stage shows first, progress bar at ~10%, Then 'planning' stage (30%), Then 'generating' stage (50-70%), Then 'testing' stage (80%), Then outcome card appears. Test stage animations: Assert current stage has scale(1.1) transform, past stages show checkmark, future stages grayed out."
+        },
+        {
+          "type": "create_tests",
+          "file": "tests/ui/accessibility.spec.ts",
+          "content_spec": "Use @axe-core/playwright for accessibility audits. Test all outcome cards (success, partial, error) for: Color contrast >=4.5:1, Keyboard navigation (tab order logical), Focus indicators visible, ARIA labels present on icons, Semantic HTML (headings, buttons, lists). Test file preview for: Tree navigation with keyboard, Code blocks readable by screen readers. Assert zero critical accessibility violations."
+        },
+        {
+          "type": "edit",
+          "file": "package.json",
+          "content_spec": "Add scripts: 'test:ui': 'playwright test', 'test:ui:headed': 'playwright test --headed', 'test:ui:debug': 'playwright test --debug'. Add devDependencies: '@playwright/test': '^1.40.0', '@axe-core/playwright': '^4.8.0'. Update test script to include: 'npm run test:unit && npm run test:ui'."
+        }
+      ],
+      "validation": [
+        {
+          "cmd": "test -f tests/ui/playwright.config.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f tests/ui/outcome-cards.spec.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f tests/ui/debug-disclosure.spec.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f tests/ui/file-preview.spec.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f tests/ui/loading-states.spec.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "test -f tests/ui/accessibility.spec.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "cmd": "npm run test:ui 2>&1 | grep -E '(passed|✓)'",
+          "expect_exit_code": 0
+        }
+      ],
+      "success_criteria": [
+        "Playwright configured for 3 browsers (Chromium, Firefox, WebKit)",
+        "5 test suites created covering all UI scenarios",
+        "Visual regression tests capture baseline screenshots",
+        "Accessibility tests run with axe-core (zero critical violations)",
+        "All tests pass in headless mode",
+        "Screenshot artifacts saved to tests/ui/test-results/ on failure",
+        "Test coverage for: outcome cards, debug disclosure, file preview, loading states, accessibility"
+      ],
+      "trace_context": {
+        "decision_point": "ui_validation_suite",
+        "win_number": "31"
+      }
+    },
+    {
+      "id": "A-FIX-GATE",
+      "stage": "phase_a_fix_gate",
+      "title": "Phase A-FIX Validation Gate",
+      "type": "validation",
+      "description": "Final validation that Phase A-FIX delivers state-of-the-art October 2025 UI: clean outcome cards, hidden internal state, modern styling, comprehensive test coverage, zero accessibility violations.",
+      "actions": [
+        {
+          "type": "validate",
+          "cmd": "npm run lint",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run typecheck",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm test",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "npm run test:ui",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "test -f public/icons.js && test -f src/validation/validateScaffold.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "grep -q 'computeOutcome' public/script.js && grep -q 'renderPartialCard' public/script.js",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "grep -q 'debugDisclosure' public/index.html",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "validate",
+          "cmd": "grep -q 'MISSING_SCAFFOLD' src/repair/strategySelector.ts",
+          "expect_exit_code": 0
+        },
+        {
+          "type": "manual_test",
+          "description": "Visual verification: (1) Generate test project → See clean success card with green accent, file preview, NO Task Plan visible by default. (2) Generate project with test failures → See yellow partial card with clear error details. (3) Send invalid prompt → See red error card with helpful message. (4) Click 'Debug Info' disclosure → See Task Plan + Test Timeline appear. (5) Check all 3 browsers (Chrome, Firefox, Safari) → Consistent rendering. (6) Check mobile viewport (375px width) → Responsive layout works. Take screenshots and save to .automation/phase_a_fix_screenshots/."
+        },
+        {
+          "type": "lighthouse_audit",
+          "description": "Run Lighthouse audit on generated UI: Performance >=90, Accessibility >=95, Best Practices >=90. Save report to .automation/lighthouse_report.html."
+        }
+      ],
+      "evaluation": {
+        "intent": "Confirm Phase A-FIX delivers state-of-the-art October 2025 UI that shows OUTCOME not PROCESS, with modern styling, comprehensive tests, and zero accessibility violations",
+        "success_criteria": "All linting/typechecking/tests pass, Playwright suite passes, Outcome state machine implemented, Internal state hidden by default, Modern card styling applied, File preview working, Loading states with progress indication, Package.json validation prevents 'Missing contents' error, Lighthouse scores meet thresholds, Manual visual verification confirms clean UX across browsers",
+        "on_pass": "Phase A-FIX COMPLETE - UI now meets October 2025 standards. Ready for Phase B (multi-agent orchestration prep).",
+        "on_fail": "HALT - Fix failing tests/validations before proceeding. UI must be perfect before adding more features."
+      },
+      "trace_context": {
+        "decision_point": "phase_a_fix_gate",
+        "reasoning_required": true,
+        "critical": true,
+        "gate_type": "go_no_go"
+      }
+    }
+  ],
+  "execution_order": [
+    "A-V01",
+    "W25",
+    "W26",
+    "W27",
+    "W28",
+    "W29",
+    "W30",
+    "W31",
+    "A-FIX-GATE"
+  ],
+  "execution_semantics": {
+    "win_isolation": {
+      "description": "Each win must be complete and tested before proceeding to next. No mixing of wins. No skipping validation.",
+      "implementation": "Run full test suite after each win. Halt if any test fails. Commit after each win with descriptive message."
+    },
+    "gate_enforcement": {
+      "A-FIX-GATE": {
+        "required": true,
+        "on_fail": "HALT execution. Do not proceed to Phase B. Fix all failing validations. UI must be PERFECT.",
+        "report": "Generate diagnostic report showing: (1) Which validations passed/failed, (2) Screenshots of UI in all states, (3) Lighthouse scores, (4) Accessibility audit results, (5) Test coverage report."
+      }
+    },
+    "phase_specific_constraints": {
+      "no_backend_rewrites": "DO NOT rewrite core generation/repair logic. Only UI changes + one validation function (validateScaffold).",
+      "visual_regression_tolerance": "Screenshots must match within 0.1% pixel difference (allow for anti-aliasing). Larger differences require manual approval.",
+      "accessibility_zero_tolerance": "Zero critical accessibility violations allowed. Warnings must be documented with justification.",
+      "browser_compatibility": "Must work in latest Chrome, Firefox, Safari. IE11 NOT supported.",
+      "mobile_first": "Design for mobile (375px) first, then scale up. Not desktop-first."
+    }
+  },
+  "completion_criteria": {
+    "phase_a_verified": true,
+    "outcome_state_machine_implemented": true,
+    "internal_state_hidden": true,
+    "modern_cards_styled": true,
+    "file_preview_working": true,
+    "loading_states_progressive": true,
+    "package_json_validation_added": true,
+    "playwright_suite_passing": true,
+    "accessibility_audit_clean": true,
+    "lighthouse_scores_met": true,
+    "visual_verification_approved": true,
+    "all_tests_pass": true,
+    "coverage_maintained": true,
+    "manual_test_passes": true
+  },
+  "fallback_policies": {
+    "phase_a_verification_fails": "HALT - Phase A must be complete before A-FIX. Check that renderSuccessCard, formatError, updateLoadingPhase exist in public/script.js.",
+    "outcome_state_machine_logic_broken": "Revert to previous commit. Review computeOutcome() logic against run-result.schema.json. Add missing test cases.",
+    "ui_tests_fail": "Check screenshots in test-results/. If visual regression: review changes, update baselines if intentional. If functional failure: fix implementation, re-run tests.",
+    "accessibility_violations": "Fix immediately. No exceptions. Use Chrome DevTools Accessibility panel to identify issues. Re-run axe-core audit.",
+    "lighthouse_scores_low": "Profile performance. Optimize images, defer non-critical JS, minify CSS. Re-run audit. Document any scores <90 with justification.",
+    "package_json_still_missing": "Check validateScaffold() is called before writeFilesToDisk(). Verify MISSING_SCAFFOLD repair strategy triggers. Check LLM prompt includes 'must generate package.json'. Add more detailed logs.",
+    "browser_compatibility_issues": "Test in all 3 browsers. Use browserstack or playwright headed mode. Fix CSS vendor prefixes. Document any known issues in README."
+  },
+  "reporting": {
+    "progress_file": ".automation/progress_a_fix.json",
+    "fields": ["task_id", "win_number", "status", "started_at", "finished_at", "elapsed_ms", "result", "errors", "screenshots"],
+    "status_values": ["pending", "running", "success", "failed", "skipped"],
+    "phase_report": {
+      "file": ".automation/phase_a_fix_completion_report.json",
+      "fields": [
+        "wins_completed",
+        "gate_passed",
+        "timestamp",
+        "next_phase",
+        "diagnostics",
+        "lighthouse_scores",
+        "accessibility_violations_count",
+        "visual_regression_results",
+        "test_coverage_pct",
+        "screenshot_paths"
+      ]
+    }
+  },
+  "final_artifacts_verification": [
+    {
+      "name": "Outcome State Machine",
+      "path": "public/script.js",
+      "must_include_regex": "function computeOutcome.*success.*partial.*error"
+    },
+    {
+      "name": "Partial Card Renderer",
+      "path": "public/script.js",
+      "must_include_regex": "function renderPartialCard"
+    },
+    {
+      "name": "Debug Disclosure",
+      "path": "public/index.html",
+      "must_include_regex": "details id=['\"]debugDisclosure['\"]"
+    },
+    {
+      "name": "Modern Card Styles",
+      "path": "public/styles.css",
+      "must_include_regex": "box-shadow.*rgba.*border-radius.*0\\.75rem"
+    },
+    {
+      "name": "Icon Library",
+      "path": "public/icons.js",
+      "must_exist": true
+    },
+    {
+      "name": "Scaffold Validator",
+      "path": "src/validation/validateScaffold.ts",
+      "must_include_regex": "export.*validateScaffold.*ValidationResult"
+    },
+    {
+      "name": "Playwright Config",
+      "path": "tests/ui/playwright.config.ts",
+      "must_exist": true
+    },
+    {
+      "name": "Outcome Cards Tests",
+      "path": "tests/ui/outcome-cards.spec.ts",
+      "must_exist": true
+    },
+    {
+      "name": "Accessibility Tests",
+      "path": "tests/ui/accessibility.spec.ts",
+      "must_include_regex": "@axe-core/playwright"
+    },
+    {
+      "name": "Phase Report",
+      "path": ".automation/phase_a_fix_completion_report.json",
+      "must_exist": true,
+      "must_include_field": "gate_passed"
+    },
+    {
+      "name": "Screenshots",
+      "path": ".automation/phase_a_fix_screenshots/",
+      "must_exist": true,
+      "must_contain_files": ["success-card.png", "partial-card.png", "error-card.png"]
+    }
+  ],
+  "release_actions": [
+    {
+      "cmd": "git add .",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git commit -m \"feat(ui): Phase A-FIX - State-of-the-art October 2025 UI with outcome authority, hidden internal state, modern cards, file preview, loading states, scaffold validation, and comprehensive Playwright test suite\"",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "git tag phase-a-fix-complete",
+      "expect_exit_code": 0
+    },
+    {
+      "cmd": "echo 'Phase A-FIX complete. Next: Phase B (multi-agent orchestration prep).' > .automation/next_phase.txt",
+      "expect_exit_code": 0
+    }
+  ],
+  "ai_executor_guidelines": {
+    "observability_first": "Trace all decisions. Log reasoning for each win completion. Capture screenshots at every UI change.",
+    "win_isolation": "Complete and test each win fully before proceeding to next. Do not mix wins. Commit after each win.",
+    "phase_specific_guidance": "This is a PERFECTION contract. October 2025 UI standards are non-negotiable. Every pixel matters. Every interaction must delight. If you're unsure about a design decision, reference Replit Agent 3, GitHub Copilot Workspace, or v0.dev for inspiration. Modern UI = clean outcome cards + progressive disclosure + micro-interactions + accessibility.",
+    "test_driven": "Write Playwright tests before or alongside implementation. Never skip tests. Visual regression tests are mandatory.",
+    "fail_fast": "If any test fails, halt and fix before proceeding. If accessibility violations found, halt immediately and fix. No exceptions.",
+    "gate_enforcement": "A-FIX-GATE must pass with 100% success before declaring phase complete. Manual visual verification required.",
+    "quality_bar": "This contract demands PERFECTION. No 'good enough'. No 'we'll fix it later'. No compromises. The UI must be stunning, accessible, fast, and delightful. Anything less is failure."
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "date": "2025-10-16",
+  "scope": "WF5S2-B – Session 2 integrity hardening",
+  "integration_points": [
+    {
+      "path": "tests/scripts/update-gate.test.ts",
+      "note": "Uses inline sample ledgers; needs to consume .automation/GATES_LEDGER.md and cover missing-criterion errors"
+    },
+    {
+      "path": "scripts/gate-auto-update.js",
+      "note": "Error logs are generic when updates fail; missing canonical criterion should produce actionable guidance"
+    },
+    {
+      "path": "workflow/lib/gateCriteria.ts",
+      "note": "Parser lacks unit tests that assert against the live ledger structure and emoji status markers"
+    },
+    {
+      "path": "scripts/detect-evidence.js",
+      "note": "CLI should summarize enabled vs. skipped rules after canonical criterion loading"
+    },
+    {
+      "path": ".automation/GATES_LEDGER.md",
+      "note": "Source of canonical acceptance criteria text for automation; tests must reference this file"
+    }
+  ],
+  "risks": [
+    "Need to avoid mutating the checked-in ledger during tests by using temp copies",
+    "Logging changes must remain backwards compatible for existing tooling"
+  ],
+  "compliance": {
+    "language": "TypeScript/JavaScript",
+    "dependencies": "unchanged",
+    "testing": "Vitest",
+    "protected_files": "read-only"
+  },
+  "planned_actions": [
+    "Add parser unit tests against the live ledger",
+    "Refactor gate updater tests to use the real ledger",
+    "Improve auto-update logging for missing criteria",
+    "Summarize enabled detector rules in CLI output",
+    "Ensure detector constants CI guard remains wired"
+  ]
+}

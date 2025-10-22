@@ -1,0 +1,70 @@
+{
+  "originalPrompt": "Create a small library with one function and a unit test.",
+  "subtasks": [
+    {
+      "id": "init-repo",
+      "title": "Initialize project repository",
+      "description": "Create a new project directory, initialize version control (git), add a README.md, and create a minimal source/test folder structure and a project metadata file.",
+      "status": "pending",
+      "estimatedComplexity": "low",
+      "successCriteria": "Repository exists with git initialized, README.md, src/ and tests/ (or language-appropriate) folders, and a project metadata file (e.g., package.json or pyproject.toml)."
+    },
+    {
+      "id": "design-function",
+      "title": "Design the single function API and behavior",
+      "description": "Decide the function name, input parameters, return type, expected behavior and edge cases; record examples and a short spec in the README or a DESIGN.md file.",
+      "status": "pending",
+      "dependencies": [
+        "init-repo"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "A written spec exists describing function signature, inputs, outputs, and at least three example cases including edge cases."
+    },
+    {
+      "id": "implement-function",
+      "title": "Implement the function in the library",
+      "description": "Write the function code according to the design, add it to the project source folder, and export or expose it in a way that tests and consumers can import.",
+      "status": "pending",
+      "dependencies": [
+        "design-function"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "Source file contains the implemented function matching the spec, lints cleanly for basic style, and is importable by test code."
+    },
+    {
+      "id": "write-unit-test",
+      "title": "Write unit tests for the function",
+      "description": "Create unit test(s) that cover normal cases and edge cases from the design spec, using a standard test framework; place tests in the tests/ folder.",
+      "status": "pending",
+      "dependencies": [
+        "implement-function"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "At least one test file exists with tests that import the function and assert correct behavior for normal and edge cases."
+    },
+    {
+      "id": "run-tests-and-ci",
+      "title": "Run tests locally and add CI to run them",
+      "description": "Run the unit tests locally to verify they pass; create a simple continuous integration workflow (e.g., GitHub Actions) that runs the tests on push/PR.",
+      "status": "pending",
+      "dependencies": [
+        "write-unit-test"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "All local tests pass and a CI workflow file is added which successfully runs the test command in CI for the repository."
+    },
+    {
+      "id": "package-and-document",
+      "title": "Package the library and update documentation",
+      "description": "Add usage examples and installation instructions to README, update project metadata/version, and prepare a minimal packaging configuration if applicable.",
+      "status": "pending",
+      "dependencies": [
+        "run-tests-and-ci"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "README contains usage and installation instructions, project metadata/version is set, and packaging config is present if language requires it."
+    }
+  ],
+  "totalSubtasks": 6,
+  "decompositionStrategy": "Top-down: set up repository and structure, define the function API, implement the function, write tests, run tests and CI, then package and document."
+}

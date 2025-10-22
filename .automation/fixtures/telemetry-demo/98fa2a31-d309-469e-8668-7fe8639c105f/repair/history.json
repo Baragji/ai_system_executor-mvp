@@ -1,0 +1,98 @@
+{
+  "attempts": [
+    {
+      "number": 1,
+      "status": "fail",
+      "startedAt": "2025-10-11T23:41:24.826Z",
+      "finishedAt": "2025-10-11T23:41:24.837Z",
+      "changedFiles": [],
+      "summary": "Attempt 1 failed without file changes. Remaining failure category: exception",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "fail",
+        "passCount": 0,
+        "failCount": 1,
+        "durationMs": 90,
+        "logsPath": "logs/run.log"
+      },
+      "failureAnalysis": {
+        "failedTests": [],
+        "totalFailed": 0,
+        "category": "exception"
+      },
+      "durationMs": 11,
+      "cumulativeTime": 11
+    },
+    {
+      "number": 2,
+      "status": "fail",
+      "startedAt": "2025-10-11T23:41:24.838Z",
+      "finishedAt": "2025-10-11T23:41:24.847Z",
+      "changedFiles": [],
+      "summary": "Attempt 2 failed without file changes. Remaining failure category: exception",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "fail",
+        "passCount": 0,
+        "failCount": 1,
+        "durationMs": 90,
+        "logsPath": "logs/run.log"
+      },
+      "failureAnalysis": {
+        "failedTests": [],
+        "totalFailed": 0,
+        "category": "exception"
+      },
+      "durationMs": 9,
+      "cumulativeTime": 20
+    },
+    {
+      "number": 3,
+      "status": "fail",
+      "startedAt": "2025-10-11T23:41:24.847Z",
+      "finishedAt": "2025-10-11T23:41:24.851Z",
+      "changedFiles": [],
+      "summary": "Attempt 3 failed without file changes. Remaining failure category: exception",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "fail",
+        "passCount": 0,
+        "failCount": 1,
+        "durationMs": 90,
+        "logsPath": "logs/run.log"
+      },
+      "failureAnalysis": {
+        "failedTests": [],
+        "totalFailed": 0,
+        "category": "exception"
+      },
+      "durationMs": 4,
+      "cumulativeTime": 24
+    },
+    {
+      "number": 4,
+      "status": "fail",
+      "startedAt": "2025-10-11T23:41:24.851Z",
+      "finishedAt": "2025-10-11T23:41:24.854Z",
+      "changedFiles": [],
+      "summary": "Attempt 4 failed without file changes. Remaining failure category: exception",
+      "strategy": "exception_hardening",
+      "testResult": {
+        "status": "fail",
+        "passCount": 0,
+        "failCount": 1,
+        "durationMs": 90,
+        "logsPath": "logs/run.log"
+      },
+      "failureAnalysis": {
+        "failedTests": [],
+        "totalFailed": 0,
+        "category": "exception"
+      },
+      "durationMs": 3,
+      "cumulativeTime": 27
+    }
+  ],
+  "finalStatus": "exhausted",
+  "totalAttempts": 4
+}

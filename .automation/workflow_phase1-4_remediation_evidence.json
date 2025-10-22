@@ -1,0 +1,231 @@
+{
+  "tasks": [
+    {
+      "id": "WF5-V01",
+      "title": "Confirm contamination baseline",
+      "actions": [
+        {
+          "cmd": "rg --line-number 'workflowMetadata' src/server.ts",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-V01_cmd1_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-V01_cmd1_stderr.txt",
+          "summary": "Located workflowMetadata cache usage and payload merges inside src/server.ts."
+        },
+        {
+          "cmd": "grep -n '/api/workflow/status' src/server.ts",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-V01_cmd2_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-V01_cmd2_stderr.txt",
+          "summary": "Confirmed Express route exposing /api/workflow/status endpoint."
+        },
+        {
+          "cmd": "npm test -- tests/api/workflow-status.test.ts",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-V01_cmd3_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-V01_cmd3_stderr.txt",
+          "summary": "Vitest suite validated workflow status API response returning workflow metadata."
+        }
+      ],
+      "success_criteria": [
+        "Existing contamination confirmed via server inspection.",
+        "Baseline test covering contaminated endpoint executed successfully."
+      ]
+    },
+    {
+      "id": "WF5-W51",
+      "title": "Remove workflow metadata from product runtime",
+      "actions": [
+        {
+          "cmd": "rg --line-number 'workflowMetadata' src/server.ts",
+          "exit_code": 1,
+          "stdout": ".automation/evidence/wf5/WF5-W51_cmd1_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-W51_cmd1_stderr.txt",
+          "summary": "Confirmed no workflowMetadata references remain in src/server.ts after runtime decoupling."
+        },
+        {
+          "cmd": "rg '/api/workflow/status' src/server.ts",
+          "exit_code": 1,
+          "stdout": ".automation/evidence/wf5/WF5-W51_cmd2_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-W51_cmd2_stderr.txt",
+          "summary": "Verified Express server no longer registers the /api/workflow/status endpoint."
+        },
+        {
+          "cmd": "npm test -- tests/api/workflow-status.test.ts",
+          "exit_code": 1,
+          "stdout": ".automation/evidence/wf5/WF5-W51_cmd3_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-W51_cmd3_stderr.txt",
+          "summary": "Targeted Vitest suite now fails because the workflow status route has been removed from the server."
+        }
+      ],
+      "success_criteria": [
+        "Server runtime no longer references workflow helpers.",
+        "Progress snapshots exclude workflow metadata fields.",
+        "Workflow status endpoint is absent, causing existing test to fail pending removal."
+      ]
+    },
+    {
+      "id": "WF5-W52",
+      "title": "Isolate workflow state module",
+      "actions": [
+        {
+          "cmd": "test -f workflow/lib/phaseState.ts",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-W52_cmd1_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-W52_cmd1_stderr.txt",
+          "summary": "Verified the workflow state module now resides under workflow/lib."
+        },
+        {
+          "cmd": "rg 'from \"./state/phaseState\"' -g'*.ts'",
+          "exit_code": 1,
+          "stdout": ".automation/evidence/wf5/WF5-W52_cmd2_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-W52_cmd2_stderr.txt",
+          "summary": "Confirmed no TypeScript files import from the old src/state/phaseState path."
+        },
+        {
+          "cmd": "npm test -- tests/state/phaseState.test.ts",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-W52_cmd3_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-W52_cmd3_stderr.txt",
+          "summary": "Targeted workflow state regression suite passes against relocated module."
+        }
+      ],
+      "success_criteria": [
+        "Workflow state helpers moved outside src/.",
+        "Legacy imports to src/state/phaseState eliminated.",
+        "Shared workflow module tests execute successfully from new location."
+      ]
+    },
+    {
+      "id": "WF5-W53",
+      "title": "Persist contract validation evidence",
+      "actions": [
+        {
+          "cmd": "npm test -- tests/state/sync.test.ts",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-W53_cmd1_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-W53_cmd1_stderr.txt",
+          "summary": "Workflow state sync regression now asserts validation_results are populated while remaining green."
+        },
+        {
+          "cmd": "npm run state:sync",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-W53_cmd2_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-W53_cmd2_stderr.txt",
+          "summary": "Contract sync script captured validation command output for Phase 19 documentation tasks."
+        },
+        {
+          "cmd": "rg 'validation_results' contracts/Roadmap_execution/19_phase19_autonomous_transition_contract.json",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-W53_cmd3_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-W53_cmd3_stderr.txt",
+          "summary": "Verified that validation_results arrays exist for relevant Phase 19 tasks after sync."
+        }
+      ],
+      "success_criteria": [
+        "Sync script writes validation evidence",
+        "Tests enforce evidence presence",
+        "Contract warnings cleared"
+      ]
+    },
+    {
+      "id": "WF5-W54",
+      "title": "Retire contaminated API test & reinforce CLI coverage",
+      "actions": [
+        {
+          "cmd": "test -f tests/api/workflow-status.test.ts",
+          "exit_code": 1,
+          "stdout": ".automation/evidence/wf5/WF5-W54_cmd1_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-W54_cmd1_stderr.txt",
+          "summary": "Confirmed the legacy workflow status API test file has been removed after remediation."
+        },
+        {
+          "cmd": "npm test -- tests/state/execute-next-action.test.ts",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-W54_cmd2_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-W54_cmd2_stderr.txt",
+          "summary": "CLI regression validates sanitized workflow metadata output with the isolated module imports."
+        }
+      ],
+      "success_criteria": [
+        "Contaminated API test removed",
+        "Workflow CLI coverage intact",
+        "Test suite reflects new boundaries"
+      ]
+    },
+    {
+      "id": "WF5-GATE",
+      "title": "Workflow remediation validation gate",
+      "actions": [
+        {
+          "cmd": "npm run lint",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd1_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd1_stderr.txt",
+          "summary": "ESLint completed with zero rule violations; only npm env warnings surfaced, confirming a clean lint run post-remediation."
+        },
+        {
+          "cmd": "npm run typecheck",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd2_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd2_stderr.txt",
+          "summary": "TypeScript compiler finished without errors, validating the decoupled runtime and workflow module boundaries."
+        },
+        {
+          "cmd": "npm test",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd3_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd3_stderr.txt",
+          "summary": "Full Vitest suite passed with coverage above thresholds and no workflowMetadata regressions detected."
+        },
+        {
+          "cmd": "npm run contract:check",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd4_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd4_stderr.txt",
+          "summary": "Contract schema validation succeeded, confirming remediation updates remain contract-compliant."
+        },
+        {
+          "cmd": "npm run sbom:all",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd5_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd5_stderr.txt",
+          "summary": "Generated SPDX and CycloneDX SBOM artifacts with the cleaned runtime baseline."
+        },
+        {
+          "cmd": "npm run provenance",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd6_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd6_stderr.txt",
+          "summary": "Produced the SLSA v1.0 provenance statement for the remediated workflow track."
+        },
+        {
+          "cmd": "npm run state:show",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd7_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd7_stderr.txt",
+          "summary": "State snapshot CLI reported workflow progress without referencing product server workflow metadata."
+        },
+        {
+          "cmd": "npm run state:sync",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd8_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd8_stderr.txt",
+          "summary": "Contract sync refreshed validation evidence entries using the isolated workflow tooling."
+        },
+        {
+          "cmd": "npm run state:next:dry",
+          "exit_code": 0,
+          "stdout": ".automation/evidence/wf5/WF5-GATE_cmd9_stdout.txt",
+          "stderr": ".automation/evidence/wf5/WF5-GATE_cmd9_stderr.txt",
+          "summary": "Dry-run executor recommended committing pending remediation artifacts, verifying CLI remains decoupled from product runtime."
+        }
+      ],
+      "success_criteria": [
+        "All validations succeed with zero warnings",
+        "No workflow metadata present in product server",
+        "Contract warnings resolved",
+        "Remediation summary recorded in docs"
+      ]
+    }
+  ]
+}

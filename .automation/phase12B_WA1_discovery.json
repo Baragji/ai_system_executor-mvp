@@ -1,0 +1,62 @@
+{
+  "phase": "B",
+  "work_area": "WA1",
+  "title": "Seed minimal Vitest spec and enforce test presence",
+  "date": "2025-10-09",
+  "integration_points": [
+    {
+      "file": "src/utils/seedTests.ts:1",
+      "function": "seedTestsInFiles",
+      "snippet": "export function seedTestsInFiles(files: GeneratedFile[]): GeneratedFile[] {\n  const out = [...files];\n  const hasTest = out.some(f => /\\.(test|spec)\\.[cm]?tsx?$/.test(f.path));\n  if (!hasTest) {\n    out.push({ path: 'tests/smoke.spec.ts', contents: \`import { describe, it, expect } from 'vitest';\\\ndescribe('smoke', () => { it('runs', () => { expect(true).toBe(true); }); });\\n\` });\n  }\n  const pkgIdx = out.findIndex(f => f.path.replace(/^\\.\\\/?/, '') === 'package.json');\n  if (pkgIdx >= 0) {\n    out[pkgIdx] = { path: out[pkgIdx].path, contents: ensureTestScript(out[pkgIdx].contents) };\n  } else {\n    out.push({ path: 'package.json', contents: ensureTestScript('{}') });\n  }\n  return out;\n}",
+      "impact": "Ensures at least one spec exists and adds/normalizes test script."
+    },
+    {
+      "file": "src/utils/seedTests.ts:39",
+      "function": "seedTestsOnDisk",
+      "snippet": "export async function seedTestsOnDisk(rootDir: string): Promise<void> {\n  const testAbs = path.join(rootDir, 'tests/smoke.spec.ts');\n  await fs.mkdir(path.dirname(testAbs), { recursive: true });\n  try {\n    await fs.access(testAbs);\n  } catch {\n    await fs.writeFile(testAbs, SEED_TEST_CONTENT, 'utf-8');\n  }\n  const pkgPath = path.join(rootDir, 'package.json');\n  let pkg = '{}';\n  try { pkg = await fs.readFile(pkgPath, 'utf-8'); } catch {}\n  const next = ensureTestScript(pkg);\n  await fs.writeFile(pkgPath, next, 'utf-8');\n}",
+      "impact": "Guarantees smoke test and test script are present on disk for plan-based generations."
+    },
+    {
+      "file": "src/server.ts:343",
+      "function": "executePlanFlow (plan path)",
+      "snippet": "// Ensure seed tests exist on disk for plan-based generations\nawait seedTestsOnDisk(targetRoot);",
+      "impact": "Plan-based generations receive seeded spec before checks and metadata."
+    },
+    {
+      "file": "src/server.ts:657",
+      "function": "single execution (no plan)",
+      "snippet": "// Seed a minimal test and ensure test script before write\noutput.files = seedTestsInFiles(output.files);",
+      "impact": "Single-shot generations embed smoke spec and test script into files."
+    },
+    {
+      "file": "src/runner/detectTestCommand.ts:11",
+      "function": "detectTestCommand",
+      "snippet": "const script = pkg?.scripts?.test?.trim();\nif (script) {\n  return 'npm test';\n}\nif (hasDependency(pkg, 'vitest')) {\n  return 'vitest run';\n}",
+      "impact": "With test script ensured, sandbox uses 'npm test' consistently."
+    }
+  ],
+  "dependencies": [
+    "No new runtime deps introduced",
+    "Relies on existing vitest in devDependencies at root; generated apps may add their own devDeps via model",
+    "Installation in sandbox requires presence of a lockfile to run 'npm ci'"
+  ],
+  "stack_compliance_check": {
+    "ai_stack_file": "ai-stack.json",
+    "language": "TypeScript/JavaScript only - OK",
+    "frontend": "No /public changes - OK",
+    "testing": "Vitest - aligned",
+    "no_new_dependencies": true
+  },
+  "risks": [
+    "If generated app lacks a lockfile, dependencies are not installed automatically; tests still seed but may fail until repair adds deps",
+    "Enforcing hasTests in JSON output may reject some generations; fallback is plan mode where seeding ensures presence"
+  ],
+  "validation_plan": [
+    "npm run lint",
+    "npm run typecheck",
+    "npm test",
+    "npm run contract:check",
+    "npm run sbom"
+  ]
+}
+

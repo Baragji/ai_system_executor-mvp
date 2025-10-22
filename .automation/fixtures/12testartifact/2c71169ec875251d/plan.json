@@ -1,0 +1,94 @@
+{
+  "originalPrompt": "Framework: Express, Styling: Tailwind CSS",
+  "subtasks": [
+    {
+      "id": "init-project",
+      "title": "Initialize project",
+      "description": "Create a new npm project, initialize a git repo, and add basic project structure (src/, public/, package.json).",
+      "status": "pending",
+      "estimatedComplexity": "low",
+      "successCriteria": "A git repository and package.json exist in the project root and directories src/ and public/ are present."
+    },
+    {
+      "id": "install-deps",
+      "title": "Install dependencies",
+      "description": "Install Express and developer/build tools: tailwindcss, postcss, autoprefixer, and nodemon (dev).",
+      "status": "pending",
+      "dependencies": [
+        "init-project"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "npm install completes without errors and package.json lists express, tailwindcss, postcss, autoprefixer, and nodemon as dependencies/devDependencies."
+    },
+    {
+      "id": "configure-tailwind",
+      "title": "Configure Tailwind and build scripts",
+      "description": "Create tailwind.config.js and postcss.config.js, add Tailwind input CSS and npm scripts to build/watch CSS output into public/styles.css.",
+      "status": "pending",
+      "dependencies": [
+        "install-deps"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "tailwind.config.js and postcss.config.js exist and an npm script (e.g., build:css) produces public/styles.css with Tailwind output."
+    },
+    {
+      "id": "create-express-server",
+      "title": "Create Express server to serve static frontend",
+      "description": "Implement server.js (or src/server.js) that serves files from public/ and exposes an /api route namespace for optional settings.",
+      "status": "pending",
+      "dependencies": [
+        "install-deps"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "node server.js starts without errors and navigating to http://localhost:3000 serves public/index.html; /api/* returns 200 for defined endpoints."
+    },
+    {
+      "id": "build-tailwind-assets",
+      "title": "Add Tailwind input CSS and build assets",
+      "description": "Create a CSS input file with @tailwind directives, run the build script to generate the final CSS into public/styles.css, and confirm the file is served.",
+      "status": "pending",
+      "dependencies": [
+        "configure-tailwind",
+        "create-express-server"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "public/styles.css exists, contains Tailwind utility classes, and is successfully loaded by the served HTML page."
+    },
+    {
+      "id": "create-frontend-ui",
+      "title": "Create frontend UI to modify text and colors",
+      "description": "Implement public/index.html and a small public/app.js using Tailwind for styling; include controls (text input, color pickers) that update the displayed \"hello world\" text and its colors in real time.",
+      "status": "pending",
+      "dependencies": [
+        "build-tailwind-assets"
+      ],
+      "estimatedComplexity": "medium",
+      "successCriteria": "The page displays the default 'hello world' text and controls; changing inputs updates the text content and color/ background immediately in the browser."
+    },
+    {
+      "id": "implement-api-settings",
+      "title": "Optional API for defaults and saving",
+      "description": "Add simple in-memory GET /api/settings and POST /api/settings endpoints to serve and accept default text/color values (no DB required).",
+      "status": "pending",
+      "dependencies": [
+        "create-express-server"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "GET /api/settings returns JSON with defaults and POST /api/settings accepts JSON and returns the saved object (in-memory), verified via curl or browser."
+    },
+    {
+      "id": "test-and-document",
+      "title": "Test app and write usage documentation",
+      "description": "Start the server, manually test UI interactions and API endpoints, fix issues, and add a README describing how to run, build CSS, and modify the hello world colors via the UI.",
+      "status": "pending",
+      "dependencies": [
+        "create-frontend-ui",
+        "implement-api-settings"
+      ],
+      "estimatedComplexity": "low",
+      "successCriteria": "README contains start/build instructions and screenshots or steps; manual tests confirm the UI updates text and colors and API endpoints behave as documented."
+    }
+  ],
+  "totalSubtasks": 8,
+  "decompositionStrategy": "Top-down decomposition: initialize project environment, install and configure required tooling (Express + Tailwind), implement server and build pipeline, create frontend UI that exposes controls for modifying the displayed text and its colors, optionally add a simple API for defaults/persistence, then test and document the app."
+}
