@@ -123,6 +123,8 @@ Evidence of mounts will be visible in `src/server.ts` imports and calls:
 
 ---
 
+✅ [P21-S3-02] extraction complete – DI verified, tests green.
+
 # Phase 21 — Session 2 Discovery Note (P21-S2-01, P21-S2-02)
 
 Last updated: 2025-10-22
