@@ -1,0 +1,115 @@
+{
+    "execution_checklist": {
+      "meta": {
+        "slice_id": "P21-SX-XX",
+        "feature_name": "Short description of feature (e.g., sessions pause/resume)",
+        "source_file": "src/server.ts",
+        "target_files": [
+          "src/domains/<domain>/routes.ts",
+          "tests/domains/<domain>/routes.test.ts"
+        ],
+        "contract_file": "21_phase21_modular_extraction_contract.json",
+        "discovery_note": "docs/phase21_discovery_note.md"
+      },
+  
+      "scope": {
+        "line_ranges": ["####–####"],
+        "http_routes": [
+          { "method": "POST", "path": "/api/..." },
+          { "method": "GET", "path": "/api/..." }
+        ],
+        "forbidden": [
+          "scope creep beyond listed routes",
+          "new dependencies without contract approval",
+          "placeholder or TODO code"
+        ]
+      },
+  
+      "dependency_injection": {
+        "type_name": "<Domain>Deps",
+        "requirements": [
+          "All helpers and orchestrator functions must be injected, not imported directly.",
+          "No mocks, stubs, or fake data sources in production.",
+          "Each dep must reference an existing real function in server.ts or imported modules.",
+          "DI object constructed and passed explicitly via mount function."
+        ]
+      },
+  
+      "mounting": {
+        "instruction": "Mount new router via mount<Domain>Routes(app, deps) in src/server.ts after similar domain mounts.",
+        "validation": [
+          "grep to confirm no duplicate routes remain",
+          "ensure same middleware order and feature flags"
+        ]
+      },
+  
+      "validation_protocol": {
+        "gates": [
+          { "id": "G1", "name": "Lint", "command": "npm run lint", "expected": "no warnings or errors" },
+          { "id": "G2", "name": "Typecheck", "command": "npm run typecheck", "expected": "no TypeScript errors" },
+          { "id": "G3", "name": "Test Coverage", "command": "npm test -- --coverage", "expected": "100% coverage for new routes" },
+          { "id": "G4", "name": "Contract Validation", "command": "npm run validate:contract", "expected": "all assertions pass" },
+          { "id": "G5", "name": "Build", "command": "npm run build", "expected": "successful build, no warnings" },
+          { "id": "G6", "name": "SBOM + Provenance", "command": "npm run sbom && npm run provenance", "expected": "SLSA attestation generated" },
+          { "id": "G7", "name": "Final CI Validation", "command": "npm run validate", "expected": "all CI gates green" }
+        ],
+        "halt_on_failure": true
+      },
+  
+      "tests": {
+        "file": "tests/domains/<domain>/routes.test.ts",
+        "requirements": [
+          "Use mocks/stubs only inside tests.",
+          "Test all happy and error paths (200, 400, 404, 409, 500).",
+          "Assert response payloads and dependency call arguments.",
+          "Target 100% branch and line coverage."
+        ]
+      },
+  
+      "behavior_preservation": {
+        "requirements": [
+          "Preserve status codes, payload shapes, log messages, and async sequence exactly.",
+          "Match side effects order (e.g., abort → interrupt → manifest update).",
+          "Document any justified deviations in discovery_note.md."
+        ]
+      },
+  
+      "error_handling": {
+        "rules": [
+          "Use real typed error objects.",
+          "Log error before returning 500.",
+          "Return standardized problem responses (respondWithProblem)."
+        ]
+      },
+  
+      "quality_standards": {
+        "rules": [
+          "No TODO or placeholder comments.",
+          "No magic numbers or inline constants.",
+          "All code fully typed (no 'any', no type assertions).",
+          "Consistent lint and format (eslint/prettier clean).",
+          "Use async/await; no dangling promises."
+        ]
+      },
+  
+      "documentation": {
+        "requirements": [
+          "Update phase21_discovery_note.md with DI surface, mount point, validation results.",
+          "Update modular_extraction_contract.json with new domain metadata.",
+          "Commit summary: '✅ [SliceID] extraction complete – DI verified, tests green.'"
+        ]
+      },
+  
+      "completion_criteria": [
+        "No mocks/stubs in production code.",
+        "Routes call only injected deps.",
+        "Inline handlers fully removed.",
+        "All gates green (lint, typecheck, test, build, provenance).",
+        "100% coverage achieved.",
+        "Behavior identical to original handlers.",
+        "No warnings or TODOs in CI logs.",
+        "Documentation updated and validated."
+      ]
+    }
+  }
+  

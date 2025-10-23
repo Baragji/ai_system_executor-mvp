@@ -15,6 +15,7 @@
     "test:related": "vitest related",
     "test:failed": "vitest run --reporter=verbose --bail",
     "test:watch": "vitest",
+    "test:unit": "RUN_REAL_LLM=0 vitest run tests/domains",
     "test:ui": "playwright test",
     "test:ui:headed": "playwright test --headed",
     "test:ui:debug": "playwright test --debug",

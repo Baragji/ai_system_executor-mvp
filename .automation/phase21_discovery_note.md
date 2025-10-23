@@ -283,3 +283,190 @@ mountSessionsRoutes(app, {
 - `npm run -s provenance`
 
 All gates must return green prior to PR.
+
+---
+
+# Session 3 — S3-01 (Fixtures/Replay/Plan/Runner extraction)
+
+Last updated: 2025-10-22
+
+## Integration Points (with code snippets)
+
+### 1) Manual runner endpoint `/api/run-tests`
+- File: `src/server.ts`
+- Lines: ~1748–1771
+
+```ts
+app.post("/api/run-tests", async (req, res) => {
+  try {
+    const project: string = (req.body?.project || "").toString();
+    if (!project) {
+      return res.status(400).json({ error: "project required" });
+    }
+    const slug = slugify(project, { lower: true, strict: true });
+    const projectRoot = path.join(OUTPUT_DIR, slug);
+    try {
+      await fs.access(projectRoot);
+    } catch {
+      return res.status(404).json({ error: "project not found" });
+    }
+
+    const run = await runInSandbox({ projectRoot, projectSlug: slug });
+    await logEvent("test_run", { project: slug, stage: "manual", status: run.status });
+    return res.json(run);
+  } catch (err: unknown) {
+    console.error(err);
+    const message = err instanceof Error ? err.message : "internal error";
+    return res.status(500).json({ error: message });
+  }
+});
+```
+
+Dependencies: `slugify`, `OUTPUT_DIR`, `fs.access`, `runInSandbox`, `logEvent`.
+
+### 2) Fixtures + replay endpoints
+- File: `src/server.ts`
+- Lines: ~1773–1850
+
+```ts
+app.get("/api/fixtures/:project", async (req, res) => {
+  try {
+    const { project } = req.params as { project: string };
+    const slug = slugify(project, { lower: true, strict: true });
+    const sessions = await listFixtures(slug);
+    return res.json({ project: slug, sessions });
+  } catch (err) {
+    const message = (err as Error).message || 'internal error';
+    return res.status(500).json({ error: message });
+  }
+});
+
+app.post("/api/replay/repair", async (req, res) => {
+  try {
+    const projectRaw: string = (req.body?.project || "").toString();
+    const sessionId: string = (req.body?.sessionId || "").toString();
+    if (!projectRaw || !sessionId) {
+      return res.status(400).json({ error: "project and sessionId required" });
+    }
+    const slug = slugify(projectRaw, { lower: true, strict: true });
+    const ctx = await readFixture<MultiTurnContext>(slug, sessionId, path.join("repair", "context.json")).catch(() => null);
+    if (!ctx) {
+      return res.status(404).json({ error: "repair context fixture not found" });
+    }
+    const history = await multiTurnRepair(ctx);
+    return res.json({ project: slug, sessionId, history });
+  } catch (err) {
+    const message = (err as Error).message || 'internal error';
+    return res.status(500).json({ error: message });
+  }
+});
+
+app.post("/api/replay/subtask", async (req, res) => {
+  try {
+    const projectRaw: string = (req.body?.project || "").toString();
+    const sessionId: string = (req.body?.sessionId || "").toString();
+    const subtaskId: string = (req.body?.subtaskId || "").toString();
+    if (!projectRaw || !sessionId || !subtaskId) {
+      return res.status(400).json({ error: "project, sessionId, and subtaskId required" });
+    }
+    const slug = slugify(projectRaw, { lower: true, strict: true });
+    const projectRoot = path.join(OUTPUT_DIR, slug);
+    try { await fs.access(projectRoot); } catch { return res.status(404).json({ error: "project not found" }); }
+
+    type FixtureOutput = { files?: { path: string; contents: string }[] };
+    const output = await readFixture<FixtureOutput>(slug, sessionId, path.join("subtasks", subtaskId, "output.json")).catch(() => null);
+    if (!output || !Array.isArray(output.files)) {
+      return res.status(404).json({ error: "subtask output fixture not found or invalid" });
+    }
+    await writeFiles(projectRoot, output.files);
+    await ensureDefaultExportForApp(projectRoot);
+
+    const run = await runInSandbox({ projectRoot, projectSlug: slug });
+    await logEvent("test_run", { project: slug, stage: `replay-subtask:${subtaskId}` , status: run.status });
+    return res.json({ ok: true, project: slug, subtaskId, result: run });
+  } catch (err) {
+    const message = (err as Error).message || 'internal error';
+    return res.status(500).json({ error: message });
+  }
+});
+```
+
+Dependencies: `slugify`, `listFixtures`, `readFixture`, `multiTurnRepair`, `writeFiles`, `ensureDefaultExportForApp`, `OUTPUT_DIR`, `fs.access`, `runInSandbox`, `logEvent`.
+
+### 3) Planning helpers `/api/plan/...`
+- File: `src/server.ts`
+- Lines: ~1852–1897
+
+```ts
+app.get("/api/plan/:project/failed-subtasks", async (req, res) => {
+  try {
+    const { project } = req.params as { project: string };
+    const slug = slugify(project, { lower: true, strict: true });
+    const projectRoot = path.join(OUTPUT_DIR, slug);
+    const metaPath = path.join(projectRoot, "_executor_meta.json");
+    const buf = await fs.readFile(metaPath, "utf-8");
+    const meta = JSON.parse(buf) as { subtaskResults?: Array<{ subtaskId: string; status: string; notes?: string; testResult?: { status: string; errorMessage?: string } | null }> };
+    const failed = (meta.subtaskResults ?? []).filter(r => r.status !== "completed").map(r => ({
+      subtaskId: r.subtaskId,
+      status: r.status,
+      reason: r.testResult?.errorMessage || r.notes || "unknown"
+    }));
+    return res.json({ project: slug, failed });
+  } catch (err) {
+    const message = (err as Error).message || 'internal error';
+    return res.status(500).json({ error: message });
+  }
+});
+
+app.post("/api/plan/:project/retest-subtask", async (req, res) => {
+  try {
+    const { project } = req.params as { project: string };
+    const slug = slugify(project, { lower: true, strict: true });
+    const projectRoot = path.join(OUTPUT_DIR, slug);
+    try { await fs.access(projectRoot); } catch { return res.status(404).json({ error: "project not found" }); }
+    const run = await runInSandbox({ projectRoot, projectSlug: slug });
+    await logEvent("test_run", { project: slug, stage: "retest-subtask", status: run.status });
+    return res.json({ project: slug, result: run });
+  } catch (err) {
+    const message = (err as Error).message || 'internal error';
+    return res.status(500).json({ error: message });
+  }
+});
+```
+
+Dependencies: `slugify`, `OUTPUT_DIR`, `fs.readFile`, `fs.access`, `runInSandbox`, `logEvent`.
+
+## Proposed Changes
+
+- Create dedicated routers under `src/domains/{runner,fixtures,replay,plan}/routes.ts` mirroring the DI pattern from `sessions`/`execute`.
+- Inject existing helpers (`slugify`, `listFixtures`, `readFixture`, filesystem access via Node built-ins, runner helpers, event logger`).
+- Mount the new routers in `src/server.ts` alongside `execute`/`sessions` mounts and remove inline route blocks.
+- Ensure response payloads and error envelopes remain identical (plain `{ error: string }`).
+
+## Compliance Check
+
+- Stack: TypeScript + Express only — OK
+- No new dependencies — OK
+- APIs unchanged (`/api/run-tests`, `/api/fixtures/*`, `/api/replay/*`, `/api/plan/*`) — OK
+- Feature flags untouched — OK
+- Error handling remains plain JSON for these routes — OK
+
+## Justification
+
+- Matches ongoing modularization strategy (Phase 19) moving routes into domain modules with DI.
+- Grouping by domain (`runner`, `fixtures`, `replay`, `plan`) reduces `server.ts` footprint and enables targeted tests.
+- Filesystem + sandbox interactions remain in-process but encapsulated for future extraction.
+
+## Expected Validation Gates
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run contract:check`
+- `npm run sbom`
+- `npm run sbom:cyclonedx`
+- `npm run provenance`
+
+All must succeed with zero warnings/errors.
+
+---
