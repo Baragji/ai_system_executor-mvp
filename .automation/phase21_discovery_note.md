@@ -470,3 +470,167 @@ Dependencies: `slugify`, `OUTPUT_DIR`, `fs.readFile`, `fs.access`, `runInSandbox
 All must succeed with zero warnings/errors.
 
 ---
+
+# Session 3 — S3-02 (Files/Health/Executions extraction)
+
+Last updated: 2025-10-23
+
+## Integration Points (with code snippets and anchors)
+
+These handlers remain inline in `src/server.ts` and are the targets for modular extraction.
+
+### 1) Health check
+- File: `src/server.ts`
+- Lines: ~394
+
+```ts
+app.get("/healthz", (_req, res) => res.json({ status: "ok" }));
+```
+
+### 2) Executions status endpoint (LangGraph + future runtimes)
+- File: `src/server.ts`
+- Lines: ~397–406
+
+```ts
+app.get("/api/executions/:id", (req, res) => {
+  const { id } = req.params as { id: string };
+  const record = getExecution(id);
+  if (!record) {
+    respondWithProblem(res, 404, "NotFound", "execution not found", req.originalUrl || req.url || "/api/executions");
+    return;
+  }
+  res.json(record);
+});
+```
+
+Dependencies:
+- `getExecution` from `src/orchestrator/executionsStore.ts`
+- `respondWithProblem` from `src/middleware/problemDetails.ts`
+
+### 3) Output archive download (zip or tar)
+- File: `src/server.ts`
+- Lines: ~408–520
+
+```ts
+app.get("/output-archive/:project/:tail(*)?", async (req, res) => {
+  try {
+    const { project } = req.params as { project: string };
+    const tail = (req.params as { tail?: string }).tail ?? "";
+    const slug = slugify(project, { lower: true, strict: true });
+    const projectRoot = path.join(OUTPUT_DIR, slug);
+    const decodedTail = decodeURIComponent(tail);
+    const absolute = path.resolve(projectRoot, decodedTail);
+    if (!absolute.startsWith(projectRoot)) {
+      return res.status(403).json({ error: "forbidden" });
+    }
+    // ... stat checks
+    const formatRaw = typeof req.query?.format === "string" ? req.query.format.toLowerCase() : "zip";
+    // if formatRaw === "tar" -> spawn tar, stream to res
+    // else -> new ZipFile(); addDirectoryToZip(zip, absolute, rootEntry); stream to res
+  } catch (err) {
+    const message = (err as Error).message || "internal error";
+    return res.status(500).json({ error: message });
+  }
+});
+```
+
+Helpers used in-scope:
+- `toPosixPath(value: string): string` (line ~371)
+- `addDirectoryToZip(zip: ZipFile, absoluteDir: string, relativeDir: string)` (lines ~375–389)
+- `ZipFile` from `yazl`
+
+### 4) Output directory listing (HTML index)
+- File: `src/server.ts`
+- Lines: ~507–660
+
+```ts
+app.get("/output/:project/*?", async (req, res, next) => {
+  // slugify project -> projectRoot -> resolve absolute; forbid escapes
+  // if not directory, next()
+  // list entries with size/mtime; build HTML with links
+  // includes Download .zip / .tar.gz actions linking to output-archive
+});
+```
+
+Dependencies:
+- `slugify` (server import)
+- `OUTPUT_DIR` constant (server scope)
+- Node `fs/promises`, `path`
+
+### 5) File content endpoint with path sanitization
+- File: `src/server.ts`
+- Lines: ~1777–1810
+
+```ts
+app.get("/api/files/:project/:path(*)", async (req, res) => {
+  try {
+    const { project } = req.params as { project: string };
+    const rawPath = (req.params as { path: string }).path || "";
+    const slug = slugify(project, { lower: true, strict: true });
+    const projectRoot = path.join(OUTPUT_DIR, slug);
+    const decodedRel = decodeURIComponent(rawPath);
+    const absolute = path.resolve(projectRoot, decodedRel);
+    if (!absolute.startsWith(projectRoot)) {
+      return res.status(403).json({ error: "forbidden" });
+    }
+    // stat -> if file, read; if binary, return null content with size/mtime
+    return res.json({ content, size: stat.size, modified: stat.mtime, binary });
+  } catch (err) {
+    const message = (err as Error).message || 'internal error';
+    return res.status(500).json({ error: message });
+  }
+});
+```
+
+Dependencies:
+- `slugify`, `OUTPUT_DIR`
+- Node `fs/promises`, `path`
+
+## Proposed Extraction
+
+- Create two routers to preserve domains and minimize coupling:
+  1) `src/domains/status/routes.ts` for `/healthz` and `/api/executions/:id`.
+     - DI surface `StatusDeps`: `{ getExecution: (id: string) => ExecutionRecord | null }`.
+     - Use `respondWithProblem` for 404 to preserve existing behavior.
+  2) `src/domains/files/routes.ts` for `/output-archive/:project/:tail(*)?`, `/output/:project/*?`, and `/api/files/:project/:path(*)`.
+     - DI surface `FilesDeps`: `{ slugify, outputDir }`.
+     - Import `ZipFile` from `yazl`, `fs/promises`, `path`, and `child_process.spawn` directly in the router.
+     - Inline exact helpers `toPosixPath` and `addDirectoryToZip` to maintain behavior.
+
+- Mount order in `src/server.ts` (after existing domain mounts, before static handlers):
+  ```ts
+  import { mountStatusRoutes } from "./domains/status/routes.js";
+  import { mountFilesRoutes } from "./domains/files/routes.js";
+
+  mountStatusRoutes(app, { getExecution });
+  mountFilesRoutes(app, { slugify, outputDir: OUTPUT_DIR });
+  ```
+
+- Remove the inline handlers to avoid duplication.
+
+## Validation & Risks
+
+- Behavior parity risks:
+  - Ensure `respondWithProblem` parameters are identical for `/api/executions/:id` 404.
+  - Preserve content headers for archive endpoints and stream error handling.
+  - Keep the same HTML structure for directory listing; tests should snapshot key parts.
+  - Maintain path traversal protections (`startsWith(projectRoot)` checks).
+
+- Tests to add:
+  - `tests/domains/status/routes.test.ts`: health 200; executions 200/404 (problem details shape).
+  - `tests/domains/files/routes.test.ts`: 
+    - archive 403 on escape, 404 on missing, 400 on non-directory, zip and tar happy paths (can stub fs + spawn),
+    - listing returns HTML, shows archive links, respects forbidden/next() behavior,
+    - file content 403 on escape, 404 on missing or non-file, differentiates binary vs text.
+
+- Quality gates: lint, typecheck, tests (+coverage), contract:check, sbom (SPDX+CycloneDX), provenance — all must pass.
+
+## Assumptions
+
+- No API or feature flag changes.
+- Node core imports inside routers are allowed (pattern used in prior domain routers).
+- `yazl` is already an approved dependency; no new deps added.
+
+## Anchor Note
+
+Line numbers shift as extractions proceed. Re-validate anchors in `src/server.ts` just before applying edits.

@@ -6,7 +6,7 @@ import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { mountPlanRoutes, type PlanDeps } from "../../src/domains/plan/routes.js";
+import { mountPlanRoutes, type PlanDeps } from "../../src/domains/plan/routes.ts";
 
 const OUTPUT_DIR = path.resolve("output");
 const PROJECT_NAME = "Planner Demo";

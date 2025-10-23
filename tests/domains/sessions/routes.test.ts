@@ -12,8 +12,8 @@ import {
   ResumeValidationError
 } from "../../../src/orchestrator/resume.js";
 import type { CheckpointPayload } from "../../../src/orchestrator/checkpoints.js";
-import type { SessionsDeps, OrchestrationSession, ProgressSnapshot } from "../../../src/domains/sessions/routes.js";
-import { mountSessionsRoutes } from "../../../src/domains/sessions/routes.js";
+import type { SessionsDeps, OrchestrationSession, ProgressSnapshot } from "../../../src/domains/sessions/routes.ts";
+import { mountSessionsRoutes } from "../../../src/domains/sessions/routes.ts";
 
 function createSession(): OrchestrationSession {
   return {

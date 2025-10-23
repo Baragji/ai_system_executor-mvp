@@ -1,104 +1,104 @@
-{"name":"generation_start","timestamp":"2025-10-22T20:13:11.439Z","payload":{"project":"multi-turn-demo","mode":"single"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:11.497Z","payload":{"project":"fallback-project","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:11.512Z","payload":{"project":"fallback-project","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:11.518Z","payload":{"project":"fallback-project","attempts":1,"finalStatus":"pass","successAttempt":null}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:11.523Z","payload":{"project":"fallback-project","status":"pass","mode":"single"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:11.526Z","payload":{"project":"metrics-demo","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:11.526Z","payload":{"project":"multi-turn-demo","stage":"initial","status":"fail"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:11.537Z","payload":{"project":"multi-turn-demo","attempts":3,"finalStatus":"pass","successAttempt":3}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:11.541Z","payload":{"project":"multi-turn-demo","stage":"repair-1","status":"fail"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:11.549Z","payload":{"project":"build-app","mode":"plan"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:11.551Z","payload":{"project":"multi-turn-demo","stage":"repair-2","status":"fail"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:11.552Z","payload":{"project":"metrics-demo","stage":"initial","status":"pass"}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:11.561Z","payload":{"project":"build-app","status":"unknown","mode":"plan"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:11.563Z","payload":{"project":"multi-turn-demo","stage":"repair-3","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:11.598Z","payload":{"project":"metrics-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:11.598Z","payload":{"project":"multi-turn-demo","status":"pass","mode":"single"}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:11.611Z","payload":{"project":"metrics-demo","status":"pass","mode":"single"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:11.661Z","payload":{"project":"multi-turn-demo","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:11.670Z","payload":{"project":"multi-turn-demo","stage":"initial","status":"fail"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:11.679Z","payload":{"project":"multi-turn-demo","attempts":4,"finalStatus":"exhausted","successAttempt":null}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:11.680Z","payload":{"project":"multi-turn-demo","stage":"repair-1","status":"fail"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:11.681Z","payload":{"project":"multi-turn-demo","stage":"repair-2","status":"fail"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:11.684Z","payload":{"project":"multi-turn-demo","stage":"repair-3","status":"fail"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:11.686Z","payload":{"project":"multi-turn-demo","stage":"repair-4","status":"fail"}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:11.692Z","payload":{"project":"multi-turn-demo","status":"fail","mode":"single"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:14.000Z","payload":{"project":"multi-turn-demo","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:14.071Z","payload":{"project":"multi-turn-demo","stage":"initial","status":"fail"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:14.087Z","payload":{"project":"multi-turn-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:14.088Z","payload":{"project":"multi-turn-demo","stage":"repair-1","status":"pass"}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:14.093Z","payload":{"project":"multi-turn-demo","status":"pass","mode":"single"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:14.125Z","payload":{"project":"multi-turn-demo","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:14.160Z","payload":{"project":"multi-turn-demo","stage":"initial","status":"fail"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:14.222Z","payload":{"project":"multi-turn-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:14.262Z","payload":{"project":"multi-turn-demo","stage":"repair-1","status":"pass"}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:14.283Z","payload":{"project":"multi-turn-demo","status":"pass","mode":"single"}}
-{"name":"plan_retry","timestamp":"2025-10-22T20:13:16.831Z","payload":{"phase":"decompose","attempt":1,"backoffMs":889}}
-{"name":"plan_retry","timestamp":"2025-10-22T20:13:17.779Z","payload":{"phase":"decompose","attempt":1,"backoffMs":648}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:23.893Z","payload":{"project":"clarify-demo","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:23.967Z","payload":{"project":"clarify-demo","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:23.986Z","payload":{"project":"clarify-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:24.002Z","payload":{"project":"clarify-demo","status":"pass","mode":"single"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:24.072Z","payload":{"project":"clarify-demo","mode":"single"}}
-{"name":"plan_retry","timestamp":"2025-10-22T20:13:24.112Z","payload":{"phase":"decompose","attempt":1,"backoffMs":726}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:24.138Z","payload":{"project":"clarify-demo","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:24.175Z","payload":{"project":"clarify-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:24.193Z","payload":{"project":"clarify-demo","status":"pass","mode":"single"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:26.521Z","payload":{"project":"telemetry-demo","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:26.596Z","payload":{"project":"telemetry-demo","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:26.626Z","payload":{"project":"telemetry-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:26.735Z","payload":{"project":"telemetry-demo","status":"pass","mode":"single"}}
-{"name":"plan_retry","timestamp":"2025-10-22T20:13:26.959Z","payload":{"phase":"decompose","attempt":1,"backoffMs":827}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:28.272Z","payload":{"project":"telemetry-demo","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:28.354Z","payload":{"project":"telemetry-demo","stage":"initial","status":"fail"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:29.182Z","payload":{"project":"telemetry-demo","attempts":4,"finalStatus":"exhausted","successAttempt":null}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:29.215Z","payload":{"project":"telemetry-demo","stage":"repair-1","status":"fail"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:29.254Z","payload":{"project":"telemetry-demo","stage":"repair-2","status":"fail"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:29.332Z","payload":{"project":"telemetry-demo","stage":"repair-3","status":"fail"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:29.404Z","payload":{"project":"telemetry-demo","stage":"repair-4","status":"fail"}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:29.475Z","payload":{"project":"telemetry-demo","status":"fail","mode":"single"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:30.189Z","payload":{"project":"telemetry-demo","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:30.332Z","payload":{"project":"telemetry-demo","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:30.354Z","payload":{"project":"telemetry-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:30.371Z","payload":{"project":"telemetry-demo","status":"pass","mode":"single"}}
-{"name":"llm_retry","timestamp":"2025-10-22T20:13:37.792Z","payload":{"attempt":1,"maxRetries":3,"backoffMs":9,"status":0,"code":"","message":"LLM call timed out after 100ms","isTimeout":true}}
-{"name":"llm_retry","timestamp":"2025-10-22T20:13:37.963Z","payload":{"attempt":2,"maxRetries":3,"backoffMs":22,"status":0,"code":"","message":"LLM call timed out after 100ms","isTimeout":true}}
-{"name":"llm_retry","timestamp":"2025-10-22T20:13:38.298Z","payload":{"attempt":1,"maxRetries":2,"backoffMs":9,"status":0,"code":"","message":"LLM call timed out after 100ms","isTimeout":true}}
-{"name":"llm_retry","timestamp":"2025-10-22T20:13:38.513Z","payload":{"attempt":2,"maxRetries":2,"backoffMs":16,"status":0,"code":"","message":"LLM call timed out after 100ms","isTimeout":true}}
-{"name":"langgraph.fallback","timestamp":"2025-10-22T20:13:40.166Z","payload":{"executionId":"graph-a0114ea4-f5a5-4791-b7f9-ca6c7a5808a1","reason":"Cannot read properties of undefined (reading 'Root')"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:40.688Z","payload":{"project":"hello-world","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:41.005Z","payload":{"project":"hello-world","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:41.373Z","payload":{"project":"hello-world","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:41.397Z","payload":{"project":"hello-world","status":"pass","mode":"single"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:48.837Z","payload":{"project":"parity-app","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:48.880Z","payload":{"project":"parity-app","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:48.901Z","payload":{"project":"parity-app","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:48.944Z","payload":{"project":"parity-app","status":"pass","mode":"single"}}
-{"name":"langgraph.fallback","timestamp":"2025-10-22T20:13:49.259Z","payload":{"executionId":"graph-cf322115-46f4-4ec6-a62b-82ac2dade8c9","reason":"Cannot read properties of undefined (reading 'Root')"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:49.485Z","payload":{"project":"parity-app","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:49.649Z","payload":{"project":"parity-app","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:49.677Z","payload":{"project":"parity-app","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:49.688Z","payload":{"project":"parity-app","status":"pass","mode":"single"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:51.007Z","payload":{"project":"hello-world","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:51.094Z","payload":{"project":"hello-world","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:51.102Z","payload":{"project":"hello-world","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:51.118Z","payload":{"project":"hello-world","status":"pass","mode":"single"}}
-{"name":"langgraph.fallback","timestamp":"2025-10-22T20:13:51.251Z","payload":{"executionId":"graph-b95d439a-ed01-4af1-bfea-eed0796a3b09","reason":"Cannot read properties of undefined (reading 'Root')"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:13:51.311Z","payload":{"project":"hello-world","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:13:51.861Z","payload":{"project":"hello-world","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:13:52.103Z","payload":{"project":"hello-world","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:13:52.112Z","payload":{"project":"hello-world","status":"pass","mode":"single"}}
-{"name":"repair_abort","timestamp":"2025-10-22T20:14:05.203Z","payload":{"reason":"invalid_delete","attempt":1,"project":"project"}}
-{"name":"llm_retry","timestamp":"2025-10-22T20:14:14.436Z","payload":{"attempt":1,"maxRetries":3,"backoffMs":0,"status":429,"code":"","message":"rate limited","isTimeout":false}}
-{"name":"llm_retry","timestamp":"2025-10-22T20:14:14.464Z","payload":{"attempt":2,"maxRetries":3,"backoffMs":1,"status":429,"code":"","message":"rate limited","isTimeout":false}}
-{"name":"test_run","timestamp":"2025-10-22T20:14:28.943Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:14:29.546Z","payload":{"project":"hello-world","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:14:29.692Z","payload":{"project":"hello-world","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:14:29.698Z","payload":{"project":"hello-world","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:14:29.708Z","payload":{"project":"hello-world","status":"pass","mode":"single"}}
-{"name":"langgraph.fallback","timestamp":"2025-10-22T20:14:29.741Z","payload":{"executionId":"graph-59a46e6c-b90e-4a19-8365-5771c7d3715b","reason":"Cannot read properties of undefined (reading 'Root')"}}
-{"name":"generation_start","timestamp":"2025-10-22T20:14:29.799Z","payload":{"project":"hello-world","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-22T20:14:29.807Z","payload":{"project":"hello-world","stage":"initial","status":"pass"}}
-{"name":"repair_attempt","timestamp":"2025-10-22T20:14:29.814Z","payload":{"project":"hello-world","attempts":1,"finalStatus":"pass","successAttempt":1}}
-{"name":"generation_complete","timestamp":"2025-10-22T20:14:29.837Z","payload":{"project":"hello-world","status":"pass","mode":"single"}}
-{"name":"test_run","timestamp":"2025-10-23T07:32:37.786Z","payload":{"project":"passing","stage":"manual","status":"pass"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:33.034Z","payload":{"project":"multi-turn-demo","stage":"repair-3","status":"pass"}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:33.047Z","payload":{"project":"multi-turn-demo","status":"pass","mode":"single"}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:33.051Z","payload":{"project":"metrics-demo","mode":"single"}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:33.054Z","payload":{"project":"build-todo-app-with-auth","mode":"plan"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:33.082Z","payload":{"project":"metrics-demo","stage":"initial","status":"pass"}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:33.089Z","payload":{"project":"multi-turn-demo","mode":"single"}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:33.107Z","payload":{"project":"build-todo-app-with-auth","status":"unknown","mode":"plan"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:33.111Z","payload":{"project":"multi-turn-demo","stage":"initial","status":"fail"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:33.118Z","payload":{"project":"metrics-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:33.128Z","payload":{"project":"fallback-project","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:33.134Z","payload":{"project":"fallback-project","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:33.135Z","payload":{"project":"fallback-project","attempts":1,"finalStatus":"pass","successAttempt":null}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:33.137Z","payload":{"project":"fallback-project","status":"pass","mode":"single"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:33.125Z","payload":{"project":"multi-turn-demo","attempts":4,"finalStatus":"exhausted","successAttempt":null}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:33.146Z","payload":{"project":"multi-turn-demo","stage":"repair-1","status":"fail"}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:33.146Z","payload":{"project":"metrics-demo","status":"pass","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:33.149Z","payload":{"project":"multi-turn-demo","stage":"repair-2","status":"fail"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:33.152Z","payload":{"project":"multi-turn-demo","stage":"repair-3","status":"fail"}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:33.153Z","payload":{"project":"build-app","mode":"plan"}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:33.183Z","payload":{"project":"build-app","status":"unknown","mode":"plan"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:33.156Z","payload":{"project":"multi-turn-demo","stage":"repair-4","status":"fail"}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:33.251Z","payload":{"project":"multi-turn-demo","status":"fail","mode":"single"}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:33.364Z","payload":{"project":"multi-turn-demo","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:33.443Z","payload":{"project":"multi-turn-demo","stage":"initial","status":"fail"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:33.484Z","payload":{"project":"multi-turn-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:33.489Z","payload":{"project":"multi-turn-demo","stage":"repair-1","status":"pass"}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:33.492Z","payload":{"project":"multi-turn-demo","status":"pass","mode":"single"}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:33.519Z","payload":{"project":"multi-turn-demo","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:33.527Z","payload":{"project":"multi-turn-demo","stage":"initial","status":"fail"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:33.532Z","payload":{"project":"multi-turn-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:33.534Z","payload":{"project":"multi-turn-demo","stage":"repair-1","status":"pass"}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:33.546Z","payload":{"project":"multi-turn-demo","status":"pass","mode":"single"}}
+{"name":"plan_retry","timestamp":"2025-10-23T09:19:34.498Z","payload":{"phase":"decompose","attempt":1,"backoffMs":837}}
+{"name":"plan_retry","timestamp":"2025-10-23T09:19:35.155Z","payload":{"phase":"decompose","attempt":1,"backoffMs":950}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:35.158Z","payload":{"project":"clarify-demo","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:35.172Z","payload":{"project":"clarify-demo","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:35.183Z","payload":{"project":"clarify-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:35.190Z","payload":{"project":"clarify-demo","status":"pass","mode":"single"}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:35.256Z","payload":{"project":"clarify-demo","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:35.278Z","payload":{"project":"clarify-demo","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:35.286Z","payload":{"project":"clarify-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:35.293Z","payload":{"project":"clarify-demo","status":"pass","mode":"single"}}
+{"name":"plan_retry","timestamp":"2025-10-23T09:19:35.348Z","payload":{"phase":"decompose","attempt":1,"backoffMs":666}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:36.168Z","payload":{"project":"telemetry-demo","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:36.186Z","payload":{"project":"telemetry-demo","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:36.193Z","payload":{"project":"telemetry-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:36.199Z","payload":{"project":"telemetry-demo","status":"pass","mode":"single"}}
+{"name":"plan_retry","timestamp":"2025-10-23T09:19:36.263Z","payload":{"phase":"decompose","attempt":1,"backoffMs":762}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:37.093Z","payload":{"project":"telemetry-demo","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:37.104Z","payload":{"project":"telemetry-demo","stage":"initial","status":"fail"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:37.122Z","payload":{"project":"telemetry-demo","attempts":4,"finalStatus":"exhausted","successAttempt":null}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:37.123Z","payload":{"project":"telemetry-demo","stage":"repair-1","status":"fail"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:37.124Z","payload":{"project":"telemetry-demo","stage":"repair-2","status":"fail"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:37.125Z","payload":{"project":"telemetry-demo","stage":"repair-3","status":"fail"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:37.127Z","payload":{"project":"telemetry-demo","stage":"repair-4","status":"fail"}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:37.130Z","payload":{"project":"telemetry-demo","status":"fail","mode":"single"}}
+{"name":"plan_retry","timestamp":"2025-10-23T09:19:37.161Z","payload":{"phase":"decompose","attempt":1,"backoffMs":878}}
+{"name":"langgraph.fallback","timestamp":"2025-10-23T09:19:37.520Z","payload":{"executionId":"graph-c6af85e3-49d9-4313-b737-74a25641f8d0","reason":"Cannot read properties of undefined (reading 'Root')"}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:37.556Z","payload":{"project":"hello-world","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:37.588Z","payload":{"project":"hello-world","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:37.601Z","payload":{"project":"hello-world","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:37.622Z","payload":{"project":"hello-world","status":"pass","mode":"single"}}
+{"name":"llm_retry","timestamp":"2025-10-23T09:19:37.704Z","payload":{"attempt":1,"maxRetries":3,"backoffMs":10,"status":0,"code":"","message":"LLM call timed out after 100ms","isTimeout":true}}
+{"name":"llm_retry","timestamp":"2025-10-23T09:19:37.877Z","payload":{"attempt":2,"maxRetries":3,"backoffMs":16,"status":0,"code":"","message":"LLM call timed out after 100ms","isTimeout":true}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:38.049Z","payload":{"project":"telemetry-demo","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:38.080Z","payload":{"project":"telemetry-demo","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:38.093Z","payload":{"project":"telemetry-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:38.122Z","payload":{"project":"telemetry-demo","status":"pass","mode":"single"}}
+{"name":"llm_retry","timestamp":"2025-10-23T09:19:38.136Z","payload":{"attempt":1,"maxRetries":2,"backoffMs":8,"status":0,"code":"","message":"LLM call timed out after 100ms","isTimeout":true}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:38.206Z","payload":{"project":"telemetry-demo","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:38.256Z","payload":{"project":"telemetry-demo","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:38.265Z","payload":{"project":"telemetry-demo","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:38.267Z","payload":{"project":"telemetry-demo","status":"pass","mode":"single"}}
+{"name":"llm_retry","timestamp":"2025-10-23T09:19:38.372Z","payload":{"attempt":2,"maxRetries":2,"backoffMs":21,"status":0,"code":"","message":"LLM call timed out after 100ms","isTimeout":true}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:40.371Z","payload":{"project":"parity-app","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:40.422Z","payload":{"project":"parity-app","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:40.479Z","payload":{"project":"parity-app","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:40.643Z","payload":{"project":"parity-app","status":"pass","mode":"single"}}
+{"name":"langgraph.fallback","timestamp":"2025-10-23T09:19:40.784Z","payload":{"executionId":"graph-6db8469b-e654-4de0-a9af-bce3a899ba11","reason":"Cannot read properties of undefined (reading 'Root')"}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:41.067Z","payload":{"project":"parity-app","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:41.159Z","payload":{"project":"parity-app","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:41.171Z","payload":{"project":"parity-app","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:41.177Z","payload":{"project":"parity-app","status":"pass","mode":"single"}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:41.394Z","payload":{"project":"hello-world","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:41.518Z","payload":{"project":"hello-world","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:41.535Z","payload":{"project":"hello-world","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:41.539Z","payload":{"project":"hello-world","status":"pass","mode":"single"}}
+{"name":"langgraph.fallback","timestamp":"2025-10-23T09:19:41.613Z","payload":{"executionId":"graph-dafc87fe-d563-4ad9-8f2b-39afc840c6ac","reason":"Cannot read properties of undefined (reading 'Root')"}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:41.659Z","payload":{"project":"hello-world","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:41.671Z","payload":{"project":"hello-world","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:41.707Z","payload":{"project":"hello-world","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:41.736Z","payload":{"project":"hello-world","status":"pass","mode":"single"}}
+{"name":"repair_abort","timestamp":"2025-10-23T09:19:44.333Z","payload":{"reason":"invalid_delete","attempt":1,"project":"project"}}
+{"name":"llm_retry","timestamp":"2025-10-23T09:19:46.393Z","payload":{"attempt":1,"maxRetries":3,"backoffMs":0,"status":429,"code":"","message":"rate limited","isTimeout":false}}
+{"name":"llm_retry","timestamp":"2025-10-23T09:19:46.432Z","payload":{"attempt":2,"maxRetries":3,"backoffMs":0,"status":429,"code":"","message":"rate limited","isTimeout":false}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:52.306Z","payload":{"project":"hello-world","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:52.316Z","payload":{"project":"hello-world","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:52.319Z","payload":{"project":"hello-world","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:52.323Z","payload":{"project":"hello-world","status":"pass","mode":"single"}}
+{"name":"langgraph.fallback","timestamp":"2025-10-23T09:19:52.336Z","payload":{"executionId":"graph-5fc1aa98-b2e0-4dda-ab44-1b05b59bea41","reason":"Cannot read properties of undefined (reading 'Root')"}}
+{"name":"generation_start","timestamp":"2025-10-23T09:19:52.348Z","payload":{"project":"hello-world","mode":"single"}}
+{"name":"test_run","timestamp":"2025-10-23T09:19:52.352Z","payload":{"project":"hello-world","stage":"initial","status":"pass"}}
+{"name":"repair_attempt","timestamp":"2025-10-23T09:19:52.355Z","payload":{"project":"hello-world","attempts":1,"finalStatus":"pass","successAttempt":1}}
+{"name":"generation_complete","timestamp":"2025-10-23T09:19:52.359Z","payload":{"project":"hello-world","status":"pass","mode":"single"}}
