@@ -49,7 +49,6 @@ import {
   PausedError
 } from "./orchestrator/abortSignal.js";
 import { listFixtures, readFixture } from "./fixtures/index.js";
-import type { MultiTurnContext } from "./repair/multiTurnRepair.js";
 import { type PendingQuestion } from "./orchestrator/checkpoints.js";
 import { raiseInterrupt, type InterruptQuestionInput } from "./orchestrator/interrupts.js";
 import { OrchestratorStateMachine, type OrchestratorState } from "./orchestrator/stateMachine.js";
@@ -71,6 +70,10 @@ import { mountClarifyRoutes } from "./domains/clarify/routes.js";
 import { mountProgressRoutes } from "./domains/progress/routes.js";
 import { mountExecuteRoutes } from "./domains/execute/routes.js";
 import { mountSessionsRoutes } from "./domains/sessions/routes.js";
+import { mountRunnerRoutes } from "./domains/runner/routes.js";
+import { mountFixturesRoutes } from "./domains/fixtures/routes.js";
+import { mountReplayRoutes } from "./domains/replay/routes.js";
+import { mountPlanRoutes } from "./domains/plan/routes.js";
 import { collectPlanGeneratedFiles, captureFixture, buildRepairSummary, buildRepairMetrics } from "./domains/execute/helpers.js";
 
 const IS_TEST_ENV = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
@@ -1447,6 +1450,29 @@ mountSessionsRoutes(app, {
   readSystemPrompt: () => fs.readFile("src/executor/systemPrompt.md", "utf-8"),
   resolveSessionPrompts
 });
+mountRunnerRoutes(app, {
+  slugify,
+  outputDir: OUTPUT_DIR,
+  runTests: (options) => runInSandbox(options),
+  logEvent
+});
+mountFixturesRoutes(app, { slugify, listFixtures });
+mountReplayRoutes(app, {
+  slugify,
+  outputDir: OUTPUT_DIR,
+  readFixture,
+  multiTurnRepair,
+  writeFiles,
+  ensureDefaultExportForApp,
+  runTests: (options) => runInSandbox(options),
+  logEvent
+});
+mountPlanRoutes(app, {
+  slugify,
+  outputDir: OUTPUT_DIR,
+  runTests: (options) => runInSandbox(options),
+  logEvent
+});
 
 // moved to src/domains/execute/routes.ts
 /* app.post("/api/execute", async (req, res) => {
@@ -1744,132 +1770,6 @@ mountSessionsRoutes(app, {
     }
   }
 }); */
-
-app.post("/api/run-tests", async (req, res) => {
-  try {
-    const project: string = (req.body?.project || "").toString();
-    if (!project) {
-      return res.status(400).json({ error: "project required" });
-    }
-    const slug = slugify(project, { lower: true, strict: true });
-    const projectRoot = path.join(OUTPUT_DIR, slug);
-    try {
-      await fs.access(projectRoot);
-    } catch {
-      return res.status(404).json({ error: "project not found" });
-    }
-
-    const run = await runInSandbox({ projectRoot, projectSlug: slug });
-    await logEvent("test_run", { project: slug, stage: "manual", status: run.status });
-    return res.json(run);
-  } catch (err: unknown) {
-    console.error(err);
-    const message = err instanceof Error ? err.message : "internal error";
-    return res.status(500).json({ error: message });
-  }
-});
-
-// List available fixtures for a project
-app.get("/api/fixtures/:project", async (req, res) => {
-  try {
-    const { project } = req.params as { project: string };
-    const slug = slugify(project, { lower: true, strict: true });
-    const sessions = await listFixtures(slug);
-    return res.json({ project: slug, sessions });
-  } catch (err) {
-    const message = (err as Error).message || 'internal error';
-    return res.status(500).json({ error: message });
-  }
-});
-
-// Replay repair from captured context without regeneration
-app.post("/api/replay/repair", async (req, res) => {
-  try {
-    const projectRaw: string = (req.body?.project || "").toString();
-    const sessionId: string = (req.body?.sessionId || "").toString();
-    if (!projectRaw || !sessionId) {
-      return res.status(400).json({ error: "project and sessionId required" });
-    }
-    const slug = slugify(projectRaw, { lower: true, strict: true });
-    const ctx = await readFixture<MultiTurnContext>(slug, sessionId, path.join("repair", "context.json")).catch(() => null);
-    if (!ctx) {
-      return res.status(404).json({ error: "repair context fixture not found" });
-    }
-    // Re-run repair with current logic
-    const history = await multiTurnRepair(ctx);
-    return res.json({ project: slug, sessionId, history });
-  } catch (err) {
-    const message = (err as Error).message || 'internal error';
-    return res.status(500).json({ error: message });
-  }
-});
-
-// Replay a single subtask by applying saved files and running tests
-app.post("/api/replay/subtask", async (req, res) => {
-  try {
-    const projectRaw: string = (req.body?.project || "").toString();
-    const sessionId: string = (req.body?.sessionId || "").toString();
-    const subtaskId: string = (req.body?.subtaskId || "").toString();
-    if (!projectRaw || !sessionId || !subtaskId) {
-      return res.status(400).json({ error: "project, sessionId, and subtaskId required" });
-    }
-    const slug = slugify(projectRaw, { lower: true, strict: true });
-    const projectRoot = path.join(OUTPUT_DIR, slug);
-    try { await fs.access(projectRoot); } catch { return res.status(404).json({ error: "project not found" }); }
-
-    type FixtureOutput = { files?: { path: string; contents: string }[] };
-    const output = await readFixture<FixtureOutput>(slug, sessionId, path.join("subtasks", subtaskId, "output.json")).catch(() => null);
-    if (!output || !Array.isArray(output.files)) {
-      return res.status(404).json({ error: "subtask output fixture not found or invalid" });
-    }
-    await writeFiles(projectRoot, output.files);
-    await ensureDefaultExportForApp(projectRoot);
-
-    const run = await runInSandbox({ projectRoot, projectSlug: slug });
-    await logEvent("test_run", { project: slug, stage: `replay-subtask:${subtaskId}` , status: run.status });
-    return res.json({ ok: true, project: slug, subtaskId, result: run });
-  } catch (err) {
-    const message = (err as Error).message || 'internal error';
-    return res.status(500).json({ error: message });
-  }
-});
-
-// List failed subtasks for a generated project (no regeneration)
-app.get("/api/plan/:project/failed-subtasks", async (req, res) => {
-  try {
-    const { project } = req.params as { project: string };
-    const slug = slugify(project, { lower: true, strict: true });
-    const projectRoot = path.join(OUTPUT_DIR, slug);
-    const metaPath = path.join(projectRoot, "_executor_meta.json");
-    const buf = await fs.readFile(metaPath, "utf-8");
-    const meta = JSON.parse(buf) as { subtaskResults?: Array<{ subtaskId: string; status: string; notes?: string; testResult?: { status: string; errorMessage?: string } | null }> };
-    const failed = (meta.subtaskResults ?? []).filter(r => r.status !== "completed").map(r => ({
-      subtaskId: r.subtaskId,
-      status: r.status,
-      reason: r.testResult?.errorMessage || r.notes || "unknown"
-    }));
-    return res.json({ project: slug, failed });
-  } catch (err) {
-    const message = (err as Error).message || 'internal error';
-    return res.status(500).json({ error: message });
-  }
-});
-
-// Retest a specific subtask by re-running the project's tests (no regeneration)
-app.post("/api/plan/:project/retest-subtask", async (req, res) => {
-  try {
-    const { project } = req.params as { project: string };
-    const slug = slugify(project, { lower: true, strict: true });
-    const projectRoot = path.join(OUTPUT_DIR, slug);
-    try { await fs.access(projectRoot); } catch { return res.status(404).json({ error: "project not found" }); }
-    const run = await runInSandbox({ projectRoot, projectSlug: slug });
-    await logEvent("test_run", { project: slug, stage: "retest-subtask", status: run.status });
-    return res.json({ project: slug, result: run });
-  } catch (err) {
-    const message = (err as Error).message || 'internal error';
-    return res.status(500).json({ error: message });
-  }
-});
 
 mountProgressRoutes(app, { openProgressStream, getProgress });
 
