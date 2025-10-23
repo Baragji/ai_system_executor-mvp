@@ -112,7 +112,8 @@ export function respondWithProblem(
       }
     }
     res.status(status);
-    res.setHeader("Content-Type", "application/problem+json");
+    // Explicitly include charset per best practice and to avoid any proxy/content-type normalization issues
+    res.setHeader("Content-Type", "application/problem+json; charset=utf-8");
     res.json(payload);
     return;
   }
@@ -121,7 +122,9 @@ export function respondWithProblem(
   if (extras) {
     Object.assign(fallback, extras);
   }
-  res.status(status).json(fallback);
+  res.status(status);
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.json(fallback);
 }
 
 /**

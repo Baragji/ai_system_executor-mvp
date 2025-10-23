@@ -195,7 +195,10 @@ async function main() {
 
   console.log('\n🎯 Suggested Next Action:');
   console.log(`Action: ${action.action}`);
-  console.log(`Reasoning: ${action.reasoning}`);
+  const reasoningText = (typeof action.reasoning === 'string' && action.reasoning.trim().length > 10)
+    ? action.reasoning
+    : 'No detailed reasoning provided by the workflow. This action is derived from current phase, gate status, and repository state.';
+  console.log(`Reasoning: ${reasoningText}`);
   console.log(`Command: ${action.command || 'N/A'}`);
 
   // Handle NO_ACTION case

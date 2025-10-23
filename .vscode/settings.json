@@ -20,5 +20,6 @@
                 "@modelcontextprotocol/server-sequential-thinking"
             ]
         }
-    }
+    },
+    "codium.codeCompletion.enable": true
 }

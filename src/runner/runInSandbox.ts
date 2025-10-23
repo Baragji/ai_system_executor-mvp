@@ -231,12 +231,16 @@ export async function runInSandbox(options: RunInSandboxOptions): Promise<RunRes
     if (sigkillTimer) {
       clearTimeout(sigkillTimer);
     }
-    logStream.end();
+    // Ensure all data is flushed before resolving
+    try {
+      logStream.end();
+    } catch {
+      // Ignore stream errors during cleanup
+    }
   });
 
-  if (timedOut) {
-    await waitTimeout(50);
-  }
+  // Small delay to allow filesystem to flush, especially on CI/macOS runners
+  await waitTimeout(50);
 
   const finishedAt = new Date();
   const durationMs = finishedAt.getTime() - startedAt.getTime();
