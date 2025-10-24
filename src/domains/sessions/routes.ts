@@ -2,7 +2,7 @@ import type { Application, Request, Response } from "express";
 import path from "node:path";
 
 import { PausedError } from "../../orchestrator/abortSignal.js";
-import type { CheckpointPayload, CheckpointRecord, PendingQuestion } from "../../orchestrator/checkpoints.js";
+import type { CheckpointPayload, CheckpointRecord } from "../../orchestrator/checkpoints.js";
 import type { InterruptQuestionInput } from "../../orchestrator/interrupts.js";
 import {
   ResumeStateError,
@@ -18,6 +18,7 @@ import type {
 } from "../../orchestrator/executionTypes.js";
 import type { WorkspaceManifest } from "../../orchestrator/workspaceManifest.js";
 import type { ResumePromptOptions } from "../../orchestrator/resumePrompt.js";
+import type { OrchestrationSession, ProgressSnapshot } from "../../orchestrator/sessionStore.js";
 
 interface PauseRequestBody {
   reason?: unknown;
@@ -30,29 +31,6 @@ interface ResumeRequestBody {
   answers?: unknown;
   reason?: unknown;
   adjustment?: unknown;
-}
-
-export interface ProgressSnapshot {
-  stage: string;
-  progress: number;
-  data?: Record<string, unknown>;
-  updatedAt: number;
-  done?: boolean;
-  state?: OrchestratorState;
-  paused?: boolean;
-  questions?: PendingQuestion[];
-  checkpointUpdatedAt?: string;
-}
-
-export interface OrchestrationSession {
-  machine: OrchestratorStateMachine;
-  paused: boolean;
-  questions: PendingQuestion[];
-  checkpointUpdatedAt?: string;
-  projectSlug?: string;
-  originalPrompt?: string;
-  effectivePrompt?: string;
-  projectName?: string;
 }
 
 export type SessionsDeps = {

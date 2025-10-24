@@ -1,6 +1,5 @@
 import "dotenv/config";
 import express from "express";
-import type { Request, Response } from "express";
 import cors from "cors";
 import morgan from "morgan";
 import path from "node:path";
@@ -46,10 +45,8 @@ import {
   PausedError
 } from "./orchestrator/abortSignal.js";
 import { listFixtures, readFixture } from "./fixtures/index.js";
-import { type PendingQuestion } from "./orchestrator/checkpoints.js";
-import { raiseInterrupt, type InterruptQuestionInput } from "./orchestrator/interrupts.js";
-import { OrchestratorStateMachine, type OrchestratorState } from "./orchestrator/stateMachine.js";
-import { resumeFromCheckpoint, type ResumeAnswer } from "./orchestrator/resume.js";
+import { raiseInterrupt } from "./orchestrator/interrupts.js";
+import { resumeFromCheckpoint } from "./orchestrator/resume.js";
 import { captureManifest, getManifest } from "./orchestrator/workspaceManifest.js";
 import { buildResumePrompts } from "./orchestrator/resumePrompt.js";
 import { StepQueue, type StepHandler } from "./orchestrator/stepQueue.js";
@@ -74,6 +71,26 @@ import { mountPlanRoutes } from "./domains/plan/routes.js";
 import { mountStatusRoutes } from "./domains/status/routes.js";
 import { mountFilesRoutes } from "./domains/files/routes.js";
 import { collectPlanGeneratedFiles, captureFixture, buildRepairSummary, buildRepairMetrics } from "./domains/execute/helpers.js";
+import {
+  type OrchestrationSession,
+  type ProgressSnapshot,
+  ensureOrchestrationSession as localEnsureOrchestrationSession,
+  getOrchestrationSession,
+  getProgressSnapshot,
+  setProgressSnapshot,
+  clearOrchestrationSessions,
+  clearProgressSnapshots,
+  PROGRESS_SESSION_TTL_MS
+} from "./orchestrator/sessionStore.js";
+import { stateToStage } from "./orchestrator/stateMapper.js";
+import { purgeExpiredProgressSessions } from "./orchestrator/ttl.js";
+import {
+  getProgress as localGetProgress,
+  openProgressStream as localOpenProgressStream,
+  setProgress as localSetProgress,
+  snapshotFromSession as localSnapshotFromSession
+} from "./orchestrator/progress.js";
+import { normalizeInterruptQuestions, normalizeResumeAnswers } from "./orchestrator/normalizers.js";
 
 const IS_TEST_ENV = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
 
@@ -110,262 +127,17 @@ app.use(morgan("dev"));
 const PORT = Number(process.env.PORT || 3000);
 const OUTPUT_DIR = path.resolve("output");
 const PUBLIC_DIR = path.resolve("public");
-// In-memory progress sessions for SSE/polling
-type ProgressSnapshot = {
-  stage: string;
-  progress: number;
-  data?: Record<string, unknown>;
-  updatedAt: number;
-  done?: boolean;
-  state?: OrchestratorState;
-  paused?: boolean;
-  questions?: PendingQuestion[];
-  checkpointUpdatedAt?: string;
-};
+const SERVICES_SPLIT = process.env.SERVICES_SPLIT === "1";
 
-interface OrchestrationSession {
-  machine: OrchestratorStateMachine;
-  paused: boolean;
-  questions: PendingQuestion[];
-  checkpointUpdatedAt?: string;
-  projectSlug?: string;
-  originalPrompt?: string;
-  effectivePrompt?: string;
-  projectName?: string;
+if (SERVICES_SPLIT) {
+  console.warn("SERVICES_SPLIT=1 requested, but remote orchestrator integration is not yet implemented; using local orchestrator");
 }
 
-const progressSessions = new Map<string, ProgressSnapshot>();
-const orchestrationSessions = new Map<string, OrchestrationSession>();
-const PROGRESS_SESSION_TTL_MS = Number(process.env.PROGRESS_SESSION_TTL_MS ?? 15 * 60 * 1000);
-
-function ensureOrchestrationSession(sessionId: string): OrchestrationSession {
-  let session = orchestrationSessions.get(sessionId);
-  if (!session) {
-    session = { machine: new OrchestratorStateMachine(), paused: false, questions: [] };
-    orchestrationSessions.set(sessionId, session);
-  }
-  return session;
-}
-
-function getOrchestrationSession(sessionId: string): OrchestrationSession | undefined {
-  return orchestrationSessions.get(sessionId);
-}
-
-function removeOrchestrationSession(sessionId: string): void {
-  orchestrationSessions.delete(sessionId);
-}
-
-function mapStageToState(stage: string, done?: boolean): OrchestratorState | null {
-  if (done) {
-    return "DONE";
-  }
-  switch (stage) {
-    case "analyzing":
-      return "CLARIFYING";
-    case "planning":
-      return "PLANNING";
-    case "generating":
-    case "testing":
-      return "GENERATING";
-    case "finalizing":
-      return "GENERATING";
-    default:
-      return null;
-  }
-}
-
-function stateToStage(state: OrchestratorState): string {
-  switch (state) {
-    case "CLARIFYING":
-      return "analyzing";
-    case "PLANNING":
-      return "planning";
-    case "GENERATING":
-      return "generating";
-    case "PAUSED":
-      return "paused";
-    case "DONE":
-      return "finalizing";
-    default:
-      return "analyzing";
-  }
-}
-
-function purgeExpiredProgressSessions(now: number) {
-  for (const [key, entry] of progressSessions.entries()) {
-    if (entry.done && now - entry.updatedAt > PROGRESS_SESSION_TTL_MS) {
-      progressSessions.delete(key);
-      removeOrchestrationSession(key);
-    }
-  }
-}
-
-function setProgress(sessionId: string | undefined, stage: string, progress: number, data?: Record<string, unknown>, done?: boolean) {
-  if (!sessionId) return;
-  purgeExpiredProgressSessions(Date.now());
-  const session = ensureOrchestrationSession(sessionId);
-
-  if (!session.paused) {
-    const target = mapStageToState(stage, done);
-    // Heal invalid end-state transitions by advancing through GENERATING when needed.
-    if (done === true) {
-      const current = session.machine.state;
-      if (current !== "DONE") {
-        if (current !== "GENERATING") {
-          try {
-            session.machine.transition("GENERATING", { reason: `progress:${stage}:pre_done` });
-          } catch (err) {
-            // If this fails, continue and attempt DONE below; state machine may still be in a valid state.
-            console.warn(`Failed pre-done GENERATING transition for ${sessionId}:`, err);
-          }
-        }
-        try {
-          session.machine.transition("DONE", { reason: `progress:${stage}:done` });
-        } catch (err) {
-          console.warn(`Failed to transition orchestrator for ${sessionId}:`, err);
-        }
-      }
-    } else if (target && target !== session.machine.state && target !== "PAUSED") {
-      try {
-        session.machine.transition(target, { reason: `progress:${stage}` });
-      } catch (err) {
-        console.warn(`Failed to transition orchestrator for ${sessionId}:`, err);
-      }
-    }
-    if (done) {
-      session.paused = false;
-      session.questions = [];
-      removeOrchestrationSession(sessionId);
-    }
-  }
-
-  progressSessions.set(sessionId, {
-    stage,
-    progress,
-    data,
-    updatedAt: Date.now(),
-    done,
-    state: session.machine.state,
-    paused: session.paused,
-    questions: session.questions,
-    checkpointUpdatedAt: session.checkpointUpdatedAt
-  });
-}
-
-function getProgress(sessionId: string): ProgressSnapshot | null {
-  const snap = progressSessions.get(sessionId) ?? null;
-  if (!snap) {
-    const session = orchestrationSessions.get(sessionId);
-    if (!session) {
-      return null;
-    }
-    return {
-      stage: stateToStage(session.machine.state),
-      progress: 0,
-      updatedAt: Date.now(),
-      done: false,
-      state: session.machine.state,
-      paused: session.paused,
-      questions: session.questions,
-      checkpointUpdatedAt: session.checkpointUpdatedAt
-    };
-  }
-  return snap;
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function normalizeInterruptQuestions(input: unknown): InterruptQuestionInput[] {
-  if (!Array.isArray(input)) {
-    return [];
-  }
-
-  const supportedTypes = new Set(["AMBIGUITY", "APPROVAL", "BUDGET_RISK"]);
-  const questions: InterruptQuestionInput[] = [];
-
-  for (const entry of input) {
-    if (!isPlainObject(entry)) continue;
-    const questionRaw = typeof entry.question === "string" ? entry.question.trim() : "";
-    if (!questionRaw) continue;
-
-    const typeRaw = typeof entry.type === "string" ? entry.type.trim().toUpperCase() : "";
-    const type = supportedTypes.has(typeRaw) ? (typeRaw as InterruptQuestionInput["type"]) : "AMBIGUITY";
-    const id = typeof entry.id === "string" ? entry.id.trim() || undefined : undefined;
-    const metadata = isPlainObject(entry.metadata) ? (entry.metadata as Record<string, unknown>) : undefined;
-
-    questions.push({
-      ...(id ? { id } : {}),
-      question: questionRaw,
-      type,
-      ...(metadata ? { metadata } : {})
-    });
-  }
-
-  return questions;
-}
-
-function normalizeResumeAnswers(input: unknown): ResumeAnswer[] {
-  if (!Array.isArray(input)) {
-    return [];
-  }
-  const answers: ResumeAnswer[] = [];
-  for (const entry of input) {
-    if (!isPlainObject(entry)) continue;
-    const questionId = typeof entry.questionId === "string" ? entry.questionId.trim() : "";
-    const value = (entry as Record<string, unknown>).value;
-    answers.push({ questionId, value });
-  }
-  return answers;
-}
-
-function snapshotFromSession(sessionId: string, fallback?: ProgressSnapshot | null): ProgressSnapshot {
-  const session = ensureOrchestrationSession(sessionId);
-  const existing = fallback ?? progressSessions.get(sessionId) ?? null;
-  const baseStage = existing?.stage ?? stateToStage(session.machine.state);
-  return {
-    stage: baseStage,
-    progress: existing?.progress ?? 0,
-    data: existing?.data,
-    updatedAt: Date.now(),
-    done: existing?.done ?? false,
-    state: session.machine.state,
-    paused: session.paused,
-    questions: session.questions,
-    checkpointUpdatedAt: session.checkpointUpdatedAt
-  };
-}
-
-function openProgressStream(req: Request, res: Response, sessionId: string): void {
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.flushHeaders?.();
-
-  const send = () => {
-    const snap = getProgress(sessionId);
-    if (snap) {
-      res.write(`event: progress\n`);
-      res.write(`data: ${JSON.stringify(snap)}\n\n`);
-      if (snap.done) {
-        clearInterval(timer);
-        res.end();
-      }
-    }
-  };
-
-  const timer = setInterval(send, 1000);
-  send();
-
-  const close = () => {
-    clearInterval(timer);
-    res.end();
-  };
-
-  req.on("close", close);
-  req.on("error", close);
-}
+const setProgress = localSetProgress;
+const getProgress = localGetProgress;
+const snapshotFromSession = localSnapshotFromSession;
+const openProgressStream = localOpenProgressStream;
+const ensureOrchestrationSession = localEnsureOrchestrationSession;
 
 
 // removed ensureMetaDirectory (cleaning done inline before runs)
@@ -1549,15 +1321,15 @@ if (process.env.NODE_ENV !== "test") {
 export { app };
 // Test helpers for progress TTL logic
 export const __progressTest = {
-  set(sessionId: string, entry: ProgressSnapshot) { progressSessions.set(sessionId, entry); },
-  get(sessionId: string) { return progressSessions.get(sessionId) ?? null; },
+  set(sessionId: string, entry: ProgressSnapshot) { setProgressSnapshot(sessionId, entry); },
+  get(sessionId: string) { return getProgressSnapshot(sessionId) ?? null; },
   purge(now: number) { purgeExpiredProgressSessions(now); },
   ttl() { return PROGRESS_SESSION_TTL_MS; },
   snapshot(sessionId: string, fallback?: ProgressSnapshot | null) {
     return snapshotFromSession(sessionId, fallback);
   },
   clear() {
-    progressSessions.clear();
+    clearProgressSnapshots();
   }
 };
 
@@ -1566,7 +1338,7 @@ export const __orchestratorTest = {
     return ensureOrchestrationSession(sessionId).machine;
   },
   clear() {
-    orchestrationSessions.clear();
+    clearOrchestrationSessions();
   }
 };
 import { validateFilesNonEmpty } from "./utils/validateFiles.js";

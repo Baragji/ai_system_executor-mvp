@@ -1,0 +1,12 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> executor-mvp@0.1.0 sbom:cyclonedx
+> node scripts/generate-cyclonedx.js
+
+[CycloneDX] Starting SBOM generation...
+[CycloneDX] Generating CycloneDX 1.6 SBOM from package-lock.json...
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+[CycloneDX] ✅ SBOM generated successfully: sbom.cdx.json
+[CycloneDX] Format: CycloneDX 1.6
+[CycloneDX] Components: 637
+[CycloneDX] Serial Number: urn:uuid:754067a9-0075-43d5-a4b9-10588ffd0c55

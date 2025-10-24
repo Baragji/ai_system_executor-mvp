@@ -1,0 +1,621 @@
+
+ RUN  v2.1.9 /workspace/ai_system_executor-mvp
+      Coverage enabled with v8
+
+stdout | tests/domains/sessions/routes.test.ts > POST /api/sessions/:id/pause > pauses a session and persists checkpoint
+[Pause] Session abc abort signal sent: true
+
+stdout | tests/domains/sessions/routes.test.ts > POST /api/sessions/:id/pause > handles cannot raise interrupt conflict
+[Pause] Session abc abort signal sent: true
+
+stdout | tests/domains/sessions/routes.test.ts > POST /api/sessions/:id/pause > uses provided questions and payload when supplied
+[Pause] Session abc abort signal sent: true
+
+stdout | tests/domains/sessions/routes.test.ts > POST /api/sessions/:id/pause > handles unexpected errors as bad request
+[Pause] Session abc abort signal sent: true
+
+stderr | tests/domains/sessions/routes.test.ts > POST /api/sessions/:id/resume > resumes execution without provider
+[Resume] No LLM provider configured; skipping automatic resume for abc
+
+stderr | tests/domains/sessions/routes.test.ts > POST /api/sessions/:id/resume > uses fallback slug when checkpoint lacks slug
+[Resume] No LLM provider configured; skipping automatic resume for abc
+
+ ✓ tests/domains/sessions/routes.test.ts (21 tests) 251ms
+ ✓ tests/repair/multiTurnRepair.test.ts (9 tests) 272ms
+ ✓ tests/domains/files/routes.test.ts (19 tests) 348ms
+stdout | tests/api/execute-multi-turn.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/api/execute-multi-turn.test.ts > /api/execute multi-turn integration > execute with initial pass - no repair attempts
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 17.487 ms - 79[0m
+[0mGET /api/executions/graph-4ad7ce0d-924c-40ba-9ee8-500833798bbb [32m200[0m 1.536 ms - 368[0m
+[0mGET /api/executions/graph-4ad7ce0d-924c-40ba-9ee8-500833798bbb [32m200[0m 1.062 ms - 368[0m
+[0mGET /api/executions/graph-4ad7ce0d-924c-40ba-9ee8-500833798bbb [32m200[0m 0.563 ms - 368[0m
+[0mGET /api/executions/graph-4ad7ce0d-924c-40ba-9ee8-500833798bbb [32m200[0m 0.674 ms - 4247[0m
+stdout | tests/api/execute-multi-turn.test.ts > /api/execute multi-turn integration > execute with single repair success - repairHistory has 1 attempt
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 7.655 ms - 79[0m
+[0mGET /api/executions/graph-b5907f45-340f-4e1f-be08-acc952924032 [32m200[0m 0.310 ms - 368[0m
+[0mGET /api/executions/graph-b5907f45-340f-4e1f-be08-acc952924032 [32m200[0m 0.491 ms - 368[0m
+[0mGET /api/executions/graph-b5907f45-340f-4e1f-be08-acc952924032 [32m200[0m 0.446 ms - 4436[0m
+stdout | tests/api/execute-multi-turn.test.ts > /api/execute multi-turn integration > execute with multi-turn success - repairHistory shows progression
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 2.989 ms - 79[0m
+[0mGET /api/executions/graph-f3a08538-d87b-4c80-b8e2-d4dd1dc47c98 [32m200[0m 0.384 ms - 368[0m
+[0mGET /api/executions/graph-f3a08538-d87b-4c80-b8e2-d4dd1dc47c98 [32m200[0m 0.404 ms - 368[0m
+[0mGET /api/executions/graph-f3a08538-d87b-4c80-b8e2-d4dd1dc47c98 [32m200[0m 0.510 ms - 6407[0m
+stdout | tests/api/execute-multi-turn.test.ts > /api/execute multi-turn integration > execute with all attempts exhausted - repairHistory shows 4 attempts
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 6.800 ms - 79[0m
+[0mGET /api/executions/graph-661c922d-f185-43bf-900d-5f2c72640810 [32m200[0m 0.614 ms - 368[0m
+[0mGET /api/executions/graph-661c922d-f185-43bf-900d-5f2c72640810 [32m200[0m 0.707 ms - 7304[0m
+stdout | tests/api/execute-multi-turn.test.ts > /api/execute multi-turn integration > response includes both testResults and repairHistory
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 2.751 ms - 79[0m
+[0mGET /api/executions/graph-cff856e4-7057-4bff-af94-52523c500d39 [32m200[0m 0.399 ms - 368[0m
+[0mGET /api/executions/graph-cff856e4-7057-4bff-af94-52523c500d39 [32m200[0m 2.173 ms - 368[0m
+[0mGET /api/executions/graph-cff856e4-7057-4bff-af94-52523c500d39 [32m200[0m 0.437 ms - 368[0m
+[0mGET /api/executions/graph-cff856e4-7057-4bff-af94-52523c500d39 [32m200[0m 0.749 ms - 4430[0m
+stdout | tests/api/execute-multi-turn.test.ts > /api/execute multi-turn integration > backward compatibility - maintains legacy fields
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 3.416 ms - 79[0m
+[0mGET /api/executions/graph-386ea641-8fe3-47a4-a39b-4c5adcae6e94 [32m200[0m 0.396 ms - 368[0m
+[0mGET /api/executions/graph-386ea641-8fe3-47a4-a39b-4c5adcae6e94 [32m200[0m 0.417 ms - 368[0m
+[0mGET /api/executions/graph-386ea641-8fe3-47a4-a39b-4c5adcae6e94 [32m200[0m 0.494 ms - 4430[0m
+ ✓ tests/api/execute-multi-turn.test.ts (6 tests) 565ms
+ ✓ tests/validation/dependencyPreflight.test.ts (12 tests) 121ms
+ ✓ tests/scripts/update-gate.test.ts (25 tests) 88ms
+stdout | tests/api/execute-with-planning.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/api/execute-with-planning.test.ts > POST /api/execute with planning > keeps existing flow for simple prompts
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 23.162 ms - 79[0m
+[0mGET /api/executions/graph-b166454e-abb4-44f3-aab8-194ce2afddbd [32m200[0m 1.844 ms - 394[0m
+[0mGET /api/executions/graph-b166454e-abb4-44f3-aab8-194ce2afddbd [32m200[0m 1.032 ms - 394[0m
+[0mGET /api/executions/graph-b166454e-abb4-44f3-aab8-194ce2afddbd [32m200[0m 0.479 ms - 394[0m
+[0mGET /api/executions/graph-b166454e-abb4-44f3-aab8-194ce2afddbd [32m200[0m 0.744 ms - 3807[0m
+stdout | tests/api/execute-with-planning.test.ts > POST /api/execute with planning > executes plan for complex prompt
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 3.277 ms - 79[0m
+[0mGET /api/executions/graph-d76e80a8-3b3c-4740-8b22-0623b9424cab [32m200[0m 0.323 ms - 422[0m
+[0mGET /api/executions/graph-d76e80a8-3b3c-4740-8b22-0623b9424cab [32m200[0m 0.386 ms - 422[0m
+[0mGET /api/executions/graph-d76e80a8-3b3c-4740-8b22-0623b9424cab [32m200[0m 0.762 ms - 5103[0m
+stdout | tests/api/execute-with-planning.test.ts > POST /api/execute with planning > falls back to single execution when plan quality low
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 2.838 ms - 79[0m
+[0mGET /api/executions/graph-4315c96d-1171-4cc3-8c87-2425b7a1f354 [32m200[0m 0.379 ms - 446[0m
+[0mGET /api/executions/graph-4315c96d-1171-4cc3-8c87-2425b7a1f354 [32m200[0m 0.324 ms - 570[0m
+[0mGET /api/executions/graph-4315c96d-1171-4cc3-8c87-2425b7a1f354 [32m200[0m 0.363 ms - 4062[0m
+stdout | tests/api/execute-with-planning.test.ts > POST /api/execute with planning > returns partial status when plan execution fails
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 3.600 ms - 79[0m
+[0mGET /api/executions/graph-8fde43d6-1961-476a-8c75-c2722cb7842a [32m200[0m 0.396 ms - 442[0m
+[0mGET /api/executions/graph-8fde43d6-1961-476a-8c75-c2722cb7842a [32m200[0m 0.681 ms - 442[0m
+[0mGET /api/executions/graph-8fde43d6-1961-476a-8c75-c2722cb7842a [32m200[0m 0.489 ms - 4883[0m
+ ✓ tests/api/execute-with-planning.test.ts (4 tests) 391ms
+ ✓ tests/scripts/detect-evidence.test.ts (13 tests) 54ms
+stdout | tests/meta/repair-metrics.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/meta/repair-metrics.test.ts > repair metrics telemetry > includes metrics and efficiency for successful repairs
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 24.157 ms - 79[0m
+[0mGET /api/executions/graph-1ff2302d-00f1-41ba-b44f-fc22200f4fc2 [32m200[0m 1.943 ms - 368[0m
+[0mGET /api/executions/graph-1ff2302d-00f1-41ba-b44f-fc22200f4fc2 [32m200[0m 1.045 ms - 368[0m
+[0mGET /api/executions/graph-1ff2302d-00f1-41ba-b44f-fc22200f4fc2 [32m200[0m 0.519 ms - 368[0m
+[0mGET /api/executions/graph-1ff2302d-00f1-41ba-b44f-fc22200f4fc2 [32m200[0m 0.847 ms - 5609[0m
+stdout | tests/meta/repair-metrics.test.ts > repair metrics telemetry > marks exhausted runs and zero efficiency when repairs fail
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 4.145 ms - 79[0m
+[0mGET /api/executions/graph-7cd2b441-dc4f-49fe-8162-8f549a5b1640 [32m200[0m 0.332 ms - 368[0m
+[0mGET /api/executions/graph-7cd2b441-dc4f-49fe-8162-8f549a5b1640 [32m200[0m 0.678 ms - 368[0m
+[0mGET /api/executions/graph-7cd2b441-dc4f-49fe-8162-8f549a5b1640 [32m200[0m 0.685 ms - 8204[0m
+stdout | tests/meta/repair-metrics.test.ts > repair metrics telemetry > handles scenarios with no repair attempts needed
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 3.009 ms - 79[0m
+[0mGET /api/executions/graph-d46a3cba-9df1-4557-9f61-5c2c8b406d61 [32m200[0m 0.633 ms - 368[0m
+[0mGET /api/executions/graph-d46a3cba-9df1-4557-9f61-5c2c8b406d61 [32m200[0m 0.731 ms - 4157[0m
+ ✓ tests/meta/repair-metrics.test.ts (3 tests) 339ms
+ ✓ tests/planning/executeSubtask.test.ts (7 tests) 56ms
+ ✓ tests/planning/executeTaskPlan.test.ts (8 tests) 30ms
+stderr | tests/runner/installDeps.test.ts > ensureDependencies > runs npm ci with --ignore-scripts when modules missing
+[ensureDependencies] registry unavailable, continuing without remote validation [ 'express@^4.0.0' ]
+
+ ✓ tests/runner/installDeps.test.ts (8 tests) 284ms
+ ✓ tests/domains/replay.routes.test.ts (9 tests) 195ms
+ ✓ tests/contracts/repair-history.test.ts (12 tests) 19ms
+ ✓ tests/state/execute-next-action.test.ts (18 tests) 17841ms
+   ✓ execute-next-action script > shows help with --help flag 984ms
+   ✓ execute-next-action script > runs in dry-run mode without executing commands 1021ms
+   ✓ execute-next-action script > shows current workflow state 1068ms
+   ✓ execute-next-action script > suggests an action based on workflow state 1059ms
+   ✓ execute-next-action script > exits cleanly when NO_ACTION suggested 1042ms
+   ✓ execute-next-action script > does not execute destructive commands 1008ms
+   ✓ execute-next-action script > provides reasoning for suggested action 1076ms
+   ✓ execute-next-action script > shows phase and gate information 1027ms
+   ✓ execute-next-action script > detects uncommitted changes 1093ms
+   ✓ execute-next-action script > formats output with emojis for readability 1061ms
+   ✓ execute-next-action script > accepts --dry-run short form -n 1066ms
+   ✓ execute-next-action script > accepts --help short form -h 949ms
+   ✓ execute-next-action script > script is executable with tsx 948ms
+   ✓ execute-next-action script > shows command to execute in dry-run mode 1046ms
+   ✓ execute-next-action script > includes safety documentation in help 950ms
+   ✓ execute-next-action script > validates action command exists before execution 1190ms
+   ✓ execute-next-action script > omits legacy workflow metadata fields from CLI output 1219ms
+ ✓ tests/state/sync.test.ts (2 tests) 219ms
+ ✓ tests/orchestrator/abortSignal.test.ts (26 tests) 56ms
+ ✓ tests/state/phaseState.test.ts (7 tests) 83ms
+ ✓ tests/planning/decomposeTask.test.ts (8 tests) 1491ms
+   ✓ decomposeTask > retries when LLM returns invalid JSON 784ms
+   ✓ decomposeTask > throws when validation fails after retries 674ms
+ ✓ tests/planning/validateDecomposition.test.ts (7 tests) 35ms
+stdout | tests/meta/clarification-telemetry.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/clarify [32m200[0m 14.967 ms - 539[0m
+stdout | tests/meta/clarification-telemetry.test.ts > clarification telemetry meta > meta file includes clarification data when clarifications used
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 15.258 ms - 79[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 2.972 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 1.212 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.656 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.665 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.952 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.601 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.792 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.810 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.711 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.984 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 1.067 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.633 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.593 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.409 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.417 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.440 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.436 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.547 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.440 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.740 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.536 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.574 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.637 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.397 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.444 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.618 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.461 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.393 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.529 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.751 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.498 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.588 ms - 491[0m
+stderr | tests/meta/clarification-telemetry.test.ts > clarification telemetry meta > meta file includes clarification data when clarifications used
+Planning execution failed, falling back to single execution TaskPlanValidationError: /subtasks must NOT have fewer than 2 items; /totalSubtasks must be >= 2
+    at Module.decomposeTask (/workspace/ai_system_executor-mvp/src/planning/decomposeTask.ts:303:19)
+    at planStepHandler (/workspace/ai_system_executor-mvp/src/server.ts:1059:18)
+    at StepQueue.handle (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:22)
+    at InlineExecutionQueue.handler (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+    at StepQueue.runWorkflow (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24)
+    at Module.runWithLangGraph (/workspace/ai_system_executor-mvp/src/orchestrator/graph.ts:136:26)
+    at /workspace/ai_system_executor-mvp/src/services/execute.ts:245:13 {
+  issues: []
+}
+
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.635 ms - 491[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.414 ms - 615[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.495 ms - 615[0m
+[0mGET /api/executions/graph-645a0d8a-a02d-4780-9f9a-56d2241d7603 [32m200[0m 0.765 ms - 4721[0m
+[0mPOST /api/clarify [32m200[0m 1.630 ms - 416[0m
+stdout | tests/meta/clarification-telemetry.test.ts > clarification telemetry meta > sets improvedSuccess false when tests fail
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 5.769 ms - 79[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.778 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.849 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.560 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.750 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.567 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.775 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.598 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 1.176 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.889 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.819 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.715 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 1.017 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.640 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.638 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.829 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.613 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.780 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.585 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.753 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.644 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.723 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.932 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.728 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.682 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.739 ms - 419[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.680 ms - 419[0m
+stderr | tests/meta/clarification-telemetry.test.ts > clarification telemetry meta > sets improvedSuccess false when tests fail
+Planning execution failed, falling back to single execution TaskPlanValidationError: /subtasks must NOT have fewer than 2 items; /totalSubtasks must be >= 2
+    at Module.decomposeTask (/workspace/ai_system_executor-mvp/src/planning/decomposeTask.ts:303:19)
+    at planStepHandler (/workspace/ai_system_executor-mvp/src/server.ts:1059:18)
+    at StepQueue.handle (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:22)
+    at InlineExecutionQueue.handler (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+    at StepQueue.runWorkflow (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24)
+    at Module.runWithLangGraph (/workspace/ai_system_executor-mvp/src/orchestrator/graph.ts:136:26)
+    at /workspace/ai_system_executor-mvp/src/services/execute.ts:245:13 {
+  issues: []
+}
+
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.602 ms - 543[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.639 ms - 543[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.406 ms - 543[0m
+[0mGET /api/executions/graph-cb3b78d9-9649-472a-8b5a-6671597b1a81 [32m200[0m 0.512 ms - 9386[0m
+[0mPOST /api/clarify [32m200[0m 0.567 ms - 416[0m
+stdout | tests/meta/clarification-telemetry.test.ts > clarification telemetry meta > marks clarification asked when user skips answers
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 2.602 ms - 79[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.359 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.411 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.493 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.441 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.654 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.508 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.505 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.448 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.861 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.508 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.582 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.527 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.469 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.476 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.555 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.547 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.535 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.404 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.433 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.463 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.731 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.477 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.459 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.613 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.678 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.781 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.441 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.442 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.663 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.584 ms - 384[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.727 ms - 384[0m
+stderr | tests/meta/clarification-telemetry.test.ts > clarification telemetry meta > marks clarification asked when user skips answers
+Planning execution failed, falling back to single execution TaskPlanValidationError: /subtasks must NOT have fewer than 2 items; /totalSubtasks must be >= 2
+    at Module.decomposeTask (/workspace/ai_system_executor-mvp/src/planning/decomposeTask.ts:303:19)
+    at planStepHandler (/workspace/ai_system_executor-mvp/src/server.ts:1059:18)
+    at StepQueue.handle (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:275:22)
+    at InlineExecutionQueue.handler (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:96:22)
+    at StepQueue.enqueueStep (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:239:20)
+    at StepQueue.runWorkflow (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24)
+    at Module.runWithLangGraph (/workspace/ai_system_executor-mvp/src/orchestrator/graph.ts:136:26)
+    at /workspace/ai_system_executor-mvp/src/services/execute.ts:245:13 {
+  issues: []
+}
+
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.739 ms - 508[0m
+[0mGET /api/executions/graph-36aa9029-5d8b-4b04-9d95-86e1ecfece8b [32m200[0m 0.585 ms - 4344[0m
+stdout | tests/meta/clarification-telemetry.test.ts > clarification telemetry meta > keeps clarification false when no clarifications needed
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 2.242 ms - 79[0m
+[0mGET /api/executions/graph-351fea77-c31c-4c3a-8d33-03a6daca5274 [32m200[0m 0.309 ms - 400[0m
+[0mGET /api/executions/graph-351fea77-c31c-4c3a-8d33-03a6daca5274 [32m200[0m 0.676 ms - 4259[0m
+ ✓ tests/meta/clarification-telemetry.test.ts (4 tests) 2841ms
+   ✓ clarification telemetry meta > meta file includes clarification data when clarifications used 1101ms
+   ✓ clarification telemetry meta > sets improvedSuccess false when tests fail 855ms
+   ✓ clarification telemetry meta > marks clarification asked when user skips answers 843ms
+stdout | tests/api/execute-with-clarifications.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/api/execute-with-clarifications.test.ts > POST /api/execute with clarifications > works without clarifications
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 16.788 ms - 79[0m
+[0mGET /api/executions/graph-71319696-cf40-464f-ba6a-e9684528b3be [32m200[0m 1.970 ms - 380[0m
+[0mGET /api/executions/graph-71319696-cf40-464f-ba6a-e9684528b3be [32m200[0m 1.224 ms - 380[0m
+[0mGET /api/executions/graph-71319696-cf40-464f-ba6a-e9684528b3be [32m200[0m 0.782 ms - 380[0m
+[0mGET /api/executions/graph-71319696-cf40-464f-ba6a-e9684528b3be [32m200[0m 0.551 ms - 380[0m
+[0mGET /api/executions/graph-71319696-cf40-464f-ba6a-e9684528b3be [32m200[0m 0.429 ms - 380[0m
+[0mGET /api/executions/graph-71319696-cf40-464f-ba6a-e9684528b3be [32m200[0m 0.539 ms - 4181[0m
+stdout | tests/api/execute-with-clarifications.test.ts > POST /api/execute with clarifications > uses augmented prompt when clarifications provided
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 34.546 ms - 79[0m
+[0mGET /api/executions/graph-f5f368e3-f11e-4b46-b80b-b6e9c01d2d74 [32m200[0m 0.310 ms - 447[0m
+[0mGET /api/executions/graph-f5f368e3-f11e-4b46-b80b-b6e9c01d2d74 [32m200[0m 0.403 ms - 447[0m
+[0mGET /api/executions/graph-f5f368e3-f11e-4b46-b80b-b6e9c01d2d74 [32m200[0m 0.519 ms - 447[0m
+[0mGET /api/executions/graph-f5f368e3-f11e-4b46-b80b-b6e9c01d2d74 [32m200[0m 0.641 ms - 4425[0m
+stdout | tests/api/execute-with-clarifications.test.ts > POST /api/execute with clarifications > rejects invalid clarifications
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [33m400[0m 2.197 ms - 270[0m
+ ✓ tests/api/execute-with-clarifications.test.ts (3 tests) 438ms
+ ✓ tests/planning/estimateCompletion.test.ts (6 tests) 16ms
+ ✓ tests/orchestrator/stepQueue.test.ts (6 tests) 169ms
+stdout | tests/api/sessions-pause-resume.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > pauses a session and persists pending questions
+[Pause] Session session-001 abort signal sent: false
+
+[0mPOST /api/sessions/session-001/pause [32m201[0m 23.211 ms - 554[0m
+[0mGET /api/progress/snapshot/session-001 [32m200[0m 6.803 ms - 246[0m
+stdout | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > resumes a paused session when answers provided
+[Pause] Session session-002 abort signal sent: false
+
+[0mPOST /api/sessions/session-002/pause [32m201[0m 4.105 ms - 576[0m
+[0mPOST /api/sessions/session-002/resume [32m200[0m 21.453 ms - 945[0m
+[0mGET /api/progress/snapshot/session-002 [32m200[0m 2.391 ms - 198[0m
+stderr | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > resumes a paused session when answers provided
+[Resume] Execution failed for session session-002: Error: ENOENT: no such file or directory, mkdir '/workspace/ai_system_executor-mvp/.automation/checkpoints/step-workflows'
+    at Object.mkdir (node:internal/fs/promises:860:10)
+    at ensureRoot (/workspace/ai_system_executor-mvp/src/orchestrator/checkpointStore.ts:79:3)
+    at Module.recordStepQueued (/workspace/ai_system_executor-mvp/src/orchestrator/checkpointStore.ts:234:3)
+    at StepQueue.enqueueStep (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:231:5)
+    at StepQueue.runWorkflow (/workspace/ai_system_executor-mvp/src/orchestrator/stepQueue.ts:178:24) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'mkdir',
+  path: '/workspace/ai_system_executor-mvp/.automation/checkpoints/step-workflows'
+}
+
+stdout | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > rejects resume when missing answers
+[Pause] Session session-003 abort signal sent: false
+
+[0mPOST /api/sessions/session-003/pause [32m201[0m 3.163 ms - 578[0m
+[0mPOST /api/sessions/session-003/resume [33m400[0m 0.613 ms - 51[0m
+stdout | tests/api/sessions-pause-resume.test.ts > session pause/resume APIs > returns 409 when pausing an already paused session
+[Pause] Session session-004 abort signal sent: false
+
+[0mPOST /api/sessions/session-004/pause [32m201[0m 5.240 ms - 570[0m
+[0mPOST /api/sessions/session-004/pause [33m409[0m 0.529 ms - 34[0m
+ ✓ tests/api/sessions-pause-resume.test.ts (4 tests) 256ms
+ ✓ tests/repair/analyzeFailure.test.ts (7 tests) 25ms
+ ✓ tests/contracts/task-plan.test.ts (8 tests) 19ms
+ ✓ tests/contracts/ui-validation-result.test.ts (6 tests) 17ms
+ ✓ tests/workflow/detectEvidence.test.ts (9 tests) 47ms
+ ✓ tests/contracts/repair-history.adaptive.test.ts (3 tests) 50ms
+stdout | tests/e2e/phase1.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+ ↓ tests/e2e/phase1.test.ts (1 test | 1 skipped)
+ ✓ tests/domains/plan.routes.test.ts (5 tests) 126ms
+ ✓ tests/orchestrator/interrupts.test.ts (5 tests) 46ms
+ ✓ tests/planning/progressTracker.test.ts (8 tests) 27ms
+ ✓ tests/orchestrator/jobQueue.test.ts (2 tests) 19ms
+ ✓ tests/orchestrator/checkpoints.test.ts (8 tests) 60ms
+ ✓ tests/orchestrator/graph.test.ts (2 tests) 29ms
+stdout | tests/api/executions.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/api/executions.test.ts > LangGraph executions endpoint > returns 202 + Location for /api/execute and exposes status at /api/executions/:id
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 22.124 ms - 79[0m
+[0mGET /api/executions/graph-46545e1f-8364-4ed5-a1ea-c4293904ab86 [32m200[0m 1.612 ms - 394[0m
+[0mGET /api/executions/graph-46545e1f-8364-4ed5-a1ea-c4293904ab86 [32m200[0m 1.157 ms - 394[0m
+[0mGET /api/executions/graph-46545e1f-8364-4ed5-a1ea-c4293904ab86 [32m200[0m 0.568 ms - 394[0m
+[0mGET /api/executions/graph-46545e1f-8364-4ed5-a1ea-c4293904ab86 [32m200[0m 0.753 ms - 394[0m
+[0mGET /api/executions/graph-46545e1f-8364-4ed5-a1ea-c4293904ab86 [32m200[0m 0.670 ms - 4133[0m
+[0mGET /api/executions/does-not-exist [33m404[0m 0.929 ms - 171[0m
+ ✓ tests/api/executions.test.ts (2 tests) 227ms
+ ✓ tests/evaluation/logResults.test.ts (3 tests) 37ms
+ ✓ tests/runner/runInSandbox.abort.test.ts (1 test) 113ms
+ ✓ tests/runner/runInSandbox.integration.test.ts (2 tests) 158ms
+ ✓ tests/orchestrator/stateMachine.test.ts (11 tests) 27ms
+ ✓ tests/repair/missing-contents-fallback.test.ts (1 test) 46ms
+ ✓ tests/llm/timeout-retry.test.ts (3 tests) 3153ms
+   ✓ LLM timeout and retry behavior > should retry on timeout with exponential backoff 435ms
+   ✓ LLM timeout and retry behavior > should fail after max retries exceeded 679ms
+   ✓ LLM timeout and retry behavior > should handle long-running successful calls within timeout 2033ms
+stdout | tests/orchestrator/parity.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/orchestrator/parity.test.ts > orchestrator parity: stepqueue vs langgraph > produces equivalent final response payloads
+[/api/execute] runtime=stepqueue
+
+stdout | tests/orchestrator/parity.test.ts > orchestrator parity: stepqueue vs langgraph > produces equivalent final response payloads
+[/api/execute] Executing via StepQueue workflow (1 steps)
+
+[0mPOST /api/execute [32m200[0m 86.187 ms - 1160[0m
+stdout | tests/orchestrator/parity.test.ts > orchestrator parity: stepqueue vs langgraph > produces equivalent final response payloads
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 4.728 ms - 79[0m
+[0mGET /api/executions/graph-67030041-b9d5-4c57-8895-096a7ef6e690 [32m200[0m 2.485 ms - 394[0m
+[0mGET /api/executions/graph-67030041-b9d5-4c57-8895-096a7ef6e690 [32m200[0m 1.452 ms - 394[0m
+[0mGET /api/executions/graph-67030041-b9d5-4c57-8895-096a7ef6e690 [32m200[0m 0.728 ms - 4119[0m
+ ✓ tests/orchestrator/parity.test.ts (1 test) 255ms
+ ✓ tests/llm/providers/choose.test.ts (8 tests) 22ms
+stdout | tests/orchestrator/perf-overhead.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/orchestrator/perf-overhead.test.ts > orchestrator overhead > langgraph adds limited overhead for start+complete cycle
+[/api/execute] runtime=stepqueue
+
+stdout | tests/orchestrator/perf-overhead.test.ts > orchestrator overhead > langgraph adds limited overhead for start+complete cycle
+[/api/execute] Executing via StepQueue workflow (1 steps)
+
+[0mPOST /api/execute [32m200[0m 81.632 ms - 1135[0m
+stdout | tests/orchestrator/perf-overhead.test.ts > orchestrator overhead > langgraph adds limited overhead for start+complete cycle
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 5.029 ms - 79[0m
+[0mGET /api/executions/graph-d947ded0-716a-4333-be08-c822078c2322 [32m200[0m 1.313 ms - 356[0m
+[0mGET /api/executions/graph-d947ded0-716a-4333-be08-c822078c2322 [32m200[0m 1.963 ms - 356[0m
+[0mGET /api/executions/graph-d947ded0-716a-4333-be08-c822078c2322 [32m200[0m 0.729 ms - 4008[0m
+ ✓ tests/orchestrator/perf-overhead.test.ts (1 test) 247ms
+stderr | tests/planning/executeTaskPlan.duration.test.ts > executeTaskPlan duration limit > halts quickly when PLAN_MAX_DURATION_MS is small
+Plan halted: UI timeout guard at 0s (PLAN_MAX_DURATION_MS=100). Completed 0/2.
+
+ ✓ tests/planning/executeTaskPlan.duration.test.ts (1 test) 35ms
+ ✓ tests/orchestrator/resume.test.ts (3 tests) 50ms
+ ✓ tests/planning/executeSubtask.resilience.test.ts (2 tests) 45ms
+stderr | tests/runner/logStream-error.test.ts > runInSandbox log stream error handling > returns results even if log stream fails
+Log stream error for /tmp/sandbox-log-1YoyNh/logs/demo_last_test_run_bc65a685-6e4a-4d28-a958-e73e369b3944.log: disk full
+
+ ✓ tests/runner/logStream-error.test.ts (1 test) 91ms
+ ✓ tests/telemetry/dual-write.test.ts (4 tests) 65ms
+ ✓ tests/clarification/detectMissing.test.ts (7 tests) 10ms
+ ✓ tests/repair/buildRepairPrompt.test.ts (4 tests) 11ms
+ ✓ tests/planning/analyzeDependencies.test.ts (5 tests) 22ms
+ ✓ tests/repair/repairOnce.test.ts (2 tests) 29ms
+ ✓ tests/contracts/clarification-validators.test.ts (10 tests) 20ms
+stdout | tests/api/files.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mGET /api/files/api-files-test/src%2Findex.ts [32m200[0m 14.293 ms - 96[0m
+[0mGET /api/files/api-files-test/nope.txt [33m404[0m 2.670 ms - 21[0m
+[0mGET /api/files/api-files-test/..%2F..%2Fetc%2Fpasswd [33m403[0m 0.572 ms - 21[0m
+[0mGET /output-archive/api-files-test [32m200[0m 4.858 ms - -[0m
+[0mGET /output-archive/api-files-test?format=tar [32m200[0m 42.021 ms - -[0m
+ ✓ tests/api/files.test.ts (5 tests) 155ms
+ ✓ tests/llm/providers/openai-provider.test.ts (2 tests) 16ms
+ ✓ tests/orchestrator/resumePrompt.test.ts (1 test) 11ms
+ ✓ tests/repair/delete-validation.test.ts (1 test) 37ms
+ ✓ tests/clarification/augmentPrompt.test.ts (6 tests) 11ms
+ ✓ tests/clarification/generateQuestions.test.ts (6 tests) 18ms
+ ✓ tests/llm/tools/fsTools.test.ts (4 tests) 89ms
+ ✓ tests/domains/runner/routes.test.ts (2 tests) 157ms
+ ✓ tests/repair/buildRepairPrompt.adaptive.test.ts (3 tests) 9ms
+ ✓ tests/domains/fixtures/routes.test.ts (2 tests) 101ms
+ ✓ tests/domains/status/routes.test.ts (3 tests) 72ms
+ ✓ tests/repair/generateDiff.test.ts (3 tests) 30ms
+ ↓ tests/e2e/langgraph-real-llm.e2e.test.ts (1 test | 1 skipped)
+ ✓ tests/planning/generateSubtaskOutput.test.ts (3 tests) 30ms
+ ✓ tests/outcome-state-machine.test.ts (5 tests) 9ms
+ ✓ tests/telemetry/plan-trace.test.ts (1 test) 347ms
+   ✓ plan progress telemetry > records trace entries with subtask and progress 344ms
+ ✓ tests/orchestrator/workspaceManifest.test.ts (1 test) 72ms
+ ✓ tests/runner/detectTestCommand.test.ts (5 tests) 32ms
+ ✓ tests/runner/runInSandbox.test.ts (3 tests) 2356ms
+   ✓ runInSandbox > returns pass status for passing projects 1079ms
+   ✓ runInSandbox > returns fail status for failing projects 994ms
+ ✓ tests/repair/strategySelector.test.ts (6 tests) 11ms
+ ✓ tests/llm/retry.test.ts (2 tests) 48ms
+ ✓ tests/contracts/validators.test.ts (6 tests) 24ms
+ ✓ tests/state/snapshot.test.ts (1 test) 273ms
+ ✓ tests/orchestrator/replay.test.ts (4 tests) 16ms
+stdout | tests/api/problem-details.test.ts > problem+json envelope > returns legacy error body when disabled
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/api/problem-details.test.ts > problem+json envelope > returns legacy error body when disabled
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [33m400[0m 18.054 ms - 27[0m
+stdout | tests/api/problem-details.test.ts > problem+json envelope > returns RFC 9457 problem when enabled
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/execute [33m400[0m 2.220 ms - 151[0m
+stdout | tests/api/problem-details.test.ts > problem+json envelope > returns RFC 9457 problem when enabled
+[/api/execute] runtime=langgraph
+
+ ✓ tests/api/problem-details.test.ts (2 tests) 2135ms
+   ✓ problem+json envelope > returns legacy error body when disabled 1543ms
+   ✓ problem+json envelope > returns RFC 9457 problem when enabled 589ms
+ ✓ tests/orchestrator/adapter.test.ts (3 tests) 101ms
+ ✓ tests/llm/abortSignal.test.ts (1 test) 23ms
+ ✓ tests/executor/writeFiles.security.test.ts (4 tests) 31ms
+stdout | tests/api/clarify-route.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mPOST /api/clarify [32m200[0m 8.663 ms - 16[0m
+[0mPOST /api/clarify [32m200[0m 2.232 ms - 396[0m
+[0mPOST /api/clarify [33m400[0m 0.979 ms - 151[0m
+ ✓ tests/api/clarify-route.test.ts (3 tests) 100ms
+ ✓ tests/clarification/suggestDefaults.test.ts (6 tests) 12ms
+ ✓ tests/utils/normalizeExports.test.ts (2 tests) 20ms
+ ✓ tests/workspace/manifest.test.ts (2 tests) 7ms
+ ✓ tests/utils/validateFiles.test.ts (3 tests) 25ms
+ ✓ tests/orchestrator/executionsStore.test.ts (2 tests) 13ms
+ ✓ tests/workflow/gateCriteria.test.ts (2 tests) 14ms
+ ✓ tests/utils/curlFetch.test.ts (1 test) 22ms
+stdout | tests/api/progress.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+[0mGET /api/progress/snapshot/wf-test-session [32m200[0m 13.730 ms - 124[0m
+ ✓ tests/api/progress.test.ts (2 tests) 82ms
+stdout | tests/executor/sanitizeOutput.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+ ✓ tests/executor/sanitizeOutput.test.ts (1 test) 10ms
+ ✓ tests/utils/seedTests.test.ts (2 tests) 8ms
+ ↓ tests/e2e/llm-live-openai.test.ts (1 test | 1 skipped)
+ ✓ tests/utils/fixtures.test.ts (1 test) 26ms
+stdout | tests/meta/progress-ttl.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+ ✓ tests/meta/progress-ttl.test.ts (1 test) 7ms
+ ✓ tests/contracts/execution-trace.test.ts (2 tests) 14ms
+stdout | tests/benchmarks/perf-overhead.test.ts
+[OTel] Telemetry disabled (OTEL_ENABLED not set)
+
+stdout | tests/benchmarks/perf-overhead.test.ts > orchestrator overhead > langgraph adds limited overhead for start+complete cycle
+[/api/execute] runtime=stepqueue
+
+stdout | tests/benchmarks/perf-overhead.test.ts > orchestrator overhead > langgraph adds limited overhead for start+complete cycle
+[/api/execute] Executing via StepQueue workflow (1 steps)
+
+[0mPOST /api/execute [32m200[0m 91.315 ms - 1135[0m
+stdout | tests/benchmarks/perf-overhead.test.ts > orchestrator overhead > langgraph adds limited overhead for start+complete cycle
+[/api/execute] runtime=langgraph
+
+[0mPOST /api/execute [32m202[0m 4.217 ms - 79[0m
+[0mGET /api/executions/graph-f18526f8-27c6-4580-93dc-0119932449c5 [32m200[0m 1.325 ms - 356[0m
+[0mGET /api/executions/graph-f18526f8-27c6-4580-93dc-0119932449c5 [32m200[0m 2.130 ms - 356[0m
+[0mGET /api/executions/graph-f18526f8-27c6-4580-93dc-0119932449c5 [32m200[0m 0.664 ms - 4008[0m
+ ✓ tests/benchmarks/perf-overhead.test.ts (1 test) 247ms
+
+ Test Files  98 passed | 3 skipped (101)
+      Tests  498 passed | 3 skipped (501)
+   Start at  01:37:44
+   Duration  167.77s (transform 4.55s, setup 0ms, collect 42.75s, tests 38.41s, environment 68ms, prepare 21.58s)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   83.72 |    75.29 |   94.23 |   83.72 |                   
+ contracts         |   88.23 |    81.98 |   94.73 |   88.23 |                   
+  ...eValidator.ts |     100 |       50 |     100 |     100 | 45-50             
+  ...yValidator.ts |    80.8 |    77.14 |     100 |    80.8 | ...51-152,155-156 
+  ...nValidator.ts |   85.31 |    86.04 |    87.5 |   85.31 | ...27-132,153-159 
+  validators.ts    |     100 |       92 |     100 |     100 | 52,56             
+ runner            |   85.51 |    77.08 |     100 |   85.51 |                   
+  ...estCommand.ts |     100 |    94.44 |     100 |     100 | 22                
+  installDeps.ts   |   84.43 |    82.69 |     100 |   84.43 | ...85-188,190-194 
+  runInSandbox.ts  |   84.51 |    68.91 |     100 |   84.51 | ...72-273,291-292 
+ utils             |   75.27 |    62.96 |      90 |   75.27 |                   
+  checksum.ts      |     100 |      100 |     100 |     100 |                   
+  curlFetch.ts     |   89.23 |       40 |     100 |   89.23 | 16-19,41,43,45    
+  ...izeExports.ts |   96.87 |     92.3 |     100 |   96.87 | 38                
+  ...lizeHealth.ts |   41.66 |       75 |     100 |   41.66 | 7-30              
+  seedTests.ts     |   66.37 |    56.75 |      80 |   66.37 | ...,85-86,115-127 
+  validateFiles.ts |     100 |      100 |     100 |     100 |                   
+-------------------|---------|----------|---------|---------|-------------------

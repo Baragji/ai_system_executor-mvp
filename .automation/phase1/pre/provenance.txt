@@ -1,0 +1,12 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> executor-mvp@0.1.0 provenance
+> node scripts/generate-provenance.js
+
+[Provenance] Starting SLSA v1.0 provenance generation...
+[Provenance] Scanning dist/ for build artifacts...
+[Provenance] Found 86 artifacts
+[Provenance] ✅ SLSA v1.0 provenance generated: provenance.intoto.jsonl
+[Provenance] Artifacts: 86
+[Provenance] Git commit: 1c6e1b30
+[Provenance] Predicate type: https://slsa.dev/provenance/v1
