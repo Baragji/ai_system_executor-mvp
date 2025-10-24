@@ -1,0 +1,52 @@
+{
+  "phase": "1",
+  "summary": "Surveyed orchestrator state/session code in monolith and mapped dependencies for service extraction",
+  "integration_points": [
+    {
+      "file": "src/server.ts:125-363",
+      "reason": "In-memory session store, progress TTL enforcement, and SSE stream handlers that must move to service",
+      "snippets": [
+        "ProgressSnapshot/OrchestrationSession definitions",
+        "setProgress/getProgress helpers",
+        "snapshotFromSession/openProgressStream"
+      ]
+    },
+    {
+      "file": "src/orchestrator/stateMachine.ts",
+      "reason": "State machine powering orchestrator transitions reused by session store",
+      "snippets": ["OrchestratorStateMachine class"]
+    },
+    {
+      "file": "src/orchestrator/executionsStore.ts",
+      "reason": "Execution snapshots served via GET /v1/executions/:id",
+      "snippets": ["createExecution/getExecution"]
+    },
+    {
+      "file": "src/orchestrator/abortSignal.ts",
+      "reason": "Pause/resume signalling; required for POST /v1/sessions/:id/pause",
+      "snippets": ["createAbortSignal/abortSession/PausedError"]
+    },
+    {
+      "file": "src/orchestrator/resume.ts",
+      "reason": "Resume orchestration flow, needed for POST /v1/sessions/:id/resume",
+      "snippets": ["resumeFromCheckpoint"]
+    }
+  ],
+  "dependencies": [
+    "express",
+    "shared orchestrator modules for state, signals, resume",
+    "existing domain helpers under src/orchestrator/*"
+  ],
+  "impacts": [
+    "New services/orchestrator package",
+    "Feature-flagged adapter in src/server.ts",
+    "HTTP contract for progress, sessions, executions"
+  ],
+  "stack_compliance_check": {
+    "language": "TypeScript/Express",
+    "backend": "Node.js 20",
+    "frontend": "No UI impact",
+    "testing": "Vitest for new service",
+    "protected_files": "None"
+  }
+}
